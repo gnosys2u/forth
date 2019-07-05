@@ -39,6 +39,7 @@ namespace OSocket
 
     struct oSocketStruct
     {
+        long*       pMethods;
         ulong       refCount;
 #ifdef WIN32
         SOCKET      fd;
@@ -54,14 +55,14 @@ namespace OSocket
     FORTHOP(oSocketNew)
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-        ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
         MALLOCATE_OBJECT(oSocketStruct, pSocket, pClassVocab);
+        pSocket->pMethods = pClassVocab->GetMethods();
         pSocket->refCount = 0;
         pSocket->fd = -1;
         pSocket->domain = 0;
         pSocket->type = 0;
         pSocket->protocol = 0;
-        PUSH_PAIR(pPrimaryInterface->GetMethods(), pSocket);
+        PUSH_OBJECT(pSocket);
     }
 
     FORTHOP(oSocketDeleteMethod)
@@ -157,19 +158,19 @@ namespace OSocket
         int result = accept(pSocket->fd, addr, addrLen);
         if (result != -1)
         {
-            ForthClassVocabulary *pSocketVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCISocket);
-            MALLOCATE_OBJECT(oSocketStruct, pNewSocket, pSocketVocab);
+            ForthClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCISocket);
+            MALLOCATE_OBJECT(oSocketStruct, pNewSocket, pClassVocab);
+            pNewSocket->pMethods = pClassVocab->GetMethods();
             pNewSocket->refCount = 0;
             pNewSocket->fd = result;
             pNewSocket->domain = pSocket->domain;
             pNewSocket->type = pSocket->type;
             pNewSocket->protocol = pSocket->protocol;
-            ForthInterface* pPrimaryInterface = GET_BUILTIN_INTERFACE(kBCISocket, 0);
-            PUSH_PAIR(pPrimaryInterface->GetMethods(), pNewSocket);
+            PUSH_OBJECT(pNewSocket);
         }
         else
         {
-            PUSH_PAIR(0, 0);
+            PUSH_OBJECT(nullptr);
         }
         METHOD_RETURN;
     }

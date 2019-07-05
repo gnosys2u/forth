@@ -32,13 +32,12 @@ namespace OSystem
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
         ForthObject obj;
-        ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
         gSystemSingleton.refCount = 2000000000;
         CLEAR_OBJECT(gSystemSingleton.namedObjects);
         CLEAR_OBJECT(gSystemSingleton.args);
         CLEAR_OBJECT(gSystemSingleton.env);
-        obj.pMethodOps = pPrimaryInterface->GetMethods();
-        obj.pData = reinterpret_cast<long *>(&gSystemSingleton);
+        obj = reinterpret_cast<ForthObject>(&gSystemSingleton);
+        obj->pMethods = pClassVocab->GetMethods();
         PUSH_OBJECT(obj);
 	}
 
@@ -84,7 +83,7 @@ namespace OSystem
 		}
 		else
 		{
-			PUSH_PAIR(nullptr, nullptr);
+			PUSH_OBJECT(nullptr);
 		}
 		METHOD_RETURN;
 	}
@@ -94,7 +93,7 @@ namespace OSystem
 		GET_THIS(oSystemStruct, pSystem);
 		ForthObject vocabObj;
 		POP_OBJECT(vocabObj);
-		oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct *>(vocabObj.pData);
+		oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct *>(vocabObj);
 
 		ForthVocabulary* pVocab = pVocabStruct->vocabulary;
 		if (pVocab != NULL)
@@ -135,7 +134,7 @@ namespace OSystem
 		}
 		else
 		{
-			PUSH_PAIR(nullptr, nullptr);
+            PUSH_OBJECT(nullptr);
 		}
 		METHOD_RETURN;
 	}
@@ -150,10 +149,11 @@ namespace OSystem
 		{
 			PUSH_OBJECT(pVocab->GetVocabularyObject());
 		}
-		else
-		{
-			PUSH_PAIR(nullptr, nullptr);
-		}
+        else
+        {
+            PUSH_OBJECT(nullptr);
+        }
+
 		METHOD_RETURN;
 	}
 
@@ -161,7 +161,7 @@ namespace OSystem
 	{
 		ForthObject vocabObj;
 		POP_OBJECT(vocabObj);
-		oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct *>(vocabObj.pData);
+		oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct *>(vocabObj);
 
 		ForthVocabulary* pVocab = pVocabStruct->vocabulary;
 		if (pVocab != NULL)
@@ -176,7 +176,7 @@ namespace OSystem
 	{
 		ForthObject vocabObj;
 		POP_OBJECT(vocabObj);
-		oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct *>(vocabObj.pData);
+		oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct *>(vocabObj);
 
 		ForthVocabulary* pVocab = pVocabStruct->vocabulary;
 		if (pVocab != NULL)
@@ -200,17 +200,50 @@ namespace OSystem
 		}
 		else
 		{
-			PUSH_PAIR(nullptr, nullptr);
-		}
+            PUSH_OBJECT(nullptr);
+        }
 		METHOD_RETURN;
 	}
 	
+    FORTHOP(oSystemGetVocabChainHeadMethod)
+    {
+        GET_THIS(oSystemStruct, pSystem);
 
+        const char* pVocabName = reinterpret_cast<const char*>(SPOP);
+        ForthVocabulary* pVocab = ForthVocabulary::GetVocabularyChainHead();
+        PUSH_OBJECT(pVocab->GetVocabularyObject());
+        METHOD_RETURN;
+    }
+
+    
 	FORTHOP(oSystemGetOpsTableMethod)
 	{
 		SPUSH((long)(pCore->ops));
 		METHOD_RETURN;
 	}
+
+
+    FORTHOP(oSystemGetClassByIndexMethod)
+    {
+        int typeIndex = SPOP;
+        ForthObject classObject = nullptr;
+        ForthClassVocabulary* pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(typeIndex);
+        if (pClassVocab != nullptr)
+        {
+            classObject = (ForthObject) pClassVocab->GetClassObject();
+        }
+
+        PUSH_OBJECT(classObject);
+        METHOD_RETURN;
+    }
+
+
+    FORTHOP(oSystemGetNumClassesMethod)
+    {
+        int numClasses = ForthTypesManager::GetInstance()->GetNewestClass()->GetTypeIndex() + 1;
+        SPUSH(numClasses);
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oSystemCreateAsyncThreadMethod)
 	{
@@ -256,8 +289,11 @@ namespace OSystem
 		METHOD("setSearchVocabTop", oSystemSetSearchVocabTopMethod),
 		METHOD("pushSearchVocab", oSystemPushSearchVocabMethod),
 		METHOD_RET("getVocabByName", oSystemGetVocabByNameMethod, RETURNS_OBJECT(kBCIVocabulary)),
-		METHOD_RET("getOpsTable", oSystemGetOpsTableMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("createAsyncThread", oSystemCreateAsyncThreadMethod, RETURNS_OBJECT(kBCIAsyncThread)),
+        METHOD_RET("getVocabChainHead", oSystemGetVocabChainHeadMethod, RETURNS_OBJECT(kBCIVocabulary)),
+        METHOD_RET("getOpsTable", oSystemGetOpsTableMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("getClassByIndex", oSystemGetClassByIndexMethod, RETURNS_OBJECT(kBCIObject)),
+        METHOD_RET("getNumClasses", oSystemGetNumClassesMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("createAsyncThread", oSystemCreateAsyncThreadMethod, RETURNS_OBJECT(kBCIAsyncThread)),
         METHOD_RET("createAsyncLock", oSystemCreateAsyncLockMethod, RETURNS_OBJECT(kBCIAsyncLock)),
         METHOD_RET("createAsyncSemaphore", oSystemCreateAsyncSemaphoreMethod, RETURNS_OBJECT(kBCIAsyncSemaphore)),
 

@@ -299,8 +299,6 @@ bool ForthStructCodeGenerator::HandleFirst()
     bool isMethod = CODE_IS_METHOD( mTypeCode );
     //long compileVarop = 0;
 
-    // TODO: there is some wasteful fetching of full object when we just end up dropping method ptr
-
     if (!explicitTOSCast)
     {
         SPEW_STRUCTS( "First field %s op 0x%x\n", mpToken, pEntry[0] );
@@ -354,7 +352,7 @@ bool ForthStructCodeGenerator::HandleFirst()
 						if ( isPtr )
 						{
 							COMPILE_OP( "object ptr array", kOpMemberIntArray, pEntry[0] );
-							COMPILE_SIMPLE_OP( "ofetch", gCompiledOps[OP_OFETCH] );
+							COMPILE_SIMPLE_OP( "ifetch", gCompiledOps[OP_IFETCH] );
 						}
 						else
 						{
@@ -383,7 +381,7 @@ bool ForthStructCodeGenerator::HandleFirst()
 						if ( isPtr )
 						{
 							COMPILE_OP( "object ptr", kOpMemberInt, pEntry[0] );
-							COMPILE_SIMPLE_OP( "ofetch", gCompiledOps[OP_OFETCH] );
+							COMPILE_SIMPLE_OP( "ifetch", gCompiledOps[OP_IFETCH] );
 						}
 						else
 						{
@@ -417,7 +415,7 @@ bool ForthStructCodeGenerator::HandleFirst()
 		}
         if ( isObject && isPtr )
         {
-            *mpDst++ = gCompiledOps[OP_OFETCH];
+            *mpDst++ = gCompiledOps[OP_IFETCH];
         }
     }
 
@@ -532,14 +530,7 @@ bool ForthStructCodeGenerator::HandleMiddle()
     {
         SPEW_STRUCTS( " pointer" );
     }
-    if ( CODE_TO_BASE_TYPE(mTOSTypeCode) == kBaseTypeObject )
-    {
-        if ( !isMethod )
-        {
-            // TOS is object pair, discard vtable ptr since this is a member field access
-            *mpDst++ = gCompiledOps[OP_DROP];
-        }
-    }
+
     bool bSetStructVocab = false;
     if ( isMethod )
     {
@@ -607,8 +598,8 @@ bool ForthStructCodeGenerator::HandleMiddle()
             }
             if ( isObject )
             {
-                SPEW_STRUCTS( " ofetchOp 0x%x", gCompiledOps[OP_OFETCH] );
-                *mpDst++ = gCompiledOps[OP_OFETCH];
+                SPEW_STRUCTS( " ifetchOp 0x%x", gCompiledOps[OP_IFETCH] );
+                *mpDst++ = gCompiledOps[OP_IFETCH];
             }
         }
         else if ( isObject )
@@ -620,8 +611,8 @@ bool ForthStructCodeGenerator::HandleMiddle()
                 *mpDst++ = COMPILED_OP( kOpOffset, mOffset );
                 mOffset = 0;
             }
-            SPEW_STRUCTS( " ofetchOp 0x%x", gCompiledOps[OP_OFETCH] );
-            *mpDst++ = gCompiledOps[OP_OFETCH];
+            SPEW_STRUCTS( " ifetchOp 0x%x", gCompiledOps[OP_IFETCH] );
+            *mpDst++ = gCompiledOps[OP_IFETCH];
         }
         if (baseType == kBaseTypeStruct)
         {
@@ -732,15 +723,7 @@ bool ForthStructCodeGenerator::HandleLast()
     {
         SPEW_STRUCTS( " pointer" );
     }
-    if ( CODE_TO_BASE_TYPE(mTOSTypeCode) == kBaseTypeObject )
-    {
-        if ( !isMethod )
-        {
-            // TOS is object pair, discard vtable ptr since this is a member field access
-            *mpDst++ = gCompiledOps[OP_DROP];
-        }
-    }
-    
+
     //
     // this is final accessor field
     //
@@ -777,6 +760,17 @@ bool ForthStructCodeGenerator::HandleLast()
     }
     SPEW_STRUCTS( " opcode 0x%x\n", COMPILED_OP( opType, mOffset ) );
     *mpDst++ = COMPILED_OP( opType, mOffset );
+
+    if (isMethod && mUsesSuper)
+    {
+        // compile op that will pop old pMethods pointer and stuff it
+        //  back in this.pMethods after a methodWithSuper methods opcode
+        // for delete, which is method 0, compile an rdrop instead, since we don't
+        //   want to save the old pMethods into memory which we have just freed
+        long unSuperOp = gCompiledOps[(mOffset == 0) ? OP_RDROP : OP_UNSUPER];
+        SPEW_STRUCTS(" unsuperOp 0x%x", unSuperOp);
+        *mpDst++ = unSuperOp;
+    }
 	return success;
 }
 	

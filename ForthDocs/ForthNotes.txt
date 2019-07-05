@@ -145,7 +145,154 @@ Double and long memory and stack layouts:
 0xfedcba9876543210L    10 32 54 76  98 ba dc fe     98 ba dc fe  10 32 54 76  
 
 Double has consistent layout, long is reversed on param stack.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+July 5 2019
 
+Visual Studio is now useless for assembly language debug.  Single stepping
+through instructions will give different results from running up to a breakpoint,
+along with the problem of having the wrong stuff in registers.  They must be
+simulating execution, and their simulation is broken.
+
+I found and fixed a relatively small number of bugs, now test.txt, atc and
+newadv all work in assembler mode.  I got a bogus unrecognized symbol when I
+did this:
+load atc and run a game and quit
+try loading newadv
+This error existed in the previous release.
+After triggering that error, exiting Forth will cause a crash in CleanupGlobalObjectVariables.
+The global that it crashes on is filled with 0xdddddddd, which is freed heap memory.
+
+The problem was a global variable that was being set with "->o", so its refcount
+wasn't being bumped, and the global wasn't cleared with "null ->o" when it was
+done being used, so it was deleted when its other users were done with it and
+the global object was left a dangling pointer.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+July 4 2019
+
+I found what was wrong with atc, when it tried to process a user command it
+was using an op array that had an entry for each input state - idle, planeSelected,
+ready, etc - and doOpArrayBop had a bug where it was popping the IP after the
+op dispatch, it needs to be before.  After fixing that atc works.
+
+The adventure crash was due to a bug in String:resize and a script bug in
+defining adventure states.  Adventure now works.
+
+I started debugging the assembler version.   While debugging local object stores
+by single stepping in assembler I kept seeing inconsistent values in registers,
+like after a "mov ecx,eax" instructions ecx wasn't changed, and other times
+registers would change when stepping through an instruction that shouldn't
+change that register.  One time, I saw ebx loaded from a local object
+variable that I just printed out and wasn't zero, but after the load ebx was
+zero, I checked the memory location and it still wasn't zero, but the code
+tested ebx and took a jump zero branch as if ebx really was zero.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+July 3 2019
+
+I realized why I am getting random crashes when releasing objects, always in
+unsuper when it tries to set the pMethods back to its pre-super value.  When
+super.delete is done and is the end of the chain, Object.delete, that memory
+has been given back to the operating system and may be unmapped from forth's
+memory space.  DOH!  How do I fix this for super.delete?  Maybe have Object.delete
+set this to null, and check for that in unsuper before overwriting?  That won't
+work for more than one level of super.delete either, since the nulled pCore.this
+will be overwritten after exiting the delete method, so the next level up of
+delete method will see a non-null this pointer.
+Maybe if we treat delete/method0 as a special case, compile an rdrop instead
+of an unsuper opcode after a methodWithThis(delete).  Delete methods shouldn't
+be doing anything with the objects data or methods after super.delete anyway.
+
+After that change, everything in test.txt appears to be working in the non-assembler
+version, but I am seeing a lot of unfreed objects on exit again.
+
+I tried running a game of atc and it crashed on start.  The problem is this line:
+    ref pBase -> int pDst
+The "ref pBase ->" part gets compiled into a localRefOp combo, so when "int pDst"
+is compiled, it doesn't see that there was a preceeding "->", so it doesn't
+compile the op for pDst, it just adds the local variable.
+- check for "->" being eaten by other combo ops
+
+Adventure hangs after printing start instructions.
+
+I should try out atc and adv on the previous stable release.
+
+In the master branch, atc works fine, but adv exits right after printing the
+help message.
+
+I couldn't build a release version, there are unresolved externals for some
+32-bit float intrinsics which are probably usually inlined.  It is a smaller
+list than the last time it happened, but the maximumBogosity hack routine in
+ForthOps.cpp isn't fixing it anymore.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+July 2 2019
+
+Most of test.txt runs without problems, but inconsistently.
+- HelpDeck wasn't being deleted, if you fix that there is a crash while deleting
+  some IntMap, that might have been there before my changes
+- there are still vsnprintf warnings
+- depending on the order of tests, everything can run without errors, or sometimes
+  a few things in biclasstest will fail, and sometimes ansitest will have a
+  few failures (2over and 2drop?) and then crash.
+
+I also changed how MethodWithSuper works - now MethodWithSuper pushes the original
+this.pMethods on the rstack before invoking the superclass method, and when
+a MethodWithSuper opcode is compiled an _unsuper opcode is compiled immediately
+after it.  _unsuper takes the old methods off the rstack and stores it in this.pMethods.
+This allows MethodWithSuper to use ExecuteOp instead of FullyExecuteOp.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+June 30 2019
+
+I ran into a wierd one today.  When running with ASM_INNER_INTERPRETER undefined,
+the NATIVE_DEF macro creates dictionary entries with type CCode instead of Native.
+The LocalRefOp combo opType uses the Native optype dispatch routine instead of
+the CCode dispatch routine in this case.
+OpZBranch and OpNZBranch were actually using CCode optype always - did they work?
+Maybe they were never tested with asm interpreter turned off.
+
+- There is a seemingly bogus error message when using String:appendFormatted:
+   "Invalid parameter detected in function common_vsprintf_s."
+- tree_examples is reporting some errors
+- philosophers.txt crashes
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+June 29 2019
+
+Still working on getting the scripts in Sandbox to run without errors.
+
++ look at anything that uses _allocObject, since it was dealing with 2 items
+  on stack and now it has 1 item
++ look at anything which uses setNew (_allocObject covered all these already)
++ look at uses of Class.getVocabulary, it used to return vocab ptr, now it is object
++ ugh, look for all uses of 2dup/2drop/2swap/2over to dup/drop an object
++ another ugh - look for l0= l0<> uses for checking for null objects
++ dnull uses
+- major ugh, sometimes I used "or" to test for null objects!
+- gah! l= used for object comparison!
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+June 25 2019
+
+I insanely decided to move the object method pointer to being in the object,
+and having an object be represented by a single pointer.
+Anything which uses changing the objects method pointer is going to be a
+problem, I know of these ones:
+
++ the object show code used separate method pointer to easily implement recursing
+  down the superclass chain, running showInner at each level
+  -> I just modify the shown objects this.pMethods, are set it back to its
+     original value at the end
+- methodWithSuper changes this.methods to the methods for the superclass, if I
+  don't do that it won't work more than one derivation level deep.
+  I think the way to handle this is to have methodWithSuper push the original
+  methods pointer, and compile a fixup opcode right after compiling the
+  methodWithSuper opcode, the fixup opcode will pop the old methods pointer and
+  stuff it into this.pMethods
+
+I have done a first pass through all the O*.cpp files, I still need to deal with
+stuff like methodWithThis/TOS/Super.
+
+I've run into several cases where the code uses the object data pointer as a
+pointer to the refcount, I need to watch out for those.
+
+I need to look at the struct code generator, member data accesses are coded to
+use drop to get rid of the object method pointer on TOS.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 June 23 2019
 

@@ -74,16 +74,15 @@ float boohoo(int aa, int bb, int cc)
 void unrefObject(ForthObject& fobj)
 {
 	ForthEngine *pEngine = ForthEngine::GetInstance();
-	if (fobj.pData != NULL)
+	if (fobj != nullptr)
 	{
-		ulong refCount = *((ulong *)fobj.pData);
-		if (refCount == 0)
+		if (fobj->refCount == 0)
 		{
 			pEngine->SetError(kForthErrorBadReferenceCount, " unref with refcount already zero");
 		}
 		else
 		{
-			*fobj.pData -= 1;
+			fobj->refCount -= 1;
 		}
 	}
 }
@@ -98,29 +97,27 @@ namespace
     FORTHOP(objectNew)
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-        ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
         long nBytes = pClassVocab->GetSize();
-        long* pData = (long *)__MALLOC(nBytes);
+        ForthObject pThis = (ForthObject)__MALLOC(nBytes);
         // clear the entire object area - this handles both its refcount and any object pointers it might contain
-        memset(pData, 0, nBytes);
+        memset(pThis, 0, nBytes);
+        pThis->pMethods = pClassVocab->GetMethods();
         TRACK_NEW;
-        PUSH_PAIR(pPrimaryInterface->GetMethods(), pData);
+        PUSH_OBJECT(pThis);
     }
 
     FORTHOP(objectDeleteMethod)
     {
         // TODO: warn if refcount isn't zero
-        FREE_OBJECT(GET_TPD);
+        FREE_OBJECT(GET_TP);
         METHOD_RETURN;
     }
 
     FORTHOP(objectShowMethod)
     {
-        ForthObject obj;
-        obj.pData = GET_TPD;
-        obj.pMethodOps = GET_TPM;
+        ForthObject obj = GET_TP;
         ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
-        ForthClassObject* pClassObject = (ForthClassObject *)(*((GET_TPM)-1));
+        ForthClassObject* pClassObject = (ForthClassObject *)(*((obj->pMethods)-1));
         ForthEngine *pEngine = ForthEngine::GetInstance();
 
         if (pShowContext->ObjectAlreadyShown(obj))
@@ -132,17 +129,20 @@ namespace
             pShowContext->AddObject(obj);
             ForthClassVocabulary* pClassVocab = pClassObject->pVocab;
 
-            pShowContext->BeginObject(pClassVocab->GetName(), obj.pData, true);
+            pShowContext->BeginObject(pClassVocab->GetName(), obj, true);
 
+            long* originalMethods = obj->pMethods;
             while (pClassVocab != nullptr)
             {
                 pEngine->FullyExecuteMethod(pCore, obj, kMethodShowInner);
                 pClassVocab = (ForthClassVocabulary *)pClassVocab->BaseVocabulary();
                 if (pClassVocab != nullptr)
                 {
-                    obj.pMethodOps = pClassVocab->GetInterface(0)->GetMethods();
+                    // slightly horrible, but efficient
+                    obj->pMethods = pClassVocab->GetMethods();
                 }
             }
+            obj->pMethods = originalMethods;
 
             pShowContext->EndObject();
 
@@ -156,14 +156,12 @@ namespace
 
     FORTHOP(objectShowInnerMethod)
     {
-        ForthObject obj;
-        obj.pData = GET_TPD;
-        obj.pMethodOps = GET_TPM;
+        ForthObject obj = GET_TP;
         ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
-        ForthClassObject* pClassObject = (ForthClassObject *)(*((GET_TPM)-1));
+        ForthClassObject* pClassObject = (ForthClassObject *)(*((obj->pMethods)-1));
         ForthEngine *pEngine = ForthEngine::GetInstance();
 
-        pClassObject->pVocab->ShowDataInner(GET_TPD, pCore);
+        pClassObject->pVocab->ShowDataInner(GET_TP, pCore);
         METHOD_RETURN;
     }
 
@@ -172,18 +170,19 @@ namespace
 		// this is the big gaping hole - where should the pointer to the class vocabulary be stored?
 		// we could store it in the slot for method 0, but that would be kind of clunky - also,
 		// would slot 0 of non-primary interfaces also have to hold it?
-		// the class object is stored in the long before mehod 0
-		PUSH_PAIR(ForthTypesManager::GetInstance()->GetClassMethods(), *((GET_TPM)-1));
+		// the class object is stored in the long before method 0
+        ForthObject obj = GET_TP;
+        ForthClassObject* pClassObject = (ForthClassObject *)(*((obj->pMethods) - 1));
+        PUSH_OBJECT(pClassObject);
 		METHOD_RETURN;
 	}
 
 	FORTHOP(objectCompareMethod)
 	{
-		ForthObject obj;
-		long thisVal = (long)(GET_TPD);
-		POP_OBJECT(obj);
-		long thatVal = (long)(obj.pData);
-		long result = 0;
+		ForthObject thatVal;
+		POP_OBJECT(thatVal);
+        ForthObject thisVal = (ForthObject)(GET_TP);
+        long result = 0;
 		if (thisVal != thatVal)
 		{
 			result = (thisVal > thatVal) ? 1 : -1;
@@ -194,25 +193,25 @@ namespace
 
 	FORTHOP(objectKeepMethod)
 	{
-		ulong* pRefCount = (ulong*)(GET_TPD);      // member at offset 0 is refcount
-		(*pRefCount) += 1;
+        ForthObject obj = GET_TP;
+		obj->refCount += 1;
 		TRACK_KEEP;
 		METHOD_RETURN;
 	}
 
 	FORTHOP(objectReleaseMethod)
 	{
-		ulong* pRefCount = (ulong*)(GET_TPD);      // member at offset 0 is refcount
-		(*pRefCount) -= 1;
+        ForthObject obj = GET_TP;
+		obj->refCount -= 1;
 		TRACK_RELEASE;
-		if (*pRefCount != 0)
+		if (obj->refCount != 0)
 		{
 			METHOD_RETURN;
 		}
 		else
 		{
 			ForthEngine *pEngine = ForthEngine::GetInstance();
-			ulong deleteOp = GET_TPM[kMethodDelete];
+			ulong deleteOp = obj->pMethods[kMethodDelete];
 			pEngine->ExecuteOp(pCore, deleteOp);
 			// we are effectively chaining to the delete op, its method return will pop TPM & TPD for us
 		}
@@ -228,8 +227,9 @@ namespace
 		METHOD_RET("compare", objectCompareMethod, RETURNS_NATIVE(kBaseTypeInt)),
         METHOD("keep", objectKeepMethod),
 		METHOD("release", objectReleaseMethod),
+        MEMBER_VAR("__methods", NATIVE_TYPE_TO_CODE(0, kBaseTypeInt)),
         MEMBER_VAR("__refCount", NATIVE_TYPE_TO_CODE(0, kBaseTypeInt)),
-		// following must be last in table
+        // following must be last in table
 		END_MEMBERS
 	};
 
@@ -257,7 +257,7 @@ namespace
 	//
 	FORTHOP(classCreateMethod)
 	{
-		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TPD);
+		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TP);
 		SPUSH((long)pClassObject->pVocab);
 		ForthEngine *pEngine = ForthEngine::GetInstance();
 		METHOD_RETURN;
@@ -266,22 +266,21 @@ namespace
 
 	FORTHOP(classSuperMethod)
 	{
-		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TPD);
+		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TP);
 		ForthClassVocabulary* pClassVocab = pClassObject->pVocab;
-        stackInt64 superObj;
-        superObj.s64 = 0l;
+        ForthObject superObj = nullptr;
         if (pClassVocab->IsClass())
         {
-            superObj.obj = ((ForthClassVocabulary *)(pClassVocab->BaseVocabulary()))->GetVocabularyObject();
+            superObj = ((ForthClassVocabulary *)(pClassVocab->BaseVocabulary()))->GetVocabularyObject();
         }
 		// what should happen if a class is derived from a struct?
-		PUSH_OBJECT(superObj.obj);
+		PUSH_OBJECT(superObj);
 		METHOD_RETURN;
 	}
 
 	FORTHOP(classNameMethod)
 	{
-		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TPD);
+		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TP);
 		ForthClassVocabulary* pClassVocab = pClassObject->pVocab;
 		const char* pName = pClassVocab->GetName();
 		SPUSH((long)pName);
@@ -290,32 +289,18 @@ namespace
 
 	FORTHOP(classVocabularyMethod)
 	{
-		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TPD);
-		SPUSH((long)(pClassObject->pVocab));
+		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TP);
+		SPUSH((long)(pClassObject->pVocab->GetClassObject()));
 		METHOD_RETURN;
 	}
 
-	FORTHOP(classGetInterfaceMethod)
-	{
-		// TOS is ptr to name of desired interface
-		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TPD);
-		ForthClassVocabulary* pClassVocab = pClassObject->pVocab;
-		const char* pName = (const char*)(SPOP);
-		long* foundInterface = NULL;
-		long numInterfaces = pClassVocab->GetNumInterfaces();
-		for (int i = 0; i < numInterfaces; i++)
-		{
-			ForthInterface* pInterface = pClassVocab->GetInterface(i);
-			if (strcmp(pInterface->GetDefiningClass()->GetName(), pName) == 0)
-			{
-				foundInterface = (long *)pInterface;
-				break;
-			}
-		}
-		PUSH_PAIR(foundInterface, GET_TPD);
-		METHOD_RETURN;
-	}
-
+    FORTHOP(classGetTypeIndexMethod)
+    {
+        ForthClassObject* pClassObject = (ForthClassObject *)(GET_TP);
+        SPUSH(pClassObject->pVocab->GetTypeIndex());
+        METHOD_RETURN;
+    }
+    
 	FORTHOP(classDeleteMethod)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
@@ -325,7 +310,7 @@ namespace
 
 	FORTHOP(classSetNewMethod)
 	{
-		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TPD);
+		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TP);
 		pClassObject->newOp = SPOP;
 		METHOD_RETURN;
 	}
@@ -336,9 +321,9 @@ namespace
 		METHOD_RET("create", classCreateMethod, RETURNS_OBJECT(kBCIObject)),
 		METHOD_RET("getParent", classSuperMethod, RETURNS_OBJECT(kBCIClass)),
 		METHOD_RET("getName", classNameMethod, RETURNS_NATIVE(kDTIsPtr|kBaseTypeByte)),
-		METHOD_RET("getVocabulary", classVocabularyMethod, RETURNS_NATIVE(kDTIsPtr|kBaseTypeInt)),
-		METHOD_RET("getInterface", classGetInterfaceMethod, RETURNS_OBJECT(kBCIObject)),
-		METHOD("setNew", classSetNewMethod),
+        METHOD_RET("getVocabulary", classVocabularyMethod, RETURNS_OBJECT(kBCIVocabulary)),
+        METHOD_RET("getTypeIndex", classGetTypeIndexMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD("setNew", classSetNewMethod),
 
 		MEMBER_VAR("vocab", NATIVE_TYPE_TO_CODE(0, kBaseTypeInt)),
 		MEMBER_VAR("newOp", NATIVE_TYPE_TO_CODE(0, kBaseTypeOp)),
@@ -397,31 +382,29 @@ namespace
 } // namespace
 
 // return true IFF object was already shown
-bool ForthShowAlreadyShownObject(ForthObject* obj, ForthCoreState* pCore, bool addIfUnshown)
+bool ForthShowAlreadyShownObject(ForthObject obj, ForthCoreState* pCore, bool addIfUnshown)
 {
 	ForthEngine* pEngine = ForthEngine::GetInstance();
 	ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
-	if (obj->pData != NULL)
+	if (obj != nullptr)
 	{
-		ForthClassObject* pClassObject = (ForthClassObject *)(*((obj->pMethodOps) - 1));
-		if (pShowContext->ObjectAlreadyShown(*obj))
+		ForthClassObject* pClassObject = (ForthClassObject *)(obj->pMethods[-1]);
+		if (pShowContext->ObjectAlreadyShown(obj))
 		{
-			pShowContext->ShowObjectLink(*obj);
+			pShowContext->ShowObjectLink(obj);
 		}
 		else
 		{
 			if (addIfUnshown)
 			{
-				pShowContext->AddObject(*obj);
+				pShowContext->AddObject(obj);
 			}
 			return false;
 		}
 	}
 	else
 	{
-        ForthObject nullObj;
-        nullObj.pData = nullptr;
-        nullObj.pMethodOps = nullptr;
+        ForthObject nullObj = nullptr;
 		pShowContext->ShowObjectLink(nullObj);
 	}
 	return true;
@@ -429,7 +412,7 @@ bool ForthShowAlreadyShownObject(ForthObject* obj, ForthCoreState* pCore, bool a
 
 void ForthShowObject(ForthObject& obj, ForthCoreState* pCore)
 {
-	if (!ForthShowAlreadyShownObject(&obj, pCore, false))
+	if (!ForthShowAlreadyShownObject(obj, pCore, false))
 	{
 		ForthEngine* pEngine = ForthEngine::GetInstance();
 		ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
@@ -480,10 +463,8 @@ void ForthForgettableGlobalObject::ForgetCleanup( void* pForgetLimit, long op )
 		for (int i = 0; i < mNumElements; i++)
 		{
 			// TODO: release each 
-			SAFE_RELEASE(pCore, *pObject);
-			pObject->pData = NULL;
-			pObject->pMethodOps = NULL;
-			pObject++;
+			SAFE_RELEASE(pCore, pObject[i]);
+            pObject[i] = nullptr;
 		}
 	}
 }
@@ -506,11 +487,20 @@ long gObjectShowInnerOpcode = 0;
 void
 ForthTypesManager::AddBuiltinClasses(ForthEngine* pEngine)
 {
+
     ForthClassVocabulary* pObjectClassVocab = pEngine->AddBuiltinClass("Object", kBCIObject, kBCIInvalid, objectMembers);
     gObjectShowInnerOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodShowInner);
 
-    pEngine->AddBuiltinClass("ContainedType", kBCIContainedType, kBCIObject, containedTypeMembers);
     ForthClassVocabulary* pClassClassVocab = pEngine->AddBuiltinClass("Class", kBCIClass, kBCIObject, classMembers);
+    mpClassMethods = pClassClassVocab->GetMethods();
+
+    // set the methods for class objects "Class" and "Object", they were created
+    //   before "Class" had set the Class object methods pointer in type manager
+    // no classes defined after this will need to call FixClassObjectMethods
+    pObjectClassVocab->FixClassObjectMethods();
+    pClassClassVocab->FixClassObjectMethods();
+
+    pEngine->AddBuiltinClass("ContainedType", kBCIContainedType, kBCIObject, containedTypeMembers);
 
 	pEngine->AddBuiltinClass("Iter", kBCIIter, kBCIObject, oIterMembers);
     pEngine->AddBuiltinClass("Iterable", kBCIIterable, kBCIObject, oIterableMembers);
@@ -527,8 +517,6 @@ ForthTypesManager::AddBuiltinClasses(ForthEngine* pEngine)
 	OLock::AddClasses(pEngine);
     OSystem::AddClasses(pEngine);
     OSocket::AddClasses(pEngine);
-
-	mpClassMethods = pClassClassVocab->GetInterface(0)->GetMethods();
 }
 
 void

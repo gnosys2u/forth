@@ -21,8 +21,8 @@ ForthObjectReader::ForthObjectReader()
 : mInStream(nullptr)
 , mSavedChar('\0')
 , mHaveSavedChar(false)
-, mOutArrayObject({ nullptr, nullptr })
-, mInStreamObject({ nullptr, nullptr })
+, mOutArrayObject(nullptr)
+, mInStreamObject(nullptr)
 {
     mpEngine = ForthEngine::GetInstance();
 }
@@ -36,7 +36,7 @@ bool ForthObjectReader::ReadObjects(ForthObject& inStream, ForthObject& outArray
     mInStreamObject = inStream;
     mOutArrayObject = outArray;
     mpCore = pCore;
-    mInStream = reinterpret_cast<oInStreamStruct *>(inStream.pData);
+    mInStream = reinterpret_cast<oInStreamStruct *>(inStream);
     mContextStack.clear();
     mLineNum = 1;
     mCharOffset = 0;
@@ -56,9 +56,9 @@ bool ForthObjectReader::ReadObjects(ForthObject& inStream, ForthObject& outArray
         }
         ForthObject obj;
         getObject(&obj);
-        if (obj.pData != nullptr && obj.pMethodOps != nullptr)
+        if (obj != nullptr)
         {
-            oArrayStruct* outArray = reinterpret_cast<oArrayStruct *>(mOutArrayObject.pData);
+            oArrayStruct* outArray = reinterpret_cast<oArrayStruct *>(mOutArrayObject);
             outArray->elements->push_back(obj);
         }
     }
@@ -76,7 +76,7 @@ bool ForthObjectReader::ReadObjects(ForthObject& inStream, ForthObject& outArray
 char ForthObjectReader::getRawChar()
 {
     int ch;
-    mInStream->pInFuncs->inChar(mpCore, mInStreamObject.pData, ch);
+    mInStream->pInFuncs->inChar(mpCore, mInStreamObject, ch);
     if (ch == -1)
     {
         throwError("unexpected EOF");
@@ -201,8 +201,7 @@ void ForthObjectReader::getObject(ForthObject* pDst)
     mContext.pVocab = nullptr;
     mContext.pData = nullptr;
     mContext.objIndex = -1;
-    pDst->pData = nullptr;
-    pDst->pMethodOps = nullptr;
+    pDst = nullptr;
 
     bool done = false;
     while (!done)
@@ -273,7 +272,7 @@ void ForthObjectReader::getObjectOrLink(ForthObject* pDst)
             *pDst = linkedObject;
 
             // bump linked object refcount
-            *(linkedObject.pData) += 1;
+            linkedObject->refCount += 1;
         }
         else
         {
@@ -373,9 +372,9 @@ void ForthObjectReader::processElement(const std::string& name)
                 ForthObject newObject;
                 POP_OBJECT(newObject);
                 // new object has refcount of 1
-                *newObject.pData = 1;
+                newObject->refCount = 1;
                 mObjects.push_back(newObject);
-                mContext.pData = (char *) newObject.pData;
+                mContext.pData = (char *) newObject;
                 mKnownObjects[classId] = mContext.objIndex;
             }
             else

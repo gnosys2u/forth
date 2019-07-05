@@ -27,7 +27,8 @@ namespace ONumber
 
 	struct oIntStruct
 	{
-		ulong       refCount;
+        long*       pMethods;
+        ulong       refCount;
 		int			val;
 	};
 
@@ -35,11 +36,11 @@ namespace ONumber
 	FORTHOP(oIntNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
 		MALLOCATE_OBJECT(oIntStruct, pInt, pClassVocab);
+        pInt->pMethods = pClassVocab->GetMethods();
 		pInt->refCount = 0;
 		pInt->val = 0;
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pInt);
+		PUSH_OBJECT(pInt);
 	}
 
     FORTHOP(oIntShowInnerMethod)
@@ -58,7 +59,7 @@ namespace ONumber
         GET_THIS(oIntStruct, pInt);
         ForthObject compObj;
         POP_OBJECT(compObj);
-        oIntStruct* pComp = (oIntStruct *)compObj.pData;
+        oIntStruct* pComp = (oIntStruct *)compObj;
         int retVal = 0;
         if (pInt->val != pComp->val)
         {
@@ -150,8 +151,8 @@ namespace ONumber
 
 	struct oLongStruct
 	{
-		ulong       refCount;
-        int dummy;
+        long*       pMethods;
+        ulong       refCount;
 		long long	val;
 	};
 
@@ -159,11 +160,11 @@ namespace ONumber
 	FORTHOP(oLongNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
 		MALLOCATE_OBJECT(oLongStruct, pLong, pClassVocab);
-		pLong->refCount = 0;
+        pLong->pMethods = pClassVocab->GetMethods();
+        pLong->refCount = 0;
 		pLong->val = 0;
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pLong);
+		PUSH_OBJECT(pLong);
 	}
 
 	FORTHOP(oLongShowInnerMethod)
@@ -182,7 +183,7 @@ namespace ONumber
 		GET_THIS(oLongStruct, pLong);
 		ForthObject compObj;
 		POP_OBJECT(compObj);
-		oLongStruct* pComp = (oLongStruct *)compObj.pData;
+		oLongStruct* pComp = (oLongStruct *)compObj;
 		int retVal = 0;
 		if (pLong->val != pComp->val)
 		{
@@ -220,7 +221,6 @@ namespace ONumber
         METHOD_RET("get", oLongGetMethod, RETURNS_NATIVE(kBaseTypeLong)),
         METHOD("set", oLongSetMethod),
 
-        MEMBER_VAR("__dummy", NATIVE_TYPE_TO_CODE(0, kBaseTypeInt)),
         MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, kBaseTypeLong)),
 
 		// following must be last in table
@@ -235,7 +235,8 @@ namespace ONumber
 
 	struct oFloatStruct
 	{
-		ulong       refCount;
+        long*       pMethods;
+        ulong       refCount;
 		float		val;
 	};
 
@@ -243,11 +244,11 @@ namespace ONumber
 	FORTHOP(oFloatNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
 		MALLOCATE_OBJECT(oFloatStruct, pFloat, pClassVocab);
-		pFloat->refCount = 0;
+        pFloat->pMethods = pClassVocab->GetMethods();
+        pFloat->refCount = 0;
 		pFloat->val = 0.0f;
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pFloat);
+		PUSH_OBJECT(pFloat);
 	}
 
     FORTHOP(oFloatShowInnerMethod)
@@ -267,7 +268,7 @@ namespace ONumber
         GET_THIS(oFloatStruct, pFloat);
         ForthObject compObj;
         POP_OBJECT(compObj);
-        oFloatStruct* pComp = (oFloatStruct *)compObj.pData;
+        oFloatStruct* pComp = (oFloatStruct *)compObj;
         int retVal = 0;
         if (pFloat->val != pComp->val)
         {
@@ -315,8 +316,8 @@ namespace ONumber
 
 	struct oDoubleStruct
 	{
-		ulong       refCount;
-        int         dummy;
+        long*       pMethods;
+        ulong       refCount;
 		double		val;
 	};
 
@@ -324,16 +325,16 @@ namespace ONumber
 	FORTHOP(oDoubleNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
 		MALLOCATE_OBJECT(oDoubleStruct, pDouble, pClassVocab);
-		pDouble->refCount = 0;
+        pDouble->pMethods = pClassVocab->GetMethods();
+        pDouble->refCount = 0;
 		pDouble->val = 0.0;
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pDouble);
+		PUSH_OBJECT(pDouble);
 	}
 
 	FORTHOP(oDoubleShowInnerMethod)
 	{
-		char buff[32];
+		char buff[128];
 		GET_THIS(oDoubleStruct, pDouble);
 		ForthEngine *pEngine = ForthEngine::GetInstance();
 		ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
@@ -349,7 +350,7 @@ namespace ONumber
 		int retVal = 0;
 		ForthObject compObj;
 		POP_OBJECT(compObj);
-		oDoubleStruct* pComp = (oDoubleStruct *)compObj.pData;
+		oDoubleStruct* pComp = (oDoubleStruct *)compObj;
 		if (pDouble->val != pComp->val)
 		{
 			retVal = (pDouble->val > pComp->val) ? 1 : -1;
@@ -382,7 +383,6 @@ namespace ONumber
         METHOD_RET("get", oDoubleGetMethod, RETURNS_NATIVE(kBaseTypeDouble)),
         METHOD("set", oDoubleSetMethod),
 
-        MEMBER_VAR("__dummy", NATIVE_TYPE_TO_CODE(0, kBaseTypeInt)),
         MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, kBaseTypeDouble)),
 
 		// following must be last in table

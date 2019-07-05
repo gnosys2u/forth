@@ -7,7 +7,19 @@ setupTestBase
 : BUILTIN_CLASS_TEST ;
 
 // Object: delete show getClass compare(OBJ) keep release refCount
+mko Object ollie
+ollie.show
+ollie.getClass.show
+ollie.getClass -> Class ollieClass
+ollie.compare(ollieClass) "ollie cmp ollieClass = " %s %d %nl
+ollie.keep ollie.show
+ollie.release ollie.show
+
 // Class: delete create getParent getName getVocabulary getInterface("INTERFACE_NAME") setNew(OP)
+ollieClass.create -> Object ollie2
+ollieClass.getName "ollie has class " %s %s %nl
+ollieClass.getVocabulary <Vocabulary>.show
+oclear ollie
 
 // Iterable: headIter tailIter find clone count clear
 // Iter: seekNext seekPrev seekHead seekTail next prev current remove unref findNext(OBJ) clone
@@ -119,7 +131,7 @@ class: tobj    extends Object
     
   new:
     _allocObject
-    2dup nextObjId -rot -> <tobj>.objId
+    nextObjId over -> <tobj>.objId
     "|+" %s nextObjId %d
     1 ->+ nextObjId
   ;
@@ -304,12 +316,13 @@ test
 "run cleanup to free objects" %s %nl
 
 : cleanup
-  oclear zz
-  oclear zz2
+  oclear ollie
+  oclear zz  oclear zz2
   oclear za  oclear zb  oclear zc  oclear zd  oclear zr
 ;
 
 cleanupTestBase
+oclear arr
 
 loaddone
 

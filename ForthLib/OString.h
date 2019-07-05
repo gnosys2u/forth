@@ -14,7 +14,23 @@
 
 namespace OString
 {
-	extern oString* createOString(int maxChars);
+    typedef std::map<std::string, ForthObject> oStringMap;
+    struct oStringMapStruct
+    {
+        long*       pMethods;
+        ulong       refCount;
+        oStringMap*	elements;
+    };
+
+    struct oStringMapIterStruct
+    {
+        long*                   pMethods;
+        ulong				    refCount;
+        ForthObject			    parent;
+        oStringMap::iterator	*cursor;
+    };
+
+    extern oString* createOString(int maxChars);
 	extern oString* resizeOString(oStringStruct* pString, int newLen);
 	extern void appendOString(oStringStruct* pString, const char* pSrc, int numNewBytes);
 	extern void prependOString(oStringStruct* pString, const char* pSrc, int numNewBytes);
@@ -25,7 +41,7 @@ namespace OString
 	extern void stringStringOut( ForthCoreState* pCore, void *pData, const char *pBuffer );
     
 	void AddClasses(ForthEngine* pEngine);
-    void createStringMapObject(ForthObject& destObj, ForthClassVocabulary *pClassVocab);
+    oStringMapStruct* createStringMapObject(ForthClassVocabulary *pClassVocab);
 
 
     extern int gDefaultOStringSize;

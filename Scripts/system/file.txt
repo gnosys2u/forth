@@ -26,7 +26,7 @@ class: File extends Object
     if( fp )
       fclose( fp )
     endif
-    if( buffer l0<> )
+    if( buffer objNotNull )
       buffer.delete
     endif
     super.delete
@@ -271,7 +271,7 @@ class: File extends Object
     if( fp )
       ftell( fp ) -> int pos
       
-      if( buffer l0= )
+      if( buffer objIsNull )
         d[ "file.getLine allocating buffer\n" %s ]d
         new ByteArray -> buffer
         buffer.resize( 8 )
@@ -382,7 +382,7 @@ class: File extends Object
   
   // BUFFER_SIZE_BYTES ...
   m: setBufferSize
-    if( buffer l0= )
+    if( buffer objIsNull )
       new ByteArray -> buffer
     endif
     buffer.resize

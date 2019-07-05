@@ -599,8 +599,7 @@ ForthServerShell::ForthServerShell( bool doAutoload, ForthEngine *pEngine, Forth
 	mFileInterface.closeDir = serverCloseDir;
 	mFileInterface.rewindDir = serverRewindDir;
 
-	mConsoleOutObject.pData = NULL;
-	mConsoleOutObject.pMethodOps = NULL;
+	mConsoleOutObject = nullptr;
 }
 
 ForthServerShell::~ForthServerShell()

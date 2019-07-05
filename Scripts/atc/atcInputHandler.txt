@@ -461,11 +461,7 @@ class: atcInputHandler extends iAtcInputHandler
 
   : setCommandCharacter
     dup -> oCmdChar
-    -> cmdChar
-    if( within( cmdChar 'A' 'Z' 1+ ))
-      // cmdChar is lowercased oCmdChar
-      'a' 'A' - ->+ cmdChar
-    endif
+    tolower -> cmdChar
   ;
 
   : handleBackspace

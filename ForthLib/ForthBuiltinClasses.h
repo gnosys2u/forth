@@ -93,9 +93,8 @@ typedef enum
 	kNumBuiltinClasses		// must be last
 } eBuiltinClassIndex;
 
-#define SHOW_OBJ_HEADER  pShowContext->ShowHeader(pCore, ((ForthClassObject *)(*((GET_TPM)-1)))->pVocab->GetName(), GET_TPD)
 // ForthShowAlreadyShownObject returns true if object was already shown (or null), does display for those cases
-bool ForthShowAlreadyShownObject(ForthObject* obj, ForthCoreState* pCore, bool addIfUnshown);
+bool ForthShowAlreadyShownObject(ForthObject obj, ForthCoreState* pCore, bool addIfUnshown);
 void ForthShowObject(ForthObject& obj, ForthCoreState* pCore);
 
 extern "C"
@@ -104,11 +103,12 @@ extern "C"
     extern FORTHOP(illegalMethodOp);
 };
 
-#define EXIT_IF_OBJECT_ALREADY_SHOWN if (ForthShowAlreadyShownObject(GET_THIS_PTR, pCore, true)) { METHOD_RETURN; return; }
+#define EXIT_IF_OBJECT_ALREADY_SHOWN if (ForthShowAlreadyShownObject(GET_TP, pCore, true)) { METHOD_RETURN; return; }
 
 void unrefObject(ForthObject& fobj);
 
-#define GET_BUILTIN_INTERFACE(BCI_INDEX, INTERFACE_INDEX) ForthTypesManager::GetInstance()->GetClassVocabulary(BCI_INDEX)->GetInterface(INTERFACE_INDEX)
+#define GET_CLASS_VOCABULARY(BCI_INDEX) ForthTypesManager::GetInstance()->GetClassVocabulary(BCI_INDEX)
+#define GET_BUILTIN_INTERFACE(BCI_INDEX, INTERFACE_INDEX) GET_CLASS_VOCABULARY(BCI_INDEX)->GetInterface(INTERFACE_INDEX)
 
 // oOutStream is an abstract output stream class
 
@@ -122,10 +122,17 @@ struct OutStreamFuncs
 
 struct oOutStreamStruct
 {
+    long*               pMethods;
 	ulong               refCount;
 	void*               pUserData;
 	OutStreamFuncs*     pOutFuncs;
 	char				eolChars[4];
+};
+
+struct oStringOutStreamStruct
+{
+    oOutStreamStruct		ostream;
+    ForthObject				outString;
 };
 
 struct InStreamFuncs
@@ -151,7 +158,8 @@ enum
 
 struct oInStreamStruct
 {
-	ulong               refCount;
+    long*               pMethods;
+    ulong               refCount;
 	void*               pUserData;
 	int					bTrimEOL;
     InStreamFuncs*      pInFuncs;
@@ -160,8 +168,9 @@ struct oInStreamStruct
 typedef std::vector<ForthObject> oArray;
 struct oArrayStruct
 {
-	ulong       refCount;
-	oArray*    elements;
+    long*       pMethods;
+    ulong       refCount;
+	oArray*     elements;
 };
 
 struct oListElement
@@ -173,14 +182,16 @@ struct oListElement
 
 struct oListStruct
 {
-	ulong			refCount;
+    long*           pMethods;
+    ulong			refCount;
 	oListElement*	head;
 	oListElement*	tail;
 };
 
 struct oArrayIterStruct
 {
-	ulong			refCount;
+    long*           pMethods;
+    ulong			refCount;
 	ForthObject		parent;
 	ulong			cursor;
 };
@@ -196,7 +207,8 @@ struct oString
 
 struct oStringStruct
 {
-	ulong		refCount;
+    long*       pMethods;
+    ulong		refCount;
 	ulong		hash;
 	oString*	str;
 };
@@ -204,12 +216,14 @@ struct oStringStruct
 typedef std::map<long long, ForthObject> oLongMap;
 struct oLongMapStruct
 {
+    long*       pMethods;
     ulong       refCount;
     oLongMap*	elements;
 };
 
 struct oLongMapIterStruct
 {
+    long*               pMethods;
     ulong				refCount;
     ForthObject			parent;
     oLongMap::iterator*	cursor;

@@ -732,16 +732,16 @@ class: Game
                   of(2006) parseClose(obj) endof        // 2006 LOCK CLOSE
                   of(2007) parseOn(obj) endof           // 2007 LIGHT ON
                   of(2008) parseOff(obj) endof          // 2008 EXTIN OFF
-                  of(2009) dnull endof                  // 2009 WAVE SHAKE SWING
-                  of(2010) dnull endof                  // 2010 CALM PLACA TAME
-                  of(2012) dnull endof                  // 2012 ATTAC KILL FIGHT HIT STRIK
-                  of(2013) dnull endof                  // 2013 POUR
+                  of(2009) null endof                  // 2009 WAVE SHAKE SWING
+                  of(2010) null endof                  // 2010 CALM PLACA TAME
+                  of(2012) null endof                  // 2012 ATTAC KILL FIGHT HIT STRIK
+                  of(2013) null endof                  // 2013 POUR
                     // 77	YOUR BOTTLE IS EMPTY AND THE GROUND IS WET.
                     // 78	YOU CAN'T POUR THAT.
                   of(2014) parseEat(obj) endof                        // 2014 EAT DEVOU
                   of(2015) parseDrink(obj) endof                        // 2015 DRINK
-                  of(2016) dnull endof                  // 2016 RUB
-                  of(2017) dnull endof                  // 2017 THROW TOSS
+                  of(2016) null endof                  // 2016 RUB
+                  of(2017) null endof                  // 2017 THROW TOSS
                   of(2022) parseFill(obj) endof                        // 2022 FILL
                   verb.getDefaultMessage
                 endcase

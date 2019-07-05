@@ -93,7 +93,6 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, long opVal )
                 {
                     op = COMPILED_OP(kOpLocalRefOpCombo, previousVal | (uVal << 12));
                 }
-                lastOp = uVal;
             }
 
             if ((lastOp == gCompiledOps[OP_INTO]) || (lastOp == gCompiledOps[OP_INTO_PLUS]))

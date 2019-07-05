@@ -196,7 +196,7 @@ class: Location extends ILocation
       motionVerbsForPrintingMessage.get(i) -> Array verbs
       ?do(verbs.count 0)
         // OK to compare pointers
-        if(verbs.get(i) verb l=)
+        if(verbs.get(i) verb =)
           printMessages.get(j) ->o result
           leave
         endif
@@ -215,7 +215,7 @@ class: Location extends ILocation
       motionVerbs.get(i) -> Array verbs
       ?do(verbs.count 0)
         // OK to compare pointers
-        if(verbs.get(i) verb l=)
+        if(verbs.get(i) verb =)
           accessibleLocations.get(j) ->o result
           leave
         endif
@@ -233,7 +233,7 @@ class: Location extends ILocation
     ?do(locationConditions.count 0)
       locationConditions.get(i) -> ILocationCondition cond
       // OK to compare pointers
-      if(cond.to loc l=)
+      if(cond.to loc =)
         cond -> result
         leave
       endif
@@ -246,7 +246,7 @@ class: Location extends ILocation
     ILocationCondition result
     ?do(locationConditions.count 0)
       // OK to compare pointers
-      if(locC locationConditions.get(i) l=)
+      if(locC locationConditions.get(i) =)
         if(i locationConditions.count 1- <>)
           locationConditions.get(i 1+) -> result
           leave
@@ -261,7 +261,7 @@ class: Location extends ILocation
     false -> bool result
     ?do(objects.count 0)
       // OK to compare pointers
-      if(obj objects.get(i) l=)
+      if(obj objects.get(i) =)
         true -> result
         leave
       endif

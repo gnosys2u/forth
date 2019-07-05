@@ -47,7 +47,8 @@ struct ForthTypeInfo
 
 typedef struct
 {
-	ulong						refCount;
+    long*                       pMethods;
+    ulong						refCount;
 	ForthClassVocabulary*       pVocab;
     long                        newOp;
 } ForthClassObject;
@@ -240,11 +241,13 @@ public:
 	long				GetClassId( void )		{ return mTypeIndex; }
 
 	ForthInterface*		GetInterface( long index );
+    long*               GetMethods();
     long                FindInterfaceIndex( long classId );
 	virtual bool		IsClass( void );
 	long				GetNumInterfaces( void );
     virtual void        Extends( ForthClassVocabulary *pParentClass );
-    ForthClassObject*   GetClassObject( void );
+    ForthClassObject*   GetClassObject(void);
+    void                FixClassObjectMethods(void);
     ForthClassVocabulary* ParentClass( void );
 
     virtual void        PrintEntry( long*   pEntry );

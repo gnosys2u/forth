@@ -64,8 +64,8 @@ void myInvalidParameterHandler(const wchar_t* expression,
 	unsigned int line,
 	uintptr_t pReserved)
 {
-	wprintf(L"Invalid parameter detected in function %s.", function);
-	//wprintf(L"Expression: %s\n", expression);
+    wprintf(L"Invalid parameter detected in function %s.", function);
+	wprintf(L"Expression: %s\n", expression);
 	//abort();
 }
 

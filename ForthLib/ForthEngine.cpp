@@ -91,11 +91,27 @@ extern "C"
             {
                 pEngine->TraceOp(pIP, op);
                 forthOpType opType = FORTH_OP_TYPE(op);
-                if ((opType == kOpMethodWithThis) || (opType == kOpMethodWithTOS) || (opType == kOpMethodWithSuper))
+                if (opType == kOpMethodWithThis)
                 {
-                    long* pMethods = (opType == kOpMethodWithTOS) ? ((long *)*(pCore->SP)) : pCore->TPM;
+                    ForthObject thisObject = GET_TP;
+                    long* pMethods = thisObject->pMethods;
                     long opVal = FORTH_OP_VALUE(op);
                     SpewMethodName(pMethods, opVal);
+                }
+                else if (opType == kOpMethodWithTOS)
+                {
+                    ForthObject thisObject = (ForthObject)*(pCore->SP);
+                    long* pMethods = thisObject->pMethods;
+                    long opVal = FORTH_OP_VALUE(op);
+                    SpewMethodName(pMethods, opVal);
+                }
+                else if (opType == kOpMethodWithSuper)
+                {
+                    ForthObject thisObject = GET_TP;
+                    ForthClassObject* pClassObject = (ForthClassObject*)(thisObject->pMethods[-1]);
+                    long* pSuperMethods = pClassObject->pVocab->ParentClass()->GetMethods();
+                    long opVal = FORTH_OP_VALUE(op);
+                    SpewMethodName(pSuperMethods, opVal);
                 }
             }
 
@@ -317,10 +333,9 @@ ForthEngine::ForthEngine()
     ftime( &mStartTime );
 #endif
 
-	mDefaultConsoleOutStream.pMethodOps = NULL;
-	mDefaultConsoleOutStream.pData = NULL;
+	mDefaultConsoleOutStream = nullptr;
 
-	mDictionary.pBase = NULL;
+	mDictionary.pBase = nullptr;
 
     // At this point, the main thread does not exist, it will be created later in Initialize, this
     // is fairly screwed up, it is becauses originally ForthEngine was the center of the universe,
@@ -334,7 +349,7 @@ ForthEngine::~ForthEngine()
 {
     CleanupGlobalObjectVariables(nullptr);
 
-    if ( mpExtension != NULL )
+    if ( mpExtension != nullptr)
     {
         mpExtension->Shutdown();
     }
@@ -411,7 +426,7 @@ ForthEngine::~ForthEngine()
 ForthEngine*
 ForthEngine::GetInstance( void )
 {
-    ASSERT( mpInstance != NULL );
+    ASSERT( mpInstance != nullptr);
     return mpInstance;
 }
 
@@ -448,7 +463,7 @@ ForthEngine::Initialize( ForthShell*        pShell,
 	
 	mpOpcodeCompiler = new ForthOpcodeCompiler( &mDictionary );
 
-	if (mpTypesManager == NULL)
+	if (mpTypesManager == nullptr)
 	{
 		mpTypesManager = new ForthTypesManager();
 	}
@@ -1424,6 +1439,8 @@ ForthEngine::DescribeOp( long *pOp, char *pBuffer, int buffSize, bool lookupUser
     {
         const char *opTypeName = opTypeNames[opType];
 
+        bool searchVocabsForOp = false;
+
         switch( opType )
         {
             case kOpNative:
@@ -1456,52 +1473,16 @@ ForthEngine::DescribeOp( long *pOp, char *pBuffer, int buffSize, bool lookupUser
                 }
                 else
                 {
-                    // op we don't have name pointer for
-                    SNPRINTF( pBuffer, buffSize, "%s(%d)", opTypeName, opVal );
+                    searchVocabsForOp = true;
                 }
                 break;
             
             case kOpUserDef:
             case kOpUserDefImmediate:
             case kOpDLLEntryPoint:
-                if ( lookupUserDefs )
+                if (lookupUserDefs)
                 {
-                    pEntry = GetVocabularyStack()->FindSymbolByValue( op, &pFoundVocab );
-					if ( pEntry == NULL )
-					{
-						ForthVocabulary* pVocab = ForthVocabulary::GetVocabularyChainHead();
-						while ( pVocab != NULL )
-						{
-							pEntry = pVocab->FindSymbolByValue( op );
-							if ( pEntry != NULL )
-							{
-								pFoundVocab = pVocab;
-								break;
-							}
-							pVocab = pVocab->GetNextChainVocabulary();
-						}
-					}
-                }
-                if ( pEntry )
-                {
-                    // the symbol name in the vocabulary doesn't always have a terminating null
-                    int len = pFoundVocab->GetEntryNameLength( pEntry );
-                    const char* pVocabName = pFoundVocab->GetName();
-                    while ( *pVocabName != '\0' )
-                    {
-                        *pBuffer++ = *pVocabName++;
-                    }
-					*pBuffer++ = ':';
-                    const char* pName = pFoundVocab->GetEntryName( pEntry );
-                    for ( int i = 0; i < len; i++ )
-                    {
-                        *pBuffer++ = *pName++;
-                    }
-                    *pBuffer = '\0';
-                }
-                else
-                {
-                    SNPRINTF( pBuffer, buffSize, "%s", opTypeName );
+                    searchVocabsForOp = true;
                 }
                 break;
 
@@ -1643,6 +1624,47 @@ ForthEngine::DescribeOp( long *pOp, char *pBuffer, int buffSize, bool lookupUser
                 }
                 break;
         }
+
+        if (searchVocabsForOp)
+        {
+            pEntry = GetVocabularyStack()->FindSymbolByValue(op, &pFoundVocab);
+            if (pEntry == NULL)
+            {
+                ForthVocabulary* pVocab = ForthVocabulary::GetVocabularyChainHead();
+                while (pVocab != NULL)
+                {
+                    pEntry = pVocab->FindSymbolByValue(op);
+                    if (pEntry != NULL)
+                    {
+                        pFoundVocab = pVocab;
+                        break;
+                    }
+                    pVocab = pVocab->GetNextChainVocabulary();
+                }
+            }
+
+            if (pEntry)
+            {
+                // the symbol name in the vocabulary doesn't always have a terminating null
+                int len = pFoundVocab->GetEntryNameLength(pEntry);
+                const char* pVocabName = pFoundVocab->GetName();
+                while (*pVocabName != '\0')
+                {
+                    *pBuffer++ = *pVocabName++;
+                }
+                *pBuffer++ = ':';
+                const char* pName = pFoundVocab->GetEntryName(pEntry);
+                for (int i = 0; i < len; i++)
+                {
+                    *pBuffer++ = *pName++;
+                }
+                *pBuffer = '\0';
+            }
+            else
+            {
+                SNPRINTF(pBuffer, buffSize, "%s(%d)", opTypeName, opVal);
+            }
+        }
     }
 }
 
@@ -1698,7 +1720,7 @@ void ForthEngine::DumpExecutionProfile()
         if (pVocab->IsClass())
         {
 
-            ForthInterface* pPrimaryInterface = ((ForthClassVocabulary *)pVocab)->GetInterface(0);
+            long* pMethods = ((ForthClassVocabulary *)pVocab)->GetMethods();
             while (pEntry != nullptr)
             {
                 long op = *pEntry;
@@ -1706,7 +1728,7 @@ void ForthEngine::DumpExecutionProfile()
                 if (CODE_IS_METHOD(typeCode))
                 {
                     ulong opVal = FORTH_OP_VALUE(op);
-                    long methodOp = pPrimaryInterface->GetMethods()[opVal];
+                    long methodOp = pMethods[opVal];
                     forthOpType opType = FORTH_OP_TYPE(methodOp);
                     opVal = FORTH_OP_VALUE(methodOp);
                     switch (opType)
@@ -2488,12 +2510,10 @@ eForthResult
 ForthEngine::FullyExecuteMethod(ForthCoreState* pCore, ForthObject& obj, long methodNum)
 {
 	long opScratch[2];
-	long opCode = obj.pMethodOps[methodNum];
+	long opCode = obj->pMethods[methodNum];
 
-	RPUSH(((long)GET_TPD));
-	RPUSH(((long)GET_TPM));
-	SET_TPM(obj.pMethodOps);
-	SET_TPD(obj.pData);
+	RPUSH(((long)GET_TP));
+	SET_THIS(obj);
 
 	opScratch[0] = opCode;
 	opScratch[1] = gCompiledOps[OP_DONE];
@@ -2603,14 +2623,14 @@ ForthEngine::CheckStacks( void )
 
 void ForthEngine::SetDefaultConsoleOut( ForthObject& newOutStream )
 {
-	SPEW_SHELL("SetDefaultConsoleOut pCore=%p  pMethods=%p  pData=%p\n", mpCore, newOutStream.pMethodOps, newOutStream.pData);
+	SPEW_SHELL("SetDefaultConsoleOut pCore=%p  pMethods=%p  pData=%p\n", mpCore, newOutStream->pMethods, newOutStream);
 	OBJECT_ASSIGN(mpCore, mDefaultConsoleOutStream, newOutStream);
 	mDefaultConsoleOutStream = newOutStream;
 }
 
 void ForthEngine::SetConsoleOut( ForthCoreState* pCore, ForthObject& newOutStream )
 {
-	SPEW_SHELL("SetConsoleOut pCore=%p  pMethods=%p  pData=%p\n", pCore, newOutStream.pMethodOps, newOutStream.pData);
+	SPEW_SHELL("SetConsoleOut pCore=%p  pMethods=%p  pData=%p\n", pCore, newOutStream->pMethods, newOutStream);
 	OBJECT_ASSIGN( pCore, pCore->consoleOutStream, newOutStream );
 	pCore->consoleOutStream = newOutStream;
 }
@@ -3095,10 +3115,10 @@ void ForthEngine::CleanupGlobalObjectVariables(long* pNewDP)
             break;
         }
         ForthObject& o = *(mGlobalObjectVariables[objectIndex]);
-        if (o.pMethodOps != nullptr)
+        if (o != nullptr)
         {
-            ForthClassObject* pClassObj = (ForthClassObject *)(o.pMethodOps[-1]);
-            TraceOut("Releasing object of class %s, refcount %d\n", pClassObj->pVocab->GetName(), o.pData[0]);
+            ForthClassObject* pClassObj = (ForthClassObject *)(o->pMethods[-1]);
+            TraceOut("Releasing object of class %s, refcount %d\n", pClassObj->pVocab->GetName(), o->refCount);
             SAFE_RELEASE(mpCore, o);
         }
         objectIndex--;

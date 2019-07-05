@@ -12,7 +12,7 @@ class: atcRegion extends iAtcRegion
     new Array -> tiles
     do(* 0)
       new atcTile
-      2dup <atcTile>.init
+      dup <atcTile>.init
       tiles.push
     loop
     new Array -> airports
@@ -93,7 +93,7 @@ class: atcRegion extends iAtcRegion
       endif
     repeat
     oclear iter
-    dnull
+    null
 
   ;m
   
@@ -112,7 +112,7 @@ class: atcRegion extends iAtcRegion
       endif
     repeat
     oclear iter
-    dnull
+    null
 
   ;m
   
@@ -131,7 +131,7 @@ class: atcRegion extends iAtcRegion
       endif
     repeat
     oclear iter
-    dnull
+    null
   
   ;m
   

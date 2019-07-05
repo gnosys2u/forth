@@ -808,7 +808,7 @@ entry localRefType
 ;
 entry memberRefType
 	; push member reference - ebx is member offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 00FFFFFFh
 	add	eax, ebx
 	sub	edx, 4
@@ -974,7 +974,7 @@ entry memberByteType
 memberByteType1:
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 001FFFFFh
 	add	eax, ebx
 	jmp	byteEntry
@@ -989,7 +989,7 @@ entry memberUByteType
 memberUByteType1:
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 001FFFFFh
 	add	eax, ebx
 	jmp	ubyteEntry
@@ -1040,7 +1040,7 @@ entry memberByteArrayType
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	add	eax, [edx]
 	add	edx, 4
 	and	ebx, 00FFFFFFh
@@ -1051,7 +1051,7 @@ entry memberUByteArrayType
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	add	eax, [edx]
 	add	edx, 4
 	and	ebx, 00FFFFFFh
@@ -1215,7 +1215,7 @@ entry memberShortType
 memberShortType1:
 	; get ptr to short var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 001FFFFFh
 	add	eax, ebx
 	jmp	shortEntry
@@ -1230,7 +1230,7 @@ entry memberUShortType
 memberUShortType1:
 	; get ptr to unsigned short var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 001FFFFFh
 	add	eax, ebx
 	jmp	ushortEntry
@@ -1289,7 +1289,7 @@ entry memberShortArrayType
 	; ebx is field offset in bytes
 	mov	eax, [edx]	; eax = index
 	sal	eax, 1
-	add	eax, [ebp + FCore.TDPtr]
+	add	eax, [ebp + FCore.TPtr]
 	add	edx, 4
 	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
@@ -1301,7 +1301,7 @@ entry memberUShortArrayType
 	; ebx is field offset in bytes
 	mov	eax, [edx]	; eax = index
 	sal	eax, 1
-	add	eax, [ebp + FCore.TDPtr]
+	add	eax, [ebp + FCore.TPtr]
 	add	edx, 4
 	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
@@ -1415,7 +1415,7 @@ entry memberIntType
 	shr	eax, 21
 	mov	[ebp + FCore.varMode], eax
 memberIntType1:
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 001FFFFFh
 	add	eax, ebx
 	jmp	intEntry
@@ -1448,7 +1448,7 @@ entry memberIntArrayType
 	; ebx is field offset in bytes
 	mov	eax, [edx]	; eax = index
 	sal	eax, 2
-	add	eax, [ebp + FCore.TDPtr]
+	add	eax, [ebp + FCore.TPtr]
 	add	edx, 4
 	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
@@ -1561,7 +1561,7 @@ entry memberFloatType
 memberFloatType1:
 	; get ptr to float var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 001FFFFFh
 	add	eax, ebx
 	jmp	floatEntry
@@ -1594,7 +1594,7 @@ entry memberFloatArrayType
 	; ebx is field offset in bytes
 	mov	eax, [edx]	; eax = index
 	sal	eax, 2
-	add	eax, [ebp + FCore.TDPtr]
+	add	eax, [ebp + FCore.TPtr]
 	add	edx, 4
 	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
@@ -1711,7 +1711,7 @@ entry memberDoubleType
 memberDoubleType1:
 	; get ptr to double var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 001FFFFFh
 	add	eax, ebx
 	jmp	doubleEntry
@@ -1746,7 +1746,7 @@ entry memberDoubleArrayType
 	; ebx is field offset in bytes
 	mov	eax, [edx]	; eax = index
 	sal	eax, 3
-	add	eax, [ebp + FCore.TDPtr]
+	add	eax, [ebp + FCore.TPtr]
 	add	edx, 4
 	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
@@ -1922,7 +1922,7 @@ entry memberStringType
 memberStringType1:
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 001FFFFFh
 	add	eax, ebx
 	jmp	stringEntry
@@ -1962,7 +1962,7 @@ entry memberStringArrayType
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
 	and	ebx, 00FFFFFFh
-	add	ebx, [ebp + FCore.TDPtr]	; ebx -> maxLen field of string[0]
+	add	ebx, [ebp + FCore.TPtr]	; ebx -> maxLen field of string[0]
 	mov	eax, [ebx]		; eax = maxLen
 	sar	eax, 2
 	add	eax, 3			; eax is element length in longs
@@ -2048,7 +2048,7 @@ entry memberOpType
 memberOpType1:
 	; get ptr to op var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 001FFFFFh
 	add	eax, ebx
 	jmp	opEntry
@@ -2081,7 +2081,7 @@ entry memberOpArrayType
 	; ebx is field offset in bytes
 	mov	eax, [edx]	; eax = index
 	sal	eax, 2
-	add	eax, [ebp + FCore.TDPtr]
+	add	eax, [ebp + FCore.TPtr]
 	add	edx, 4
 	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
@@ -2204,7 +2204,7 @@ entry memberLongType
 memberLongType1:
 	; get ptr to double var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 001FFFFFh
 	add	eax, ebx
 	jmp	longEntry
@@ -2239,7 +2239,7 @@ entry memberLongArrayType
 	; ebx is field offset in bytes
 	mov	eax, [edx]	; eax = index
 	sal	eax, 3
-	add	eax, [ebp + FCore.TDPtr]
+	add	eax, [ebp + FCore.TPtr]
 	add	edx, 4
 	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
@@ -2269,11 +2269,9 @@ objectEntry:
 	jnz	localObject1
 	; fetch local Object
 localObjectFetch:
-	sub	edx, 8
+	sub	edx, 4
 	mov	ebx, [eax]
 	mov	[edx], ebx
-	mov	ebx, [eax+4]
-	mov	[edx+4], ebx
 	jmp	edi
 
 localObject1:
@@ -2296,61 +2294,53 @@ localObjectStore:
 	xor	ebx, ebx			; set var operation back to default/fetch
 	mov	[ebp + FCore.varMode], ebx
 los0:
+	mov ebx, [eax]		; ebx = olbObj
 	mov ecx, eax		; ecx -> destination
-	mov eax, [edx+4]	; eax = newObj data
-	mov ebx, [ecx+4]	; ebx = olbObj data
+	mov eax, [edx]		; eax = newObj
 	cmp eax, ebx
-	jz losx				; objects have same data ptr, don't change refcount
+	jz losx				; objects are same, don't change refcount
 	; handle newObj refcount
-	or eax,eax
-	jz los1				; if newObj data ptr is null, don't try to increment refcount
-	inc dword[eax]	; increment newObj refcount
+	or eax, eax
+	jz los1				; if newObj is null, don't try to increment refcount
+	inc dword[eax + Object.refCount]	; increment newObj refcount
 	; handle oldObj refcount
 los1:
-	or ebx,ebx
-	jz los2				; if oldObj data ptr is null, don't try to decrement refcount
-	dec dword[ebx]
+	or ebx, ebx
+	jz los2				; if oldObj is null, don't try to decrement refcount
+	dec dword[ebx + Object.refCount]
 	jz los3
 los2:
-	mov	[ecx+4], eax	; oldObj.data = newObj.data
+	mov	[ecx], eax		; var = newObj
 losx:
-	mov	ebx, [edx]		; ebx = newObj methods
-	mov	[ecx], ebx		; var.methods = newObj.methods
-	add	edx, 8
+	add	edx, 4
 	jmp	edi
 
 	; object var held last reference to oldObj, invoke olbObj.delete method
-	; eax = newObj.data
-	; ebx = oldObj.data
-	; [ecx] = var.methods
+	; eax = newObj
+	; ebx = oldObj
+	; [ecx] = var (still holds oldObj)
 los3:
 	push edi
 	push eax
-	; TOS is object vtable, NOS is object data ptr
-	; ebx is method number
+	; TOS is object
 
-	; push this ptr pair on return stack
+	; push this ptr on return stack
 	mov	edi, [ebp + FCore.RPtr]
-	sub	edi, 8
+	sub	edi, 4
 	mov	[ebp + FCore.RPtr], edi
-	mov	eax, [ebp + FCore.TDPtr]
-	mov	[edi+4], eax
-	mov	eax, [ebp + FCore.TMPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	mov	[edi], eax
 	
-	mov	[ebp + FCore.TDPtr], ebx
-	mov	ebx, [ecx]
-	mov	[ebp + FCore.TMPtr], ebx
-	
-	mov	ebx, [ebx]	; ebx = method 0 (delete) opcode
+	; set this to oldObj
+	mov	[ebp + FCore.TPtr], ebx
+	mov	ebx, [ebx]	; ebx = oldObj methods pointer
+	mov	ebx, [ebx]	; ebx = oldObj method 0 (delete)
 
 	pop eax
 	pop edi
 	
-	mov	[ecx+4], eax	; var.data = newObj.data
-	mov	eax, [edx]		; ebx = newObj methods
-	mov	[ecx], eax		; var.methods = newObj.methods
-	add	edx, 8
+	mov	[ecx], eax		; var = newObj
+	add	edx, 4
 
 	; execute the delete method opcode which is in ebx
 	mov	eax, [ebp + FCore.innerExecute]
@@ -2360,11 +2350,10 @@ localObjectClear:
 	; TOS is new object, eax points to destination/old object
 	xor	ebx, ebx			; set var operation back to default/fetch
 	mov	[ebp + FCore.varMode], ebx
-	sub	edx, 8
+	sub	edx, 4
 	mov [edx], ebx
-	mov [edx+4], ebx
-	; for now, do the clear operation by pushing dnull on TOS then doing a regular object store
-	; later on optimize it since we know source is a dnull
+	; for now, do the clear operation by pushing null on TOS then doing a regular object store
+	; later on optimize it since we know source is a null
 	jmp	los0
 
 ; store object on TOS in variable pointed to by eax
@@ -2375,19 +2364,15 @@ localObjectStoreNoRef:
 	mov	[ebp + FCore.varMode], ebx
 	mov	ebx, [edx]
 	mov	[eax], ebx
-	mov	ebx, [edx+4]
-	mov	[eax+4], ebx
-	add	edx, 8
+	add	edx, 4
 	jmp	edi
 
 ; clear object reference, leave on TOS
 localObjectUnref:
 	; leave object on TOS
-	sub	edx, 8
+	sub	edx, 4
 	mov	ebx, [eax]
 	mov	[edx], ebx
-	mov	ebx, [eax+4]	; ebx -> object refcount
-	mov	[edx+4], ebx
 	; if object var is already null, do nothing else
 	or	ebx, ebx
 	jz	lou2
@@ -2395,11 +2380,10 @@ localObjectUnref:
 	mov	ecx, eax		; ecx -> object var
 	xor	eax, eax
 	mov	[ecx], eax
-	mov	[ecx+4], eax
 	; set var operation back to fetch
 	mov	[ebp + FCore.varMode], eax
 	; get object refcount, see if it is already 0
-	mov	eax, [ebx]
+	mov	eax, [ebx + Object.refCount]
 	or	eax, eax
 	jnz	lou1
 	; report refcount negative error
@@ -2408,7 +2392,7 @@ localObjectUnref:
 lou1:
 	; decrement object refcount
 	sub	eax, 1
-	mov	[ebx], eax
+	mov	[ebx + Object.refCount], eax
 lou2:
 	jmp	edi
 
@@ -2448,7 +2432,7 @@ entry memberObjectType
 memberObjectType1:
 	; get ptr to Object var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	and	ebx, 001FFFFFh
 	add	eax, ebx
 	jmp	objectEntry
@@ -2483,7 +2467,7 @@ entry memberObjectArrayType
 	; ebx is field offset in bytes
 	mov	eax, [edx]	; eax = index
 	sal	eax, 3
-	add	eax, [ebp + FCore.TDPtr]
+	add	eax, [ebp + FCore.TPtr]
 	add	edx, 4
 	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
@@ -2497,85 +2481,81 @@ entry memberObjectArrayType
 ; invoke a method on object currently referenced by this ptr pair
 entry methodWithThisType
 	; ebx is method number
-	; push this ptr pair on return stack
+	; push this on return stack
 	mov	ecx, [ebp + FCore.RPtr]
-	sub	ecx, 8
+	sub	ecx, 4
 	mov	[ebp + FCore.RPtr], ecx
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	or	eax, eax
 	jnz methodThis1
 	mov	eax, kForthErrorBadObject
 	jmp	interpLoopErrorExit
 methodThis1:
-	mov	[ecx+4], eax
-	mov	eax, [ebp + FCore.TMPtr]
 	mov	[ecx], eax
 	
 	and	ebx, 00FFFFFFh
 	sal	ebx, 2
-	add	ebx, eax
+	add	ebx, [eax]
 	mov	ebx, [ebx]	; ebx = method opcode
 	mov	eax, [ebp + FCore.innerExecute]
 	jmp eax
 	
 ; invoke a method on an object referenced by ptr pair on TOS
 entry methodWithTOSType
-	; TOS is object vtable, NOS is object data ptr
+	; TOS is object
 	; ebx is method number
-	; push this ptr pair on return stack
+	; push current this on return stack
 	mov	ecx, [ebp + FCore.RPtr]
-	sub	ecx, 8
+	sub	ecx, 4
 	mov	[ebp + FCore.RPtr], ecx
-	mov	eax, [ebp + FCore.TDPtr]
-	mov	[ecx+4], eax
-	mov	eax, [ebp + FCore.TMPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	mov	[ecx], eax
 
-	; set data ptr from TOS	
-	mov	eax, [edx+4]
+	; set this ptr from TOS	
+	mov	eax, [edx]
 	or	eax, eax
 	jnz methodTos1
 	mov	eax, kForthErrorBadObject
 	jmp	interpLoopErrorExit
 methodTos1:
-	mov	[ebp + FCore.TDPtr], eax
-	; set vtable ptr from TOS
-	mov	eax, [edx]
-	mov	[ebp + FCore.TMPtr], eax
+	mov	[ebp + FCore.TPtr], eax
 	and	ebx, 00FFFFFFh
 	sal	ebx, 2
-	add	ebx, eax
+	add	ebx, [eax]
 	mov	ebx, [ebx]	; ebx = method opcode
-	add	edx, 8
+	add	edx, 4
 	mov	eax, [ebp + FCore.innerExecute]
 	jmp eax
 	
 ; invoke a method on super class of object currently referenced by this ptr pair
 entry methodWithSuperType
 	; ebx is method number
-	; push this ptr pair on return stack
 	mov	ecx, [ebp + FCore.RPtr]
 	sub	ecx, 8
 	mov	[ebp + FCore.RPtr], ecx
-	mov	eax, [ebp + FCore.TDPtr]
-	mov	[ecx+4], eax
-	mov	eax, [ebp + FCore.TMPtr]
+	mov	eax, [ebp + FCore.TPtr]
+    push ebx
+	; push original methods ptr on return stack
+	mov	ebx, [eax]			; ebx is original methods ptr
+	mov	[ecx+4], ebx
+	; push this on return stack
 	mov	[ecx], eax
 	
-	mov	ecx, [eax-4]		; ecx -> class vocabulary object data
-	mov	eax, [ecx+4]		; eax -> class vocabulary
+	mov	ecx, [ebx-4]		; ecx -> class vocabulary object
+	mov	eax, [ecx+8]		; eax -> class vocabulary
 	push edx
     push ecx
-    push ebx
     sub esp, 12         ; 16-byte align for OSX
     push eax            ; class vocabulary
 	xcall getSuperClassMethods
 	; eax -> super class methods table
-	mov	[ebp + FCore.TMPtr], eax		; set this methods ptr to super class methods
+	mov	ebx, [ebp + FCore.TPtr]
+	mov	[ebx], eax		; set this methods ptr to super class methods
 	add esp, 16
-	pop ebx
 	pop ecx
 	pop edx
+	pop ebx
+	; ebx is method number
 	and	ebx, 00FFFFFFh
 	sal	ebx, 2
 	add	ebx, eax
@@ -2593,7 +2573,7 @@ entry memberStringInitType
 	mov	eax, 00FFF000h
 	and	eax, ebx
 	sar	eax, 10							; eax = member offset in bytes
-	mov	ecx, [ebp + FCore.TDPtr]
+	mov	ecx, [ebp + FCore.TPtr]
 	add	ecx, eax						; ecx -> max length field
 	and	ebx, 00000FFFh					; ebx = max length
 	mov	[ecx], ebx						; set max length
@@ -4509,18 +4489,16 @@ entry doExitLBop
 
 
 entry doExitMBop
-    ; rstack: oldIP oldTPV oldTPD
+    ; rstack: oldIP oldTP
 	mov	eax, [ebp + FCore.RPtr]
 	mov	ebx, [ebp + FCore.RTPtr]
-	add	eax, 12
+	add	eax, 8
 	cmp	ebx, eax
 	jl	doExitBop1
 	mov	[ebp + FCore.RPtr], eax
-	mov	esi, [eax-12]	; IP = oldIP
-	mov	ebx, [eax-8]
-	mov	[ebp + FCore.TMPtr], ebx
+	mov	esi, [eax-8]	; IP = oldIP
 	mov	ebx, [eax-4]
-	mov	[ebp + FCore.TDPtr], ebx
+	mov	[ebp + FCore.TPtr], ebx
 	test	esi, esi
 	jz doneBop
 	jmp	edi
@@ -4528,21 +4506,19 @@ entry doExitMBop
 ;========================================
 
 entry doExitMLBop
-    ; rstack: local_var_storage oldFP oldIP oldTPV oldTPD
+    ; rstack: local_var_storage oldFP oldIP oldTP
     ; FP points to oldFP
 	mov	eax, [ebp + FCore.FPtr]
 	mov	esi, [eax]
 	mov	[ebp + FCore.FPtr], esi
-	add	eax, 16
+	add	eax, 12
 	mov	ebx, [ebp + FCore.RTPtr]
 	cmp	ebx, eax
 	jl	doExitBop1
 	mov	[ebp + FCore.RPtr], eax
-	mov	esi, [eax-12]	; IP = oldIP
-	mov	ebx, [eax-8]
-	mov	[ebp + FCore.TMPtr], ebx
+	mov	esi, [eax-8]	; IP = oldIP
 	mov	ebx, [eax-4]
-	mov	[ebp + FCore.TDPtr], ebx
+	mov	[ebp + FCore.TPtr], ebx
 	test	esi, esi
 	jz doneBop
 	jmp	edi
@@ -6551,27 +6527,22 @@ entry doStructArrayBop
 ;========================================
 
 entry thisBop
-	mov	eax, [ebp + FCore.TMPtr]
-	sub	edx, 8
-	mov	[edx], eax
-	mov	eax, [ebp + FCore.TDPtr]
-	mov	[edx+4], eax
-	jmp	edi
-	
-;========================================
-
-entry thisDataBop
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	sub	edx, 4
 	mov	[edx], eax
 	jmp	edi
 	
 ;========================================
 
-entry thisMethodsBop
-	mov	eax, [ebp + FCore.TMPtr]
-	sub	edx, 4
-	mov	[edx], eax
+entry unsuperBop
+	; pop original pMethods off rstack
+	mov	eax, [ebp + FCore.RPtr]
+	mov	ebx, [eax]
+	add	eax, 4
+	mov	[ebp + FCore.RPtr], eax
+	; store original pMethods in this.pMethods
+	mov	eax, [ebp + FCore.TPtr]
+	mov	[eax], ebx
 	jmp	edi
 	
 ;========================================
@@ -7466,7 +7437,7 @@ entry mroComboType
 	; ebx: bits 0..11 are member offset in bytes, bits 12-23 are op
 	push	ebx
 	and	ebx, 0FFFH
-	mov	eax, [ebp + FCore.TDPtr]
+	mov	eax, [ebp + FCore.TPtr]
 	add	eax, ebx
 	sub	edx, 4
 	mov	[edx], eax

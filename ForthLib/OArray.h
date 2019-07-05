@@ -12,7 +12,7 @@ namespace OArray
 {
 	void AddClasses(ForthEngine* pEngine);
 
-    void createArrayObject(ForthObject& destObj, ForthClassVocabulary *pClassVocab);
+    oArrayStruct* createArrayObject(ForthClassVocabulary *pClassVocab);
 
     extern ForthClassVocabulary* gpArrayClassVocab;
 }

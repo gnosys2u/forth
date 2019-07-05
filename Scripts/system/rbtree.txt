@@ -18,7 +18,7 @@ class: RBNode
 
   : _newNode
     _allocObject
-    2dup _nextNodeId -rot -> <RBNode>._nodeId
+    _nextNodeId over -> <RBNode>._nodeId
     //"<created " %s _nextNodeId %d ">\n" %s
     1 ->+ _nextNodeId
   ;
@@ -60,28 +60,19 @@ class: RBTree
   ;m
       
   : isRed
-    2dup
-    if( l0= )
-      drop
-    else
+    if(objNotNull(dup))
       <RBNode>.red
     endif
   ;
 
   : isBlack
-    2dup
-    if( l0= )
-      2drop true
-    else
-      not( <RBNode>.red )
+    if(objNotNull(dup))
+      <RBNode>.red not
     endif
   ;
 
   : _size
-    2dup
-    if( l0= )
-      drop
-    else
+    if(objNotNull(dup))
       <RBNode>.N
     endif
   ;
@@ -91,7 +82,7 @@ class: RBTree
   ;m
   
   m: isEmpty
-    root l0=
+    root objIsNull
   ;m
   
   //*************************************************************************
@@ -103,7 +94,7 @@ class: RBTree
     -> RBNode x
     -> Object key
     begin
-    while( x l0<> )
+    while( x objNotNull )
       key.compare( x.key ) -> int cmp
       if( cmp 0< )
         x.left -> x
@@ -119,7 +110,7 @@ class: RBTree
       
     repeat
     
-    dnull  // didn't find it
+    null  // didn't find it
   ;
   
   m: get   returns Object
@@ -127,7 +118,7 @@ class: RBTree
   ;m
   
   m: contains
-    _get( root ) l0<>
+    _get( root ) objNotNull
   ;m
   
 
@@ -138,7 +129,7 @@ class: RBTree
   // make a left-leaning link lean to the right
  : rotateRight      // NODE ... NODE 
     -> RBNode h
-    assert[ h l0<>  isRed( h.left ) and ]
+    assert[ h objNotNull  isRed( h.left ) and ]
     h.left -> RBNode x
     x.right -> h.left
     h -> x.right
@@ -155,7 +146,7 @@ class: RBTree
 
   : rotateLeft      // NODE ... NODE 
     -> RBNode h
-    assert[ h l0<>  isRed( h.right ) and ]
+    assert[ h objNotNull  isRed( h.right ) and ]
     h.right -> RBNode x
     x.left -> h.right
     h -> x.left
@@ -171,7 +162,7 @@ class: RBTree
   : flipColors      // NODE ...
     // h must have opposite color of its two children
     -> RBNode h
-    assert[ h l0<> h.left l0<> and h.right l0<> and ]
+    assert[ h objNotNull h.left objNotNull and h.right objNotNull and ]
     assert[ h.left.red h.right.red = h.left.red h.red <> and ]
     h.red dup dup
     not -> h.red
@@ -184,7 +175,7 @@ class: RBTree
   // are black, make h.left or one of its children red.
   : moveRedLeft      // NODE ... NODE 
     -> RBNode h
-    assert[ h l0<> ]
+    assert[ h objNotNull ]
     assert[ isRed( h ) isBlack( h.left ) and isBlack( h.left.left ) and ]
 
     flipColors( h )
@@ -201,7 +192,7 @@ class: RBTree
   // are black, make h.right or one of its children red.
   : moveRedRight      // NODE ... NODE 
     -> RBNode h
-    assert[ h l0<> ]
+    assert[ h objNotNull ]
     assert[ isRed( h ) isBlack( h.right ) and isBlack( h.right.left ) and ]
 
     flipColors( h )
@@ -215,7 +206,7 @@ class: RBTree
 
   : balance      // NODE ... NODE 
     -> RBNode h
-    assert[ h l0<> ]
+    assert[ h objNotNull ]
 
     if( isRed( h.right ) )
       rotateLeft( h ) -> h
@@ -239,7 +230,7 @@ class: RBTree
     -> RBNode h
     -> Object val
     -> Object key
-    if( h l0= )
+    if( h objIsNull )
     "empty tree\n" %s
       new RBNode -> h
       h.init( key val true 1 )
@@ -287,8 +278,8 @@ class: RBTree
   : _min      // NODE ... NODE 
     recursive
     -> RBNode x
-    assert[ x l0<> ]
-    if( x.left l0= )
+    assert[ x objNotNull ]
+    if( x.left objIsNull )
       x
     else
       _min( x.left )
@@ -299,7 +290,7 @@ class: RBTree
   m: min     // ... NODE
     returns Object
     if( isEmpty )
-      dnull
+      null
     else
       _min( root )
     endif
@@ -308,8 +299,8 @@ class: RBTree
   : _max      // NODE ... NODE 
     recursive
     -> RBNode x
-    assert[ x l0<> ]
-    if( x.right l0= )
+    assert[ x objNotNull ]
+    if( x.right objIsNull )
       x
     else
       _max( x.right )
@@ -320,7 +311,7 @@ class: RBTree
   m: max      // ... NODE
     returns Object
     if( isEmpty )
-      dnull
+      null
     else
       _max( root )
     endif
@@ -330,8 +321,8 @@ class: RBTree
     recursive
     -> Object key
     -> RBNode x
-    if( x l0= )
-      dnull
+    if( x objIsNull )
+      null
     else
       key.compare( x.key ) -> int cmp
       if( cmp 0= )
@@ -341,7 +332,7 @@ class: RBTree
           _floor( x.left key )
         else
           _floor( x.right key ) -> RBNode t
-          if( t l0<> )
+          if( t objNotNull )
             t
           else
             x
@@ -358,8 +349,8 @@ class: RBTree
     -> Object key
     RBNode x
     _floor( root key ) -> x
-    if( x l0= )
-      dnull
+    if( x objIsNull )
+      null
     else
       x.key
     endif
@@ -371,8 +362,8 @@ class: RBTree
     recursive
     -> Object key
     -> RBNode x
-    if( x l0= )
-      dnull
+    if( x objIsNull )
+      null
     else
       key.compare( x.key ) -> int cmp
       if( cmp 0= )
@@ -382,7 +373,7 @@ class: RBTree
           _ceiling( x.right key )
         else
           _ceiling( x.left key ) -> RBNode t
-          if( t l0<> )
+          if( t objNotNull )
             t
           else
             x
@@ -399,8 +390,8 @@ class: RBTree
     -> Object key
     RBNode x
     _floor( root key ) -> x
-    if( x l0= )
-      dnull
+    if( x objIsNull )
+      null
     else
       x.key
     endif
@@ -413,7 +404,7 @@ class: RBTree
     recursive
     -> int k
     -> RBNode x
-    assert[ x l0<> ]
+    assert[ x objNotNull ]
     assert[ k 0>=  k _size( x ) < and ]
     _size( x.left ) -> int t
     if( t k > )
@@ -433,7 +424,7 @@ class: RBTree
     -> int k
     RBNode x
     if( k 0< k size >= or )
-      dnull
+      null
     else
       _select( root k )
     endif
@@ -446,8 +437,8 @@ class: RBTree
     recursive
     -> RBNode x
     -> Object key
-    if( x l0= )
-      dnull
+    if( x objIsNull )
+      null
     else
       key.compare( x.key ) -> int cmp
       if( cmp 0< )
@@ -475,8 +466,8 @@ class: RBTree
   : _removeMin      // NODE ... NODE
     recursive
     -> RBNode h
-    if( h.left l0= )
-      dnull
+    if( h.left objIsNull )
+      null
     else
       if( and(isBlack( h.left ) isBlack( h.left.left )) )
         moveRedLeft( h ) -> h
@@ -508,7 +499,7 @@ class: RBTree
       if( key.compare( h.key ) 0= h.right 0= and )
         oclear key
         oclear h
-        dnull
+        null
         exit
       endif
       if( and( isBlack( h.right ) isBlack( h.right.left ) ) )
@@ -571,8 +562,8 @@ class: RBTree
       rotateRight( h ) -> h
     endif
     
-    if( h.right l0= )
-      dnull
+    if( h.right objIsNull )
+      null
     else
       if( and( isBlack( h.right ) isBlack( h.right.left ) ) )
         moveRedRight( h ) -> h
@@ -605,7 +596,7 @@ class: RBTree
     "_height" %s ds
     recursive
     -> RBNode x
-    if( x l0= )
+    if( x objIsNull )
       0
     else
       forth:max( _height( x.left ) _height( x.right ) ) 1+

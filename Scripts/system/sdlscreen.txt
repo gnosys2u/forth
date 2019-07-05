@@ -726,7 +726,7 @@ SDLScreen screenInstance
 ;
 
 : endSDL
-  if( screenInstance l0<> )
+  if( screenInstance objNotNull )
     screenInstance.end
     oclear screenInstance
   endif

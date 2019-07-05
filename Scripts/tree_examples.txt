@@ -4,7 +4,7 @@ requires randoms
 autoforget TREE_EXAMPLES
 : TREE_EXAMPLES ;
 
-false -> bool beNoisy   // set beNoisyto true to display sort array before and after sort
+false -> bool beNoisy   // set beNoisy to true to display sort array before and after sort
 
 setRandomSeed(ms@)
 : smallRandom
@@ -36,21 +36,21 @@ class: Node
   ;m
   
   m: setLeft
-    if(left or)
-      dnull ->o left.parent
+    if(left objNotNull)
+      null ->o left.parent
     endif
     -> left
-    if(left or)
+    if(left objNotNull)
       this ->o left.parent
     endif
   ;m
   
   m: setRight
-    if(right or)
-      dnull ->o right.parent
+    if(right objNotNull)
+      null ->o right.parent
     endif
     -> right
-    if(right or)
+    if(right objNotNull)
       this ->o right.parent
     endif
   ;m
@@ -58,10 +58,10 @@ class: Node
   m: count
     recursive
     1 -> int numNodes
-    if(left or)
+    if(left objNotNull)
       left.count ->+ numNodes
     endif
-    if(right or)
+    if(right objNotNull)
       right.count ->+ numNodes
     endif
     numNodes
@@ -74,50 +74,50 @@ class: Node
   
   m: clear
     recursive
-    if(left or)
+    if(left objNotNull)
       left.clear
       oclear left
     endif
-    if(right or)
+    if(right objNotNull)
       right.clear
       oclear right
     endif
-    dnull ->o parent
+    null ->o parent
   ;m
   
   m: height
     recursive
     0 -> int leftHeight
     0 -> int rightHeight
-    if(left or)
+    if(left objNotNull)
       left.height -> leftHeight
     endif
-    if(right or)
+    if(right objNotNull)
       right.height -> rightHeight
     endif
     max(leftHeight rightHeight) 1+
   ;m
 
   m: _adoptChildren
-    if(left or)
+    if(left objNotNull)
       this ->o left.parent
     endif
-    if(right or)
+    if(right objNotNull)
       this ->o right.parent
     endif
   ;m
 
   m: checkLinks
     recursive
-    if(left or)
-      if(left.parent this l=)
+    if(left objNotNull)
+      if(left.parent this =)
         left.checkLinks
       else
         "Node.checkLinks: node with value " val . "has inconsistent left link\n" %s
       endif
     endif
-    if(right or)
-      if(right.parent this l=)
+    if(right objNotNull)
+      if(right.parent this =)
         right.checkLinks
       else
         "Node.checkLinks: node with value " val . "has inconsistent right link\n" %s
@@ -151,14 +151,14 @@ class: Tree
   
   m: setRoot
     -> root
-    if(root or)
-      dnull ->o root.parent
+    if(root objNotNull)
+      null ->o root.parent
       root.count -> numNodes
     endif
   ;m
   
   m: clear
-    if(root or)
+    if(root objNotNull)
       root.clear
       oclear root
     endif
@@ -177,11 +177,11 @@ class: Tree
   m: _traverseInOrder
     recursive
     ->o Node n
-    if(n.left or)
+    if(n.left objNotNull)
       _traverseInOrder(n.left)
     endif
     _traverseOp(n)
-    if(n.right or)
+    if(n.right objNotNull)
       _traverseInOrder(n.right)
     endif
   ;m
@@ -190,10 +190,10 @@ class: Tree
     recursive
     ->o Node n
     _traverseOp(n)
-    if(n.left or)
+    if(n.left objNotNull)
       _traversePreOrder(n.left)
     endif
-    if(n.right or)
+    if(n.right objNotNull)
       _traversePreOrder(n.right)
     endif
   ;m
@@ -201,10 +201,10 @@ class: Tree
   m: _traversePostOrder
     recursive
     ->o Node n
-    if(n.left or)
+    if(n.left objNotNull)
       _traversePostOrder(n.left)
     endif
-    if(n.right or)
+    if(n.right objNotNull)
       _traversePostOrder(n.right)
     endif
     _traverseOp(n)
@@ -231,13 +231,13 @@ class: Tree
     ->o Node newNode
     ->o Node n
     if(newNode.val n.val >)
-      if(n.right or)
+      if(n.right objNotNull)
         _insert(n.right newNode)
       else
         n.setRight(newNode)
       endif
     else
-      if(n.left or)
+      if(n.left objNotNull)
         _insert(n.left newNode)
       else
         n.setLeft(newNode)
@@ -247,7 +247,7 @@ class: Tree
   
   m: insert
     ->o Node n
-    if(root or)
+    if(root objNotNull)
       _insert(root n)
       1 ->+ numNodes
     else
@@ -258,7 +258,7 @@ class: Tree
   m: addLeft
     ->o Node n
     //"addLeft " %s dup . %nl
-    if(not(n.left or))
+    if(n.left objIsNull)
       1 ->+ numNodes
     endif
     n.setLeft(new Node)
@@ -268,7 +268,7 @@ class: Tree
   m: addRight
     ->o Node n
     //"addRight " %s dup . %nl
-    if(not(n.right or))
+    if(n.right objIsNull)
       1 ->+ numNodes
     endif
     n.setRight(new Node)
@@ -276,7 +276,7 @@ class: Tree
   ;m
   
   m: display
-    if(not(root or))
+    if(root objIsNull)
       "tree is empty\n" %s
       exit
     endif
@@ -301,8 +301,8 @@ class: Tree
         endif
         1 ->+ elementNum
         q.unrefHead -> Node n
-        if(n or)
-          if(n.left or n.right or or)
+        if(n objNotNull)
+          if(n.left objNotNull n.right objNotNull or)
             true -> keepGoing
           endif
           otherQ.addTail(n.left)
@@ -310,8 +310,8 @@ class: Tree
           n.val 5 .r
         else
           if(minSpacing) " * " else "  *  " endif %s
-          otherQ.addTail(dnull)
-          otherQ.addTail(dnull)
+          otherQ.addTail(null)
+          otherQ.addTail(null)
         endif
       repeat
       otherQ q ->o otherQ ->o q   // swap q and otherQ
@@ -323,11 +323,11 @@ class: Tree
     recursive
     ->o Array a
     ->o Node n
-    if(n.left or)
+    if(n.left objNotNull)
       _toArray(n.left a)
     endif
     a.push(n)
-    if(n.right or)
+    if(n.right objNotNull)
       _toArray(n.right a)
     endif
   ;m
@@ -342,10 +342,10 @@ class: Tree
     recursive
     ->o Node n
     ->o n.parent
-    if(n.left or)
+    if(n.left objNotNull)
       _fixParentLinks(n n.left)
     endif
-    if(n.right or)
+    if(n.right objNotNull)
       _fixParentLinks(n n.right)
     endif
   ;m
@@ -389,7 +389,7 @@ class: Tree
     ->o Array a
     clear
     _fromArray(a 0 a.count 1-) -> root
-    _fixParentLinks(dnull root)
+    _fixParentLinks(null root)
     a.count -> numNodes
   ;m
 
@@ -467,12 +467,12 @@ class: Tree
     
     // fix parent of a
     a.parent ->o Node aParent
-    if(aParent or)
+    if(aParent objNotNull)
       false -> aIsRoot
-      if(aParent.left b l=)
+      if(aParent.left b =)
         a ->o aParent.left
       else
-        if(aParent.right b l=)
+        if(aParent.right b =)
           a ->o aParent.right
         else
           "Tree.swapHard: b reparent failure!\n" %s
@@ -482,12 +482,12 @@ class: Tree
     
     // fix parent of b
     b.parent ->o Node bParent
-    if(bParent or)
+    if(bParent objNotNull)
       false -> bIsRoot
-      if(bParent.left a l=)
+      if(bParent.left a =)
         b ->o bParent.left
       else
-        if(bParent.right a l=)
+        if(bParent.right a =)
           b ->o bParent.right
         else
           "Tree.swapHard: a reparent failure!\n" %s
@@ -514,7 +514,7 @@ class: Tree
   //  bottom level is filled left-to-right
   m: insertInNextHeapSlot
     ->o Node n
-    if(root or)
+    if(root objNotNull)
       // a relatively simple way of determining the left-right path to the rightmost node on
       //  the bottom (incomplete) layer of the tree - take the bits below the top set bit of the (numNodes + 1)
       // here we stick them on the stack starting at the low bit to do the reversing
@@ -553,7 +553,7 @@ class: Tree
     ->o Node n
     insertInNextHeapSlot(n)
     begin
-    while(n.parent or)
+    while(n.parent objNotNull)
       if(n.val n.parent.val <)
         swapValues(n n.parent)
         n.parent ->o n
@@ -567,7 +567,7 @@ class: Tree
     ->o Node n
     insertInNextHeapSlot(n)
     begin
-    while(n.parent or)
+    while(n.parent objNotNull)
       if(n.val n.parent.val >)
         swapValues(n n.parent)
         n.parent ->o n
@@ -581,26 +581,26 @@ class: Tree
     ->o Node n
     
     d[ "Tree.removeNode - node with value " %s n.val . %nl ]d
-    if(n.parent or)
-      if(n.left or)
+    if(n.parent objNotNull)
+      if(n.left objNotNull)
         n.left.count ->- numNodes
         oclear n.left
       endif
-      if(n.right or)
+      if(n.right objNotNull)
         n.right.count ->- numNodes
         oclear n.right
       endif
       1 ->- numNodes
-      if(n.parent.left n l=)
+      if(n.parent.left n =)
         oclear n.parent.left
       else
-        if(n.parent.right n l=)
+        if(n.parent.right n =)
           oclear n.parent.right
         else
           "Tree.removeNode - node with value " %s n.val %d " has bad parent link\n" %s
         endif
       endif
-      dnull ->o n.parent
+      null ->o n.parent
     else
       // removed node is root, clear tree
       clear
@@ -611,7 +611,7 @@ class: Tree
   //  bottom level is filled left-to-right
   m: findBottomHeapSlot
     int branchChoices
-    if(root or)
+    if(root objNotNull)
       // a relatively simple way of determining the left-right path to the rightmost node on
       //  the bottom (incomplete) layer of the tree - take the bits below the top set bit of the (numNodes + 1)
       // here we stick them on the stack starting at the low bit to do the reversing
@@ -637,7 +637,7 @@ class: Tree
       bottomSlot
       
     else
-      dnull
+      null
     endif
   ;m
   
@@ -649,10 +649,10 @@ class: Tree
     //  swap value from top-slot down into its child with the smaller value until value reaches bottom level,
     //    reestablishing that this is a min heap
     -> op compareOp
-    if(root or)
+    if(root objNotNull)
       root.val
       findBottomHeapSlot ->o Node bottomSlot
-      if(bottomSlot or)
+      if(bottomSlot objNotNull)
         // replace value in bottomMost heap element in top slot of heap
         bottomSlot.val dup -> root.val
         -> int movingValue
@@ -660,10 +660,10 @@ class: Tree
         root ->o Node movingSlot
         Node nextMovingSlot
         begin
-        while(movingSlot or)
-          dnull ->o nextMovingSlot
-          if(movingSlot.left or)
-            if(movingSlot.right or)
+        while(movingSlot objNotNull)
+          null ->o nextMovingSlot
+          if(movingSlot.left objNotNull)
+            if(movingSlot.right objNotNull)
               // node has left & right children
               if(compareOp(movingSlot.right.val movingSlot.left.val))
                 if(compareOp(movingValue movingSlot.left.val))
@@ -682,13 +682,13 @@ class: Tree
             endif
           else
             // there is no left child
-            if(movingSlot.right or)
+            if(movingSlot.right objNotNull)
               if(compareOp(movingValue movingSlot.right.val))
                 movingSlot.right ->o nextMovingSlot
               endif
             endif
           endif
-          if(nextMovingSlot or)
+          if(nextMovingSlot objNotNull)
             swapValues(movingSlot nextMovingSlot)
           endif
           nextMovingSlot ->o movingSlot
@@ -862,16 +862,16 @@ mko Tree t
     repeat
     oclear iter
     %nl
-    dnull ->o n
+    null ->o n
     
     // add children of qA to qB
     begin
     while(not(qA.isEmpty))
       qA.unrefHead -> n
-      if(n.left or)
+      if(n.left objNotNull)
         qB.addTail(n.left)
       endif
-      if(n.right or)
+      if(n.right objNotNull)
         qB.addTail(n.right)
       endif
     repeat

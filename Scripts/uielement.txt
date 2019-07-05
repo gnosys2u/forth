@@ -65,14 +65,14 @@ class: UIElement
   ;m
   
   m: onEvent
-    2drop
+    drop
   ;m
   
   m: sendToParent
     if(objNotNull(mParent))
       mParent.onEvent
     else
-      2drop
+      drop
     endif
   ;m
   

@@ -107,7 +107,7 @@ class: NoteSchema extends NoteDef
 class: NoteParam
   int id
   String sval
-  Long nval
+  long nval
   
   m: delete
     oclear sval
@@ -332,14 +332,14 @@ class: NoteDeck
     new Array -> params
     new StringMap -> paramMap
 
-    addSchema("defaultSchema" "Default Schema - notecard with no params") 2drop
+    addSchema("defaultSchema" "Default Schema - notecard with no params") drop
   ;m
   
   m: newestNote
     if(notes.count)
       notes.get(notes.count 1-)
     else
-      dnull
+      null
     endif
   ;m
 

@@ -27,13 +27,15 @@ class ForthVocabulary;
 // vocabulary object defs
 struct oVocabularyStruct
 {
-	ulong				refCount;
+    long*               pMethods;
+    ulong				refCount;
 	ForthVocabulary*	vocabulary;
 };
 
 struct oVocabularyIterStruct
 {
-	ulong				refCount;
+    long*               pMethods;
+    ulong				refCount;
 	ForthObject			parent;
 	long*				cursor;
 	ForthVocabulary*	vocabulary;

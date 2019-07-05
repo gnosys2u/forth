@@ -1,3 +1,4 @@
+: HELPDECK ;
 
 lf notedeck.txt
 
@@ -349,7 +350,7 @@ class: HelpDeck extends NoteDeck
       valueLength + -> ptrTo byte pEntry
       opName.setBytes(pEntry 1+ pEntry c@)
       if(opsNote.getChild(opName.get))
-        2drop
+        drop
       else
         opName.get %s " not found in help.\n" %s
       endif
@@ -374,7 +375,7 @@ helpDeck.init
 ;
 
 : mkf
-  helpDeck.addFlagDef(blword $word('|') $word(0)) 2drop
+  helpDeck.addFlagDef(blword $word('|') $word(0)) drop
 ;
 
 // op, method and class must be first three flags to match with kHFOp, kHFMethod and kHFClass
@@ -529,7 +530,6 @@ addOp _loop||compiled at end of do loop
 addOp _+loop||compiled at end of do +loop
 addOp _doNew|CLASS_TYPE_INDEX ... NEW_OBJECT|compiled by 'new', takes class type index, executes class 'new' operator|classdef
 addOp _allocObject|CLASS_VOCAB_PTR...NEW_OBJECT|default class 'new' operator, mallocs spaces for a new object instance and pushes new object|classdef
-addOp vocabToClass||varop setter, putting this before a vocab op makes it return vocabs class object
 
 flags: int math
 addOp +|A B ... (A+B)|add top two items
@@ -1029,8 +1029,8 @@ addClass Class|Object|Class object
 addMethod create|... OBJECT|create a new instance of this class
 addMethod getParent|... SUPERCLASS_OBJECT|get the class object for the parent of this class
 addMethod getName|... CLASSNAME|get the class name string
-addMethod getVocabulary|... VOCAB_PTR|get the class vocabulary pointer
-addMethod getInterface|INTERFACE_NAME ... OBJECT|get named interface methods
+addMethod getVocabulary|... VOCAB_OBJECT|get the class vocabulary object
+addMethod getTypeIndex|... INT_TYPE_INDEX|get the class type index
 addMethod setNew|OP ...|set 'new' operator for this class
 
 addClass Iter|Object|Abstract iterator
@@ -1666,8 +1666,11 @@ addMethod getSearchVocabAt|INT_DEPTH ... VOCAB_OBJECT|return the vocabulary at s
 addMethod getSearchVocabTop|... VOCAB_OBJECT|return the vocabulary on top of forth search stack
 addMethod setSearchVocabTop|VOCAB_OBJECT ...|replace the top of search vocabulary with specified vocabulary
 addMethod pushSearchVocab|VOCAB_OBJECT ...|push VOCAB_OBJECT on top of forth search vocabulary
-addMethod getVocabByName|NAME_PTR ... VOCAB_OBJECT|return named vocabulary object, dnull if not found
+addMethod getVocabByName|NAME_PTR ... VOCAB_OBJECT|return named vocabulary object, null if not found
 addMethod getOpsTable|... OPTABLE_PTR|
+addMethod getClassByIndex|INT_TYPE_INDEX ... CLASS_OBJECT|return class object for specified type index, null if index out of range or not a class
+addMethod getNumClasses|... INT_TYPE_INDEX|return 1 more than highest class index
+
 addMethod createAsyncThread|MAINLOOP_OP INT_PSTACK_SIZE INT_RSTACK_SIZE ... SYNC_THREAD_OBJECT|create an asynchronous thread with specified stacks and main loop op
 addMethod createAsyncLock|... ASYNC_LOCK_OBJECT|create an asynchronous lock object
 addMethod createAsyncSemaphore|... ASYNC_SEMAPHORE_OBJECT|create an asynchronous semaphore object

@@ -1338,9 +1338,13 @@ ForthClassVocabulary::ForthClassVocabulary( const char*     pName,
 , mpParentClass( NULL )
 , mCurrentInterface( 0 )
 , mCustomReader(nullptr)
+, mpClassObject(nullptr)
 {
     mpClassObject = new ForthClassObject;
-	mpClassObject->refCount = 1;				// TBD: should this be 0? or a huge number?
+    // mpClassObject->pMethods will be filled in the first time GetClassObject is called
+    //  after the Class class is defined
+    mpClassObject->pMethods = nullptr;
+    mpClassObject->refCount = 1;				// TBD: should this be 0? or a huge number?
     mpClassObject->pVocab = this;
     mpClassObject->newOp = gCompiledOps[OP_ALLOC_OBJECT];
     ForthInterface* pPrimaryInterface = new ForthInterface( this );
@@ -1391,7 +1395,7 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
     // - define a global instance of this class type
     // - define a local instance of this class type
     // - define a field of this class type
-    int nBytes = 8;
+    int nBytes = 4;
     long *pHere;
     long val = 0;
     ForthVocabulary *pVocab;
@@ -1492,8 +1496,7 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
             {
                 for ( int i = 0; i < numElements; i++ )
                 {
-                    // TBD: fill in vtable pointer
-                    pHere[i * 2] = 0;
+                    pHere[i] = 0;
                 }
             }
         }
@@ -1506,7 +1509,6 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
             memset( pHere, 0, nBytes );
             if ( !isPtr )
             {
-                // TBD: fill in vtable pointer
                 *pHere = 0;
                 mpEngine->AddGlobalObjectVariable((ForthObject *)pHere);
             }
@@ -1514,18 +1516,18 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
             {
                 if ( isPtr )
                 {
+                    // TODO: this is wrong, right?
                     *pHere = SPOP;
                 }
                 else
                 {
 					// bump objects refcount
-                    *pHere++ = SPOP;
-					long* pData = (long *) SPOP;
-					if ( pData != NULL )
+					ForthObject srcObj = (ForthObject) SPOP;
+					if (srcObj != nullptr)
 					{
-						*pData += 1;
+                        srcObj->refCount += 1;
 					}
-                    *pHere = (long) pData;
+                    *pHere = (long)srcObj;
                 }
                 CLEAR_VAR_OPERATION;
             }
@@ -1669,6 +1671,11 @@ ForthClassVocabulary::GetInterface( long index )
 	return (index < static_cast<long>(mInterfaces.size())) ? mInterfaces[index] : nullptr;
 }
 
+long* ForthClassVocabulary::GetMethods()
+{
+    return mInterfaces[0]->GetMethods();
+}
+
 long
 ForthClassVocabulary::FindInterfaceIndex( long classId )
 {
@@ -1694,7 +1701,23 @@ ForthClassVocabulary::GetNumInterfaces( void )
 ForthClassObject*
 ForthClassVocabulary::GetClassObject( void )
 {
+    if (mpClassObject->pMethods == nullptr)
+    {
+        // this is gross, but it gets around an order of creation circular dependancy
+        mpClassObject->pMethods = ForthTypesManager::GetInstance()->GetClassMethods();
+    }
+    
     return mpClassObject;
+}
+
+
+void ForthClassVocabulary::FixClassObjectMethods(void)
+{
+    // this needs to be called on all class vocabularies which are created before
+    // the "Class" vocabulary - namely "Object" and "Class" itself
+    // this is a little gross, but it gets around an order of creation circular dependancy
+    //   and avoids Class and Object having no bellybuttons
+    mpClassObject->pMethods = ForthTypesManager::GetInstance()->GetClassMethods();
 }
 
 
@@ -1721,7 +1744,7 @@ ForthClassVocabulary::PrintEntry( long*   pEntry )
     }
 
     ForthCoreState* pCore = mpEngine->GetCoreState();
-    ForthInterface* pPrimaryInterface = GetInterface( 0 );
+    long* pMethods = GetMethods();
 
     sprintf( buff, "  %08x    ", methodNum );
     CONSOLE_STRING_OUT( buff );
@@ -1830,7 +1853,7 @@ ForthClassVocabulary::PrintEntry( long*   pEntry )
         }
         CONSOLE_STRING_OUT( buff );
     }
-    long* pMethod = pPrimaryInterface->GetMethods() + methodNum;
+    long* pMethod = pMethods + methodNum;
     sprintf( buff, " opcode=%02x:%06x", GetEntryType(pMethod), GetEntryValue(pMethod) );
     CONSOLE_STRING_OUT( buff );
 }
@@ -2280,7 +2303,7 @@ extern "C"
 {
     long* getSuperClassMethods(ForthClassVocabulary *pVocab)
     {
-        return pVocab->ParentClass()->GetInterface(0)->GetMethods();
+        return pVocab->ParentClass()->GetMethods();
     }
 };
 

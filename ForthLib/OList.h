@@ -12,7 +12,8 @@ namespace OList
 {
 	struct oListIterStruct
 	{
-		ulong			refCount;
+        long*           pMethods;
+        ulong			refCount;
 		ForthObject		parent;
 		oListElement*	cursor;
 	};

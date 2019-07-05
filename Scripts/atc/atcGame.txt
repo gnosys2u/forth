@@ -333,7 +333,7 @@ class: atcGame extends iAtcGame
     -> ptrTo atcCommandInfo commandInfo
     if( commandInfo.airplaneNum airplanes.count < )
       airplanes.get(commandInfo.airplaneNum) -> iAtcAirplane plane
-      //sh("execute ")  commandInfo.airplaneNum %d %bl plane.beaconNum %d %bl
+      //t{ "executeCommand " %s  commandInfo.airplaneNum %d %bl plane.beaconNum %d %nl }t
       if( and(commandInfo.command kNumCommands <   commandInfo.command 0>=) )
         plane.executeCommand( commandInfo display )
       else

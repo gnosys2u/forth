@@ -42,25 +42,23 @@ namespace OArray
 
     ForthClassVocabulary* gpArrayClassVocab = nullptr;
 
-    void createArrayObject(ForthObject& destObj, ForthClassVocabulary *pClassVocab)
+    oArrayStruct* createArrayObject(ForthClassVocabulary *pClassVocab)
     {
-        destObj.pMethodOps = pClassVocab->GetInterface(0)->GetMethods();
 
         MALLOCATE_OBJECT(oArrayStruct, pArray, pClassVocab);
+        pArray->pMethods = pClassVocab->GetMethods();
         pArray->refCount = 0;
         pArray->elements = new oArray;
-        destObj.pData = (long *) pArray;
+        return pArray;
     }
 
-    oArrayIterStruct* createArrayIterator(ForthCoreState* pCore, oArrayStruct* pArray, ForthObject& obj)
+    oArrayIterStruct* createArrayIterator(ForthCoreState* pCore, oArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIArrayIter);
         MALLOCATE_ITER(oArrayIterStruct, pIter, pIterVocab);
+        pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
-        pIter->parent.pMethodOps = GET_TPM;
-        pIter->parent.pData = reinterpret_cast<long *>(pArray);
-        obj.pMethodOps = pIterVocab->GetInterface(0)->GetMethods();
-        obj.pData = (long *)pIter;
+        pIter->parent = reinterpret_cast<ForthObject>(pArray);
         return pIter;
     }
 
@@ -96,8 +94,7 @@ namespace OArray
     FORTHOP(oArrayNew)
 	{
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-        ForthObject newArray;
-        createArrayObject(newArray, pClassVocab);
+        oArrayStruct* newArray = createArrayObject(pClassVocab);
         PUSH_OBJECT(newArray);
     }
 
@@ -140,12 +137,11 @@ namespace OArray
         GET_THIS(oArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oArrayIterStruct* pIter = createArrayIterator(pCore, pArray, obj);
+        oArrayIterStruct* pIter = createArrayIterator(pCore, pArray);
         pIter->cursor = 0;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -154,12 +150,11 @@ namespace OArray
         GET_THIS(oArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oArrayIterStruct* pIter = createArrayIterator(pCore, pArray, obj);
+        oArrayIterStruct* pIter = createArrayIterator(pCore, pArray);
         pIter->cursor = pArray->elements->size();
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -178,12 +173,11 @@ namespace OArray
             {
                 pArray->refCount++;
                 TRACK_KEEP;
-                ForthObject obj;
 
-                oArrayIterStruct* pIter = createArrayIterator(pCore, pArray, obj);
+                oArrayIterStruct* pIter = createArrayIterator(pCore, pArray);
                 pIter->cursor = i;
 
-                PUSH_OBJECT(obj);
+                PUSH_OBJECT(pIter);
                 found = ~0;
                 break;
             }
@@ -207,6 +201,7 @@ namespace OArray
         // create clone array and set is size to match this array
         ForthClassVocabulary *pArrayVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIArray);
         MALLOCATE_OBJECT(oArrayStruct, pCloneArray, pArrayVocab);
+        pCloneArray->pMethods = pArray->pMethods;
         pCloneArray->refCount = 0;
         pCloneArray->elements = new oArray;
         size_t numElements = a.size();
@@ -218,7 +213,7 @@ namespace OArray
             memcpy(&(cloneElements[0]), &(a[0]), numElements << 3);
         }
         // push cloned array on TOS
-        PUSH_PAIR(GET_TPM, pCloneArray);
+        PUSH_OBJECT(pCloneArray);
         METHOD_RETURN;
     }
 
@@ -251,8 +246,7 @@ namespace OArray
         ulong ix = (ulong)SPOP;
         if (a.size() > ix)
         {
-            ForthObject fobj = a[ix];
-            PUSH_OBJECT(fobj);
+            PUSH_OBJECT(a[ix]);
         }
         else
         {
@@ -336,12 +330,9 @@ namespace OArray
 			{
 				// growing - add null objects to end of array
 				a.resize(newSize);
-				ForthObject o;
-				o.pMethodOps = NULL;
-				o.pData = NULL;
 				for (ulong i = a.size(); i < newSize; i++)
 				{
-					a[i] = o;
+					a[i] = nullptr;
 				}
 			}
 		}
@@ -454,12 +445,9 @@ namespace OArray
 			{
 				// growing - add null objects to end of array
 				a.resize(newSize);
-				ForthObject o;
-				o.pMethodOps = NULL;
-				o.pData = NULL;
 				for (ulong i = a.size(); i < newSize; i++)
 				{
-					a[i] = o;
+					a[i] = nullptr;
 				}
 			}
 		}
@@ -624,6 +612,7 @@ namespace OArray
 
         ForthClassVocabulary *pListVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIList);
         MALLOCATE_OBJECT(oListStruct, pList, pListVocab);
+        pList->pMethods = pListVocab->GetMethods();
         pList->refCount = 0;
         pList->head = NULL;
         pList->tail = NULL;
@@ -653,8 +642,7 @@ namespace OArray
         }
 
         // push list on TOS
-        ForthInterface* pPrimaryInterface = GET_BUILTIN_INTERFACE(kBCIList, 0);
-        PUSH_PAIR(pPrimaryInterface->GetMethods(), pList);
+        PUSH_OBJECT(pList);
         METHOD_RETURN;
     }
 
@@ -668,8 +656,7 @@ namespace OArray
             ForthObject fobj = a[ix];
             unrefObject(fobj);
             PUSH_OBJECT(fobj);
-            a[ix].pData = NULL;
-            a[ix].pMethodOps = NULL;
+            a[ix] = nullptr;
         }
         else
         {
@@ -735,7 +722,7 @@ namespace OArray
 	FORTHOP(oArrayIterSeekNextMethod)
 	{
 		GET_THIS(oArrayIterStruct, pIter);
-		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
 		if (pIter->cursor < pArray->elements->size())
 		{
 			pIter->cursor++;
@@ -763,7 +750,7 @@ namespace OArray
 	FORTHOP(oArrayIterSeekTailMethod)
 	{
 		GET_THIS(oArrayIterStruct, pIter);
-		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
 		pIter->cursor = pArray->elements->size();
 		METHOD_RETURN;
 	}
@@ -771,7 +758,7 @@ namespace OArray
     FORTHOP(oArrayIterAtHeadMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+        oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == 0) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -780,7 +767,7 @@ namespace OArray
     FORTHOP(oArrayIterAtTailMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+        oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == pArray->elements->size()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -789,7 +776,7 @@ namespace OArray
     FORTHOP(oArrayIterNextMethod)
 	{
 		GET_THIS(oArrayIterStruct, pIter);
-		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
 		oArray& a = *(pArray->elements);
 		if (pIter->cursor >= a.size())
 		{
@@ -807,7 +794,7 @@ namespace OArray
 	FORTHOP(oArrayIterPrevMethod)
 	{
 		GET_THIS(oArrayIterStruct, pIter);
-		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
 		oArray& a = *(pArray->elements);
 		if (pIter->cursor == 0)
 		{
@@ -825,7 +812,7 @@ namespace OArray
 	FORTHOP(oArrayIterCurrentMethod)
 	{
 		GET_THIS(oArrayIterStruct, pIter);
-		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
 		oArray& a = *(pArray->elements);
 		if (pIter->cursor >= a.size())
 		{
@@ -842,7 +829,7 @@ namespace OArray
     FORTHOP(oArrayIterRemoveMethod)
 	{
 		GET_THIS(oArrayIterStruct, pIter);
-		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
 		oArray& a = *(pArray->elements);
 		if (pIter->cursor < a.size())
 		{
@@ -861,17 +848,14 @@ namespace OArray
 	FORTHOP(oArrayIterUnrefMethod)
 	{
 		GET_THIS(oArrayIterStruct, pIter);
-		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
 		oArray& a = *(pArray->elements);
-		ForthObject fobj;
-		fobj.pData = NULL;
-		fobj.pMethodOps = NULL;
+		ForthObject fobj = nullptr;
 		if (pIter->cursor < a.size())
 		{
 			fobj = a[pIter->cursor];
 			unrefObject(fobj);
-			a[pIter->cursor].pData = NULL;
-			a[pIter->cursor].pMethodOps = NULL;
+            a[pIter->cursor] = nullptr;
 		}
 		PUSH_OBJECT(fobj);
 		METHOD_RETURN;
@@ -882,14 +866,14 @@ namespace OArray
 		GET_THIS(oArrayIterStruct, pIter);
 		ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIArrayIter);
 		MALLOCATE_ITER(oArrayIterStruct, pNewIter, pIterVocab);
+        pNewIter->pMethods = pIterVocab->GetMethods();
 		pNewIter->refCount = 0;
-		pNewIter->parent.pMethodOps = pIter->parent.pMethodOps;
-		pNewIter->parent.pData = pIter->parent.pData;
-		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+        pNewIter->parent = pIter->parent;
+		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
 		pArray->refCount++;
 		TRACK_KEEP;
 		pNewIter->cursor = pIter->cursor;
-		PUSH_PAIR(GET_TPM, pNewIter);
+        PUSH_OBJECT(pNewIter);
 		METHOD_RETURN;
 	}
 
@@ -897,7 +881,7 @@ namespace OArray
     {
         GET_THIS(oArrayIterStruct, pIter);
 
-        oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+        oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
         oArray& a = *(pArray->elements);
         ulong ix = (ulong)(SPOP);
         if (a.size() >= ix)
@@ -924,7 +908,7 @@ namespace OArray
         long retVal = 0;
         ForthObject soughtObj;
         POP_OBJECT(soughtObj);
-        oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+        oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
         oArray& a = *(pArray->elements);
         unsigned int i = pIter->cursor;
         while (i < a.size())
@@ -946,7 +930,7 @@ namespace OArray
 	{
 		GET_THIS(oArrayIterStruct, pIter);
 
-		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent.pData);
+		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
 		oArray& a = *(pArray->elements);
 		ulong ix = pIter->cursor;
 		ulong oldSize = a.size();
@@ -1011,7 +995,8 @@ namespace OArray
     typedef std::vector<bagElement> oBag;
     struct oBagStruct
     {
-        ulong       refCount;
+        long*    pMethods;
+        ulong    refCount;
         oBag*    elements;
     };
 
@@ -1022,25 +1007,23 @@ namespace OArray
 
     ForthClassVocabulary* gpBagClassVocab = nullptr;
 
-    void createBagObject(ForthObject& destObj, ForthClassVocabulary *pClassVocab)
+    oBagStruct* createBagObject(ForthObject& destObj, ForthClassVocabulary *pClassVocab)
     {
-        destObj.pMethodOps = pClassVocab->GetInterface(0)->GetMethods();
 
         MALLOCATE_OBJECT(oBagStruct, pBag, pClassVocab);
+        pBag->pMethods = pClassVocab->GetMethods();
         pBag->refCount = 0;
         pBag->elements = new oBag;
-        destObj.pData = (long *)pBag;
+        return pBag;
     }
 
-    oArrayIterStruct* createBagIterator(ForthCoreState* pCore, oBagStruct* pBag, ForthObject& obj)
+    oArrayIterStruct* createBagIterator(ForthCoreState* pCore, oBagStruct* pBag)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIBagIter);
         MALLOCATE_ITER(oArrayIterStruct, pIter, pIterVocab);
+        pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
-        pIter->parent.pMethodOps = GET_TPM;
-        pIter->parent.pData = reinterpret_cast<long *>(pBag);
-        obj.pMethodOps = pIterVocab->GetInterface(0)->GetMethods();
-        obj.pData = (long *)pIter;
+        pIter->parent = reinterpret_cast<ForthObject>(pBag);
         return pIter;
     }
 
@@ -1145,12 +1128,11 @@ namespace OArray
         GET_THIS(oBagStruct, pBag);
         pBag->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oArrayIterStruct* pIter = createBagIterator(pCore, pBag, obj);
+        oArrayIterStruct* pIter = createBagIterator(pCore, pBag);
         pIter->cursor = 0;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -1159,12 +1141,11 @@ namespace OArray
         GET_THIS(oBagStruct, pBag);
         pBag->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oArrayIterStruct* pIter = createBagIterator(pCore, pBag, obj);
+        oArrayIterStruct* pIter = createBagIterator(pCore, pBag);
         pIter->cursor = pBag->elements->size();
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -1185,10 +1166,10 @@ namespace OArray
                 TRACK_KEEP;
                 ForthObject obj;
 
-                oArrayIterStruct* pIter = createBagIterator(pCore, pBag, obj);
+                oArrayIterStruct* pIter = createBagIterator(pCore, pBag);
                 pIter->cursor = i;
 
-                PUSH_OBJECT(obj);
+                PUSH_OBJECT(pIter);
                 break;
             }
         }
@@ -1211,6 +1192,7 @@ namespace OArray
         // create clone array and set is size to match this array
         ForthClassVocabulary *pBagVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIBag);
         MALLOCATE_OBJECT(oBagStruct, pCloneBag, pBagVocab);
+        pCloneBag->pMethods = pBag->pMethods;
         pCloneBag->refCount = 0;
         pCloneBag->elements = new oBag;
         size_t numElements = a.size();
@@ -1222,7 +1204,7 @@ namespace OArray
             memcpy(&(cloneElements[0]), &(a[0]), numElements << 4);
         }
         // push cloned array on TOS
-        PUSH_PAIR(GET_TPM, pCloneBag);
+        PUSH_OBJECT(pCloneBag);
         METHOD_RETURN;
     }
 
@@ -1378,8 +1360,7 @@ namespace OArray
                 // growing - add null elements to end of array
                 a.resize(newSize);
                 bagElement emptyElement;
-                emptyElement.obj.pMethodOps = NULL;
-                emptyElement.obj.pData = NULL;
+                emptyElement.obj = nullptr;
                 emptyElement.tag.s64 = 0L;
                 for (ulong i = a.size(); i < newSize; i++)
                 {
@@ -1501,8 +1482,7 @@ namespace OArray
                 // growing - add null elements to end of array
                 a.resize(newSize);
                 bagElement emptyElement;
-                emptyElement.obj.pMethodOps = NULL;
-                emptyElement.obj.pData = NULL;
+                emptyElement.obj = nullptr;
                 emptyElement.tag.s64 = 0L;
                 for (ulong i = a.size(); i < newSize; i++)
                 {
@@ -1622,19 +1602,15 @@ namespace OArray
         oBag::iterator iter;
         oBag& a = *(pBag->elements);
 
-        ForthObject newMapObject;
-        OMap::createLongMapObject(newMapObject, OMap::gpLongMapClassVocab);
-        oLongMapStruct* pMap = (oLongMapStruct *)(newMapObject.pData);
+        ForthObject newMapObject = (ForthObject)OMap::createLongMapObject(OMap::gpLongMapClassVocab);
+        oLongMapStruct* pMap = (oLongMapStruct *)newMapObject;
         oLongMap& destMap = *(pMap->elements);
 
         // bump reference counts of all valid elements in this array
         for (iter = a.begin(); iter != a.end(); ++iter)
         {
             bagElement& element = *iter;
-            if (element.obj.pMethodOps != NULL)
-            {
-                SAFE_KEEP(element.obj);
-            }
+            SAFE_KEEP(element.obj);
             destMap[element.tag.s64] = element.obj;
         }
 
@@ -1654,8 +1630,7 @@ namespace OArray
             unrefObject(element.obj);
             PUSH_OBJECT(element.obj);
             LPUSH(element.tag);
-            a[ix].obj.pData = NULL;
-            a[ix].obj.pMethodOps = NULL;
+            a[ix].obj = nullptr;
             a[ix].tag.s64 = 0L;
         }
         else
@@ -1724,7 +1699,7 @@ namespace OArray
     FORTHOP(oBagIterSeekNextMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         if (pIter->cursor < pBag->elements->size())
         {
             pIter->cursor++;
@@ -1752,7 +1727,7 @@ namespace OArray
     FORTHOP(oBagIterSeekTailMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         pIter->cursor = pBag->elements->size();
         METHOD_RETURN;
     }
@@ -1760,7 +1735,7 @@ namespace OArray
     FORTHOP(oBagIterAtHeadMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         long retVal = (pIter->cursor == 0) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -1769,7 +1744,7 @@ namespace OArray
     FORTHOP(oBagIterAtTailMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         long retVal = (pIter->cursor == pBag->elements->size()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -1778,7 +1753,7 @@ namespace OArray
     FORTHOP(oBagIterNextMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         oBag& a = *(pBag->elements);
         if (pIter->cursor >= a.size())
         {
@@ -1798,7 +1773,7 @@ namespace OArray
     FORTHOP(oBagIterPrevMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         oBag& a = *(pBag->elements);
         if (pIter->cursor == 0)
         {
@@ -1818,7 +1793,7 @@ namespace OArray
     FORTHOP(oBagIterCurrentMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         oBag& a = *(pBag->elements);
         if (pIter->cursor >= a.size())
         {
@@ -1837,7 +1812,7 @@ namespace OArray
     FORTHOP(oBagIterRemoveMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         oBag& a = *(pBag->elements);
         if (pIter->cursor < a.size())
         {
@@ -1858,18 +1833,15 @@ namespace OArray
     FORTHOP(oBagIterUnrefMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         oBag& a = *(pBag->elements);
-        ForthObject fobj;
-        fobj.pData = NULL;
-        fobj.pMethodOps = NULL;
+        ForthObject fobj = nullptr;
         if (pIter->cursor < a.size())
         {
             ForthObject& obj = a[pIter->cursor].obj;
             fobj = obj;
             unrefObject(fobj);
-            obj.pData = NULL;
-            obj.pMethodOps = NULL;
+            obj = nullptr;
         }
         PUSH_OBJECT(fobj);
         METHOD_RETURN;
@@ -1878,16 +1850,16 @@ namespace OArray
     FORTHOP(oBagIterCloneMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIBagIter);
-        MALLOCATE_ITER(oArrayIterStruct, pNewIter, pIterVocab);
+        ForthClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIBagIter);
+        MALLOCATE_ITER(oArrayIterStruct, pNewIter, pClassVocab);
+        pNewIter->pMethods = pClassVocab->GetMethods();
         pNewIter->refCount = 0;
-        pNewIter->parent.pMethodOps = pIter->parent.pMethodOps;
-        pNewIter->parent.pData = pIter->parent.pData;
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        pNewIter->parent = pIter->parent;
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         pBag->refCount++;
         TRACK_KEEP;
         pNewIter->cursor = pIter->cursor;
-        PUSH_PAIR(GET_TPM, pNewIter);
+        PUSH_OBJECT(pNewIter);
         METHOD_RETURN;
     }
 
@@ -1895,7 +1867,7 @@ namespace OArray
     {
         GET_THIS(oArrayIterStruct, pIter);
 
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         oBag& a = *(pBag->elements);
         ulong ix = (ulong)(SPOP);
         if (a.size() >= ix)
@@ -1915,7 +1887,7 @@ namespace OArray
         long retVal = 0;
         stackInt64 soughtTag;
         LPOP(soughtTag);
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         oBag& a = *(pBag->elements);
         unsigned int i = pIter->cursor;
         while (i < a.size())
@@ -1936,7 +1908,7 @@ namespace OArray
     {
         GET_THIS(oArrayIterStruct, pIter);
 
-        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent.pData);
+        oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         oBag& a = *(pBag->elements);
         ulong ix = pIter->cursor;
         ulong oldSize = a.size();
@@ -2001,26 +1973,26 @@ namespace OArray
 	typedef std::vector<char> oByteArray;
 	struct oByteArrayStruct
 	{
-		ulong       refCount;
+        long*           pMethods;
+        ulong           refCount;
 		oByteArray*    elements;
 	};
 
 	struct oByteArrayIterStruct
 	{
+        long*           pMethods;
 		ulong			refCount;
 		ForthObject		parent;
 		ulong			cursor;
 	};
 
-    oByteArrayIterStruct* createByteArrayIterator(ForthCoreState* pCore, oByteArrayStruct* pArray, ForthObject& obj)
+    oByteArrayIterStruct* createByteArrayIterator(ForthCoreState* pCore, oByteArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIByteArrayIter);
         MALLOCATE_ITER(oByteArrayIterStruct, pIter, pIterVocab);
+        pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
-        pIter->parent.pMethodOps = GET_TPM;
-        pIter->parent.pData = reinterpret_cast<long *>(pArray);
-        obj.pMethodOps = pIterVocab->GetInterface(0)->GetMethods();
-        obj.pData = (long *)pIter;
+        pIter->parent = reinterpret_cast<ForthObject>(pArray);
         return pIter;
     }
 
@@ -2062,11 +2034,11 @@ namespace OArray
     FORTHOP(oByteArrayNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
 		MALLOCATE_OBJECT(oByteArrayStruct, pArray, pClassVocab);
+        pArray->pMethods = pClassVocab->GetMethods();
 		pArray->refCount = 0;
 		pArray->elements = new oByteArray;
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pArray);
+		PUSH_OBJECT(pArray);
 	}
 
 	FORTHOP(oByteArrayDeleteMethod)
@@ -2100,12 +2072,11 @@ namespace OArray
         GET_THIS(oByteArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oByteArrayIterStruct* pIter = createByteArrayIterator(pCore, pArray, obj);
+        oByteArrayIterStruct* pIter = createByteArrayIterator(pCore, pArray);
         pIter->cursor = 0;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -2114,12 +2085,10 @@ namespace OArray
         GET_THIS(oByteArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
-
-        oByteArrayIterStruct* pIter = createByteArrayIterator(pCore, pArray, obj);
+        oByteArrayIterStruct* pIter = createByteArrayIterator(pCore, pArray);
         pIter->cursor = pArray->elements->size();
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -2136,12 +2105,10 @@ namespace OArray
             {
                 pArray->refCount++;
                 TRACK_KEEP;
-                ForthObject obj;
-
-                oByteArrayIterStruct* pIter = createByteArrayIterator(pCore, pArray, obj);
+                oByteArrayIterStruct* pIter = createByteArrayIterator(pCore, pArray);
                 pIter->cursor = i;
 
-                PUSH_OBJECT(obj);
+                PUSH_OBJECT(pIter);
                 found = ~0;
                 break;
             }
@@ -2157,6 +2124,7 @@ namespace OArray
         // create clone array and set is size to match this array
         ForthClassVocabulary *pArrayVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIByteArray);
         MALLOCATE_OBJECT(oByteArrayStruct, pCloneArray, pArrayVocab);
+        pCloneArray->pMethods = pArray->pMethods;
         pCloneArray->refCount = 0;
         pCloneArray->elements = new oByteArray;
         size_t numElements = a.size();
@@ -2168,7 +2136,7 @@ namespace OArray
             memcpy(&(cloneElements[0]), &(a[0]), numElements);
         }
         // push cloned array on TOS
-        PUSH_PAIR(GET_TPM, pCloneArray);
+        PUSH_OBJECT(pCloneArray);
         METHOD_RETURN;
     }
 
@@ -2495,7 +2463,7 @@ namespace OArray
 	FORTHOP(oByteArrayIterSeekNextMethod)
 	{
 		GET_THIS(oByteArrayIterStruct, pIter);
-		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent.pData);
+		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent);
 		if (pIter->cursor < pArray->elements->size())
 		{
 			pIter->cursor++;
@@ -2516,7 +2484,7 @@ namespace OArray
     FORTHOP(oByteArrayIterAtHeadMethod)
     {
         GET_THIS(oByteArrayIterStruct, pIter);
-        oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent.pData);
+        oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == 0) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -2525,7 +2493,7 @@ namespace OArray
     FORTHOP(oByteArrayIterAtTailMethod)
     {
         GET_THIS(oByteArrayIterStruct, pIter);
-        oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent.pData);
+        oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == pArray->elements->size()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -2541,7 +2509,7 @@ namespace OArray
     FORTHOP(oByteArrayIterSeekTailMethod)
 	{
 		GET_THIS(oByteArrayIterStruct, pIter);
-		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent.pData);
+		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent);
 		pIter->cursor = pArray->elements->size();
 		METHOD_RETURN;
 	}
@@ -2549,7 +2517,7 @@ namespace OArray
 	FORTHOP(oByteArrayIterNextMethod)
 	{
 		GET_THIS(oByteArrayIterStruct, pIter);
-		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent.pData);
+		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent);
 		oByteArray& a = *(pArray->elements);
 		if (pIter->cursor >= a.size())
 		{
@@ -2568,7 +2536,7 @@ namespace OArray
 	FORTHOP(oByteArrayIterPrevMethod)
 	{
 		GET_THIS(oByteArrayIterStruct, pIter);
-		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent.pData);
+		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent);
 		oByteArray& a = *(pArray->elements);
 		if (pIter->cursor == 0)
 		{
@@ -2587,7 +2555,7 @@ namespace OArray
 	FORTHOP(oByteArrayIterCurrentMethod)
 	{
 		GET_THIS(oByteArrayIterStruct, pIter);
-		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent.pData);
+		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent);
 		oByteArray& a = *(pArray->elements);
 		if (pIter->cursor >= a.size())
 		{
@@ -2605,7 +2573,7 @@ namespace OArray
 	FORTHOP(oByteArrayIterRemoveMethod)
 	{
 		GET_THIS(oByteArrayIterStruct, pIter);
-		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent.pData);
+		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent);
 		oByteArray& a = *(pArray->elements);
 		if (pIter->cursor < a.size())
 		{
@@ -2617,16 +2585,16 @@ namespace OArray
     FORTHOP(oByteArrayIterCloneMethod)
     {
         GET_THIS(oByteArrayIterStruct, pIter);
-        oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent.pData);
+        oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent);
         pArray->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIByteArrayIter);
         MALLOCATE_ITER(oByteArrayIterStruct, pNewIter, pIterVocab);
+        pNewIter->pMethods = pIter->pMethods;
         pNewIter->refCount = 0;
-        pNewIter->parent.pMethodOps = pIter->parent.pMethodOps;
-        pNewIter->parent.pData = reinterpret_cast<long *>(pArray);
+        pNewIter->parent = pIter->parent;
         pNewIter->cursor = pIter->cursor;
-        PUSH_PAIR(GET_TPM, pNewIter);
+        PUSH_OBJECT(pNewIter);
         METHOD_RETURN;
     }
 
@@ -2634,7 +2602,7 @@ namespace OArray
     {
         GET_THIS(oByteArrayIterStruct, pIter);
 
-        oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent.pData);
+        oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent);
         oByteArray& a = *(pArray->elements);
         ulong ix = (ulong)(SPOP);
         if (a.size() >= ix)
@@ -2660,7 +2628,7 @@ namespace OArray
 		GET_THIS(oByteArrayIterStruct, pIter);
 		long retVal = 0;
 		char soughtByte = (char)(SPOP);
-		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent.pData);
+		oByteArrayStruct* pArray = reinterpret_cast<oByteArrayStruct *>(pIter->parent);
 		oByteArray& a = *(pArray->elements);
 		unsigned int i = pIter->cursor;
 		while (i < a.size())
@@ -2714,26 +2682,26 @@ namespace OArray
 	typedef std::vector<short> oShortArray;
 	struct oShortArrayStruct
 	{
-		ulong       refCount;
+        long*           pMethods;
+        ulong           refCount;
 		oShortArray*    elements;
 	};
 
 	struct oShortArrayIterStruct
 	{
-		ulong			refCount;
+        long*           pMethods;
+        ulong			refCount;
 		ForthObject		parent;
 		ulong			cursor;
 	};
 
-    oShortArrayIterStruct* createShortArrayIterator(ForthCoreState* pCore, oShortArrayStruct* pArray, ForthObject& obj)
+    oShortArrayIterStruct* createShortArrayIterator(ForthCoreState* pCore, oShortArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIShortArrayIter);
         MALLOCATE_ITER(oShortArrayIterStruct, pIter, pIterVocab);
+        pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
-        pIter->parent.pMethodOps = GET_TPM;
-        pIter->parent.pData = reinterpret_cast<long *>(pArray);
-        obj.pMethodOps = pIterVocab->GetInterface(0)->GetMethods();
-        obj.pData = (long *)pIter;
+        pIter->parent = (ForthObject)(pArray);
         return pIter;
     }
 
@@ -2775,11 +2743,11 @@ namespace OArray
     FORTHOP(oShortArrayNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
 		MALLOCATE_OBJECT(oShortArrayStruct, pArray, pClassVocab);
-		pArray->refCount = 0;
+        pArray->pMethods = pClassVocab->GetMethods();
+        pArray->refCount = 0;
 		pArray->elements = new oShortArray;
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pArray);
+		PUSH_OBJECT(pArray);
 	}
 
 	FORTHOP(oShortArrayDeleteMethod)
@@ -2813,12 +2781,10 @@ namespace OArray
         GET_THIS(oShortArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
-
-        oShortArrayIterStruct* pIter = createShortArrayIterator(pCore, pArray, obj);
+        oShortArrayIterStruct* pIter = createShortArrayIterator(pCore, pArray);
         pIter->cursor = 0;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -2827,12 +2793,11 @@ namespace OArray
         GET_THIS(oShortArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oShortArrayIterStruct* pIter = createShortArrayIterator(pCore, pArray, obj);
+        oShortArrayIterStruct* pIter = createShortArrayIterator(pCore, pArray);
         pIter->cursor = pArray->elements->size();
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -2847,12 +2812,10 @@ namespace OArray
         {
             if (soughtShort == a[i])
             {
-                ForthObject obj;
-
-                oShortArrayIterStruct* pIter = createShortArrayIterator(pCore, pArray, obj);
+                oShortArrayIterStruct* pIter = createShortArrayIterator(pCore, pArray);
                 pIter->cursor = i;
 
-                PUSH_OBJECT(obj);
+                PUSH_OBJECT(pIter);
                 found = ~0;
                 break;
             }
@@ -2868,6 +2831,7 @@ namespace OArray
         // create clone array and set is size to match this array
         ForthClassVocabulary *pArrayVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIShortArray);
         MALLOCATE_OBJECT(oShortArrayStruct, pCloneArray, pArrayVocab);
+        pCloneArray->pMethods = pArray->pMethods;
         pCloneArray->refCount = 0;
         pCloneArray->elements = new oShortArray;
         size_t numElements = a.size();
@@ -2879,7 +2843,7 @@ namespace OArray
             memcpy(&(cloneElements[0]), &(a[0]), numElements << 1);
         }
         // push cloned array on TOS
-        PUSH_PAIR(GET_TPM, pCloneArray);
+        PUSH_OBJECT(pCloneArray);
         METHOD_RETURN;
     }
 
@@ -3197,7 +3161,7 @@ namespace OArray
 	FORTHOP(oShortArrayIterSeekNextMethod)
 	{
 		GET_THIS(oShortArrayIterStruct, pIter);
-		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent.pData);
+		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent);
 		if (pIter->cursor < pArray->elements->size())
 		{
 			pIter->cursor++;
@@ -3225,7 +3189,7 @@ namespace OArray
 	FORTHOP(oShortArrayIterSeekTailMethod)
 	{
 		GET_THIS(oShortArrayIterStruct, pIter);
-		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent.pData);
+		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent);
 		pIter->cursor = pArray->elements->size();
 		METHOD_RETURN;
 	}
@@ -3233,7 +3197,7 @@ namespace OArray
     FORTHOP(oShortArrayIterAtHeadMethod)
     {
         GET_THIS(oShortArrayIterStruct, pIter);
-        oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent.pData);
+        oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == 0) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -3242,7 +3206,7 @@ namespace OArray
     FORTHOP(oShortArrayIterAtTailMethod)
     {
         GET_THIS(oShortArrayIterStruct, pIter);
-        oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent.pData);
+        oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == pArray->elements->size()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -3251,7 +3215,7 @@ namespace OArray
     FORTHOP(oShortArrayIterNextMethod)
 	{
 		GET_THIS(oShortArrayIterStruct, pIter);
-		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent.pData);
+		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent);
 		oShortArray& a = *(pArray->elements);
 		if (pIter->cursor >= a.size())
 		{
@@ -3270,7 +3234,7 @@ namespace OArray
 	FORTHOP(oShortArrayIterPrevMethod)
 	{
 		GET_THIS(oShortArrayIterStruct, pIter);
-		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent.pData);
+		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent);
 		oShortArray& a = *(pArray->elements);
 		if (pIter->cursor == 0)
 		{
@@ -3289,7 +3253,7 @@ namespace OArray
 	FORTHOP(oShortArrayIterCurrentMethod)
 	{
 		GET_THIS(oShortArrayIterStruct, pIter);
-		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent.pData);
+		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent);
 		oShortArray& a = *(pArray->elements);
 		if (pIter->cursor >= a.size())
 		{
@@ -3307,7 +3271,7 @@ namespace OArray
 	FORTHOP(oShortArrayIterRemoveMethod)
 	{
 		GET_THIS(oShortArrayIterStruct, pIter);
-		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent.pData);
+		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent);
 		oShortArray& a = *(pArray->elements);
 		if (pIter->cursor < a.size())
 		{
@@ -3319,16 +3283,16 @@ namespace OArray
     FORTHOP(oShortArrayIterCloneMethod)
     {
         GET_THIS(oShortArrayIterStruct, pIter);
-        oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent.pData);
+        oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent);
         pArray->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIShortArrayIter);
         MALLOCATE_ITER(oShortArrayIterStruct, pNewIter, pIterVocab);
+        pNewIter->pMethods = pIter->pMethods;
         pNewIter->refCount = 0;
-        pNewIter->parent.pMethodOps = pIter->parent.pMethodOps;
-        pNewIter->parent.pData = reinterpret_cast<long *>(pArray);
+        pNewIter->parent = pIter->parent;
         pNewIter->cursor = pIter->cursor;
-        PUSH_PAIR(GET_TPM, pNewIter);
+        PUSH_OBJECT(pNewIter);
         METHOD_RETURN;
     }
 
@@ -3336,7 +3300,7 @@ namespace OArray
     {
         GET_THIS(oArrayIterStruct, pIter);
 
-        oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent.pData);
+        oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent);
         oShortArray& a = *(pArray->elements);
         ulong ix = (ulong)(SPOP);
         if (a.size() >= ix)
@@ -3362,7 +3326,7 @@ namespace OArray
 		GET_THIS(oShortArrayIterStruct, pIter);
 		long retVal = 0;
 		char soughtShort = (char)(SPOP);
-		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent.pData);
+		oShortArrayStruct* pArray = reinterpret_cast<oShortArrayStruct *>(pIter->parent);
 		oShortArray& a = *(pArray->elements);
 		unsigned int i = pIter->cursor;
 		while (i < a.size())
@@ -3413,26 +3377,26 @@ namespace OArray
 	typedef std::vector<int> oIntArray;
 	struct oIntArrayStruct
 	{
-		ulong       refCount;
-		oIntArray*    elements;
+        long*           pMethods;
+        ulong           refCount;
+		oIntArray*      elements;
 	};
 
 	struct oIntArrayIterStruct
 	{
-		ulong			refCount;
+        long*           pMethods;
+        ulong			refCount;
 		ForthObject		parent;
 		ulong			cursor;
 	};
 
-    oIntArrayIterStruct* createIntArrayIterator(ForthCoreState* pCore, oIntArrayStruct* pArray, ForthObject& obj)
+    oIntArrayIterStruct* createIntArrayIterator(ForthCoreState* pCore, oIntArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIIntArrayIter);
         MALLOCATE_ITER(oIntArrayIterStruct, pIter, pIterVocab);
+        pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
-        pIter->parent.pMethodOps = GET_TPM;
-        pIter->parent.pData = reinterpret_cast<long *>(pArray);
-        obj.pMethodOps = pIterVocab->GetInterface(0)->GetMethods();
-        obj.pData = (long *)pIter;
+        pIter->parent = reinterpret_cast<ForthObject>(pArray);
         return pIter;
     }
 
@@ -3474,11 +3438,11 @@ namespace OArray
     FORTHOP(oIntArrayNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
 		MALLOCATE_OBJECT(oIntArrayStruct, pArray, pClassVocab);
-		pArray->refCount = 0;
+        pArray->pMethods = pClassVocab->GetMethods();
+        pArray->refCount = 0;
 		pArray->elements = new oIntArray;
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pArray);
+		PUSH_OBJECT(pArray);
 	}
 
 	FORTHOP(oIntArrayDeleteMethod)
@@ -3512,12 +3476,11 @@ namespace OArray
         GET_THIS(oIntArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oIntArrayIterStruct* pIter = createIntArrayIterator(pCore, pArray, obj);
+        oIntArrayIterStruct* pIter = createIntArrayIterator(pCore, pArray);
         pIter->cursor = 0;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -3526,12 +3489,10 @@ namespace OArray
         GET_THIS(oIntArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
-
-        oIntArrayIterStruct* pIter = createIntArrayIterator(pCore, pArray, obj);
+        oIntArrayIterStruct* pIter = createIntArrayIterator(pCore, pArray);
         pIter->cursor = pArray->elements->size();
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -3546,12 +3507,10 @@ namespace OArray
         {
             if (soughtInt == a[i])
             {
-                ForthObject obj;
-
-                oIntArrayIterStruct* pIter = createIntArrayIterator(pCore, pArray, obj);
+                oIntArrayIterStruct* pIter = createIntArrayIterator(pCore, pArray);
                 pIter->cursor = i;
 
-                PUSH_OBJECT(obj);
+                PUSH_OBJECT(pIter);
                 found = ~0;
                 break;
             }
@@ -3565,8 +3524,9 @@ namespace OArray
         GET_THIS(oIntArrayStruct, pArray);
         oIntArray& a = *(pArray->elements);
         // create clone array and set is size to match this array
-        ForthClassVocabulary *pArrayVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIIntArray);
-        MALLOCATE_OBJECT(oIntArrayStruct, pCloneArray, pArrayVocab);
+        ForthClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIIntArray);
+        MALLOCATE_OBJECT(oIntArrayStruct, pCloneArray, pClassVocab);
+        pCloneArray->pMethods = pClassVocab->GetMethods();
         pCloneArray->refCount = 0;
         pCloneArray->elements = new oIntArray;
         size_t numElements = a.size();
@@ -3578,7 +3538,7 @@ namespace OArray
             memcpy(&(cloneElements[0]), &(a[0]), numElements << 2);
         }
         // push cloned array on TOS
-        PUSH_PAIR(GET_TPM, pCloneArray);
+        PUSH_OBJECT(pCloneArray);
         METHOD_RETURN;
     }
 
@@ -3895,7 +3855,7 @@ namespace OArray
 	FORTHOP(oIntArrayIterSeekNextMethod)
 	{
 		GET_THIS(oIntArrayIterStruct, pIter);
-		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent.pData);
+		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent);
 		if (pIter->cursor < pArray->elements->size())
 		{
 			pIter->cursor++;
@@ -3923,7 +3883,7 @@ namespace OArray
 	FORTHOP(oIntArrayIterSeekTailMethod)
 	{
 		GET_THIS(oIntArrayIterStruct, pIter);
-		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent.pData);
+		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent);
 		pIter->cursor = pArray->elements->size();
 		METHOD_RETURN;
 	}
@@ -3931,7 +3891,7 @@ namespace OArray
     FORTHOP(oIntArrayIterAtHeadMethod)
     {
         GET_THIS(oIntArrayIterStruct, pIter);
-        oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent.pData);
+        oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == 0) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -3940,7 +3900,7 @@ namespace OArray
     FORTHOP(oIntArrayIterAtTailMethod)
     {
         GET_THIS(oIntArrayIterStruct, pIter);
-        oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent.pData);
+        oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == pArray->elements->size()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -3949,7 +3909,7 @@ namespace OArray
     FORTHOP(oIntArrayIterNextMethod)
 	{
 		GET_THIS(oIntArrayIterStruct, pIter);
-		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent.pData);
+		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent);
 		oIntArray& a = *(pArray->elements);
 		if (pIter->cursor >= a.size())
 		{
@@ -3967,7 +3927,7 @@ namespace OArray
 	FORTHOP(oIntArrayIterPrevMethod)
 	{
 		GET_THIS(oIntArrayIterStruct, pIter);
-		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent.pData);
+		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent);
 		oIntArray& a = *(pArray->elements);
 		if (pIter->cursor == 0)
 		{
@@ -3985,7 +3945,7 @@ namespace OArray
 	FORTHOP(oIntArrayIterCurrentMethod)
 	{
 		GET_THIS(oIntArrayIterStruct, pIter);
-		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent.pData);
+		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent);
 		oIntArray& a = *(pArray->elements);
 		if (pIter->cursor >= a.size())
 		{
@@ -4002,7 +3962,7 @@ namespace OArray
 	FORTHOP(oIntArrayIterRemoveMethod)
 	{
 		GET_THIS(oIntArrayIterStruct, pIter);
-		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent.pData);
+		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent);
 		oIntArray& a = *(pArray->elements);
 		if (pIter->cursor < a.size())
 		{
@@ -4014,16 +3974,17 @@ namespace OArray
     FORTHOP(oIntArrayIterCloneMethod)
     {
         GET_THIS(oIntArrayIterStruct, pIter);
-        oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent.pData);
+        oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent);
         pArray->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIIntArrayIter);
         MALLOCATE_ITER(oIntArrayIterStruct, pNewIter, pIterVocab);
+        pNewIter->pMethods = pIter->pMethods;
         pNewIter->refCount = 0;
-        pNewIter->parent.pMethodOps = pIter->parent.pMethodOps;
-        pNewIter->parent.pData = reinterpret_cast<long *>(pArray);
         pNewIter->cursor = pIter->cursor;
-        PUSH_PAIR(GET_TPM, pNewIter);
+        pNewIter->parent = reinterpret_cast<ForthObject>(pArray);
+        pNewIter->cursor = pIter->cursor;
+        PUSH_OBJECT(pNewIter);
         METHOD_RETURN;
     }
 
@@ -4031,7 +3992,7 @@ namespace OArray
     {
         GET_THIS(oIntArrayIterStruct, pIter);
 
-        oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent.pData);
+        oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent);
         oIntArray& a = *(pArray->elements);
         ulong ix = (ulong)(SPOP);
         if (a.size() >= ix)
@@ -4057,7 +4018,7 @@ namespace OArray
 		GET_THIS(oIntArrayIterStruct, pIter);
 		long retVal = 0;
 		char soughtInt = (char)(SPOP);
-		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent.pData);
+		oIntArrayStruct* pArray = reinterpret_cast<oIntArrayStruct *>(pIter->parent);
 		oIntArray& a = *(pArray->elements);
 		unsigned int i = pIter->cursor;
 		while (i < a.size())
@@ -4213,26 +4174,26 @@ namespace OArray
 	typedef std::vector<long long> oLongArray;
 	struct oLongArrayStruct
 	{
-		ulong       refCount;
+        long*           pMethods;
+        ulong           refCount;
 		oLongArray*    elements;
 	};
 
 	struct oLongArrayIterStruct
 	{
-		ulong			refCount;
+        long*           pMethods;
+        ulong			refCount;
 		ForthObject		parent;
 		ulong			cursor;
 	};
 
-    oLongArrayIterStruct* createLongArrayIterator(ForthCoreState* pCore, oLongArrayStruct* pArray, ForthObject& obj)
+    oLongArrayIterStruct* createLongArrayIterator(ForthCoreState* pCore, oLongArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCILongArrayIter);
         MALLOCATE_ITER(oLongArrayIterStruct, pIter, pIterVocab);
+        pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
-        pIter->parent.pMethodOps = GET_TPM;
-        pIter->parent.pData = reinterpret_cast<long *>(pArray);
-        obj.pMethodOps = pIterVocab->GetInterface(0)->GetMethods();
-        obj.pData = (long *)pIter;
+        pIter->parent = reinterpret_cast<ForthObject>(pArray);
         return pIter;
     }
 
@@ -4274,11 +4235,11 @@ namespace OArray
     FORTHOP(oLongArrayNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
 		MALLOCATE_OBJECT(oLongArrayStruct, pArray, pClassVocab);
-		pArray->refCount = 0;
+        pArray->pMethods = pClassVocab->GetMethods();
+        pArray->refCount = 0;
 		pArray->elements = new oLongArray;
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pArray);
+		PUSH_OBJECT(pArray);
 	}
 
 	FORTHOP(oLongArrayDeleteMethod)
@@ -4312,12 +4273,11 @@ namespace OArray
         GET_THIS(oLongArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oLongArrayIterStruct* pIter = createLongArrayIterator(pCore, pArray, obj);
+        oLongArrayIterStruct* pIter = createLongArrayIterator(pCore, pArray);
         pIter->cursor = 0;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -4326,12 +4286,11 @@ namespace OArray
         GET_THIS(oLongArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oLongArrayIterStruct* pIter = createLongArrayIterator(pCore, pArray, obj);
+        oLongArrayIterStruct* pIter = createLongArrayIterator(pCore, pArray);
         pIter->cursor = pArray->elements->size();
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -4348,12 +4307,10 @@ namespace OArray
         {
             if (soughtLong == a[i])
             {
-                ForthObject obj;
-
-                oLongArrayIterStruct* pIter = createLongArrayIterator(pCore, pArray, obj);
+                oLongArrayIterStruct* pIter = createLongArrayIterator(pCore, pArray);
                 pIter->cursor = i;
 
-                PUSH_OBJECT(obj);
+                PUSH_OBJECT(pIter);
                 found = ~0;
                 break;
             }
@@ -4367,8 +4324,9 @@ namespace OArray
         GET_THIS(oLongArrayStruct, pArray);
         oLongArray& a = *(pArray->elements);
         // create clone array and set is size to match this array
-        ForthClassVocabulary *pArrayVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCILongArray);
-        MALLOCATE_OBJECT(oLongArrayStruct, pCloneArray, pArrayVocab);
+        ForthClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCILongArray);
+        MALLOCATE_OBJECT(oLongArrayStruct, pCloneArray, pClassVocab);
+        pCloneArray->pMethods = pClassVocab->GetMethods();
         pCloneArray->refCount = 0;
         pCloneArray->elements = new oLongArray;
         size_t numElements = a.size();
@@ -4380,7 +4338,7 @@ namespace OArray
             memcpy(&(cloneElements[0]), &(a[0]), numElements << 3);
         }
         // push cloned array on TOS
-        PUSH_PAIR(GET_TPM, pCloneArray);
+        PUSH_OBJECT(pCloneArray);
         METHOD_RETURN;
     }
 
@@ -4708,7 +4666,7 @@ namespace OArray
 	FORTHOP(oLongArrayIterSeekNextMethod)
 	{
 		GET_THIS(oLongArrayIterStruct, pIter);
-		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent.pData);
+		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent);
 		if (pIter->cursor < pArray->elements->size())
 		{
 			pIter->cursor++;
@@ -4736,7 +4694,7 @@ namespace OArray
 	FORTHOP(oLongArrayIterSeekTailMethod)
 	{
 		GET_THIS(oLongArrayIterStruct, pIter);
-		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent.pData);
+		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent);
 		pIter->cursor = pArray->elements->size();
 		METHOD_RETURN;
 	}
@@ -4744,7 +4702,7 @@ namespace OArray
     FORTHOP(oLongArrayIterAtHeadMethod)
     {
         GET_THIS(oLongArrayIterStruct, pIter);
-        oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent.pData);
+        oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == 0) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -4753,7 +4711,7 @@ namespace OArray
     FORTHOP(oLongArrayIterAtTailMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent.pData);
+        oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == pArray->elements->size()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -4762,7 +4720,7 @@ namespace OArray
     FORTHOP(oLongArrayIterNextMethod)
 	{
 		GET_THIS(oLongArrayIterStruct, pIter);
-		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent.pData);
+		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent);
 		oLongArray& a = *(pArray->elements);
 		if (pIter->cursor >= a.size())
 		{
@@ -4782,7 +4740,7 @@ namespace OArray
 	FORTHOP(oLongArrayIterPrevMethod)
 	{
 		GET_THIS(oLongArrayIterStruct, pIter);
-		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent.pData);
+		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent);
 		oLongArray& a = *(pArray->elements);
 		if (pIter->cursor == 0)
 		{
@@ -4802,7 +4760,7 @@ namespace OArray
 	FORTHOP(oLongArrayIterCurrentMethod)
 	{
 		GET_THIS(oLongArrayIterStruct, pIter);
-		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent.pData);
+		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent);
 		oLongArray& a = *(pArray->elements);
 		if (pIter->cursor >= a.size())
 		{
@@ -4821,7 +4779,7 @@ namespace OArray
 	FORTHOP(oLongArrayIterRemoveMethod)
 	{
 		GET_THIS(oLongArrayIterStruct, pIter);
-		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent.pData);
+		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent);
 		oLongArray& a = *(pArray->elements);
 		if (pIter->cursor < a.size())
 		{
@@ -4833,16 +4791,16 @@ namespace OArray
     FORTHOP(oLongArrayIterCloneMethod)
     {
         GET_THIS(oLongArrayIterStruct, pIter);
-        oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent.pData);
+        oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent);
         pArray->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCILongArrayIter);
         MALLOCATE_ITER(oLongArrayIterStruct, pNewIter, pIterVocab);
+        pNewIter->pMethods = pIter->pMethods;
         pNewIter->refCount = 0;
-        pNewIter->parent.pMethodOps = pIter->parent.pMethodOps;
-        pNewIter->parent.pData = reinterpret_cast<long *>(pArray);
+        pNewIter->parent = reinterpret_cast<ForthObject>(pArray);
         pNewIter->cursor = pIter->cursor;
-        PUSH_PAIR(GET_TPM, pNewIter);
+        PUSH_OBJECT(pNewIter);
         METHOD_RETURN;
     }
 
@@ -4850,7 +4808,7 @@ namespace OArray
     {
         GET_THIS(oLongArrayIterStruct, pIter);
 
-        oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent.pData);
+        oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent);
         oLongArray& a = *(pArray->elements);
         ulong ix = (ulong)(SPOP);
         if (a.size() >= ix)
@@ -4878,7 +4836,7 @@ namespace OArray
 		stackInt64 a64;
 		LPOP(a64);
 		long long soughtLong = a64.s64;
-		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent.pData);
+		oLongArrayStruct* pArray = reinterpret_cast<oLongArrayStruct *>(pIter->parent);
 		oLongArray& a = *(pArray->elements);
 		unsigned int i = pIter->cursor;
 		while (i < a.size())
@@ -4931,26 +4889,26 @@ namespace OArray
 	typedef std::vector<double> oDoubleArray;
 	struct oDoubleArrayStruct
 	{
-		ulong       refCount;
-		oDoubleArray*    elements;
+        long*           pMethods;
+        ulong           refCount;
+		oDoubleArray*   elements;
 	};
 
 	struct oDoubleArrayIterStruct
 	{
-		ulong			refCount;
+        long*           pMethods;
+        ulong			refCount;
 		ForthObject		parent;
 		ulong			cursor;
 	};
 
-    oDoubleArrayIterStruct* createDoubleArrayIterator(ForthCoreState* pCore, oDoubleArrayStruct* pArray, ForthObject& obj)
+    oDoubleArrayIterStruct* createDoubleArrayIterator(ForthCoreState* pCore, oDoubleArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIDoubleArrayIter);
         MALLOCATE_ITER(oDoubleArrayIterStruct, pIter, pIterVocab);
+        pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
-        pIter->parent.pMethodOps = GET_TPM;
-        pIter->parent.pData = reinterpret_cast<long *>(pArray);
-        obj.pMethodOps = pIterVocab->GetInterface(0)->GetMethods();
-        obj.pData = (long *)pIter;
+        pIter->parent = reinterpret_cast<ForthObject>(pArray);
         return pIter;
     }
 
@@ -4992,11 +4950,11 @@ namespace OArray
     FORTHOP(oDoubleArrayNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
 		MALLOCATE_OBJECT(oDoubleArrayStruct, pArray, pClassVocab);
-		pArray->refCount = 0;
+        pArray->pMethods = pClassVocab->GetMethods();
+        pArray->refCount = 0;
 		pArray->elements = new oDoubleArray;
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pArray);
+		PUSH_OBJECT(pArray);
 	}
 
 	FORTHOP(oDoubleArrayDeleteMethod)
@@ -5030,12 +4988,11 @@ namespace OArray
         GET_THIS(oDoubleArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oDoubleArrayIterStruct* pIter = createDoubleArrayIterator(pCore, pArray, obj);
+        oDoubleArrayIterStruct* pIter = createDoubleArrayIterator(pCore, pArray);
         pIter->cursor = 0;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -5044,12 +5001,10 @@ namespace OArray
         GET_THIS(oDoubleArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
+        oDoubleArrayIterStruct* pIter = createDoubleArrayIterator(pCore, pArray);
+        pIter->cursor = 0;
 
-        oDoubleArrayIterStruct* pIter = createDoubleArrayIterator(pCore, pArray, obj);
-        pIter->cursor = pArray->elements->size();
-
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -5064,12 +5019,10 @@ namespace OArray
         {
             if (soughtDouble == a[i])
             {
-                ForthObject obj;
-
-                oDoubleArrayIterStruct* pIter = createDoubleArrayIterator(pCore, pArray, obj);
+                oDoubleArrayIterStruct* pIter = createDoubleArrayIterator(pCore, pArray);
                 pIter->cursor = i;
 
-                PUSH_OBJECT(obj);
+                PUSH_OBJECT(pIter);
                 found = ~0;
                 break;
             }
@@ -5271,6 +5224,7 @@ namespace OArray
     typedef std::vector<char> oStructArray;
     struct oStructArrayStruct
     {
+        long*                   pMethods;
         ulong                   refCount;
         oStructArray*           elements;
         ulong                   elementSize;
@@ -5280,20 +5234,19 @@ namespace OArray
 
     struct oStructArrayIterStruct
     {
+        long*           pMethods;
         ulong			refCount;
         ForthObject		parent;
         ulong			cursor;
     };
 
-    oStructArrayIterStruct* createStructArrayIterator(ForthCoreState* pCore, oStructArrayStruct* pArray, ForthObject& obj)
+    oStructArrayIterStruct* createStructArrayIterator(ForthCoreState* pCore, oStructArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIStructArrayIter);
         MALLOCATE_ITER(oStructArrayIterStruct, pIter, pIterVocab);
+        pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
-        pIter->parent.pMethodOps = GET_TPM;
-        pIter->parent.pData = reinterpret_cast<long *>(pArray);
-        obj.pMethodOps = pIterVocab->GetInterface(0)->GetMethods();
-        obj.pData = (long *)pIter;
+        pIter->parent = reinterpret_cast<ForthObject>(pArray);
         return pIter;
     }
 
@@ -5347,14 +5300,14 @@ namespace OArray
     FORTHOP(oStructArrayNew)
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-        ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
         MALLOCATE_OBJECT(oStructArrayStruct, pArray, pClassVocab);
+        pArray->pMethods = pClassVocab->GetMethods();
         pArray->refCount = 0;
         pArray->elements = new oStructArray;
         pArray->elementSize = 1;
         pArray->numElements = 0;
         pArray->pVocab = nullptr;
-        PUSH_PAIR(pPrimaryInterface->GetMethods(), pArray);
+        PUSH_OBJECT(pArray);
     }
 
     FORTHOP(oStructArrayDeleteMethod)
@@ -5412,12 +5365,11 @@ namespace OArray
         GET_THIS(oStructArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oStructArrayIterStruct* pIter = createStructArrayIterator(pCore, pArray, obj);
+        oStructArrayIterStruct* pIter = createStructArrayIterator(pCore, pArray);
         pIter->cursor = 0;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -5426,12 +5378,10 @@ namespace OArray
         GET_THIS(oStructArrayStruct, pArray);
         pArray->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
-
-        oStructArrayIterStruct* pIter = createStructArrayIterator(pCore, pArray, obj);
+        oStructArrayIterStruct* pIter = createStructArrayIterator(pCore, pArray);
         pIter->cursor = pArray->elements->size();
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -5761,7 +5711,7 @@ namespace OArray
     FORTHOP(oStructArrayIterSeekNextMethod)
     {
         GET_THIS(oStructArrayIterStruct, pIter);
-        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent.pData);
+        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent);
         if (pIter->cursor < pArray->numElements)
         {
             pIter->cursor++;
@@ -5789,7 +5739,7 @@ namespace OArray
     FORTHOP(oStructArrayIterSeekTailMethod)
     {
         GET_THIS(oStructArrayIterStruct, pIter);
-        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent.pData);
+        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent);
         pIter->cursor = pArray->numElements;
         METHOD_RETURN;
     }
@@ -5797,7 +5747,7 @@ namespace OArray
     FORTHOP(oStructArrayIterAtHeadMethod)
     {
         GET_THIS(oStructArrayIterStruct, pIter);
-        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent.pData);
+        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == 0) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -5806,7 +5756,7 @@ namespace OArray
     FORTHOP(oStructArrayIterAtTailMethod)
     {
         GET_THIS(oStructArrayIterStruct, pIter);
-        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent.pData);
+        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent);
         long retVal = (pIter->cursor == pArray->elements->size()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -5815,7 +5765,7 @@ namespace OArray
     FORTHOP(oStructArrayIterNextMethod)
     {
         GET_THIS(oStructArrayIterStruct, pIter);
-        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent.pData);
+        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent);
         oStructArray& a = *(pArray->elements);
         if (pIter->cursor >= pArray->numElements)
         {
@@ -5834,7 +5784,7 @@ namespace OArray
     FORTHOP(oStructArrayIterPrevMethod)
     {
         GET_THIS(oStructArrayIterStruct, pIter);
-        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent.pData);
+        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent);
         oStructArray& a = *(pArray->elements);
         if (pIter->cursor == 0)
         {
@@ -5853,7 +5803,7 @@ namespace OArray
     FORTHOP(oStructArrayIterCurrentMethod)
     {
         GET_THIS(oStructArrayIterStruct, pIter);
-        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent.pData);
+        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent);
         oStructArray& a = *(pArray->elements);
         if (pIter->cursor >= pArray->numElements)
         {
@@ -5871,7 +5821,7 @@ namespace OArray
     FORTHOP(oStructArrayIterRemoveMethod)
     {
         GET_THIS(oStructArrayIterStruct, pIter);
-        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent.pData);
+        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent);
         oStructArray& a = *(pArray->elements);
         if (pIter->cursor < pArray->numElements)
         {
@@ -5894,16 +5844,16 @@ namespace OArray
     FORTHOP(oStructArrayIterCloneMethod)
     {
         GET_THIS(oStructArrayIterStruct, pIter);
-        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent.pData);
+        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent);
         pArray->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIStructArrayIter);
         MALLOCATE_ITER(oStructArrayIterStruct, pNewIter, pIterVocab);
+        pNewIter->pMethods = pIter->pMethods;
         pNewIter->refCount = 0;
-        pNewIter->parent.pMethodOps = pIter->parent.pMethodOps;
-        pNewIter->parent.pData = reinterpret_cast<long *>(pArray);
+        pNewIter->parent = reinterpret_cast<ForthObject>(pArray);
         pNewIter->cursor = pIter->cursor;
-        PUSH_PAIR(GET_TPM, pNewIter);
+        PUSH_OBJECT(pNewIter);
         METHOD_RETURN;
     }
 
@@ -5911,7 +5861,7 @@ namespace OArray
     {
         GET_THIS(oStructArrayIterStruct, pIter);
 
-        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent.pData);
+        oStructArrayStruct* pArray = reinterpret_cast<oStructArrayStruct *>(pIter->parent);
         oStructArray& a = *(pArray->elements);
         ulong ix = (ulong)(SPOP);
         if (a.size() >= ix)
@@ -5968,42 +5918,41 @@ namespace OArray
 
 	struct oPairStruct
 	{
-		ulong       refCount;
-		ForthObject	a;
-		ForthObject	b;
+        long*           pMethods;
+        ulong           refCount;
+		ForthObject	    a;
+		ForthObject	    b;
 	};
 
 	struct oPairIterStruct
 	{
-		ulong				refCount;
-		ForthObject			parent;
-		int					cursor;
+        long*           pMethods;
+        ulong			refCount;
+		ForthObject		parent;
+		int				cursor;
 	};
 
 
-    oPairIterStruct* createPairIterator(ForthCoreState* pCore, oPairStruct* pArray, ForthObject& obj)
+    oPairIterStruct* createPairIterator(ForthCoreState* pCore, oPairStruct* pPair)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIPairIter);
         MALLOCATE_ITER(oPairIterStruct, pIter, pIterVocab);
+        pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
-        pIter->parent.pMethodOps = GET_TPM;
-        pIter->parent.pData = reinterpret_cast<long *>(pArray);
-        obj.pMethodOps = pIterVocab->GetInterface(0)->GetMethods();
-        obj.pData = (long *)pIter;
+        pIter->pMethods = pIterVocab->GetMethods();
+        pIter->parent = reinterpret_cast<ForthObject>(pPair);
         return pIter;
     }
 
     FORTHOP(oPairNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
 		MALLOCATE_OBJECT(oPairStruct, pPair, pClassVocab);
-		pPair->refCount = 0;
-		pPair->a.pData = NULL;
-		pPair->a.pMethodOps = NULL;
-		pPair->b.pData = NULL;
-		pPair->b.pMethodOps = NULL;
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pPair);
+        pPair->pMethods = pClassVocab->GetMethods();
+        pPair->refCount = 0;
+        pPair->a = nullptr;
+        pPair->b = nullptr;
+		PUSH_OBJECT(pPair);
 	}
 
 	FORTHOP(oPairDeleteMethod)
@@ -6023,12 +5972,11 @@ namespace OArray
         GET_THIS(oPairStruct, pPair);
         pPair->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oPairIterStruct* pIter = createPairIterator(pCore, pPair, obj);
+        oPairIterStruct* pIter = createPairIterator(pCore, pPair);
         pIter->cursor = 0;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -6037,12 +5985,10 @@ namespace OArray
         GET_THIS(oPairStruct, pPair);
         pPair->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
-
-        oPairIterStruct* pIter = createPairIterator(pCore, pPair, obj);
+        oPairIterStruct* pIter = createPairIterator(pCore, pPair);
         pIter->cursor = 2;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -6308,45 +6254,42 @@ namespace OArray
 
 	struct oTripleStruct
 	{
-		ulong       refCount;
-		ForthObject	a;
-		ForthObject	b;
-		ForthObject	c;
+        long*           pMethods;
+        ulong           refCount;
+		ForthObject	    a;
+		ForthObject	    b;
+		ForthObject	    c;
 	};
 
 	struct oTripleIterStruct
 	{
-		ulong				refCount;
-		ForthObject			parent;
-		int					cursor;
+        long*           pMethods;
+        ulong			refCount;
+		ForthObject		parent;
+		int				cursor;
 	};
 
 
-    oTripleIterStruct* createTripleIterator(ForthCoreState* pCore, oTripleStruct* pTriple, ForthObject& obj)
+    oTripleIterStruct* createTripleIterator(ForthCoreState* pCore, oTripleStruct* pTriple)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCITripleIter);
         MALLOCATE_ITER(oTripleIterStruct, pIter, pIterVocab);
+        pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
-        pIter->parent.pMethodOps = GET_TPM;
-        pIter->parent.pData = reinterpret_cast<long *>(pTriple);
-        obj.pMethodOps = pIterVocab->GetInterface(0)->GetMethods();
-        obj.pData = (long *)pIter;
+        pIter->parent = reinterpret_cast<ForthObject>(pTriple);
         return pIter;
     }
 
     FORTHOP(oTripleNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
 		MALLOCATE_OBJECT(oTripleStruct, pTriple, pClassVocab);
-		pTriple->refCount = 0;
-		pTriple->a.pData = NULL;
-		pTriple->a.pMethodOps = NULL;
-		pTriple->b.pData = NULL;
-		pTriple->b.pMethodOps = NULL;
-		pTriple->c.pData = NULL;
-		pTriple->c.pMethodOps = NULL;
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pTriple);
+        pTriple->pMethods = pClassVocab->GetMethods();
+        pTriple->refCount = 0;
+        pTriple->a = nullptr;
+        pTriple->b = nullptr;
+        pTriple->c = nullptr;
+		PUSH_OBJECT(pTriple);
 	}
 
 	FORTHOP(oTripleDeleteMethod)
@@ -6368,12 +6311,11 @@ namespace OArray
         GET_THIS(oTripleStruct, pTriple);
         pTriple->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
 
-        oTripleIterStruct* pIter = createTripleIterator(pCore, pTriple, obj);
+        oTripleIterStruct* pIter = createTripleIterator(pCore, pTriple);
         pIter->cursor = 0;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -6382,12 +6324,10 @@ namespace OArray
         GET_THIS(oTripleStruct, pTriple);
         pTriple->refCount++;
         TRACK_KEEP;
-        ForthObject obj;
-
-        oTripleIterStruct* pIter = createTripleIterator(pCore, pTriple, obj);
+        oTripleIterStruct* pIter = createTripleIterator(pCore, pTriple);
         pIter->cursor = 3;
 
-        PUSH_OBJECT(obj);
+        PUSH_OBJECT(pIter);
         METHOD_RETURN;
     }
 
@@ -6538,7 +6478,7 @@ namespace OArray
     FORTHOP(oTripleIterAtHeadMethod)
     {
         GET_THIS(oTripleIterStruct, pIter);
-        oTripleStruct* pTriple = reinterpret_cast<oTripleStruct *>(pIter->parent.pData);
+        oTripleStruct* pTriple = reinterpret_cast<oTripleStruct *>(pIter->parent);
         long retVal = (pIter->cursor == 0) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -6547,7 +6487,7 @@ namespace OArray
     FORTHOP(oTripleIterAtTailMethod)
     {
         GET_THIS(oTripleIterStruct, pIter);
-        oTripleStruct* pTriple = reinterpret_cast<oTripleStruct *>(pIter->parent.pData);
+        oTripleStruct* pTriple = reinterpret_cast<oTripleStruct *>(pIter->parent);
         long retVal = (pIter->cursor >= 3) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
@@ -6638,7 +6578,7 @@ namespace OArray
     {
         GET_THIS(oTripleIterStruct, pIter);
 
-        oTripleStruct* pTriple = reinterpret_cast<oTripleStruct *>(pIter->parent.pData);
+        oTripleStruct* pTriple = reinterpret_cast<oTripleStruct *>(pIter->parent);
         ulong ix = (ulong)(SPOP);
         if (ix <= 2)
         {

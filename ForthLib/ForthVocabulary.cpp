@@ -74,8 +74,7 @@ ForthVocabulary::ForthVocabulary( const char    *pName,
 	mVocabStruct.refCount = 10000;
 	mVocabStruct.vocabulary = this;
 	// initialize vocab object when it is first requested to avoid an order-of-creation problem with OVocabulary class object
-	mVocabObject.pMethodOps = nullptr;
-	mVocabObject.pData = nullptr;
+	mVocabObject = nullptr;
 }
 
 ForthVocabulary::~ForthVocabulary()
@@ -677,12 +676,12 @@ ForthVocabulary::UnSmudgeNewestSymbol( void )
 ForthObject&
 ForthVocabulary::GetVocabularyObject(void)
 {
-	if (mVocabObject.pMethodOps == nullptr)
+	if (mVocabObject == nullptr)
 	{
 		// vocabulary object is lazy initialized to fix an order-of-creation problem between vocabularies and the OVocabulary class object
-		ForthInterface* pPrimaryInterface = GET_BUILTIN_INTERFACE(kBCIVocabulary, 0);
-		mVocabObject.pMethodOps = pPrimaryInterface->GetMethods();
-		mVocabObject.pData = reinterpret_cast<long *>(&mVocabStruct);
+        ForthClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIVocabulary);
+        mVocabObject = reinterpret_cast<ForthObject>(&mVocabStruct);
+        mVocabObject->pMethods = pClassVocab->GetMethods();
 	}
 	return mVocabObject;
 }
@@ -1230,13 +1229,15 @@ namespace OVocabulary
 	//
 	struct oVocabularyStruct
 	{
-		ulong				refCount;
+        long*               pMethods;
+        ulong				refCount;
 		ForthVocabulary*	vocabulary;
 	};
 
 	struct oVocabularyIterStruct
 	{
-		ulong				refCount;
+        long*               pMethods;
+        ulong				refCount;
 		ForthObject			parent;
 		long*				cursor;
 		ForthVocabulary*	vocabulary;
@@ -1310,14 +1311,13 @@ namespace OVocabulary
 		TRACK_KEEP;
 		ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIVocabularyIter);
 		MALLOCATE_ITER(oVocabularyIterStruct, pIter, pIterVocab);
-		pIter->refCount = 0;
-		pIter->parent.pMethodOps = GET_TPM;
-		pIter->parent.pData = reinterpret_cast<long *>(pVocabulary);
+        pIter->pMethods = pIterVocab->GetMethods();
+        pIter->refCount = 0;
+		pIter->parent = reinterpret_cast<ForthObject>(pVocabulary);
 		ForthVocabulary* pVocab = pVocabulary->vocabulary;
 		pIter->vocabulary = pVocab;
 		pIter->cursor = pVocab->GetNewestEntry();
-		ForthInterface* pPrimaryInterface = GET_BUILTIN_INTERFACE(kBCIVocabularyIter, 0);
-		PUSH_PAIR(pPrimaryInterface->GetMethods(), pIter);
+		PUSH_OBJECT(pIter);
 		METHOD_RETURN;
 	}
 
@@ -1375,6 +1375,25 @@ namespace OVocabulary
 		METHOD_RETURN;
 	}
 
+    FORTHOP(oVocabularyChainNextMethod)
+    {
+        GET_THIS(oVocabularyStruct, pVocabulary);
+        ForthVocabulary* nextVocabInChain = pVocabulary->vocabulary->GetNextChainVocabulary();
+        int result = 0;
+        if (nextVocabInChain != nullptr)
+        {
+            ForthObject obj = nextVocabInChain->GetVocabularyObject();
+            if (obj)
+            {
+                PUSH_OBJECT(obj);
+                result--;
+            }
+        }
+        SPUSH(result);
+        METHOD_RETURN;
+    }
+
+    
 	baseMethodEntry oVocabularyMembers[] =
 	{
 		METHOD("__newOp", oVocabularyNew),
@@ -1386,6 +1405,7 @@ namespace OVocabulary
 		METHOD("getNumEntries", oVocabularyGetNumEntriesMethod),
 		METHOD("getValueLength", oVocabularyGetValueLengthMethod),
 		METHOD("addSymbol", oVocabularyAddSymbolMethod),
+        METHOD_RET("chainNext", oVocabularyChainNextMethod, RETURNS_NATIVE(kBCIInt)),
 
 		MEMBER_VAR("vocabulary", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeInt)),
 

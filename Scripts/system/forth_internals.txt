@@ -93,19 +93,6 @@ enum: eVarOp
   kVOMinusStore
 ;enum
 
-enum: eVocabVarOp
-  kVVOSetCurrent		// set current top of vocab search order
-  kVVONewestEntry
-  kVVORef
-  kVVOFindEntry
-  kVVOFindEntryValue
-  kVVOAddEntry
-  kVVORemoveEntry
-  kVVOEntryLength
-  kVVONumEntries
-  kVVOGetClass
-;enum
-
 struct: ForthCoreState
   ptrTo int     optypeAction           // optypeActionRoutine*
 

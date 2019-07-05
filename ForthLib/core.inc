@@ -140,17 +140,16 @@ ENDSTRUC
 STRUC FCore
     .optypeAction		RESD 1
     .numBuiltinOps		RESD 1
-    .ops					RESD 1
+    .ops				RESD 1
     .numOps				RESD 1
     .maxOps				RESD 1
-    .pEngine				RESD 1
+    .pEngine			RESD 1
     .IPtr				RESD 1
     .SPtr				RESD 1
     .RPtr				RESD 1
     .FPtr				RESD 1
-    .TMPtr				RESD 1
-    .TDPtr				RESD 1
-    .varMode				RESD 1
+    .TPtr				RESD 1
+    .varMode			RESD 1
     .state				RESD 1
     .error				RESD 1
     .SBPtr				RESD 1
@@ -164,12 +163,17 @@ STRUC FCore
     .FileFuncs			RESD 1
     .innerLoop			RESD 1
     .innerExecute		RESD 1
-    .consoleOutStream	RESD 2
+    .consoleOutStream	RESD 1
     .base				RESD 1
     .signedPrintMode	RESD 1
     .traceFlags			RESD 1
 	.ExceptionPtr		RESD 1
     .scratch            RESD 4
+ENDSTRUC 
+
+STRUC Object
+	.pMethods		RESD 1
+	.refCount		RESD 1
 ENDSTRUC 
 
 ;STRUC ForthFileInterface

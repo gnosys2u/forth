@@ -12,7 +12,7 @@ namespace OMap
 {
 	void AddClasses(ForthEngine* pEngine);
 
-    void createLongMapObject(ForthObject& destObj, ForthClassVocabulary *pClassVocab);
+    oLongMapStruct* createLongMapObject(ForthClassVocabulary *pClassVocab);
 
     extern ForthClassVocabulary* gpLongMapClassVocab;
 }

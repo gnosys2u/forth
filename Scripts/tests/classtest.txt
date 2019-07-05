@@ -90,7 +90,7 @@ class: rgba
     t.s.g ->+ s.g
     t.s.b ->+ s.b
     t.s.alpha ->+ s.alpha
-    dnull -> t
+    oclear t
   ;m
   
 ;class
@@ -178,8 +178,8 @@ testGAPO
   lo1 0 lapo.add
   lo0.show
   
-  dnull -> lo0
-  dnull -> lo1
+  oclear lo0
+  oclear lo1
 ;
 
 testLAPO
@@ -249,12 +249,12 @@ class: fakeRgba
 
 
 : cleanup
-  dnull -> kk
-  dnull -> go0
-  dnull -> go1
-  dnull -> mm
-  dnull -> nn.partner
-  dnull -> nn
+  oclear kk
+  oclear go0
+  oclear go1
+  oclear mm
+  oclear nn.partner
+  oclear nn
 ;
 
 loaddone

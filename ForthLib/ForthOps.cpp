@@ -2129,12 +2129,11 @@ FORTHOP( doMethodOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
     long methodIndex = SPOP;
-    RPUSH( ((long) GET_TPD) );
-    RPUSH( ((long) GET_TPM) );
-    long* pMethods = ((long *) (SPOP));
-    SET_TPM( pMethods );
-    SET_TPD( ((long *) (SPOP)) );
-    pEngine->ExecuteOp(pCore,  pMethods[ methodIndex ] );
+    RPUSH( ((long) GET_TP) );
+    ForthObject obj;
+    POP_OBJECT(obj);
+    SET_TP( obj );
+    pEngine->ExecuteOp(pCore,  obj->pMethods[ methodIndex ] );
 }
 
 FORTHOP( implementsOp )
@@ -2531,20 +2530,20 @@ FORTHOP( allocObjectOp )
 	// allocObject is the default new op, it is used only for classes which don't define their
 	//   own 'new' op, or extend a class that does
     ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *) (SPOP);
-    ForthInterface* pPrimaryInterface = pClassVocab->GetInterface( 0 );
-    if ( pPrimaryInterface )
+    long* pMethods = pClassVocab->GetMethods();
+    if (pMethods)
     {
         long nBytes = pClassVocab->GetSize();
-        void* pData = __MALLOC( nBytes );
-		memset( pData, 0, nBytes );
-        SPUSH( (long) pData );
-        SPUSH( (long) (pPrimaryInterface->GetMethods()) );
+        ForthObject newObject = (ForthObject) __MALLOC( nBytes );
+		memset(newObject, 0, nBytes );
+        newObject->pMethods = pMethods;
+        SPUSH( (long)newObject);
     }
     else
     {
         ForthEngine *pEngine = GET_ENGINE;
         pEngine->AddErrorText( pClassVocab->GetName() );
-        pEngine->SetError( kForthErrorBadParameter, " failure in new - has no primary interface" );
+        pEngine->SetError( kForthErrorBadParameter, " failure in new - has no methods" );
     }
 }
 
@@ -2715,18 +2714,14 @@ FORTHOP(getClassByIndexOp)
 {
 	// IP points to data field
 	int typeIndex = SPOP;
-	ForthObject classObject;
-	classObject.pMethodOps = nullptr;
-	classObject.pData = nullptr;
-	ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-	ForthClassVocabulary* pClassVocabulary = pManager->GetClassVocabulary(typeIndex);
-	if (pClassVocabulary != nullptr)
+	ForthObject classObject = nullptr;
+	ForthClassVocabulary* pClassVocab = GET_CLASS_VOCABULARY(typeIndex);
+	if (pClassVocab != nullptr)
 	{
-		ForthClassObject* pClassObject = pClassVocabulary->GetClassObject();
+		ForthClassObject* pClassObject = pClassVocab->GetClassObject();
 		if (pClassObject != nullptr)
 		{
-			classObject.pMethodOps = pManager->GetClassVocabulary(kBCIClass)->GetInterface(0)->GetMethods();
-			classObject.pData = reinterpret_cast<long *>(pClassObject);
+			classObject = (ForthObject) pClassObject;
 		}
 	}
 	PUSH_OBJECT(classObject);
@@ -3784,12 +3779,43 @@ int oStringFormatSub(ForthCoreState* pCore, char* pBuffer, int bufferSize)
 	int a[8];
 	// TODO: assert if numArgs > 8
 	long numArgs = SPOP;
-	for (int i = numArgs - 1; i >= 0; --i)
+    for (int i = numArgs - 1; i >= 0; --i)
 	{
 		a[i] = SPOP;
 	}
 	const char* fmt = (const char *)SPOP;
-	return (int)(SNPRINTF(pBuffer, bufferSize, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]));
+    int result = 0;
+    switch (numArgs)
+    {
+    case 0:
+        result = (int)(SNPRINTF(pBuffer, bufferSize, fmt));
+        break;
+    case 1:
+        result = (int)(SNPRINTF(pBuffer, bufferSize, fmt, a[0]));
+        break;
+    case 2:
+        result = (int)(SNPRINTF(pBuffer, bufferSize, fmt, a[0], a[1]));
+        break;
+    case 3:
+        result = (int)(SNPRINTF(pBuffer, bufferSize, fmt, a[0], a[1], a[2]));
+        break;
+    case 4:
+        result = (int)(SNPRINTF(pBuffer, bufferSize, fmt, a[0], a[1], a[2], a[3]));
+        break;
+    case 5:
+        result = (int)(SNPRINTF(pBuffer, bufferSize, fmt, a[0], a[1], a[2], a[3], a[4]));
+        break;
+    case 6:
+        result = (int)(SNPRINTF(pBuffer, bufferSize, fmt, a[0], a[1], a[2], a[3], a[4], a[5]));
+        break;
+    case 7:
+        result = (int)(SNPRINTF(pBuffer, bufferSize, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6]));
+        break;
+    default:
+        result = (int)(SNPRINTF(pBuffer, bufferSize, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]));
+        break;
+    }
+    return result;
 }
 
 #endif
@@ -4336,7 +4362,7 @@ FORTHOP( describeOp )
 			{
                 if (pVocab->IsClass())
                 {
-                    long *pMethods = ((ForthClassVocabulary *)pVocab)->GetInterface(0)->GetMethods();
+                    long *pMethods = ((ForthClassVocabulary *)pVocab)->GetMethods();
                     SNPRINTF(buff, sizeof(buff), "class vocabulary %s:  methods at 0x%08x, size %d\n",
                         pVocab->GetName(), (int)pMethods, pVocab->GetSize());
                 }
@@ -6805,7 +6831,7 @@ FORTHOP(doExitLBop)
 FORTHOP(doExitMBop)
 {
     // rstack: oldIP oldTP
-    if ( GET_RDEPTH < 3 )
+    if ( GET_RDEPTH < 2 )
     {
         SET_ERROR( kForthErrorReturnStackUnderflow );
     }
@@ -6813,8 +6839,7 @@ FORTHOP(doExitMBop)
     {
 		long* newIP = (long *)RPOP;
 		SET_IP(newIP);
-		SET_TPM((long *)RPOP);
-        SET_TPD( (long *) RPOP );
+        SET_TP((ForthObject)(RPOP));
 
 		if (newIP == nullptr)
 		{
@@ -6830,7 +6855,7 @@ FORTHOP(doExitMLBop)
     // FP points to oldFP
     SET_RP( GET_FP );
     SET_FP( (long *) (RPOP) );
-    if ( GET_RDEPTH < 3 )
+    if ( GET_RDEPTH < 2 )
     {
         SET_ERROR( kForthErrorReturnStackUnderflow );
     }
@@ -6838,8 +6863,7 @@ FORTHOP(doExitMLBop)
     {
 		long* newIP = (long *)RPOP;
 		SET_IP(newIP);
-		SET_TPM((long *)RPOP);
-        SET_TPD( (long *) RPOP );
+        SET_TP((ForthObject)(RPOP));
 
 		if (newIP == nullptr)
 		{
@@ -8432,18 +8456,15 @@ FORTHOP( doDConstantBop )
 
 FORTHOP( thisBop )
 {
-    SPUSH( ((long) GET_TPD) );
-    SPUSH( ((long) GET_TPM) );
+    SPUSH( ((long) GET_TP) );
 }
 
-FORTHOP( thisDataBop )
+FORTHOP(unsuperBop)
 {
-    SPUSH( ((long) GET_TPD) );
-}
-
-FORTHOP( thisMethodsBop )
-{
-    SPUSH( ((long) GET_TPM) );
+    // this is compiled after every MethodWithSuper op, it pops the original
+    //  methods pointer off the rstack and stuffs it back into this.pMethods
+    long* oldMethods = (long *)(RPOP);
+    GET_TP->pMethods = oldMethods;
 }
 
 // doStructOp is compiled at the start of each user-defined global structure instance
@@ -8842,7 +8863,7 @@ FORTHOP(dmixBlockBop)
 FORTHOP(scHandleAlreadyShownOp)
 {
 	int result = -1;
-	if (ForthShowAlreadyShownObject(GET_THIS_PTR, pCore, true))
+	if (ForthShowAlreadyShownObject(GET_TP, pCore, true))
 	{
 		result = 0;
 	}
@@ -8862,7 +8883,9 @@ FORTHOP(scEndIndentOp)
 FORTHOP(scShowHeaderOp)
 {
 	ForthShowContext* pShowContext = ((ForthThread *)(pCore->pThread))->GetShowContext();
-	SHOW_OBJ_HEADER;
+    long* pMethods = GET_TP->pMethods;
+    ForthClassObject* classObject = (ForthClassObject *)((GET_TP->pMethods)[-1]);
+    pShowContext->ShowHeader(pCore, classObject->pVocab->GetName(), GET_TP);
 }
 
 FORTHOP(scShowIndentOp)
@@ -8990,7 +9013,7 @@ OPREF( ifetchBop );          OPREF( doStructBop );       OPREF( doStructArrayBop
 OPREF( doDoBop );           OPREF( doLoopBop );         OPREF( doLoopNBop );
 //OPREF( ofetchBop );          OPREF( doCheckDoBop );
 OPREF( dfetchBop );         OPREF( doCheckDoBop );
-OPREF( thisBop );           OPREF( thisDataBop );       OPREF( thisMethodsBop );
+OPREF( thisBop );           OPREF( unsuperBop );
 OPREF( executeBop );        OPREF( callBop );           OPREF( gotoBop );
 OPREF( iBop );              OPREF( jBop );              OPREF( unloopBop );
 OPREF( leaveBop );          OPREF( hereBop );           OPREF( refBop );
@@ -9156,8 +9179,6 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     NATIVE_COMPILED_DEF(    addToBop,                "->+",				OP_INTO_PLUS ),
     NATIVE_COMPILED_DEF(    subtractFromBop,         "->-",				OP_INTO_MINUS ),
     NATIVE_COMPILED_DEF(    oclearBop,               "oclear",          OP_OCLEAR ),
-    //NATIVE_COMPILED_DEF(    ofetchBop,               "o@",				OP_OFETCH ),
-    NATIVE_COMPILED_DEF(    dfetchBop,               "2@",				OP_OFETCH ),
 	NATIVE_COMPILED_DEF(    doCheckDoBop,            "_?do",			OP_DO_CHECKDO ),
 
 	OP_COMPILED_DEF(		doVocabOp,              "_doVocab",			OP_DO_VOCAB ),
@@ -9178,6 +9199,8 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     OP_COMPILED_DEF(        doFinallyOp,            "_doFinally",       OP_DO_FINALLY ),
     OP_COMPILED_DEF(        doEndtryOp,             "_doEndtry",        OP_DO_ENDTRY ),
     OP_COMPILED_DEF(        raiseOp,                "raise",            OP_RAISE),
+    NATIVE_COMPILED_DEF(    unsuperBop,              "_unsuper",        OP_UNSUPER),
+    NATIVE_COMPILED_DEF(    rdropBop,                "rdrop",           OP_RDROP),
 
     // following must be last in table
     OP_COMPILED_DEF(		NULL,                   NULL,					-1 )
@@ -9188,8 +9211,6 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
 baseDictionaryEntry baseDictionary[] =
 {
 	NATIVE_DEF(    thisBop,                 "this" ),
-    NATIVE_DEF(    thisDataBop,             "thisData" ),
-    NATIVE_DEF(    thisMethodsBop,          "thisMethods" ),
     NATIVE_DEF(    executeBop,              "execute" ),
     NATIVE_DEF(    callBop,                 "call" ),
     NATIVE_DEF(    gotoBop,                 "setIP" ),
@@ -9252,6 +9273,7 @@ baseDictionaryEntry baseDictionary[] =
     ///////////////////////////////////////////
     //  double-precision fp math
     ///////////////////////////////////////////
+    NATIVE_DEF(    dfetchBop,               "2@"),
     NATIVE_DEF(    dplusBop,                "d+" ),
     NATIVE_DEF(    dminusBop,               "d-" ),
     NATIVE_DEF(    dtimesBop,               "d*" ),
@@ -9370,7 +9392,6 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(    rpushBop,                ">r" ),
     NATIVE_DEF(    rpopBop,                 "r>" ),
     NATIVE_DEF(    rpeekBop,                "r@" ),
-    NATIVE_DEF(    rdropBop,                "rdrop" ),
     NATIVE_DEF(    rpBop,                   "rp" ),
     NATIVE_DEF(    r0Bop,                   "r0" ),
     NATIVE_DEF(    checkDupBop,             "?dup" ),

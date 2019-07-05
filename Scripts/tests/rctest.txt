@@ -48,9 +48,9 @@ autoforget RCTEST
   begin
     iter.next
   while
-    2dup <String>.get %s %bl <Object>.show %nl
+    dup <String>.get %s %bl <Object>.show %nl
   repeat
-  dnull -> iter
+  oclear iter
 ;
 
 : showContainerR
@@ -58,28 +58,28 @@ autoforget RCTEST
   begin
     iter.prev
   while
-    2dup <String>.get %s %bl <Object>.show %nl
+    dup <String>.get %s %bl <Object>.show %nl
   repeat
-  dnull -> iter
+  oclear iter
 ;
 
 : showArray
-  <Array>.headIter 2dup showContainer
+  <Array>.headIter dup showContainer
   <Iter>.release
 ;
 
 : showArrayR
-  <Array>.tailIter 2dup showContainerR
+  <Array>.tailIter dup showContainerR
   <Iter>.release
 ;
 
 : showList
-  <List>.headIter 2dup showContainer
+  <List>.headIter dup showContainer
   <Iter>.release
 ;
 
 : showListR
-  <List>.tailIter 2dup showContainerR
+  <List>.tailIter dup showContainerR
   <Iter>.release
 ;
 
@@ -88,7 +88,7 @@ autoforget RCTEST
   begin
     iter.seekNext iter.currentPair
   while
-    "key=" %s %d %bl 2dup <String>.get %s %bl <Object>.show %nl
+    "key=" %s %d %bl dup <String>.get %s %bl <Object>.show %nl
   repeat
   iter.release
 ;
@@ -98,7 +98,7 @@ autoforget RCTEST
   begin
     iter.seekPrev iter.currentPair
   while
-    "key=" %s %d %bl 2dup <String>.get %s %bl <Object>.show %nl
+    "key=" %s %d %bl dup <String>.get %s %bl <Object>.show %nl
   repeat
   iter.release
 ;

@@ -77,8 +77,8 @@ $forget("_initSystemObject") drop
 alias ->o ->+    // ->o stores to an object variable without changing refcounts
 alias mko makeObject
 alias bool int
-alias objIsNull l0=
-alias objNotNull l0<>
+alias objIsNull 0=
+alias objNotNull 0<>
 alias ds dstack
 
 0x7FFFFFFF -> int MAXINT
@@ -947,8 +947,8 @@ precedence ]t
 precedence assert[
 
 : oshow
-  if( 2dup l0= )
-    "NULLObj" %s 2drop
+  if( dup 0= )
+    "NULLObj" %s drop
   else
     <Object>.show
   endif
@@ -1024,7 +1024,7 @@ addHelp popConsoleOut   popConsoleOut ... OLD_CONSOLE_OUTSTREAM      restore pre
 // use t{ ... }t to quickly redirect all print output to the trace stream (usually an external logger program)
 mko TraceOutStream traceOut
 : t{ pushConsoleOut(traceOut) ;
-: }t popConsoleOut 2drop ;
+: }t popConsoleOut drop ;
 
 addHelp outToScreen   restore output to the normal console
 : outToScreen getDefaultConsoleOut setConsoleOut ;

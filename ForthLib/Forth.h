@@ -311,13 +311,15 @@ typedef struct {
 } ForthMemorySection;
 
 // this is what is placed on the stack to represent a forth object
-//  usually the 'data' field is actually a pointer to the data, but that is an
-//  implementation detail and not true for all classes
-struct ForthObject
+// this points to a number of longwords, the first longword is the methods pointer,
+// the second longword is the reference count, followed by class dependant data
+struct oObjectStruct
 {
-	long*       pMethodOps;
-	long*       pData;      // actually this isn't always a pointer
+    long*               pMethods;
+    ulong               refCount;
 };
+
+typedef oObjectStruct* ForthObject;
 
 // this godawful mess is here because the ANSI Forth standard defines that the top item
 // on the parameter stack for 64-bit ints is the highword, which is opposite to the c++/c
@@ -328,7 +330,6 @@ typedef union
     unsigned int u32[2];
     long long s64;
     unsigned long long u64;
-	ForthObject obj;
 } stackInt64;
 
 
@@ -467,7 +468,8 @@ enum {
     OP_DO_FINALLY,
     OP_DO_ENDTRY,
     OP_RAISE,
-    OP_OFETCH,
+    OP_UNSUPER,
+    OP_RDROP,
 
 	NUM_COMPILED_OPS
 };

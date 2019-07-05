@@ -5,48 +5,42 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#define METHOD_RETURN     SET_TPM( (long *) RPOP );     SET_TPD( (long *) RPOP )
+#define METHOD_RETURN     SET_TP((ForthObject) (RPOP))
 
-#define RPUSH_OBJECT_PAIR( _methods, _data ) RPUSH( ((long) (_data)));  RPUSH( ((long) (_methods)))
-#define RPUSH_OBJECT( _object ) RPUSH_OBJECT_PAIR( (_object).pMethodOps, (_object).pData )
-#define RPUSH_THIS  RPUSH_OBJECT_PAIR( GET_TPM, GET_TPD )
-#define SET_THIS_PAIR( _methods, _data ) SET_TPM( (_methods) );  SET_TPD( (_data) )
-#define SET_THIS( _object) SET_TPM( (_object).pMethodOps );  SET_TPD( (_object).pData) )
+#define RPUSH_OBJECT( _object ) RPUSH( ((long) (_object)))
+#define RPUSH_THIS  RPUSH_OBJECT( GET_TP )
+#define SET_THIS( _object) SET_TP( (_object) )
 
 #define METHOD( NAME, VALUE  )          { NAME, (ulong) VALUE, NATIVE_TYPE_TO_CODE( kDTIsMethod, kBaseTypeVoid ) }
 #define METHOD_RET( NAME, VAL, RVAL )   { NAME, (ulong) VAL, RVAL }
 #define MEMBER_VAR( NAME, TYPE )        { NAME, 0, (ulong) TYPE }
 #define MEMBER_ARRAY( NAME, TYPE, NUM ) { NAME, NUM, (ulong) (TYPE | kDTIsArray) }
-#define CLASS_OP( NAME, VALUE )                { NAME, (ulong) VALUE, NATIVE_TYPE_TO_CODE(0, kBaseTypeUserDefinition) }
+#define CLASS_OP( NAME, VALUE )         { NAME, (ulong) VALUE, NATIVE_TYPE_TO_CODE(0, kBaseTypeUserDefinition) }
 #define CLASS_PRECOP( NAME, VALUE )     { NAME, (ulong) VALUE, NATIVE_TYPE_TO_CODE(kDTIsFunky, kBaseTypeUserDefinition) }
 
 #define END_MEMBERS { NULL, 0, 0 }
 
 #define FULLY_EXECUTE_METHOD( _pCore, _obj, _methodNum ) ForthEngine::GetInstance()->FullyExecuteMethod( _pCore, _obj, _methodNum )
 
-#define PUSH_PAIR( _methods, _data )    SPUSH( (long) (_data) ); SPUSH( (long) (_methods) )
-#define POP_PAIR( _methods, _data )     (_methods) = (long *) SPOP; (_data) = (long *) SPOP
-#define PUSH_OBJECT( _obj )             PUSH_PAIR( (_obj).pMethodOps, (_obj).pData )
-#define POP_OBJECT( _obj )              POP_PAIR( (_obj).pMethodOps, (_obj).pData )
+#define PUSH_OBJECT( _obj )             SPUSH((long)(_obj))
+#define POP_OBJECT( _obj )              _obj = (ForthObject)(SPOP)
 
-#define GET_THIS( THIS_TYPE, THIS_NAME ) THIS_TYPE* THIS_NAME = reinterpret_cast<THIS_TYPE *>(GET_TPD);
+#define GET_THIS( THIS_TYPE, THIS_NAME ) THIS_TYPE* THIS_NAME = reinterpret_cast<THIS_TYPE *>(GET_TP);
 
 #define SAFE_RELEASE( _pCore, _obj ) \
-	if ( (_obj).pMethodOps != NULL ) { \
-		*(_obj).pData -= 1; \
-		if ( *(_obj).pData == 0 ) {		FULLY_EXECUTE_METHOD( (_pCore), (_obj), kMethodDelete );  } \
+	if ( _obj != nullptr ) { \
+		_obj->refCount -= 1; \
+		if ( _obj->refCount == 0 ) { FULLY_EXECUTE_METHOD( (_pCore), (_obj), kMethodDelete ); } \
 	} TRACK_RELEASE
 
-#define SAFE_KEEP( _obj )       if ( (_obj).pMethodOps != NULL ) { *(_obj).pData += 1; } TRACK_KEEP
+#define SAFE_KEEP( _obj )       if ( _obj != nullptr ) { _obj->refCount += 1; } TRACK_KEEP
 
-//#define OBJECTS_DIFFERENT( OLDOBJ, NEWOBJ ) ( (OLDOBJ.pData != NEWOBJ.pData) || (OLDOBJ.pMethodOps != NEWOBJ.pMethodOps) )
-//#define OBJECTS_SAME( OLDOBJ, NEWOBJ ) ( (OLDOBJ.pData == NEWOBJ.pData) && (OLDOBJ.pMethodOps == NEWOBJ.pMethodOps) )
-#define OBJECTS_DIFFERENT( OLDOBJ, NEWOBJ ) (OLDOBJ.pData != NEWOBJ.pData)
-#define OBJECTS_SAME( OLDOBJ, NEWOBJ ) (OLDOBJ.pData == NEWOBJ.pData)
+#define OBJECTS_DIFFERENT( OLDOBJ, NEWOBJ ) (OLDOBJ != NEWOBJ)
+#define OBJECTS_SAME( OLDOBJ, NEWOBJ ) (OLDOBJ == NEWOBJ)
 
-#define CLEAR_OBJECT( _obj )             (_obj).pMethodOps = NULL; (_obj).pData = NULL
+#define CLEAR_OBJECT( _obj )             (_obj) = nullptr
 
-#define OBJECT_ASSIGN( _pCore, _dstObj, _srcObj ) if ( OBJECTS_DIFFERENT( (_dstObj), (_srcObj) ) ) { SAFE_KEEP( (_srcObj) ); SAFE_RELEASE( (_pCore), (_dstObj) ); }
+#define OBJECT_ASSIGN( _pCore, _dstObj, _srcObj ) if ( (_dstObj) != (_srcObj) ) { SAFE_KEEP( (_srcObj) ); SAFE_RELEASE( (_pCore), (_dstObj) ); }
 
 enum
 {

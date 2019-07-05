@@ -115,7 +115,7 @@ null -> ptrTo Instruction __nextLoc
 
 : build_travel_table
   0 ref game.travels -> __nextLoc
-  game.places.push(dnull)   // TODO: why do we need to do this?
+  game.places.push(null)   // TODO: why do we need to do this?
   
   make_loc(R_ROAD "You are standing at the end of a road before a small brick building.\n\+
 Around you is a forest.  A small stream flows out of the building and\n\+

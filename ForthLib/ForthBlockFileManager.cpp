@@ -320,6 +320,7 @@ namespace OBlockFile
 
     struct oBlockFileStruct
     {
+        long*                   pMethods;
         ulong                   refCount;
         ForthBlockFileManager*  pManager;
     };
@@ -328,11 +329,11 @@ namespace OBlockFile
     FORTHOP(oBlockFileNew)
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-        ForthInterface* pPrimaryInterface = pClassVocab->GetInterface(0);
         MALLOCATE_OBJECT(oBlockFileStruct, pBlockFile, pClassVocab);
+        pBlockFile->pMethods = pClassVocab->GetMethods();
         pBlockFile->refCount = 0;
         pBlockFile->pManager = nullptr;
-        PUSH_PAIR(pPrimaryInterface->GetMethods(), pBlockFile);
+        PUSH_OBJECT(pBlockFile);
     }
 
     FORTHOP(oBlockFileDeleteMethod)
