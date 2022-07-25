@@ -1338,8 +1338,6 @@ namespace OStream
 			GET_ENGINE->GetShell()->GetFileInterface()->fileClose(static_cast<FILE *>(pFileOutStream->pOutFile));
 			pFileOutStream->pOutFile = NULL;
 		}
-		FREE_OBJECT(pFileOutStream);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oFileOutStreamOpenMethod)
@@ -1498,8 +1496,6 @@ namespace OStream
 	{
 		GET_THIS(oStringOutStreamStruct, pStringOutStream);
 		SAFE_RELEASE(pCore, pStringOutStream->outString);
-		FREE_OBJECT(pStringOutStream);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oStringOutStreamSetStringMethod)
@@ -1671,8 +1667,6 @@ namespace OStream
 	FORTHOP(oTraceOutStreamDeleteMethod)
 	{
 		GET_THIS(oOutStreamStruct, pTraceOutStream);
-		FREE_OBJECT(pTraceOutStream);
-		METHOD_RETURN;
 	}
 
 	baseMethodEntry oTraceOutStreamMembers[] =
@@ -1833,8 +1827,6 @@ namespace OStream
         GET_THIS(oSplitOutStreamStruct, pOutStream);
         SAFE_RELEASE(pCore, pOutStream->streamA);
         SAFE_RELEASE(pCore, pOutStream->streamB);
-        FREE_OBJECT(pOutStream);
-        METHOD_RETURN;
     }
 
     baseMethodEntry oSplitOutStreamMembers[] =
@@ -1934,20 +1926,6 @@ void CreateForthFunctionOutStream(ForthCoreState* pCore, ForthObject& outObject,
 	pFunctionOutStream->outFuncs.outBytes = outBytes;
 	pFunctionOutStream->outFuncs.outString = outString;
     outObject = reinterpret_cast<ForthObject>(pFunctionOutStream);
-}
-
-void ReleaseForthObject(ForthCoreState* pCore, ForthObject& inObject)
-{
-	oOutStreamStruct* pObjData = reinterpret_cast<oOutStreamStruct *>(inObject);
-	if (pObjData->refCount > 1)
-	{
-		--pObjData->refCount;
-	}
-	else
-	{
-		FREE_OBJECT(pObjData);
-        inObject = nullptr;
-	}
 }
 
 // ForthConsoleCharOut etc. exist so that stuff outside this module can do output

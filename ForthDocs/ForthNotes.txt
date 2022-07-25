@@ -149,6 +149,113 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+July 24 2022
+
+The way to handle object deletion is this:
+o ForthEngine::DeleteObject will handle calling each destructor from the deleted
+  object to each of its superclasses, and after it reaches the end of the chain
+  it will deallocate the object instance memory.
+o delete methods are NOT real methods, now they are just forthops
+  ? need to change ';m' to handle this
+o the default delete method is 'noop'
+
++ change all builtin class methods
+  + remove FREE_OBJECT
+  + remove METHOD_RETURN
+- change all scripts to never do super.delete
++ trigger an error if super.delete is executed
+  -> done for non-asm version in MethodWithSuperAction
+  - do for asm version (if necessary)
++ deal with ';m' for delete methods
+  -> changed 'm:' to check for 'delete' and not set kEngineFlagIsMethod
+  ? will this cause any problems
+  it shouldn't, since forthops defined in classes can access member fields
++ delete method should NOT be inherited, it should always go back to noop
+  -> I changed ForthClassVocabulary::Extends to do this
+
+ForthFiber::FreeObjects and ForthThread::FreeObjects do FREE_OBJECT, could this
+cause a problem if there are other references to the deleted fiber/thread?
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+July 21 2022
+
+I put in a memory manager which allocates a few very big blocks, then allocates
+pieces of it for a specific size.  When an object is freed it is added to a pool
+for its specific size.  When testing it I found a bug, NoteDeck has some classes
+which are derived from Object, but call super.delete.  When that happens, the
+objects get added to the 16-byte free pool, since when you call a super method
+the calling object methods pointer gets temporarily swapped out for its parent
+class methods pointer.  The class methods pointer is also used to get the object
+size for delete, causing the bug.  I need to think about how to fix this.
+
+The motivation for adding this pooled memory manager was to reduce the cost of
+allocating/deallocating the interface wrapper objects.
+
+If a class defines its delete method and doesn't do super.delete, it will leak
+memory.  If it does super.delete, and the parent class doesn't define a delete
+method, the object will be deleted and returned to the correct pool.  As long
+as there is a class along the delete chain which uses the default delete method
+the object will be returned to the correct pool.
+
+I really need to think about the design of object deletion.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+June 23 2022
+
+I had been thinking about deleting the whole 'interface' idea, but maybe there
+is a good way to implement it.  The basic idea is that when you get an interface
+from an object, it returns either itself (if the requested interface is its primary
+interface) or it returns a temporary object which always has 3 members:
+1) refcount
+2) vtable for the interface methods
+3) pointer to object itself
+
+o interfaces would not be allowed to declare any data members
+o the interface objects could be allocated from a pool for efficiency
+o the object getInterface method could either allocate a new interface object
+  each time it is called, or it could keep a cached copy and return it to
+  multiple interface requesters (ugh, there is a circular dependancy here)
+o a class definition could use either 'extends' or 'implements' for its
+  primary interface - whichever comes first defines the primary interface
+o non-primary interface methods would need to do a double indirection to get
+  to data members
+  -> have an op at the start of each interface method that changes the this
+     pointer to point to the real object, not the interface temp object
+	 ? can this cause any problems
+
+The way forth environment variables are planned to work:
+
+FORTH_HOME is expected to point to a directory with:
+o a bin64 or bin32 directory which has forth.exe and any required DLLs
+o a scripts directory
+
+FORTH_PATH can be defined that specifies the search path for scripts.
+If FORTH_PATH isn't defined, the search path is set to FORTH_HOME;FORTH_HOME/scripts
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+April 11 2022
+
+Immediate TODOs:
+
+- add a FORTH_HOME environment variable
+- add forth (Forth.exe) somewhere in the path
+- deal with 64-bit vs 32-bit DLLs
+
+not-so-immediate:
+- add a 'display format' attribute to arrays/maps, that controls how values and keys are
+  displayed by show method:
+    default - double and float just have this
+    signed/unsigned/char - byte, short, int, long have this plus default(same as signed)
+    ? would a string format, which just sticks quotes around value/key, be useful?
+
+- add Set/IntSet/FloatSet/LongSet/DoubleSet/StringSet classes in a script, built
+  on top of corresponding map sets
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+April 5 2022
+
+My next improvement is to add a way to define 'vocabularies' which are invoked
+after all the normal symbol processing has failed to recognize a symbol.
+
+Before I do that I need to debug 64-bit DLL support.  I wrote the code but never
+actually tested or even ran it.  DOH!
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 March 22 2022
 
 I revived the ARM branch on the latest version of Raspbian, it hadn't been
@@ -4291,7 +4398,7 @@ take an iterator object that would work for all three container types.  This
 broke things because as part of this, I had AddBuiltinClass check for the
 methodOp routine being NULL and use badOp as the opcode, which uncovered two
 bugs:
-1) when a class extends another class, its primary inteface is overwritten
+1) when a class extends another class, its primary interface is overwritten
    with the primary interface of the parent class, including the interfaces
    defining vocabulary - this led to all interfaces of derived classes having
    their defining vocab be the base 'object' vocabulary

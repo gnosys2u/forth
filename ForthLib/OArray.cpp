@@ -110,7 +110,6 @@ namespace OArray
 			SAFE_RELEASE(pCore, o);
 		}
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
 		METHOD_RETURN;
 	}
 
@@ -714,9 +713,8 @@ namespace OArray
 	{
 		GET_THIS(oArrayIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		FREE_ITER(pIter);
-		METHOD_RETURN;
-	}
+        TRACK_ITER_DELETE;
+    }
 
 	FORTHOP(oArrayIterSeekNextMethod)
 	{
@@ -1085,8 +1083,6 @@ namespace OArray
             SAFE_RELEASE(pCore, element.obj);
         }
         delete pBag->elements;
-        FREE_OBJECT(pBag);
-        METHOD_RETURN;
     }
 
     FORTHOP(oBagShowInnerMethod)
@@ -1690,8 +1686,7 @@ namespace OArray
     {
         GET_THIS(oArrayIterStruct, pIter);
         SAFE_RELEASE(pCore, pIter->parent);
-        FREE_ITER(pIter);
-        METHOD_RETURN;
+        TRACK_ITER_DELETE;
     }
 
     FORTHOP(oBagIterSeekNextMethod)
@@ -2043,8 +2038,6 @@ namespace OArray
 	{
 		GET_THIS(oByteArrayStruct, pArray);
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oByteArrayShowInnerMethod)
@@ -2463,9 +2456,8 @@ namespace OArray
 	{
 		GET_THIS(oByteArrayIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		FREE_ITER(pIter);
-		METHOD_RETURN;
-	}
+        TRACK_ITER_DELETE;
+    }
 
 	FORTHOP(oByteArrayIterSeekNextMethod)
 	{
@@ -2761,8 +2753,6 @@ namespace OArray
 	{
 		GET_THIS(oShortArrayStruct, pArray);
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
-		METHOD_RETURN;
 	}
 
     FORTHOP(oShortArrayShowInnerMethod)
@@ -3174,9 +3164,8 @@ namespace OArray
 	{
 		GET_THIS(oShortArrayIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		FREE_ITER(pIter);
-		METHOD_RETURN;
-	}
+        TRACK_ITER_DELETE;
+    }
 
 	FORTHOP(oShortArrayIterSeekNextMethod)
 	{
@@ -3469,8 +3458,6 @@ namespace OArray
 	{
 		GET_THIS(oIntArrayStruct, pArray);
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
-		METHOD_RETURN;
 	}
 
     FORTHOP(oIntArrayShowInnerMethod)
@@ -3881,9 +3868,8 @@ namespace OArray
 	{
 		GET_THIS(oIntArrayIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		FREE_ITER(pIter);
-		METHOD_RETURN;
-	}
+        TRACK_ITER_DELETE;
+    }
 
 	FORTHOP(oIntArrayIterSeekNextMethod)
 	{
@@ -4280,8 +4266,6 @@ namespace OArray
 	{
 		GET_THIS(oLongArrayStruct, pArray);
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
-		METHOD_RETURN;
 	}
 
     FORTHOP(oLongArrayShowInnerMethod)
@@ -4708,9 +4692,8 @@ namespace OArray
 	{
 		GET_THIS(oLongArrayIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		FREE_ITER(pIter);
-		METHOD_RETURN;
-	}
+        TRACK_ITER_DELETE;
+    }
 
 	FORTHOP(oLongArrayIterSeekNextMethod)
 	{
@@ -5010,8 +4993,6 @@ namespace OArray
 	{
 		GET_THIS(oDoubleArrayStruct, pArray);
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
-		METHOD_RETURN;
 	}
 
     FORTHOP(oDoubleArrayShowInnerMethod)
@@ -5364,8 +5345,6 @@ namespace OArray
     {
         GET_THIS(oStructArrayStruct, pArray);
         delete pArray->elements;
-        FREE_OBJECT(pArray);
-        METHOD_RETURN;
     }
 
     FORTHOP(oStructArrayShowInnerMethod)
@@ -5754,8 +5733,7 @@ namespace OArray
     {
         GET_THIS(oStructArrayIterStruct, pIter);
         SAFE_RELEASE(pCore, pIter->parent);
-        FREE_ITER(pIter);
-        METHOD_RETURN;
+        TRACK_ITER_DELETE;
     }
 
     FORTHOP(oStructArrayIterSeekNextMethod)
@@ -6013,8 +5991,6 @@ namespace OArray
 		SAFE_RELEASE(pCore, oa);
 		ForthObject& ob = pPair->b;
 		SAFE_RELEASE(pCore, ob);
-		FREE_OBJECT(pPair);
-		METHOD_RETURN;
 	}
 
     FORTHOP(oPairHeadIterMethod)
@@ -6124,9 +6100,7 @@ namespace OArray
 	{
 		GET_THIS(oPairIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		delete pIter;
 		TRACK_ITER_DELETE;
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oPairIterSeekNextMethod)
@@ -6352,8 +6326,6 @@ namespace OArray
 		SAFE_RELEASE(pCore, ob);
 		ForthObject& oc = pTriple->c;
 		SAFE_RELEASE(pCore, oc);
-		FREE_OBJECT(pTriple);
-		METHOD_RETURN;
 	}
 
     FORTHOP(oTripleHeadIterMethod)
@@ -6486,9 +6458,7 @@ namespace OArray
 	{
 		GET_THIS(oTripleIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		delete pIter;
 		TRACK_ITER_DELETE;
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oTripleIterSeekNextMethod)

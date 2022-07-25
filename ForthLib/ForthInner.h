@@ -69,8 +69,7 @@ struct ForthCoreState
     ucell               numOps;
     ucell               maxOps;     // current size of table at pUserOps
 
-    //ForthEngine         *pEngine;
-    void*               pEngine;
+    void*               pEngine;        // ForthEngine*
 
     forthop*            IP;            // interpreter pointer
 
@@ -204,7 +203,6 @@ inline forthop GetCurrentOp( ForthCoreState *pCore )
 #define SET_STATE( A )                  (pCore->state = (A))
 
 #define GET_ENGINE                      ((ForthEngine *) (pCore->pEngine))
-//#define GET_ENGINE                      (ForthEngine::GetInstance())
 
 #define GET_VAR_OPERATION               (pCore->varMode)
 #define SET_VAR_OPERATION( A )          (pCore->varMode = (A))

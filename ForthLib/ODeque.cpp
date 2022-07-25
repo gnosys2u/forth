@@ -105,8 +105,6 @@ namespace ODeque
             SAFE_RELEASE(pCore, o);
             deq->pop_back();
         }
-        FREE_OBJECT(pDeque);
-        METHOD_RETURN;
     }
 
     FORTHOP(oDequeShowInnerMethod)

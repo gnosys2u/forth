@@ -20,7 +20,7 @@
 
 #define END_MEMBERS { nullptr, 0, 0 }
 
-#define FULLY_EXECUTE_METHOD( _pCore, _obj, _methodNum ) ForthEngine::GetInstance()->FullyExecuteMethod( _pCore, _obj, _methodNum )
+#define FULLY_EXECUTE_METHOD( _pCore, _obj, _methodNum ) ((ForthEngine *) (_pCore->pEngine))->FullyExecuteMethod( _pCore, _obj, _methodNum )
 
 #define PUSH_OBJECT( _obj )             SPUSH((cell)(_obj))
 #define POP_OBJECT( _obj )              _obj = (ForthObject)(SPOP)
@@ -30,7 +30,7 @@
 #define SAFE_RELEASE( _pCore, _obj ) \
 	if ( _obj != nullptr ) { \
 		_obj->refCount -= 1; \
-		if ( _obj->refCount == 0 ) { FULLY_EXECUTE_METHOD( (_pCore), (_obj), kMethodDelete ); } \
+		if ( _obj->refCount == 0 ) { ((ForthEngine *) (_pCore->pEngine))->DeleteObject( _pCore, _obj ); } \
 	} TRACK_RELEASE
 
 #define SAFE_KEEP( _obj )       if ( _obj != nullptr ) { _obj->refCount += 1; } TRACK_KEEP
@@ -93,12 +93,11 @@ extern long gStatReleases;
 
 #define MALLOCATE( _type, _ptr ) _type* _ptr = (_type *) __MALLOC( sizeof(_type) );
 
-#define MALLOCATE_OBJECT( _type, _ptr, _vocab )   _type* _ptr = (_type *) __MALLOC( _vocab->GetSize() );  TRACK_NEW
-#define FREE_OBJECT( _obj )  __FREE( _obj );  TRACK_DELETE
+#define MALLOCATE_OBJECT( _type, _ptr, _vocab )   _type* _ptr = (_type *) __ALLOCATE_BYTES( _vocab->GetSize() );  TRACK_NEW
+#define FREE_OBJECT( _obj )  __DEALLOCATE_OBJECT( _obj );  TRACK_DELETE
 #define MALLOCATE_LINK( _type, _ptr )  MALLOCATE( _type, _ptr );  TRACK_LINK_NEW
 #define FREE_LINK( _link )  __FREE( _link );  TRACK_LINK_DELETE
 #define MALLOCATE_ITER( _type, _ptr, _vocab )  MALLOCATE_OBJECT( _type, _ptr, _vocab );  TRACK_ITER_NEW
-#define FREE_ITER( _link )  FREE_OBJECT( _link );  TRACK_ITER_DELETE
 
 // UNDELETABLE_OBJECT_REFCOUNT is used for objects like the system object or vocabularies which
 //   you don't want to be mistakenly deleted due to refcount mistakes

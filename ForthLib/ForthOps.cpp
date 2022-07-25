@@ -2119,7 +2119,11 @@ FORTHOP( methodOp )
     pEngine->StartOpDefinition(pMethodName, true, kOpUserDef, pDefinitionVocab);
     // switch to compile mode
     pEngine->SetCompileState( 1 );
-    pEngine->SetFlag( kEngineFlagIsMethod );
+    if (strcmp(pMethodName, "delete") != 0)     // delete is really a forthop, not a method
+    {
+        pEngine->SetFlag(kEngineFlagIsMethod);
+    }
+
     if ( pVocab )
     {
         forthop* pEntry = pVocab->GetNewestEntry();
@@ -2127,7 +2131,7 @@ FORTHOP( methodOp )
         {
             methodIndex = pVocab->AddMethod( pMethodName, methodIndex, pEntry[0] );
             pEntry[0] = methodIndex;
-            pEntry[1] |= kDTIsMethod;
+            pEntry[1] |= (kDTIsMethod | kBaseTypeVoid);
         }
 		else
 		{
@@ -2172,10 +2176,14 @@ FORTHOP( returnsOp )
             pToken = pEngine->GetNextSimpleToken();
             pEntry[1] |= kDTIsPtr;
         }
+
+        // wipe the bottom 6 bits of type - this is probaby set to 15 (void)
+        pEntry[1] &= ~STORAGE_DESCRIPTOR_TYPE_MASK;
+
         forthBaseType baseType = pManager->GetBaseTypeFromName( pToken );
         if ( baseType != kBaseTypeUnknown )
         {
-            pEntry[1] |= NATIVE_TYPE_TO_CODE( 0, baseType );
+            pEntry[1] |= NATIVE_TYPE_TO_CODE(0, baseType);
         }
         else
         {
@@ -6200,6 +6208,12 @@ FORTHOP(resetProfileOp)
     pEngine->ResetExecutionProfile();
 }
 
+FORTHOP(showMemoryOp)
+{
+    ForthEngine* pEngine = GET_ENGINE;
+    pEngine->ShowMemoryInfo();
+}
+
 FORTHOP(readOp)
 {
     NEEDS(3);
@@ -9342,6 +9356,7 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     OP_COMPILED_DEF(        raiseOp,                "raise",            OP_RAISE),
     NATIVE_COMPILED_DEF(    unsuperBop,              "_unsuper",        OP_UNSUPER),
     NATIVE_COMPILED_DEF(    rdropBop,                "rdrop",           OP_RDROP),
+    NATIVE_COMPILED_DEF(    noopBop,                "noop",             OP_NOOP),
 
     // following must be last in table
     OP_COMPILED_DEF(		NULL,                   NULL,					-1 )
@@ -9362,7 +9377,6 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(    hereBop,                 "here" ),
     NATIVE_DEF(    dpBop,                   "dp" ),
     NATIVE_DEF(    fetchVaractionBop,       "fetch" ),
-    NATIVE_DEF(    noopBop,                 "noop" ),
     NATIVE_DEF(    odropBop,                "odrop"),
 
 	// object varActions
@@ -10088,6 +10102,7 @@ baseDictionaryEntry baseDictionary[] =
 	OP_DEF(		bkptOp,				    "bkpt"),
     OP_DEF(     dumpProfileOp,          "dumpProfile"),
     OP_DEF(     resetProfileOp,         "resetProfile"),
+    OP_DEF(     showMemoryOp,           "showMemory"),
 
     ///////////////////////////////////////////
     //  conditional compilation

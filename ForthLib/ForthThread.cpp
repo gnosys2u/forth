@@ -183,9 +183,10 @@ ForthFiber::~ForthFiber()
     if (mObject)
     {
         oFiberStruct* pFiberStruct = (oFiberStruct *)mObject;
-        if (pFiberStruct->pFiber != NULL)
+		// WTF?
+        if (pFiberStruct != nullptr)
         {
-            FREE_OBJECT(pFiberStruct);
+            mpEngine->DeleteObject(&mCore, mObject);
         }
     }
 }
@@ -329,7 +330,16 @@ void ForthFiber::WakeAllJoiningFibers()
         pFiber->mpNextJoiner = nullptr;
         pFiber->Wake();
         ForthObject& joiner = pFiber->GetFiberObject();
-        SAFE_RELEASE(&mCore, joiner);
+        //SAFE_RELEASE(&mCore, joiner);
+		if (joiner != nullptr)
+		{
+			joiner->refCount -= 1;
+			if (joiner->refCount == 0)
+			{
+				((ForthEngine*)(mCore.pEngine))->DeleteObject(&mCore, joiner);
+			}
+		}
+		TRACK_RELEASE;
         pFiber = pNextFiber;
     }
     mpJoinHead = nullptr;
@@ -393,6 +403,15 @@ void ForthFiber::SetName(const char* newName)
     mName.assign(newName);
 }
 
+void ForthFiber::FreeObjects()
+{
+	if (mObject != nullptr)
+	{
+		FREE_OBJECT(mObject);
+	}
+	mObject = nullptr;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 ////
@@ -439,6 +458,7 @@ ForthThread::~ForthThread()
     pthread_cond_destroy(&mExitSignal);
 #endif
 
+	FreeObjects();
 
     for (ForthFiber* pFiber : mFibers)
 	{
@@ -447,11 +467,25 @@ ForthThread::~ForthThread()
 			delete pFiber;
 		}
 	}
-	oThreadStruct* pThreadStruct = (oThreadStruct *)mObject;
+}
+
+void ForthThread::FreeObjects()
+{
+    for (ForthFiber* pFiber : mFibers)
+	{
+		if (pFiber != nullptr)
+		{
+			pFiber->FreeObjects();
+		}
+	}
+	mFibers.clear();
+
+	oThreadStruct* pThreadStruct = (oThreadStruct*)mObject;
 	if (pThreadStruct != nullptr && pThreadStruct->pThread != nullptr)
 	{
 		FREE_OBJECT(pThreadStruct);
 	}
+	mObject = nullptr;
 }
 
 #ifdef WIN32
@@ -1334,8 +1368,6 @@ namespace OLock
 #endif
 			pLockStruct->pLock = NULL;
 		}
-		FREE_OBJECT(pLockStruct);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oAsyncLockGrabMethod)
@@ -1447,8 +1479,6 @@ namespace OLock
 #endif
         delete pLockStruct->pLock;
         delete pLockStruct->pBlockedFibers;
-		FREE_OBJECT(pLockStruct);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oLockGrabMethod)
@@ -1669,8 +1699,6 @@ namespace OLock
 #endif
         delete pSemaphoreStruct->pLock;
         delete pSemaphoreStruct->pBlockedThreads;
-        FREE_OBJECT(pSemaphoreStruct);
-        METHOD_RETURN;
     }
 
     FORTHOP(oSemaphoreInitMethod)
@@ -1822,8 +1850,6 @@ namespace OLock
             sem_close(pSemaphoreStruct->pSemaphore);
         }
 #endif
-        FREE_OBJECT(pSemaphoreStruct);
-        METHOD_RETURN;
     }
 
     FORTHOP(oAsyncSemaphoreInitMethod)

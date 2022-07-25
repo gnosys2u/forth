@@ -336,8 +336,6 @@ ForthEngine::ForthEngine()
     mpEngineScratch = new long[70];
     mpErrorString = new char[ ERROR_STRING_MAX + 1 ];
 
-    initMemoryAllocation();
-
     // remember creation time for elapsed time method
 #ifdef WIN32
 #ifdef MSDEV
@@ -372,6 +370,15 @@ ForthEngine::~ForthEngine()
     {
         mpTypesManager->ShutdownBuiltinClasses(this);
         delete mpTypesManager;
+    }
+
+    // delete all thread and fiber objects
+    ForthThread* pThread = mpThreads;
+    while (pThread != NULL)
+    {
+        ForthThread* pNextThread = pThread->mpNext;
+        pThread->FreeObjects();
+        pThread = pNextThread;
     }
 
     if (mDictionary.pBase)
@@ -421,7 +428,7 @@ ForthEngine::~ForthEngine()
     }
 
     // delete all threads;
-	ForthThread *pThread = mpThreads;
+	pThread = mpThreads;
 	while (pThread != NULL)
     {
 		ForthThread *pNextThread = pThread->mpNext;
@@ -435,7 +442,7 @@ ForthEngine::~ForthEngine()
 
     delete mBlockFileManager;
 
-	mpInstance = NULL;
+    mpInstance = NULL;
 }
 
 ForthEngine*
@@ -921,6 +928,23 @@ ForthEngine::ShowSearchInfo()
 	ForthConsoleStringOut(mpCore, "definitions vocab: ");
 	ForthConsoleStringOut(mpCore, GetDefinitionVocabulary()->GetName());
 	ForthConsoleCharOut(mpCore, '\n');
+}
+
+void ForthEngine::ShowMemoryInfo()
+{
+    std::vector<ForthMemoryStats *> memoryStats;
+    s_memoryManager->getStats(memoryStats);
+    char buffer[256];
+    for (ForthMemoryStats* stats : memoryStats)
+    {
+        if (stats->getNumAllocations() > 0)
+        {
+            snprintf(buffer, sizeof(buffer), "%s allocs:%lld frees:%lld maxInUse:%lld currentUsed:%lld maxUsed:%lld\n",
+                stats->getName().c_str(), stats->getNumAllocations(), stats->getNumDeallocations(),
+                stats->getMaxActiveAllocations(), stats->getBytesInUse(), stats->getMaxBytesInUse());
+            ForthConsoleStringOut(mpCore, buffer);
+        }
+    }
 }
 
 ForthThread *
@@ -2570,6 +2594,74 @@ ForthEngine::FullyExecuteMethod(ForthCoreState* pCore, ForthObject& obj, int met
 		SetError(kForthErrorIllegalOperation, " yield not allowed in FullyExecuteMethod");
 	}
 	return exitStatus;
+}
+
+static int deleteDepth = 0;
+eForthResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
+{
+    ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
+    int objSize = pClassObject->pVocab->GetSize();
+    eForthResult exitStatus = kResultOk;
+    forthop opScratch[2];
+    opScratch[1] = gCompiledOps[OP_DONE];
+    ForthObject savedThis = GET_TP;
+    SET_TP(obj);
+
+    printf("*** DELETING %s @%p size %d  depth:%d  rdepth:%d\n", pClassObject->pVocab->GetName(), obj, objSize,
+        deleteDepth, GET_RDEPTH/8);
+    deleteDepth++;
+    forthop* pMethods = obj->pMethods;
+    while (exitStatus == kResultOk)
+    {
+        forthop opCode = pMethods[kMethodDelete];
+
+        if (opCode != gCompiledOps[OP_NOOP]) {
+            printf("executing %s.delete op 0x%x\n", pClassObject->pVocab->GetName(), opCode);
+            opScratch[0] = opCode;
+            eForthResult exitStatus = ExecuteOps(pCore, &(opScratch[0]));
+
+            if (exitStatus == kResultYield)
+            {
+                SetError(kForthErrorIllegalOperation, " yield not allowed in delete!");
+            }
+        }
+        else
+        {
+            //printf("skipping %s op 0x%x\n", pClassObject->pVocab->GetName(), opCode);
+        }
+
+        ForthClassVocabulary* parentVocabulary = pClassObject->pVocab->ParentClass();
+        pClassObject = parentVocabulary ? parentVocabulary->GetClassObject() : nullptr;
+        if (pClassObject != nullptr)
+        {
+            pMethods = parentVocabulary->GetMethods();
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    // now free the storage for the object instance
+    __DEALLOCATE_BYTES(obj, objSize);
+    SET_TP(savedThis);
+
+    deleteDepth--;
+    return exitStatus;
+}
+
+void ForthEngine::ReleaseObject(ForthCoreState* pCore, ForthObject& inObject)
+{
+    oOutStreamStruct* pObjData = reinterpret_cast<oOutStreamStruct*>(inObject);
+    if (pObjData->refCount > 1)
+    {
+        --pObjData->refCount;
+    }
+    else
+    {
+        DeleteObject(pCore, inObject);
+        inObject = nullptr;
+    }
 }
 
 

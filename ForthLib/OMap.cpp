@@ -172,8 +172,6 @@ namespace OMap
 			SAFE_RELEASE(pCore, val);
 		}
 		delete pMap->elements;
-		FREE_OBJECT(pMap);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oMapShowInnerMethod)
@@ -754,8 +752,6 @@ namespace OMap
 			SAFE_RELEASE(pCore, o);
 		}
 		delete pMap->elements;
-		FREE_OBJECT(pMap);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oIntMapShowInnerMethod)
@@ -1618,8 +1614,6 @@ namespace OMap
 			SAFE_RELEASE(pCore, o);
 		}
 		delete pMap->elements;
-		FREE_OBJECT(pMap);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oLongMapShowInnerMethod)
@@ -2176,8 +2170,6 @@ namespace OMap
 			SAFE_RELEASE(pCore, o);
 		}
 		delete pMap->elements;
-		FREE_OBJECT(pMap);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oDoubleMapShowInnerMethod)
@@ -2690,8 +2682,6 @@ namespace OMap
 		// go through all elements and release any which are not null
 		GET_THIS(oStringIntMapStruct, pMap);
 		delete pMap->elements;
-		FREE_OBJECT(pMap);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oStringIntMapShowInnerMethod)
@@ -3243,8 +3233,6 @@ namespace OMap
 		// go through all elements and release any which are not null
 		GET_THIS(oStringLongMapStruct, pMap);
 		delete pMap->elements;
-		FREE_OBJECT(pMap);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oStringLongMapShowInnerMethod)

@@ -67,6 +67,8 @@ public:
 
 	inline void			SetIP( forthop* newIP ) { mCore.IP = newIP; };
 	
+	void				FreeObjects();
+
 	ForthShowContext*	GetShowContext();
 
 	inline eForthFiberRunState GetRunState() { return mRunState; }
@@ -118,6 +120,8 @@ public:
 	ForthFiber*		    GetFiber(int fiberIndex);
 	ForthFiber*		    GetActiveFiber();
     void                SetActiveFiber(ForthFiber *pThread);
+
+	void				FreeObjects();
 
 	inline eForthFiberRunState GetRunState() { return mRunState; }
 

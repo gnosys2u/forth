@@ -392,7 +392,6 @@ extern void GetForthConsoleOutStream( ForthCoreState* pCore, ForthObject& outObj
 extern void CreateForthFileOutStream( ForthCoreState* pCore, ForthObject& outObject, FILE* pOutFile );
 extern void CreateForthFunctionOutStream( ForthCoreState* pCore, ForthObject& outObject, streamCharOutRoutine outChar,
 											  streamBytesOutRoutine outBlock, streamStringOutRoutine outString, void* pUserData );
-extern void ReleaseForthObject( ForthCoreState* pCore, ForthObject& inObject );
 
 extern void ForthConsoleCharOut( ForthCoreState* pCore, char ch );
 extern void ForthConsoleBytesOut( ForthCoreState* pCore, const char* pBuffer, int numChars );
@@ -504,6 +503,7 @@ enum {
     OP_RAISE,
     OP_UNSUPER,
     OP_RDROP,
+    OP_NOOP,
 
 	NUM_COMPILED_OPS,
 
@@ -750,6 +750,9 @@ typedef enum
     kDTIsMethod     = 64,
     kDTIsFunky      = 128       // use depends on context
 } storageDescriptor;
+
+// this is the bottom 6-bits, baseType + ptr and array flags
+#define STORAGE_DESCRIPTOR_TYPE_MASK ((kNumBaseTypes - 1) | kDTIsPtr | kDTIsArray)
 
 // user-defined structure fields have a 32-bit descriptor with the following format:
 // 3...0        base type

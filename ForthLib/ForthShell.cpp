@@ -201,7 +201,7 @@ ForthShell::ForthShell(int argc, const char ** argv, const char ** envp, ForthEn
 , mContinuationBytesStored(0)
 , mInContinuationLine(false)
 {
-    initMemoryAllocation();
+    startMemoryManager();
 
     mFileInterface.fileOpen = fopen;
     mFileInterface.fileClose = fclose;
@@ -319,6 +319,8 @@ ForthShell::~ForthShell()
 	{
 		delete mpEngine;
 	}
+
+    stopMemoryManager();
 #if 0
     delete mpReadyThreads;
     CloseHandle( mConsoleInputEvent );

@@ -1604,6 +1604,7 @@ ForthClassVocabulary::Extends( ForthClassVocabulary *pParentClass )
 			isPrimaryInterface = false;
 		}
         mInterfaces[0]->GetMethods()[kMethodShowInner] = gObjectShowInnerOpcode;
+        mInterfaces[0]->GetMethods()[kMethodDelete] = gCompiledOps[OP_NOOP];
         mpClassObject->newOp = pParentClass->mpClassObject->newOp;
 	}
 
@@ -1861,7 +1862,7 @@ ForthClassVocabulary::PrintEntry(forthop*   pEntry )
 ForthClassVocabulary*
 ForthClassVocabulary::ParentClass( void )
 {
-	return mpSearchNext->IsClass() ? (ForthClassVocabulary *) mpSearchNext : NULL;
+	return ((mpSearchNext != nullptr) && mpSearchNext->IsClass()) ? (ForthClassVocabulary *) mpSearchNext : NULL;
 }
 
 const char *

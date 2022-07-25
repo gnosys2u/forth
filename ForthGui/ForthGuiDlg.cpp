@@ -429,7 +429,8 @@ void CForthGuiDlg::DestroyForth()
 {
 	if ( mpShell )
 	{
-		ReleaseForthObject( mpShell->GetEngine()->GetCoreState(), mConsoleOutObject );
+		ForthEngine* pEngine = mpShell->GetEngine();
+		pEngine->ReleaseObject(pEngine->GetCoreState(), mConsoleOutObject);
 		delete mpShell;
 		// the shell destructor deletes all the streams on the input stack, including mpInStream
 		mpShell = NULL;

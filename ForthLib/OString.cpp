@@ -112,8 +112,6 @@ namespace OString
         // go through all elements and release any which are not null
         GET_THIS( oStringStruct, pString );
 		free( pString->str );
-        FREE_OBJECT( pString );
-        METHOD_RETURN;
     }
 
     FORTHOP( oStringShowInnerMethod )
@@ -1006,8 +1004,6 @@ namespace OString
 			SAFE_RELEASE(pCore, o);
 		}
 		delete pMap->elements;
-		FREE_OBJECT(pMap);
-		METHOD_RETURN;
 	}
 
 	FORTHOP(oStringMapShowInnerMethod)

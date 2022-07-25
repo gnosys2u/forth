@@ -99,7 +99,7 @@ namespace
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
         long nBytes = pClassVocab->GetSize();
-        ForthObject pThis = (ForthObject)__MALLOC(nBytes);
+		MALLOCATE_OBJECT(oObjectStruct, pThis, pClassVocab);
         // clear the entire object area - this handles both its refcount and any object pointers it might contain
         memset(pThis, 0, nBytes);
         pThis->pMethods = pClassVocab->GetMethods();
@@ -107,14 +107,13 @@ namespace
         PUSH_OBJECT(pThis);
     }
 
-    FORTHOP(objectDeleteMethod)
-    {
-        // TODO: warn if refcount isn't zero
-        FREE_OBJECT(GET_TP);
-        METHOD_RETURN;
-    }
+	FORTHOP(objectDeleteMethod)
+	{
+		// this never gets called, it just needs to be here because of how builtin classes are defined.
+		// the Object method table delete entry gets stuffed with the 'noop' opcode in ForthTypesManager::AddBuiltinClasses (end of this file)
+	}
 
-    FORTHOP(objectShowMethod)
+	FORTHOP(objectShowMethod)
     {
         ForthObject obj = GET_TP;
         GET_SHOW_CONTEXT;
@@ -220,7 +219,7 @@ namespace
 	baseMethodEntry objectMembers[] =
 	{
 		METHOD("__newOp", objectNew),
-		METHOD("delete", objectDeleteMethod),
+		METHOD("delete", nullptr),
 		METHOD("show", objectShowMethod),
         METHOD("showInner", objectShowInnerMethod),
         METHOD_RET("getClass", objectClassMethod, RETURNS_OBJECT(kBCIClass)),
@@ -492,6 +491,7 @@ ForthTypesManager::AddBuiltinClasses(ForthEngine* pEngine)
 
     ForthClassVocabulary* pObjectClassVocab = pEngine->AddBuiltinClass("Object", kBCIObject, kBCIInvalid, objectMembers);
     gObjectShowInnerOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodShowInner);
+	pObjectClassVocab->GetInterface(0)->SetMethod(kMethodDelete, gCompiledOps[OP_NOOP]);
 
     ForthClassVocabulary* pClassClassVocab = pEngine->AddBuiltinClass("Class", kBCIClass, kBCIObject, classMembers);
     mpClassMethods = pClassClassVocab->GetMethods();

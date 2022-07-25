@@ -2177,6 +2177,13 @@ OPTYPE_ACTION(MethodWithSuperAction)
 {
     // this is called when an object method invokes a method off its superclass
     // opVal is the method number
+    if (opVal == kMethodDelete)
+    {
+        // super.delete is illegal - system does this for you
+        SET_ERROR(kForthErrorIllegalMethod);
+        return;
+    }
+
     ForthEngine *pEngine = GET_ENGINE;
     ForthObject thisObject = (ForthObject)(GET_TP);
     forthop* pMethods = thisObject->pMethods;

@@ -170,6 +170,8 @@ public:
 	eForthResult        ExecuteOps(ForthCoreState* pCore, forthop* pOps);
 
 	eForthResult		FullyExecuteMethod(ForthCoreState* pCore, ForthObject& obj, int methodNum);
+    eForthResult        DeleteObject(ForthCoreState* pCore, ForthObject& obj);
+    void                ReleaseObject(ForthCoreState* pCore, ForthObject& inObject);
 
     // add an op to the operator dispatch table. returns the assigned opcode (without type field)
     forthop         AddOp( const void *pOp );
@@ -276,6 +278,7 @@ public:
     inline void             SetDefinitionVocabulary( ForthVocabulary* pVocab )  { mpDefinitionVocab = pVocab; };
     inline ForthLocalVocabulary  *GetLocalVocabulary( void )   { return mpLocalVocab; };
 	void					ShowSearchInfo();
+    void                    ShowMemoryInfo();
     inline ForthShell       *GetShell( void ) { return mpShell; };
 	inline void				SetShell( ForthShell *pShell ) { mpShell = pShell; };
     inline ForthVocabulary  *GetForthVocabulary(void) { return mpForthVocab; };

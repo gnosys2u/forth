@@ -639,101 +639,111 @@ bool ForthStructCodeGenerator::HandleMiddle()
                 ForthTypeInfo* pClassInfo = mpTypeManager->GetTypeInfo(containedTypeIndex);
                 if (pClassInfo == NULL)
                 {
-                    SPEW_STRUCTS("Return type not found by types manager\n");
-                    return false;
+                SPEW_STRUCTS("Return type not found by types manager\n");
+                return false;
                 }
                 else
                 {
-                    // no container type
-                    mpStructVocab = pClassInfo->pVocab;
-                    SPEW_STRUCTS("Return type %s\n", mpStructVocab->GetName());
+                // no container type
+                mpStructVocab = pClassInfo->pVocab;
+                SPEW_STRUCTS("Return type %s\n", mpStructVocab->GetName());
                 }
             }
         }
         else
         {
-            ForthTypeInfo* pContainerInfo = mpTypeManager->GetTypeInfo(containerTypeIndex);
-            if (pContainerInfo == NULL)
+        ForthTypeInfo* pContainerInfo = mpTypeManager->GetTypeInfo(containerTypeIndex);
+        if (pContainerInfo == NULL)
+        {
+            SPEW_STRUCTS("Return container type not found by types manager\n");
+            return false;
+        }
+        else
+        {
+            ForthTypeInfo* pContainedClassInfo = mpTypeManager->GetTypeInfo(containedTypeIndex);
+            if (pContainedClassInfo == NULL)
             {
-                SPEW_STRUCTS("Return container type not found by types manager\n");
+                SPEW_STRUCTS("Return type not found by types manager\n");
                 return false;
             }
             else
             {
-                ForthTypeInfo* pContainedClassInfo = mpTypeManager->GetTypeInfo(containedTypeIndex);
-                if (pContainedClassInfo == NULL)
-                {
-                    SPEW_STRUCTS("Return type not found by types manager\n");
-                    return false;
-                }
-                else
-                {
-                    mpStructVocab = pContainerInfo->pVocab;
-                    mpContainedClassVocab = pContainedClassInfo->pVocab;
-                    SPEW_STRUCTS("Return type %s of %s\n", mpStructVocab->GetName(), mpContainedClassVocab->GetName());
-                }
+                mpStructVocab = pContainerInfo->pVocab;
+                mpContainedClassVocab = pContainedClassInfo->pVocab;
+                SPEW_STRUCTS("Return type %s of %s\n", mpStructVocab->GetName(), mpContainedClassVocab->GetName());
             }
+        }
         }
     }
     return success;
 }
-	
+
 bool ForthStructCodeGenerator::HandleLast()
 {
-	if ( mpStructVocab == NULL )
-	{
-		return false;
-	}
-	bool success = true;
-    
-    forthop* pEntry = mpStructVocab->FindSymbol( mpToken );
-		
-    SPEW_STRUCTS( "field %s", mpToken );
-    if ( pEntry == NULL )
+    if (mpStructVocab == NULL)
     {
-        SPEW_STRUCTS( " not found!\n" );
+        return false;
+    }
+    bool success = true;
+
+    if (mUsesSuper)
+    {
+        if (strcmp(mpToken, "delete") == 0)
+        {
+            // ignore "super.delete" for backwards compatability
+            return true;
+        }
+    }
+
+
+    forthop* pEntry = mpStructVocab->FindSymbol(mpToken);
+
+    SPEW_STRUCTS("field %s", mpToken);
+    if (pEntry == NULL)
+    {
+        SPEW_STRUCTS(" not found!\n");
         return false;
     }
     mTypeCode = pEntry[1];
-    if ( CODE_IS_USER_DEFINITION( mTypeCode ) )
+    if (CODE_IS_USER_DEFINITION(mTypeCode))
     {
-		// we bail out her if the entry found is for an internal colonOp definition.
-		//  class colonOps cannot be applied to an arbitrary object instance since they
-		//  do not set the this pointer, class colonOps can only be used inside a class method
-		//  which has already set the this pointer
-        SPEW_STRUCTS( " not found!\n" );
+        // we bail out her if the entry found is for an internal colonOp definition.
+        //  class colonOps cannot be applied to an arbitrary object instance since they
+        //  do not set the this pointer, class colonOps can only be used inside a class method
+        //  which has already set the this pointer
+        SPEW_STRUCTS(" not found!\n");
         return false;
     }
-    
-    bool isNative = CODE_IS_NATIVE( mTypeCode );
-    bool isPtr = CODE_IS_PTR( mTypeCode );
-    bool isArray = CODE_IS_ARRAY( mTypeCode );
-    long baseType = CODE_TO_BASE_TYPE( mTypeCode );
+
+    bool isNative = CODE_IS_NATIVE(mTypeCode);
+    bool isPtr = CODE_IS_PTR(mTypeCode);
+    bool isArray = CODE_IS_ARRAY(mTypeCode);
+    long baseType = CODE_TO_BASE_TYPE(mTypeCode);
     bool isObject = (baseType == kBaseTypeObject);
-    bool isMethod = CODE_IS_METHOD( mTypeCode );
+    bool isMethod = CODE_IS_METHOD(mTypeCode);
     long opType;
     mOffset += pEntry[0];
-    SPEW_STRUCTS( " offset %d", mOffset );
-    
-    if ( isArray )
+    SPEW_STRUCTS(" offset %d", mOffset);
+
+    if (isArray)
     {
-        SPEW_STRUCTS( (isPtr) ? " array of pointers" : " array" );
+        SPEW_STRUCTS((isPtr) ? " array of pointers" : " array");
     }
-    else if ( isPtr )
+    else if (isPtr)
     {
-        SPEW_STRUCTS( " pointer" );
+        SPEW_STRUCTS(" pointer");
     }
 
     //
     // this is final accessor field
     //
-    if ( mCompileVarop != 0 )
+    if (mCompileVarop != 0)
     {
         // compile variable-mode setting op just before final field
         *mpDst++ = mCompileVarop;
     }
-    SPEW_STRUCTS( " FINAL" );
-    if ( isMethod )
+    SPEW_STRUCTS(" FINAL");
+    if (isMethod)
     {
         opType = (mUsesSuper) ? kOpMethodWithSuper : kOpMethodWithTOS;
         mOffset = pEntry[0];     // method#
