@@ -387,14 +387,15 @@ ForthShell::RunOneStream(ForthInputStream *pInStream)
 	{
 		// try to fetch a line from current stream
 		pBuffer = mpInput->GetLine(mpEngine->GetFastMode() ? "ok>" : "OK>");
-		if (pBuffer == NULL)
+        pBuffer = AddToInputLine(pBuffer);
+        if (pBuffer == nullptr)
 		{
             bQuit = PopInputStream() || (mpInput->InputStream() == pOldInput);
 		}
 
-		if (!bQuit)
+		if (!bQuit && !mInContinuationLine)
 		{
-			result = ProcessLine();
+			result = ProcessLine(pBuffer);
 
 			switch (result)
 			{
@@ -453,6 +454,7 @@ ForthShell::Run( ForthInputStream *pInStream )
 		// no internal file found, try opening app_autoload.txt as a standard file
 		pFile = fopen( autoloadFilename, "r" );
 	}
+
     if ( pFile != NULL )
     {
         // there is an app autoload file, use that
@@ -793,7 +795,7 @@ ForthShell::ReportError( void )
         strcpy( errorBuf1, errorBuf2 );
     }
     SPEW_SHELL( "%s", errorBuf1 );
-	CONSOLE_STRING_OUT( errorBuf1 );
+	ERROR_STRING_OUT( errorBuf1 );
     const char *pBase = mpInput->GetBufferBasePointer();
     pLastInputToken = mpInput->GetBufferPointer();
     if ( (pBase != NULL) && (pLastInputToken != NULL) )
