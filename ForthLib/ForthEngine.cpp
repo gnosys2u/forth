@@ -328,7 +328,8 @@ ForthEngine::ForthEngine()
 , mContinueCount(0)
 , mpNewestEnum(nullptr)
 , mDefaultConsoleOutStream(nullptr)
-, mAuxOutStream(nullptr)
+, mDefaultErrorOutStream(nullptr)
+, mErrorOutStream(nullptr)
 {
     // scratch area for temporary definitions
     ASSERT( mpInstance == NULL );
@@ -530,7 +531,8 @@ ForthEngine::Initialize( ForthShell*        pShell,
 	// the primary thread objects can't be inited until builtin classes are initialized
 	OThread::FixupThread(mpMainThread);
 
-	GetForthConsoleOutStream( mpCore, mDefaultConsoleOutStream );
+    GetForthConsoleOutStream(mpCore, mDefaultConsoleOutStream);
+    GetForthErrorOutStream(mpCore, mDefaultErrorOutStream);
     ResetConsoleOut( *mpCore );
 
     if (pExtension != NULL)
@@ -933,7 +935,10 @@ ForthEngine::ShowSearchInfo()
 void ForthEngine::ShowMemoryInfo()
 {
     std::vector<ForthMemoryStats *> memoryStats;
-    s_memoryManager->getStats(memoryStats);
+    int numStorageBlocks;
+    int totalStorage;
+    int unusedStorage;
+    s_memoryManager->getStats(memoryStats, numStorageBlocks, totalStorage, unusedStorage);
     char buffer[256];
     for (ForthMemoryStats* stats : memoryStats)
     {
@@ -945,6 +950,9 @@ void ForthEngine::ShowMemoryInfo()
             ForthConsoleStringOut(mpCore, buffer);
         }
     }
+    snprintf(buffer, sizeof(buffer), "%d storage blocks, total %d bytes, %d bytes unused\n",
+        numStorageBlocks, totalStorage, unusedStorage);
+    ForthConsoleStringOut(mpCore, buffer);
 }
 
 ForthThread *
@@ -2596,7 +2604,13 @@ ForthEngine::FullyExecuteMethod(ForthCoreState* pCore, ForthObject& obj, int met
 	return exitStatus;
 }
 
+// TODO: find a better way to do this
+extern forthop gObjectDeleteOpcode;
+
+//#define DEBUG_DELETE_OBJECT 1
+#ifdef DEBUG_DELETE_OBJECT
 static int deleteDepth = 0;
+#endif
 eForthResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
 {
     ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
@@ -2604,19 +2618,27 @@ eForthResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
     eForthResult exitStatus = kResultOk;
     forthop opScratch[2];
     opScratch[1] = gCompiledOps[OP_DONE];
-    ForthObject savedThis = GET_TP;
-    SET_TP(obj);
 
+#ifdef DEBUG_DELETE_OBJECT
     printf("*** DELETING %s @%p size %d  depth:%d  rdepth:%d\n", pClassObject->pVocab->GetName(), obj, objSize,
         deleteDepth, GET_RDEPTH/8);
     deleteDepth++;
-    forthop* pMethods = obj->pMethods;
+#endif
+    forthop* savedMethods = obj->pMethods;
     while (exitStatus == kResultOk)
     {
-        forthop opCode = pMethods[kMethodDelete];
+        forthop opCode = obj->pMethods[kMethodDelete];
 
-        if (opCode != gCompiledOps[OP_NOOP]) {
+        if (opCode != gObjectDeleteOpcode)
+        {
+#ifdef DEBUG_DELETE_OBJECT
             printf("executing %s.delete op 0x%x\n", pClassObject->pVocab->GetName(), opCode);
+#endif
+
+            void* oldRP = GET_RP;
+            RPUSH(((cell)GET_TP));
+            SET_THIS(obj);
+
             opScratch[0] = opCode;
             eForthResult exitStatus = ExecuteOps(pCore, &(opScratch[0]));
 
@@ -2627,26 +2649,28 @@ eForthResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
         }
         else
         {
-            //printf("skipping %s op 0x%x\n", pClassObject->pVocab->GetName(), opCode);
+#ifdef DEBUG_DELETE_OBJECT
+            printf("skipping %s op 0x%x\n", pClassObject->pVocab->GetName(), opCode);
+#endif
         }
 
         ForthClassVocabulary* parentVocabulary = pClassObject->pVocab->ParentClass();
         pClassObject = parentVocabulary ? parentVocabulary->GetClassObject() : nullptr;
         if (pClassObject != nullptr)
         {
-            pMethods = parentVocabulary->GetMethods();
+            obj->pMethods = parentVocabulary->GetMethods();
         }
         else
         {
             break;
         }
     }
+    obj->pMethods = savedMethods;
 
     // now free the storage for the object instance
     __DEALLOCATE_BYTES(obj, objSize);
-    SET_TP(savedThis);
 
-    deleteDepth--;
+    //deleteDepth--;
     return exitStatus;
 }
 
@@ -2679,6 +2703,7 @@ ForthEngine::SetError( eForthError e, const char *pString )
     {
 	    strcat( mpErrorString, pString );
     }
+
     if ( e == kForthErrorNone )
     {
         // previous error state is being cleared
@@ -2763,7 +2788,12 @@ void ForthEngine::SetDefaultConsoleOut( ForthObject& newOutStream )
 {
 	SPEW_SHELL("SetDefaultConsoleOut pCore=%p  pMethods=%p  pData=%p\n", mpCore, newOutStream->pMethods, newOutStream);
     OBJECT_ASSIGN(mpCore, mDefaultConsoleOutStream, newOutStream);
-    OBJECT_ASSIGN(mpCore, mAuxOutStream, newOutStream);
+}
+
+void ForthEngine::SetDefaultErrorOut(ForthObject& newOutStream)
+{
+    SPEW_SHELL("SetDefaultErrorOut pCore=%p  pMethods=%p  pData=%p\n", mpCore, newOutStream->pMethods, newOutStream);
+    OBJECT_ASSIGN(mpCore, mErrorOutStream, newOutStream);
 }
 
 void ForthEngine::SetConsoleOut(ForthCoreState* pCore, ForthObject& newOutStream)
@@ -2772,10 +2802,15 @@ void ForthEngine::SetConsoleOut(ForthCoreState* pCore, ForthObject& newOutStream
     OBJECT_ASSIGN(pCore, pCore->consoleOutStream, newOutStream);
 }
 
-void ForthEngine::SetAuxOut(ForthCoreState* pCore, ForthObject& newOutStream)
+void ForthEngine::SetErrorOut(ForthCoreState* pCore, ForthObject& newOutStream)
 {
-    SPEW_SHELL("SetAuxOut pCore=%p  pMethods=%p  pData=%p\n", pCore, newOutStream->pMethods, newOutStream);
-    OBJECT_ASSIGN(pCore, mAuxOutStream, newOutStream);
+    SPEW_SHELL("SetErrorOut pCore=%p  pMethods=%p  pData=%p\n", pCore, newOutStream->pMethods, newOutStream);
+    OBJECT_ASSIGN(pCore, mErrorOutStream, newOutStream);
+}
+
+void* ForthEngine::GetErrorOut(ForthCoreState* pCore)
+{
+    return mErrorOutStream;
 }
 
 void ForthEngine::PushConsoleOut( ForthCoreState* pCore )
@@ -2788,9 +2823,14 @@ void ForthEngine::PushDefaultConsoleOut( ForthCoreState* pCore )
 	PUSH_OBJECT( mDefaultConsoleOutStream );
 }
 
-void ForthEngine::PushAuxOut(ForthCoreState* pCore)
+void ForthEngine::PushDefaultErrorOut(ForthCoreState* pCore)
 {
-    PUSH_OBJECT(mAuxOutStream);
+    PUSH_OBJECT(mDefaultErrorOutStream);
+}
+
+void ForthEngine::PushErrorOut(ForthCoreState* pCore)
+{
+    PUSH_OBJECT(mErrorOutStream);
 }
 
 void ForthEngine::ResetConsoleOut( ForthCoreState& core )
@@ -2799,9 +2839,8 @@ void ForthEngine::ResetConsoleOut( ForthCoreState& core )
 	//  without doing a release, and possibly leak a stream object, or we do a release
 	//  and risk a crash, since ResetConsoleOut is called when an error is detected,
 	//  so the object we are releasing may already be deleted or otherwise corrupted.
-	CLEAR_OBJECT(core.consoleOutStream);
+    CLEAR_OBJECT(core.consoleOutStream);
     OBJECT_ASSIGN(&core, core.consoleOutStream, mDefaultConsoleOutStream);
-    OBJECT_ASSIGN(&core, mAuxOutStream, mDefaultConsoleOutStream);
 }
 
 

@@ -220,6 +220,7 @@ inline forthop GetCurrentOp( ForthCoreState *pCore )
 #define CONSOLE_CHAR_OUT( CH )          (ForthConsoleCharOut( pCore, CH ))
 #define CONSOLE_BYTES_OUT( BUFF, N )    (ForthConsoleBytesOut( pCore, BUFF, N ))
 #define CONSOLE_STRING_OUT( BUFF )      (ForthConsoleStringOut( pCore, BUFF ))
+#define ERROR_STRING_OUT( BUFF )        (ForthErrorStringOut( pCore, BUFF ))
 
 #define GET_BASE_REF                    (&pCore->base)
 

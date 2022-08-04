@@ -78,6 +78,7 @@ namespace OSocket
             close(pSocket->fd);
 #endif
         }
+        METHOD_RETURN;
     }
 
     FORTHOP(oSocketOpenMethod)

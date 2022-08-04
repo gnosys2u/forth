@@ -297,7 +297,6 @@ class: NoteDeck
   
   m: delete
     clearAll
-    super.delete
   ;m
   
   m: addTagDef returns NoteTagDef      // NAME DISPLAY_NAME DESCRIPTION ... NEW_TAG_DEF

@@ -1,10 +1,56 @@
 =======================================================================
 Overall big areas to be done:
 
+o multiple interfaces
 o thread support
 o class support
 o ability to build windows GUI apps in forth
 
+=======================================================================
+july 27 2022
+- see why the methods in xxx.show always seem to be the same
+- fix the test summary output
+=======================================================================
+fixing the super.delete problem
+
+o make calling of the superclass delete automatically happen at end
+  of any declared delete method
+o insure that the deleted instance memory is returned to the correct sized pool
+
+The current state (July 21 2022):
+Currently, any class that has object fields which must be cleared on
+object destruction needs to define a delete method.
+
+If such a class does not define a delete method, the object instance memory
+will be recycled correctly, but none of its field objects will be released,
+which will cause them to become dangling when all other references to them
+are released.
+
+If a class defines a delete method, but does not call super.delete, all
+the object fields which it clears will have correct reference counts, but
+the object instance memory will not be recycled.
+
+If a class defines a delete method, and does call super.delete, all the object
+fields which it clears will have correct reference counts, and its super
+class delete method will be invoked.
+  If the super class itself has no delete method, Object:delete will be called,
+  but the object instance memory will be recycled as if its size was the size
+  of its parent class.
+
+So currently object instance memory is either just lost, or recycled into
+an object pool of smaller size than its actual size, losing memory over time.
+
+My best idea is to change how object deletion is started, to have at
+that point, have there be a deleteObject function which goes down the
+object superclass chain until it hits Object, invoking the delete method
+of each class in turn.  deleteObject would then recycle the object instance
+memory into the appropriate pool. Object:delete would not be responsible
+for recycling memory.
+Any class which does not define a delete method will have 'noop' as their
+delete method, deleteObject will recognize that case and not inoke 'noop'.
+Object:delete would be noop as well.
+? does deleteObject need to be atomic?
+  ? is that possible, since delete methods will often trigger further deletes?
 =======================================================================
 closure idea:
 

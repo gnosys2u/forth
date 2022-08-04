@@ -1368,6 +1368,7 @@ namespace OLock
 #endif
 			pLockStruct->pLock = NULL;
 		}
+		METHOD_RETURN;
 	}
 
 	FORTHOP(oAsyncLockGrabMethod)
@@ -1479,6 +1480,7 @@ namespace OLock
 #endif
         delete pLockStruct->pLock;
         delete pLockStruct->pBlockedFibers;
+		METHOD_RETURN;
 	}
 
 	FORTHOP(oLockGrabMethod)
@@ -1699,7 +1701,8 @@ namespace OLock
 #endif
         delete pSemaphoreStruct->pLock;
         delete pSemaphoreStruct->pBlockedThreads;
-    }
+		METHOD_RETURN;
+	}
 
     FORTHOP(oSemaphoreInitMethod)
     {
@@ -1850,7 +1853,8 @@ namespace OLock
             sem_close(pSemaphoreStruct->pSemaphore);
         }
 #endif
-    }
+		METHOD_RETURN;
+	}
 
     FORTHOP(oAsyncSemaphoreInitMethod)
     {

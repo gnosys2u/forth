@@ -327,10 +327,13 @@ public:
 
 	void					SetDefaultConsoleOut( ForthObject& newOutStream );
     void					SetConsoleOut(ForthCoreState* pCore, ForthObject& newOutStream);
-    void					SetAuxOut(ForthCoreState* pCore, ForthObject& newOutStream);
-    void					PushConsoleOut( ForthCoreState* pCore );
-	void					PushDefaultConsoleOut( ForthCoreState* pCore );
-    void                    PushAuxOut(ForthCoreState* pCore);
+    void					SetDefaultErrorOut(ForthObject& newOutStream);
+    void					SetErrorOut(ForthCoreState* pCore, ForthObject& newOutStream);
+    void*					GetErrorOut(ForthCoreState* pCore);
+    void					PushConsoleOut(ForthCoreState* pCore);
+    void					PushErrorOut(ForthCoreState* pCore);
+    void					PushDefaultConsoleOut( ForthCoreState* pCore );
+    void					PushDefaultErrorOut(ForthCoreState* pCore);
 	void					ResetConsoleOut( ForthCoreState& core );
 
     // return milliseconds since engine was created
@@ -440,7 +443,8 @@ protected:
     cell            mNextEnum;
 
 	ForthObject		mDefaultConsoleOutStream;
-    ForthObject     mAuxOutStream;
+    ForthObject		mDefaultErrorOutStream;
+    ForthObject     mErrorOutStream;
 
 	std::vector<ForthLabel> mLabels;
 

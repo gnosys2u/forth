@@ -95,8 +95,8 @@ extern long gStatReleases;
 
 #define MALLOCATE_OBJECT( _type, _ptr, _vocab )   _type* _ptr = (_type *) __ALLOCATE_BYTES( _vocab->GetSize() );  TRACK_NEW
 #define FREE_OBJECT( _obj )  __DEALLOCATE_OBJECT( _obj );  TRACK_DELETE
-#define MALLOCATE_LINK( _type, _ptr )  MALLOCATE( _type, _ptr );  TRACK_LINK_NEW
-#define FREE_LINK( _link )  __FREE( _link );  TRACK_LINK_DELETE
+#define MALLOCATE_LINK( _type, _ptr )  _type* _ptr = (_type *) __ALLOCATE_BYTES(sizeof(oListElement));  TRACK_LINK_NEW
+#define FREE_LINK( _link )  __DEALLOCATE_BYTES( _link, sizeof(oListElement) );  TRACK_LINK_DELETE
 #define MALLOCATE_ITER( _type, _ptr, _vocab )  MALLOCATE_OBJECT( _type, _ptr, _vocab );  TRACK_ITER_NEW
 
 // UNDELETABLE_OBJECT_REFCOUNT is used for objects like the system object or vocabularies which

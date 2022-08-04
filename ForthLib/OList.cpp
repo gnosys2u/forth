@@ -50,6 +50,7 @@ namespace OList
 			FREE_LINK(pCur);
 			pCur = pNext;
 		}
+		METHOD_RETURN;
 	}
 
 	FORTHOP(oListShowInnerMethod)
@@ -589,6 +590,7 @@ namespace OList
 		GET_THIS(oListIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
 		TRACK_ITER_DELETE;
+		METHOD_RETURN;
 	}
 
 	FORTHOP(oListIterShowInnerMethod)

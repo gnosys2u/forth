@@ -392,10 +392,12 @@ extern void GetForthConsoleOutStream( ForthCoreState* pCore, ForthObject& outObj
 extern void CreateForthFileOutStream( ForthCoreState* pCore, ForthObject& outObject, FILE* pOutFile );
 extern void CreateForthFunctionOutStream( ForthCoreState* pCore, ForthObject& outObject, streamCharOutRoutine outChar,
 											  streamBytesOutRoutine outBlock, streamStringOutRoutine outString, void* pUserData );
+extern void GetForthErrorOutStream(ForthCoreState* pCore, ForthObject& outObject);
 
 extern void ForthConsoleCharOut( ForthCoreState* pCore, char ch );
 extern void ForthConsoleBytesOut( ForthCoreState* pCore, const char* pBuffer, int numChars );
-extern void ForthConsoleStringOut( ForthCoreState* pCore, const char* pBuffer );
+extern void ForthConsoleStringOut(ForthCoreState* pCore, const char* pBuffer);
+extern void ForthErrorStringOut(ForthCoreState* pCore, const char* pBuffer);
 
 // the bottom 24 bits of a forth opcode is a value field
 // the top 8 bits is the type field

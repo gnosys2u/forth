@@ -5,6 +5,24 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+- get multiple interfaces working using wrapper objects
+
+- add a global AsyncLock for things like pushConsoleOut
+
+? deal with ref counting being non-atomic
+  ? or just prohibit sharing objects between threads
+
++ get DLL support working for 64-bit
+
++ debug pooled memory manager
+  + something is freeing many more 16 byte (or less) objects than are allocated thru pooled manager
+    - add a check that freed objects are actually in a pooled storage block
+
++ test summary is always blank
+
+- show method always shows Object __pMethods value
++ IntMap, StringIntMap, StringFloatMap have missing comma after "map" element - are there others like this?
+
 ! document existing native ops !
 ! create examples/tests for all native ops !
 
@@ -12,7 +30,7 @@ TBDs:
 
 - optimize object field reference code, there is a lot of code like LocalObject,drop
 - also optimize stuff like offset,2@,drop
-  -> these drops don't exist anymore, right?
+  -> these drops don't exist anymore, since getting rid of methods/data pair, right?
   
 + add unref op, same op as ->-, it makes object variable:
   o leave object on TOS
@@ -40,6 +58,7 @@ TBDs:
 ? have "woof -> foo( blah )" compile into "woof blah -> foo"
 
 ? add properties to classes
+  ? are these just getters/setters
 
 - only allow "implements" to be used on abstract interfaces (no data members) - this
   will avoid the problem with accessing data members on secondary interface objects
@@ -49,9 +68,7 @@ TBDs:
 
 ? add a debug feature where a map is maintained from IP address to file/lineNumber
 
-? add a dynamic array (of longs/pointers
-
-? add a string-to-long map based off CMap
++ add a string-to-long map based off CMap
   remember that a charPtr-to-long map would just map from the value of the
   charPtr, not the chars in the string, to the long
 
@@ -148,6 +165,90 @@ Double and long memory and stack layouts:
 Double has consistent layout, long is reversed on param stack.
 
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 4 2022
+
+64-bit DLL support was actually working, or at least SDL2 works in 64-bit mode.
+I'm not sure how/when I tested it, since there weren't any 64-bit DLLs in Sandbox
+before now.
+
+I started debugging why the test.txt error summary wasn't working.  I threw out
+using the aux stream, and instead implemented an error stream which defaults to
+stderr.
+You can temporarily redirect console out to the error stream with err{ and }err.
+I changed errors from ForthShell to be sent to the error stream too.  The problem
+in test.txt persisted - it was caused by ForthEngine::resetConsoleOut, which was
+setting the global aux and error streams to the default console stream whenever
+a new fiber was created, which makes no sense, I had picked a bad spot to make
+sure the aux stream wasn't always null.
+
+The test.txt summary is now working, there are no errors currently.  There may still
+be error messages lurking in some scripts that need to be wrapped in err{...}err.
+
+I also found that runtest was using $load to run scripts, the script isn't actually
+run until the  current line has finished processing, so the stack mismatch test
+was being run before the script was run.  I changed runtest to use $runFile to
+fix this, and  found out that $runFile didn't handle continuation lines at all.
+
+I got rid of all the aux stream stuff, the error stream is a better choice.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+July 26 2022
+
+There was a crash in biclasstest.txt with the new memory manager when it
+tried to delete a DoubleMap.  The cause was that DoubleMap inherited from LongMap,
+and both DoubleMap and LongMap had delete methods defined, when the LongMap delete
+method it tried to delete the already deleted STL map object.  It turned out that
+DoubleMap didn't actually use any inherited methods, so I just changed it to
+inherit from Iterable.
+
+Any builtin class which inherits from another builtin class could have the same
+problem.  There are 2 possible ways to avoid this:
+1) only one class in inheritance chain defines a delete method
+2) base class checks if delete has already occured - this might be impossible,
+   since base class members aren't related to child class members
+So the right way to deal with this is have only one class define delete.
+
+o OArray.cpp, ODeque.cpp, OList.cpp, ONumber.cpp, OSocket.cpp, OSystem.cpp - no child classes
+o OMap.cpp - 3 classes use inheritance, no child classes have delete methods
+	FloatMap    IntMap
+	StringFloatMap  StringIntMap
+	StringDoubleMap StringLongMap
+o OString.cpp - multiple classes inherit from InStream and OutStream, InStream
+  and OutStream don't define delete methods
+  o ConsoleInStream inherits from FileInStream, both define delete, but they
+    do share a common instance struct definition, ConsoleInStream delete sets
+	pInFile to null, FileInStream checks pInFile for null and does nothing
+o ForthVocabulary, ForthThread, ForthBuiltinClasses - no child classes
+
+test.txt works fine with no errors now, but after running test.txt showMemory
+shows -304 16 byte blocks in use, so something still isn't quite right - maybe
+list links are freed to the pool but not allocated from the pool?  Not that I
+can see from the source code.
+The -304 happens somewhere inside biclasstest.txt.
+-> fixed! the pool number calculation was broken
+
+There is a design flaw in the object.show methods - the pMethods pointer for
+all objects is the same, this is probably because of how I handled showing
+base class methods - I change the pMethods pointer to the methods of a parent
+class while climbing the object hierarchy, so pMethods is always the methods
+pointer for the Object class, since that is the class that __pMethods is
+declared in.
+? are there cases where builtin classes are derived from other builtin classes
+  and display things twice?
+-> yep, FloatMap displays its 'map' member twice. DOH!
+? how many classes have this problem?
+  FloatMap   StringFloatMap   StringDoubleMap
+-> fixed, removed the inheritance and just copied the members
+
+IntMap, StringIntMap, StringFloatMap have a missing comma after the "map" element,
+Map and Array don't have this problem.
+
+There are still just a few objects which are being freed to pools which weren't
+allocated from the pools, it looks like it might be in global objects - in
+test.txt when the HelpDeck global is forgotten, for example.
+I'm not sure this hurts anything - the memory for those objects won't be freed
+at shutdown when the pooled memory manager is destroyed, but does that really
+matter?  I should track it down anyway.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 July 24 2022
 

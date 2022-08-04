@@ -1234,7 +1234,8 @@ namespace OVocabulary
 		GET_THIS(oVocabularyStruct, pVocabulary);
 		pVocabulary->refCount = 1;
 		// TODO: warn about deleting a vocabulary object
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oVocabularyGetNameMethod)
 	{

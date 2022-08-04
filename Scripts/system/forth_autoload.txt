@@ -114,12 +114,20 @@ alias CellArray LongArray
 MAXULONG -> cell MAXCELL
 MINLONG -> cell MINCELL
 MAXULONG -> cell MAXUCELL
+
+: depth s0 sp - 3 rshift 1- ;
+: aligned 7+ -8 and ;
+
 #else
 alias Cell Int
 alias CellArray IntArray
 MAXINT -> cell MAXCELL
 MININT -> cell MINCELL
 MAXUINT -> cell MAXUCELL
+
+: depth s0 sp - 2 rshift 1- ;
+: aligned 3+ -4 and ;
+
 #endif
 
 : ' blword $' ;
@@ -139,9 +147,6 @@ MAXUINT -> cell MAXUCELL
 : %nc swap 0 ?do dup %c loop drop ;
 0x20 constant bl
 : spaces bl %nc ;
-
-: depth s0 sp - 2 rshift 1- ;
-: aligned 3+ 0xFFFFFFFC and ;
 
 : autoload
   if( blword $find  0= )
@@ -1088,11 +1093,6 @@ addHelp pushFileOut   OUTPUT_FILENAME pushFileOut ...   redirect output stream t
   oclear outFile
 ;
 
-addHelp pushAuxOut ... redirect output stream to aux out stream
-: pushAuxOut
-  system.getAuxOut pushConsoleOut
-;
-
 addHelp popConsoleOut   popConsoleOut ... OLD_CONSOLE_OUTSTREAM      restore previous console output stream
 : popConsoleOut
   if(consoleOutStreamStack.count)
@@ -1111,6 +1111,9 @@ mko TraceOutStream traceOut
 addHelp outToScreen   restore output to the normal console
 : outToScreen getDefaultConsoleOut setConsoleOut ;
 
+// use err{ ... }err to quickly redirect all print output to the error stream
+: err{ pushConsoleOut(getErrorOut) ;
+: }err popConsoleOut drop ;
 
 //######################################################################
 addHelp pushContext save the current base, search vocabularies and definitions vocabulary on stack

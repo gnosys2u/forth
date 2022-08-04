@@ -111,6 +111,7 @@ namespace
 	{
 		// this never gets called, it just needs to be here because of how builtin classes are defined.
 		// the Object method table delete entry gets stuffed with the 'noop' opcode in ForthTypesManager::AddBuiltinClasses (end of this file)
+		METHOD_RETURN;
 	}
 
 	FORTHOP(objectShowMethod)
@@ -219,7 +220,7 @@ namespace
 	baseMethodEntry objectMembers[] =
 	{
 		METHOD("__newOp", objectNew),
-		METHOD("delete", nullptr),
+		METHOD("delete", objectDeleteMethod),
 		METHOD("show", objectShowMethod),
         METHOD("showInner", objectShowInnerMethod),
         METHOD_RET("getClass", objectClassMethod, RETURNS_OBJECT(kBCIClass)),
@@ -484,6 +485,7 @@ ForthTypesManager::GetTypeName( void )
 
 // TODO: find a better way to do this
 forthop gObjectShowInnerOpcode = 0;
+forthop gObjectDeleteOpcode = 0;
 
 void
 ForthTypesManager::AddBuiltinClasses(ForthEngine* pEngine)
@@ -491,7 +493,7 @@ ForthTypesManager::AddBuiltinClasses(ForthEngine* pEngine)
 
     ForthClassVocabulary* pObjectClassVocab = pEngine->AddBuiltinClass("Object", kBCIObject, kBCIInvalid, objectMembers);
     gObjectShowInnerOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodShowInner);
-	pObjectClassVocab->GetInterface(0)->SetMethod(kMethodDelete, gCompiledOps[OP_NOOP]);
+	gObjectDeleteOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodDelete);
 
     ForthClassVocabulary* pClassClassVocab = pEngine->AddBuiltinClass("Class", kBCIClass, kBCIObject, classMembers);
     mpClassMethods = pClassClassVocab->GetMethods();

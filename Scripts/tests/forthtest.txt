@@ -478,9 +478,7 @@ test[ 0xDEADBEEF 123456789 2= ]	// check for stack underflow or extra items
 //stdin fgetc
 : finalCheck
   if( testFailed not )
-    pushAuxOut
-    "All tests succeeded\n" %s
-    popConsoleOut odrop
+    "forthtest - all tests succeeded\n" %s
   endif
 ;
 finalCheck

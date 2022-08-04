@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-//#define USE_POOLED_MEMORY_MANAGER 0
+#define USE_POOLED_MEMORY_MANAGER 1
 
 // memory allocation wrappers
 #define __MALLOC s_memoryManager->malloc
@@ -84,15 +84,25 @@ public:
     virtual void* realloc(void *pMemory, size_t numBytes) = 0;
     virtual void free(void* pBlock) = 0;
 
-    void getStats(std::vector<ForthMemoryStats*> &statsOut);
+    void getStats(std::vector<ForthMemoryStats*> &statsOut, int& numStorageBlocks, int& totalStorage, int& freeStorage);
 
 protected:
-    // add a new block to mBlocks
-    void allocateBlock(int blockSize);
+    struct storageBlock
+    {
+        int mSize;
+        char* mStorage;
+        storageBlock(int size, char* pStorage)
+            : mSize(size)
+            , mStorage(pStorage) {}
+    };
 
-    std::vector<char*> mBlocks;
+    // add a new block to mBlocks
+    void allocateStorage(int blockSize);
+
+    std::vector<storageBlock *> mBlocks;
     // how many bytes in top entry in mBlocks haven't been used
-    long mUnusedInNewestBlock;
+    int mUnusedInNewestBlock;
+    int mTotalStorageSize;
     // position in top entry in mBlocks where next allocation will come from
     char* mpNextAllocation;
 

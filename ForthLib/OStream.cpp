@@ -1338,7 +1338,8 @@ namespace OStream
 			GET_ENGINE->GetShell()->GetFileInterface()->fileClose(static_cast<FILE *>(pFileOutStream->pOutFile));
 			pFileOutStream->pOutFile = NULL;
 		}
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oFileOutStreamOpenMethod)
 	{
@@ -1496,7 +1497,8 @@ namespace OStream
 	{
 		GET_THIS(oStringOutStreamStruct, pStringOutStream);
 		SAFE_RELEASE(pCore, pStringOutStream->outString);
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oStringOutStreamSetStringMethod)
 	{
@@ -1565,7 +1567,52 @@ namespace OStream
 	};
 
 
-	//////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    ///
+    //                 oErrorOutStream
+    //
+
+    oFileOutStreamStruct errorOutSingleton;
+
+    FORTHOP(oErrorOutStreamNew)
+    {
+        ForthClassVocabulary* pClassVocab = (ForthClassVocabulary*)(SPOP);
+        errorOutSingleton.ostream.pMethods = pClassVocab->GetMethods();
+        errorOutSingleton.ostream.refCount = 100000;
+        errorOutSingleton.ostream.pOutFuncs = &fileOutFuncs;
+        errorOutSingleton.ostream.pUserData = nullptr;
+        errorOutSingleton.pOutFile = GET_ENGINE->GetShell()->GetFileInterface()->getStdErr();
+        PUSH_OBJECT(&errorOutSingleton);
+    }
+
+    FORTHOP(oErrorOutStreamDeleteMethod)
+    {
+        // this is an undeletable singleton, make the ref count high to avoid needless delete calls
+        errorOutSingleton.ostream.refCount = 100000;
+        METHOD_RETURN;
+    }
+
+    baseMethodEntry oErrorOutStreamMembers[] =
+    {
+        METHOD("__newOp", oErrorOutStreamNew),
+        METHOD("delete", oErrorOutStreamDeleteMethod),
+
+        METHOD("setFile", illegalMethodOp),
+        // following must be last in table
+        END_MEMBERS
+    };
+
+    ForthObject getStdoutObject()
+    {
+        return (ForthObject)&consoleOutSingleton;
+    }
+
+    ForthObject getStderrObject()
+    {
+        return (ForthObject)&errorOutSingleton;
+    }
+
+    //////////////////////////////////////////////////////////////////////
 	///
 	//                 oFunctionOutStream
 	//
@@ -1666,8 +1713,8 @@ namespace OStream
 
 	FORTHOP(oTraceOutStreamDeleteMethod)
 	{
-		GET_THIS(oOutStreamStruct, pTraceOutStream);
-	}
+	    METHOD_RETURN;
+    }
 
 	baseMethodEntry oTraceOutStreamMembers[] =
 	{
@@ -1827,6 +1874,7 @@ namespace OStream
         GET_THIS(oSplitOutStreamStruct, pOutStream);
         SAFE_RELEASE(pCore, pOutStream->streamA);
         SAFE_RELEASE(pCore, pOutStream->streamB);
+        METHOD_RETURN;
     }
 
     baseMethodEntry oSplitOutStreamMembers[] =
@@ -1857,8 +1905,9 @@ namespace OStream
 		pEngine->AddBuiltinClass("OutStream", kBCIOutStream, kBCIObject, oOutStreamMembers);
 		pEngine->AddBuiltinClass("FileOutStream", kBCIFileOutStream, kBCIOutStream, oFileOutStreamMembers);
 		pEngine->AddBuiltinClass("StringOutStream", kBCIStringOutStream, kBCIOutStream, oStringOutStreamMembers);
-		pEngine->AddBuiltinClass("ConsoleOutStream", kBCIConsoleOutStream, kBCIFileOutStream, oConsoleOutStreamMembers);
-		pEngine->AddBuiltinClass("FunctionOutStream", kBCIFunctionOutStream, kBCIOutStream, oFunctionOutStreamMembers);
+        pEngine->AddBuiltinClass("ConsoleOutStream", kBCIConsoleOutStream, kBCIFileOutStream, oConsoleOutStreamMembers);
+        pEngine->AddBuiltinClass("ErrorOutStream", kBCIErrorOutStream, kBCIFileOutStream, oErrorOutStreamMembers);
+        pEngine->AddBuiltinClass("FunctionOutStream", kBCIFunctionOutStream, kBCIOutStream, oFunctionOutStreamMembers);
 		pEngine->AddBuiltinClass("TraceOutStream", kBCITraceOutStream, kBCIOutStream, oTraceOutStreamMembers);
         pEngine->AddBuiltinClass("SplitOutStream", kBCISplitOutStream, kBCIOutStream, oSplitOutStreamMembers);
     }
@@ -1874,6 +1923,18 @@ void GetForthConsoleOutStream(ForthCoreState* pCore, ForthObject& outObject)
 	OStream::consoleOutSingleton.pOutFile = GET_ENGINE->GetShell()->GetFileInterface()->getStdOut();
 	outObject = reinterpret_cast<ForthObject>(&OStream::consoleOutSingleton);
 }
+
+void GetForthErrorOutStream(ForthCoreState* pCore, ForthObject& outObject)
+{
+    ForthClassVocabulary* pClassVocab = GET_CLASS_VOCABULARY(kBCIFileOutStream);
+    OStream::errorOutSingleton.ostream.pMethods = pClassVocab->GetMethods();
+    OStream::errorOutSingleton.ostream.refCount = 1000;
+    OStream::errorOutSingleton.ostream.pOutFuncs = &OStream::fileOutFuncs;
+    OStream::errorOutSingleton.ostream.pUserData = nullptr;
+    OStream::errorOutSingleton.pOutFile = GET_ENGINE->GetShell()->GetFileInterface()->getStdErr();
+    outObject = reinterpret_cast<ForthObject>(&OStream::errorOutSingleton);
+}
+
 
 void CreateForthFileOutStream(ForthCoreState* pCore, ForthObject& outObject, FILE* pOutFile)
 {
@@ -1996,5 +2057,27 @@ void ForthConsoleStringOut(ForthCoreState* pCore, const char* pBuffer)
             pEngine->SetError(kForthErrorException, " ForthConsoleStringOut outstream is null");
         }
 	}
+}
+
+void ForthErrorStringOut(ForthCoreState* pCore, const char* pBuffer)
+{
+    ForthEngine* pEngine = GET_ENGINE;
+    oOutStreamStruct* pOutStream = reinterpret_cast<oOutStreamStruct*>(pEngine->GetErrorOut(pCore));
+    if ((pOutStream != nullptr) && (pOutStream->pOutFuncs != nullptr))
+    {
+        OStream::streamStringOut(pCore, pOutStream, pBuffer);
+    }
+    else
+    {
+        if (pOutStream != nullptr)
+        {
+            SPUSH(((cell)pBuffer));
+            pEngine->FullyExecuteMethod(pCore, pCore->consoleOutStream, kOutStreamPutStringMethod);
+        }
+        else
+        {
+            pEngine->SetError(kForthErrorException, " ForthErrorStringOut outstream is null");
+        }
+    }
 }
 

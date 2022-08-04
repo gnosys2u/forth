@@ -86,6 +86,7 @@ typedef enum
 	kBCIFileOutStream,
 	kBCIStringOutStream,
 	kBCIConsoleOutStream,
+	kBCIErrorOutStream,
 	kBCIFunctionOutStream,
 	kBCITraceOutStream,
     kBCISplitOutStream,

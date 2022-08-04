@@ -876,7 +876,7 @@ closing soon.  All adventurers exit immediately through main office.\"")
       objs(GRATE).setProp(0)
       objs(FISSURE).setProp(0)
       do(6 0)
-        dwarves.get(i) -> Dwarf dwarf
+        dwarves.get(i) ->o Dwarf dwarf
         false -> dwarf.seen
         R_LIMBO -> dwarf.loc
       loop
@@ -1665,7 +1665,7 @@ things.  I cannot tell you where remote things are.")
     endif
 
     do(6 1)
-      dwarves.get(i) -> Dwarf dwarf
+      dwarves.get(i) ->o Dwarf dwarf
       if(dwarf.loc loc =)
         dwarf.setLoc(R_LIMBO)  // Once killed, a dwarf never comes back.
         false -> dwarf.seen

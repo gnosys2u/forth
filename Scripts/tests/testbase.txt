@@ -9,10 +9,10 @@ String testBuff2
 StringOutStream testOut
 Array testStreamStack
 
-SplitOutStream splitAuxOut
+SplitOutStream splitErrorOut
 StringOutStream testSummaryOut
 String summaryBuffer
-Object oldAuxOut
+Object oldErrorOut
 
 : setupTestBase
   new String -> testBuff
@@ -20,19 +20,19 @@ Object oldAuxOut
   new StringOutStream -> testOut
   new Array -> testStreamStack
 
-  // turn aux out into a split that writes to both console and testSummaryOut
+  // turn error out into a split that writes to both error stream and testSummaryOut
   //  so we can dump testSummaryOut at end of all tests so failures don't get
   //  lost in all the noise
-  new SplitOutStream -> splitAuxOut
+  // this does require that tests wrap error output in err{ ... }err
+  new SplitOutStream -> splitErrorOut
 
   new StringOutStream -> testSummaryOut
   new String -> summaryBuffer
   testSummaryOut.setString(summaryBuffer)
 
-  splitAuxOut.init(getConsoleOut testSummaryOut)
-
-  getAuxOut -> oldAuxOut
-  setAuxOut(splitAuxOut)
+  getErrorOut -> oldErrorOut
+  splitErrorOut.init(oldErrorOut testSummaryOut)
+  setErrorOut(splitErrorOut)
 ;
 
 : cleanupTestBase
@@ -40,12 +40,12 @@ Object oldAuxOut
   oclear testOut
   oclear testStreamStack
 
-  setAuxOut(oldAuxOut)
-  oclear oldAuxOut
+  setErrorOut(oldErrorOut)
+  oclear oldErrorOut
 
   oclear testSummaryOut
   //oclear summaryBuffer
-  oclear splitAuxOut
+  oclear splitErrorOut
 ;
 
 : dumpTestSummary
@@ -70,7 +70,7 @@ Object oldAuxOut
   -> ptrTo byte expected
   outToScreen
   if( strcmp( testBuff.get expected ) )
-    "Expected |" %s expected %s "| got |" %s testBuff.get %s "|" %s %nl
+    err{ "Expected |" %s expected %s "| got |" %s testBuff.get %s "|" %s %nl }err
     false
     true -> testFailed
   else
@@ -103,13 +103,13 @@ Object oldAuxOut
     cell lineOffset
     system.getInputInfo -> lineOffset -> lineNumber -> inputPath -> inputLine
     
-    pushAuxOut
+    err{
     "FAILED: " %s inputPath %s `:` %c lineNumber %d " { " %s
     ops %s " } => " %s
     do( numItems 0 )
       i %d "=" %s pick( numItems 1- i - ) . %bl %nl
     loop
-    popConsoleOut odrop
+    }err
     
     true -> testFailed
   else

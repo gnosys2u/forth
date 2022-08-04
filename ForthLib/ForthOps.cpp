@@ -2119,10 +2119,13 @@ FORTHOP( methodOp )
     pEngine->StartOpDefinition(pMethodName, true, kOpUserDef, pDefinitionVocab);
     // switch to compile mode
     pEngine->SetCompileState( 1 );
+    /*
     if (strcmp(pMethodName, "delete") != 0)     // delete is really a forthop, not a method
     {
         pEngine->SetFlag(kEngineFlagIsMethod);
     }
+    */
+    pEngine->SetFlag(kEngineFlagIsMethod);
 
     if ( pVocab )
     {
@@ -2628,7 +2631,7 @@ FORTHOP( allocObjectOp )
     if (pMethods)
     {
         long nBytes = pClassVocab->GetSize();
-        ForthObject newObject = (ForthObject) __MALLOC( nBytes );
+        ForthObject newObject = (ForthObject) __ALLOCATE_BYTES( nBytes );
 		memset(newObject, 0, nBytes );
         newObject->pMethods = pMethods;
         SPUSH( (cell)newObject);
@@ -3949,6 +3952,17 @@ cell oStringFormatSub(ForthCoreState* pCore, char* pBuffer, int bufferSize)
         result = (int)(SNPRINTF(pBuffer, bufferSize, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]));
         break;
     }
+#ifdef WINDOWS_BUILD
+    if (result == S_OK)
+    {
+        result = ::strnlen(pBuffer, bufferSize);
+    }
+    else
+    {
+        result = -1;
+    }
+#endif
+
     return result;
 }
 
@@ -4117,20 +4131,20 @@ FORTHOP( setConsoleOutOp )
 	pEngine->SetConsoleOut( pCore, conoutObject );
 }
 
-FORTHOP(getAuxOutOp)
+FORTHOP(getErrorOutOp)
 {
-    ForthEngine *pEngine = GET_ENGINE;
+    ForthEngine* pEngine = GET_ENGINE;
 
-    pEngine->PushAuxOut(pCore);
+    pEngine->PushErrorOut(pCore);
 }
 
-FORTHOP(setAuxOutOp)
+FORTHOP(setErrorOutOp)
 {
-    ForthEngine *pEngine = GET_ENGINE;
+    ForthEngine* pEngine = GET_ENGINE;
 
     ForthObject conoutObject;
     POP_OBJECT(conoutObject);
-    pEngine->SetAuxOut(pCore, conoutObject);
+    pEngine->SetErrorOut(pCore, conoutObject);
 }
 
 FORTHOP( resetConsoleOutOp )
@@ -9977,8 +9991,8 @@ baseDictionaryEntry baseDictionary[] =
 	OP_DEF(    getDefaultConsoleOutOp, "getDefaultConsoleOut" ),
 	OP_DEF(    setConsoleOutOp,        "setConsoleOut" ),
 	OP_DEF(    resetConsoleOutOp,      "resetConsoleOut" ),
-    OP_DEF(    getAuxOutOp,            "getAuxOut"),
-    OP_DEF(    setAuxOutOp,            "setAuxOut"),
+    OP_DEF(    getErrorOutOp,          "getErrorOut"),
+    OP_DEF(    setErrorOutOp,          "setErrorOut"),
         
     OP_DEF(    toupperOp,              "toupper" ),
     OP_DEF(    toupperOp,              "toupper" ),

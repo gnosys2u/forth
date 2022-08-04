@@ -1576,7 +1576,9 @@ ForthClassVocabulary::FindMethod( const char* pName )
 
 
 // TODO: find a better way to do this
+extern forthop gObjectDeleteOpcode;
 extern forthop gObjectShowInnerOpcode;
+
 
 void
 ForthClassVocabulary::Extends( ForthClassVocabulary *pParentClass )
@@ -1603,8 +1605,8 @@ ForthClassVocabulary::Extends( ForthClassVocabulary *pParentClass )
 
 			isPrimaryInterface = false;
 		}
+        mInterfaces[0]->GetMethods()[kMethodDelete] = gObjectDeleteOpcode;
         mInterfaces[0]->GetMethods()[kMethodShowInner] = gObjectShowInnerOpcode;
-        mInterfaces[0]->GetMethods()[kMethodDelete] = gCompiledOps[OP_NOOP];
         mpClassObject->newOp = pParentClass->mpClassObject->newOp;
 	}
 

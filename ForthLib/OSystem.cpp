@@ -18,6 +18,7 @@
 #include "ForthPortability.h"
 
 #include "OSystem.h"
+#include "OStream.h"
 
 namespace OSystem
 {
@@ -271,20 +272,15 @@ namespace OSystem
         METHOD_RETURN;
     }
 
-    FORTHOP(oSystemSetAuxOutMethod)
+    FORTHOP(oSystemGetConsoleOutMethod)
     {
-        ForthEngine* pEngine = GET_ENGINE;
-        ForthObject obj;
-        POP_OBJECT(obj);
-
-        pEngine->SetAuxOut(pCore, obj);
+        PUSH_OBJECT(OStream::getStdoutObject());
         METHOD_RETURN;
     }
 
-    FORTHOP(oSystemGetAuxOutMethod)
+    FORTHOP(oSystemGetErrorOutMethod)
     {
-        ForthEngine* pEngine = GET_ENGINE;
-        pEngine->PushAuxOut(pCore);
+        PUSH_OBJECT(OStream::getStderrObject());
         METHOD_RETURN;
     }
 
@@ -327,9 +323,9 @@ namespace OSystem
         METHOD_RET("createThread", oSystemCreateThreadMethod, RETURNS_OBJECT(kBCIThread)),
         METHOD_RET("createAsyncLock", oSystemCreateAsyncLockMethod, RETURNS_OBJECT(kBCIAsyncLock)),
         METHOD_RET("createAsyncSemaphore", oSystemCreateAsyncSemaphoreMethod, RETURNS_OBJECT(kBCIAsyncSemaphore)),
-        METHOD("setAuxOut", oSystemSetAuxOutMethod),
-        METHOD_RET("getAuxOut", oSystemGetAuxOutMethod, RETURNS_OBJECT(kBCIOutStream)),
         METHOD_RET("getInputInfo", oSystemGetInputInfoMethod, RETURNS_NATIVE(kBaseTypeCell)),
+        METHOD_RET("getStdOut", oSystemGetConsoleOutMethod, RETURNS_OBJECT(kBCIConsoleOutStream)),
+        METHOD_RET("getErrOut", oSystemGetErrorOutMethod, RETURNS_OBJECT(kBCIErrorOutStream)),
 
         MEMBER_VAR("namedObjects", OBJECT_TYPE_TO_CODE(0, kBCIStringMap)),
         MEMBER_VAR("args", OBJECT_TYPE_TO_CODE(0, kBCIArray)),

@@ -172,7 +172,8 @@ namespace OMap
 			SAFE_RELEASE(pCore, val);
 		}
 		delete pMap->elements;
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oMapShowInnerMethod)
 	{
@@ -752,7 +753,8 @@ namespace OMap
 			SAFE_RELEASE(pCore, o);
 		}
 		delete pMap->elements;
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oIntMapShowInnerMethod)
 	{
@@ -764,6 +766,7 @@ namespace OMap
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");
+        pShowContext->BeginIndent();
         pShowContext->BeginNestedShow();
         if (a.size() > 0)
 		{
@@ -778,6 +781,8 @@ namespace OMap
 			pShowContext->EndIndent();
 			pShowContext->ShowIndent();
 		}
+        pShowContext->EndNestedShow();
+        pShowContext->EndIndent();
         pShowContext->ShowTextReturn();
         pShowContext->ShowIndent();
         pShowContext->EndElement("}");
@@ -1483,6 +1488,8 @@ namespace OMap
 		METHOD_RET("headIter", oFloatMapHeadIterMethod, RETURNS_OBJECT(kBCIFloatMapIter)),
 		METHOD_RET("tailIter", oFloatMapTailIterMethod, RETURNS_OBJECT(kBCIFloatMapIter)),
 		METHOD_RET("find", oFloatMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oIntMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD("clear", oIntMapClearMethod),
 
         METHOD_RET("grab", oFloatMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
 		METHOD("set", oFloatMapSetMethod),
@@ -1614,7 +1621,8 @@ namespace OMap
 			SAFE_RELEASE(pCore, o);
 		}
 		delete pMap->elements;
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oLongMapShowInnerMethod)
 	{
@@ -2161,7 +2169,8 @@ namespace OMap
 	{
 		// go through all elements and release any which are not null
 		GET_THIS(oDoubleMapStruct, pMap);
-		oDoubleMap::iterator iter;
+        ForthClassObject* pClassObject = GET_CLASS_OBJECT(pMap);
+        oDoubleMap::iterator iter;
 		oDoubleMap& a = *(pMap->elements);
 		ForthEngine *pEngine = ForthEngine::GetInstance();
 		for (iter = a.begin(); iter != a.end(); ++iter)
@@ -2170,7 +2179,8 @@ namespace OMap
 			SAFE_RELEASE(pCore, o);
 		}
 		delete pMap->elements;
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oDoubleMapShowInnerMethod)
 	{
@@ -2682,7 +2692,8 @@ namespace OMap
 		// go through all elements and release any which are not null
 		GET_THIS(oStringIntMapStruct, pMap);
 		delete pMap->elements;
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oStringIntMapShowInnerMethod)
 	{
@@ -2694,6 +2705,7 @@ namespace OMap
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");
+        pShowContext->BeginIndent();
         pShowContext->BeginNestedShow();
         if (a.size() > 0)
 		{
@@ -2707,6 +2719,8 @@ namespace OMap
 			pShowContext->EndIndent();
 			pShowContext->ShowIndent();
 		}
+        pShowContext->EndNestedShow();
+        pShowContext->EndIndent();
         pShowContext->ShowTextReturn();
         pShowContext->ShowIndent();
         pShowContext->EndElement("}");
@@ -3113,8 +3127,10 @@ namespace OMap
         oStringIntMap& a = *(pMap->elements);
         ForthEngine *pEngine = ForthEngine::GetInstance();
         GET_SHOW_CONTEXT;
+
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");
+        pShowContext->BeginIndent();
         pShowContext->BeginNestedShow();
         if (a.size() > 0)
         {
@@ -3129,6 +3145,8 @@ namespace OMap
             pShowContext->EndIndent();
             pShowContext->ShowIndent();
         }
+        pShowContext->EndNestedShow();
+        pShowContext->EndIndent();
         pShowContext->ShowTextReturn();
         pShowContext->ShowIndent();
         pShowContext->EndElement("}");
@@ -3138,12 +3156,27 @@ namespace OMap
 
 	baseMethodEntry oStringFloatMapMembers[] =
 	{
-		METHOD("__newOp", oStringIntMapNew),
-		METHOD("showInner", oStringFloatMapShowInnerMethod),
+        METHOD("__newOp", oStringIntMapNew),
+        METHOD("delete", oStringIntMapDeleteMethod),
+        METHOD("showInner", oStringFloatMapShowInnerMethod),        // this is the only unique member
 
-		// following must be last in table
-		END_MEMBERS
-	};
+        METHOD_RET("headIter", oStringIntMapHeadIterMethod, RETURNS_OBJECT(kBCIStringIntMapIter)),
+        METHOD_RET("tailIter", oStringIntMapTailIterMethod, RETURNS_OBJECT(kBCIStringIntMapIter)),
+        METHOD_RET("find", oStringIntMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oStringIntMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD("clear", oStringIntMapClearMethod),
+
+        METHOD_RET("grab", oStringIntMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD("set", oStringIntMapSetMethod),
+        METHOD("load", oStringIntMapLoadMethod),
+        METHOD_RET("findValue", oStringIntMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD("remove", oStringIntMapRemoveMethod),
+
+        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+
+        // following must be last in table
+        END_MEMBERS
+    };
 
 
 	//////////////////////////////////////////////////////////////////////
@@ -3233,7 +3266,8 @@ namespace OMap
 		// go through all elements and release any which are not null
 		GET_THIS(oStringLongMapStruct, pMap);
 		delete pMap->elements;
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oStringLongMapShowInnerMethod)
 	{
@@ -3683,10 +3717,24 @@ namespace OMap
 
 	baseMethodEntry oStringDoubleMapMembers[] =
 	{
-		METHOD("__newOp", oStringLongMapNew),
-		METHOD("showInner", oStringDoubleMapShowInnerMethod),
+        METHOD("__newOp", oStringLongMapNew),
+        METHOD("delete", oStringLongMapDeleteMethod),
+        METHOD("showInner", oStringDoubleMapShowInnerMethod),       // this is the only unique method
 
-		// following must be last in table
+        METHOD_RET("headIter", oStringLongMapHeadIterMethod, RETURNS_OBJECT(kBCIStringLongMapIter)),
+        METHOD_RET("tailIter", oStringLongMapTailIterMethod, RETURNS_OBJECT(kBCIStringLongMapIter)),
+        METHOD_RET("find", oStringLongMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oStringLongMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD("clear", oStringLongMapClearMethod),
+
+        METHOD_RET("grab", oStringLongMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD("set", oStringLongMapSetMethod),
+        METHOD("load", oStringLongMapLoadMethod),
+        METHOD_RET("findValue", oStringLongMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD("remove", oStringLongMapRemoveMethod),
+
+        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+        // following must be last in table
 		END_MEMBERS
 	};
 
@@ -3703,7 +3751,7 @@ namespace OMap
         pVocab->SetCustomObjectReader(customIntMapReader);
         pEngine->AddBuiltinClass("IntMapIter", kBCIIntMapIter, kBCIIter, oIntMapIterMembers);
 
-        pVocab = pEngine->AddBuiltinClass("FloatMap", kBCIFloatMap, kBCIIntMap, oFloatMapMembers);
+        pVocab = pEngine->AddBuiltinClass("FloatMap", kBCIFloatMap, kBCIIterable, oFloatMapMembers);
         pVocab->SetCustomObjectReader(customFloatMapReader);
         pEngine->AddBuiltinClass("FloatMapIter", kBCIFloatMapIter, kBCIIter, oIntMapIterMembers);
 
@@ -3711,7 +3759,7 @@ namespace OMap
         gpLongMapClassVocab->SetCustomObjectReader(customLongMapReader);
         pEngine->AddBuiltinClass("LongMapIter", kBCILongMapIter, kBCIIter, oLongMapIterMembers);
 
-        pVocab = pEngine->AddBuiltinClass("DoubleMap", kBCIDoubleMap, kBCILongMap, oDoubleMapMembers);
+        pVocab = pEngine->AddBuiltinClass("DoubleMap", kBCIDoubleMap, kBCIIterable, oDoubleMapMembers);
         pVocab->SetCustomObjectReader(customDoubleMapReader);
         pEngine->AddBuiltinClass("DoubleMapIter", kBCIDoubleMapIter, kBCIIter, oLongMapIterMembers);
 
@@ -3719,7 +3767,7 @@ namespace OMap
         pVocab->SetCustomObjectReader(customStringIntMapReader);
         pEngine->AddBuiltinClass("StringIntMapIter", kBCIStringIntMapIter, kBCIIter, oStringIntMapIterMembers);
 
-        pVocab = pEngine->AddBuiltinClass("StringFloatMap", kBCIStringFloatMap, kBCIStringIntMap, oStringFloatMapMembers);
+        pVocab = pEngine->AddBuiltinClass("StringFloatMap", kBCIStringFloatMap, kBCIIterable, oStringFloatMapMembers);
         pVocab->SetCustomObjectReader(customStringFloatMapReader);
         pEngine->AddBuiltinClass("StringFloatMapIter", kBCIStringFloatMapIter, kBCIIter, oStringIntMapIterMembers);
 
@@ -3727,7 +3775,7 @@ namespace OMap
         pVocab->SetCustomObjectReader(customStringLongMapReader);
         pEngine->AddBuiltinClass("StringLongMapIter", kBCIStringLongMapIter, kBCIIter, oLongMapIterMembers);
 
-        pVocab = pEngine->AddBuiltinClass("StringDoubleMap", kBCIStringDoubleMap, kBCIStringLongMap, oStringDoubleMapMembers);
+        pVocab = pEngine->AddBuiltinClass("StringDoubleMap", kBCIStringDoubleMap, kBCIIterable, oStringDoubleMapMembers);
         pVocab->SetCustomObjectReader(customStringDoubleMapReader);
         pEngine->AddBuiltinClass("StringDoubleMapIter", kBCIStringDoubleMapIter, kBCIIter, oLongMapIterMembers);
 	}

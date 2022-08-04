@@ -11,7 +11,7 @@ also collosalCaveAdventure definitions
 : sp!
   depth r> swap >r >r
 ;
-int _spName
+ptrTo byte _spName
 : sp@
   -> _spName
   r> r> swap >r depth 1-
@@ -75,6 +75,7 @@ class: Place
     -> locID
     NOTHING -> objects
     0 -> visits
+    // flags if short_desc.get %s " has flags 0x" %s flags %x %nl endif
   ;m
   
   m: delete
