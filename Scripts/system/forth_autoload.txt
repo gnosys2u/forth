@@ -1111,9 +1111,22 @@ mko TraceOutStream traceOut
 addHelp outToScreen   restore output to the normal console
 : outToScreen getDefaultConsoleOut setConsoleOut ;
 
-// use err{ ... }err to quickly redirect all print output to the error stream
-: err{ pushConsoleOut(getErrorOut) ;
-: }err popConsoleOut drop ;
+// use err[ ... ]err to quickly redirect all print output to the error stream
+// in particular, use this around any output you want to see in test summary
+: err[ pushConsoleOut(getErrorOut) ;
+: ]err popConsoleOut drop ;
+
+// use p[ ... ]p around console output commands to prevent multiple threads from 
+//  having garbled output - don't put anything inside p[...]p that could block
+//  your thread, or you will get a deadlock
+AsyncLock printLock
+: p[ printLock.grab ;
+: ]p printLock.ungrab ;
+
+// use this version of printlocks if you want to be able to turn it off dynamically:
+//true -> bool usePrintLocks
+//: p[ if(usePrintLocks) printLock.grab endif ;
+//: ]p if(usePrintLocks) printLock.ungrab endif ;
 
 //######################################################################
 addHelp pushContext save the current base, search vocabularies and definitions vocabulary on stack

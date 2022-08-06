@@ -23,7 +23,7 @@ Object oldErrorOut
   // turn error out into a split that writes to both error stream and testSummaryOut
   //  so we can dump testSummaryOut at end of all tests so failures don't get
   //  lost in all the noise
-  // this does require that tests wrap error output in err{ ... }err
+  // this does require that tests wrap error output in err[ ... ]err
   new SplitOutStream -> splitErrorOut
 
   new StringOutStream -> testSummaryOut
@@ -70,7 +70,7 @@ Object oldErrorOut
   -> ptrTo byte expected
   outToScreen
   if( strcmp( testBuff.get expected ) )
-    err{ "Expected |" %s expected %s "| got |" %s testBuff.get %s "|" %s %nl }err
+    err[ "Expected |" %s expected %s "| got |" %s testBuff.get %s "|" %s %nl ]err
     false
     true -> testFailed
   else
@@ -103,13 +103,13 @@ Object oldErrorOut
     cell lineOffset
     system.getInputInfo -> lineOffset -> lineNumber -> inputPath -> inputLine
     
-    err{
-    "FAILED: " %s inputPath %s `:` %c lineNumber %d " { " %s
-    ops %s " } => " %s
-    do( numItems 0 )
-      i %d "=" %s pick( numItems 1- i - ) . %bl %nl
-    loop
-    }err
+    err[
+      "FAILED: " %s inputPath %s `:` %c lineNumber %d " { " %s
+      ops %s " } => " %s
+      do( numItems 0 )
+        i %d "=" %s pick( numItems 1- i - ) . %bl %nl
+      loop
+    ]err
     
     true -> testFailed
   else

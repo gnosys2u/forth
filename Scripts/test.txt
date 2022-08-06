@@ -22,11 +22,11 @@ cd ..
   $runFile(testScriptName.get)
   0 $word $evaluate
   if(depth oldDepth <>)
-    err{
-    "!!!!!!!!!!!!!!!!!!!!!! stack depth changed after " %s
-    testScriptName.get %s " !!!!!!!!!!!!!!!!!!!!!!\n" %s
-    ds
-    }err
+    err[
+      "!!!!!!!!!!!!!!!!!!!!!! stack depth changed after " %s
+      testScriptName.get %s " !!!!!!!!!!!!!!!!!!!!!!\n" %s
+      ds
+    ]err
   endif
   oclear testName
   oclear testScriptName
