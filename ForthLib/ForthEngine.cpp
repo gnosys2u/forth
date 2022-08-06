@@ -328,7 +328,6 @@ ForthEngine::ForthEngine()
 , mContinueCount(0)
 , mpNewestEnum(nullptr)
 , mDefaultConsoleOutStream(nullptr)
-, mDefaultErrorOutStream(nullptr)
 , mErrorOutStream(nullptr)
 {
     // scratch area for temporary definitions
@@ -532,7 +531,7 @@ ForthEngine::Initialize( ForthShell*        pShell,
 	OThread::FixupThread(mpMainThread);
 
     GetForthConsoleOutStream(mpCore, mDefaultConsoleOutStream);
-    GetForthErrorOutStream(mpCore, mDefaultErrorOutStream);
+    GetForthErrorOutStream(mpCore, mErrorOutStream);
     ResetConsoleOut( *mpCore );
 
     if (pExtension != NULL)
@@ -2790,12 +2789,6 @@ void ForthEngine::SetDefaultConsoleOut( ForthObject& newOutStream )
     OBJECT_ASSIGN(mpCore, mDefaultConsoleOutStream, newOutStream);
 }
 
-void ForthEngine::SetDefaultErrorOut(ForthObject& newOutStream)
-{
-    SPEW_SHELL("SetDefaultErrorOut pCore=%p  pMethods=%p  pData=%p\n", mpCore, newOutStream->pMethods, newOutStream);
-    OBJECT_ASSIGN(mpCore, mErrorOutStream, newOutStream);
-}
-
 void ForthEngine::SetConsoleOut(ForthCoreState* pCore, ForthObject& newOutStream)
 {
     SPEW_SHELL("SetConsoleOut pCore=%p  pMethods=%p  pData=%p\n", pCore, newOutStream->pMethods, newOutStream);
@@ -2821,11 +2814,6 @@ void ForthEngine::PushConsoleOut( ForthCoreState* pCore )
 void ForthEngine::PushDefaultConsoleOut( ForthCoreState* pCore )
 {
 	PUSH_OBJECT( mDefaultConsoleOutStream );
-}
-
-void ForthEngine::PushDefaultErrorOut(ForthCoreState* pCore)
-{
-    PUSH_OBJECT(mDefaultErrorOutStream);
 }
 
 void ForthEngine::PushErrorOut(ForthCoreState* pCore)

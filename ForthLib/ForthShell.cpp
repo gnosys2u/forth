@@ -817,7 +817,7 @@ ForthShell::ReportError( void )
         *pBuf++ = '\0';
     }
 	SPEW_SHELL( "%s", errorBuf1 );
-	CONSOLE_STRING_OUT( errorBuf1 );
+    ERROR_STRING_OUT( errorBuf1 );
 
 	if (mpStack->GetDepth() > 0)
 	{
