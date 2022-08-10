@@ -1567,17 +1567,19 @@ ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
             case kOpLocalObject:        case kOpLocalObjectArray:
             case kOpLocalUByte:         case kOpLocalUByteArray:
             case kOpLocalUShort:        case kOpLocalUShortArray:
-            case kOpMemberByte:          case kOpMemberByteArray:
-            case kOpMemberShort:         case kOpMemberShortArray:
-            case kOpMemberInt:           case kOpMemberIntArray:
-            case kOpMemberFloat:         case kOpMemberFloatArray:
-            case kOpMemberDouble:        case kOpMemberDoubleArray:
-            case kOpMemberString:        case kOpMemberStringArray:
-            case kOpMemberOp:            case kOpMemberOpArray:
-            case kOpMemberLong:          case kOpMemberLongArray:
-            case kOpMemberObject:        case kOpMemberObjectArray:
-            case kOpMemberUByte:         case kOpMemberUByteArray:
-            case kOpMemberUShort:        case kOpMemberUShortArray:
+            case kOpLocalUInt:          case kOpLocalUIntArray:
+            case kOpMemberByte:         case kOpMemberByteArray:
+            case kOpMemberShort:        case kOpMemberShortArray:
+            case kOpMemberInt:          case kOpMemberIntArray:
+            case kOpMemberFloat:        case kOpMemberFloatArray:
+            case kOpMemberDouble:       case kOpMemberDoubleArray:
+            case kOpMemberString:       case kOpMemberStringArray:
+            case kOpMemberOp:           case kOpMemberOpArray:
+            case kOpMemberLong:         case kOpMemberLongArray:
+            case kOpMemberObject:       case kOpMemberObjectArray:
+            case kOpMemberUByte:        case kOpMemberUByteArray:
+            case kOpMemberUShort:       case kOpMemberUShortArray:
+            case kOpMemberUInt:         case kOpMemberUIntArray:
             case kOpFieldByte:          case kOpFieldByteArray:
             case kOpFieldShort:         case kOpFieldShortArray:
             case kOpFieldInt:           case kOpFieldIntArray:
@@ -1589,6 +1591,7 @@ ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
             case kOpFieldObject:        case kOpFieldObjectArray:
             case kOpFieldUByte:         case kOpFieldUByteArray:
             case kOpFieldUShort:        case kOpFieldUShortArray:
+            case kOpFieldUInt:          case kOpFieldUIntArray:
             {
                 if ((opVal & 0xE00000) != 0)
                 {

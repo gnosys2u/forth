@@ -168,6 +168,12 @@ Double has consistent layout, long is reversed on param stack.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 10 2022
 
+I'm not sure if this is good news, but the crash in adv is now consistent across
+platforms and configurations! Woohoo!
+There were errors in the location script, from when I split make_loc and make_loc_hint,
+which may have been a mistake.
+Could this be what was causing the old resizeOString bug?
+---
 I understand how the evil localRefComboOp bug was happening - the previousType
 variable was never initialized before the call to GetPreviousOpcode, if the
 peephole was empty (as it often is), GetPreviousOpcode doesn't modify previousType,

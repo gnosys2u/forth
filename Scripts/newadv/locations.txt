@@ -36,6 +36,7 @@ null -> ptrTo Instruction __nextLoc
 
   if(place.locID game.places.count <>)
     "WARNING: adding location " %s place.locID %d " at index " %s game.places.count %d %nl
+    place.show
   else
     game.places.push(place)
   endif
@@ -170,7 +171,7 @@ in the rock.  Downstream the streambed is bare rock." "You're at slit in streamb
   make_ins(DOWNSTREAM R_OUTSIDE)  ditto(ROCK)  ditto(BED)  ditto(S) 
   make_ins(SLIT remark(0)) ditto(STREAM)  ditto(D) 
   
-  make_loc(R_OUTSIDE "You are in a 20-foot depression floored with bare dirt.  Set into the\n\+
+  make_loc_hint(R_OUTSIDE "You are in a 20-foot depression floored with bare dirt.  Set into the\n\+
 dirt is a strong steel grate mounted in concrete.  A dry streambed\n\+
 leads into the depression."  "You're outside grate." F_CAVE_HINT) 
   make_ins(FOREST  R_FOREST)  ditto(E)  ditto(W)  ditto(S) 
@@ -211,7 +212,7 @@ says \"MAGIC WORD XYZZY\"."  "You're in debris room.")
   make_ins(IN R_BIRD)  ditto(U)  ditto(W) 
   make_ins(PIT  R_SPIT) 
  
-  make_loc(R_BIRD  "You are in a splendid chamber thirty feet high. The walls are frozen\n\+
+  make_loc_hint(R_BIRD  "You are in a splendid chamber thirty feet high. The walls are frozen\n\+
 rivers of orange stone. An awkward canyon and a good passage exit\n\+
 from east and west sides of the chamber." "You're in bird chamber." F_BIRD_HINT) 
   make_cond_ins(DEPRESSION  unless_prop(GRATE  0)  R_OUTSIDE) 
@@ -799,7 +800,7 @@ from the chasm into a winding corridor."  "You're on SW side of chasm.")
   make_loc_hint(R_DEAD7  dead_end  0  F_TWIST_HINT) 
   make_ins(U R_LIKE10)  ditto(OUT) 
 
-  make_loc(R_DEAD8  dead_end  0  0) 
+  make_loc(R_DEAD8  dead_end  0) 
   make_ins(E R_BRINK)  ditto(OUT) 
 
   make_loc_hint(R_DEAD9  dead_end  0  F_TWIST_HINT) 
