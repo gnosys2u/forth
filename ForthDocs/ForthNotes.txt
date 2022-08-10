@@ -166,6 +166,46 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 9 2022
+
+I fixed the uint problem in the 64-bit build, then I tried to get the 32-bit
+build running again.  I think I switched MSDEV versions since the last time
+I had 32-bit working, so all the preprocessor definitions and many of the paths
+were completely wrong - thanks again Microsoft!  After getting that all worked
+out, the 32-bit build pretty much just worked, except for RelAsm (of course).
+I spent a long time beating on this bug, the symptom was that the last opcode
+in definitions sometimes got turned into a localRefOpCombo by the peephole
+optimizer.  Anything I did to try and get more info (turing on compilation spew,
+adding printfs in the optimizer) would cause the bug to disappear, or appear in
+a different spot.  I finally tracked it down to a multi-line if statement in
+ForthOpcodeCompiler::CompileOpcode that is meant to decide if it should replace
+the previous compiled opcode with a localRefOp combo op, I missed a pair of parentheses:
+    && (previousType == kOpMemberRef) || (previousType == kOpLocalRef)
+should be:
+    && ((previousType == kOpMemberRef) || (previousType == kOpLocalRef))
+I still don't understand how this caused this problem, and only in 32-bit RelAsm,
+and how adding tiny amounts of code caused the bug to appear/disappear/move.
+I am left with the creepy feeling that there is still something evil lurking
+in the peephole optimizer.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 6 2022
+
+RelAsm gets an exception in resizeOString when it runs adv.txt, the same thing
+happened in June 6 2021, back then I said:
+"The crash in adv was because its saveAdventure uses $shellRun to copy the save file."
+But this crash seems to be that in oStringAppendFormattedMethod when it calls
+asm routine oStringFormatSub that some of its stack variables get stomped on.
+Oddly, the problem doesn't happen in DebugAsm which also uses the assembler version
+of oStringFormatSub.
+
+? is it worth figuring this out, or just switch to always using C for oStringFormatSub?
+
+Ugh, it looks like when I did the 64-bit assembler version, I didn't really do
+the implementation for 32-bit unsigned vars, look at what I did for shorts and
+do that for local/member/field plus array cases.  The tests had been catching
+this all along, but without the test summary working the error got lost in all
+the noise of the test output.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 4 2022
 
 64-bit DLL support was actually working, or at least SDL2 works in 64-bit mode.
@@ -477,7 +517,7 @@ they will need to be fixed by hand in the scripts.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 June 6 2021
 
-I scrapped the old ForthDLL and ForthDLLMain, I think mayb I defined the DLL as
+I scrapped the old ForthDLL and ForthDLLMain, I think maybe I defined the DLL as
 an MFC extension DLL, so I recreated those projects as a plain vanilla DLL.
 I also decided to replace all the StdAfx/stdafx precompiled headers with pch.ccp/h.
 Things seemed to be going pretty well, the Debug and Release x64 configurations

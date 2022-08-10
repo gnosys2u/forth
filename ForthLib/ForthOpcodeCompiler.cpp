@@ -78,7 +78,7 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
 
 			if (((mCompileComboOpFlags & kCERefOp) != 0)
                 && GetPreviousOpcode(previousType, previousVal)
-                && (previousType == kOpMemberRef) || (previousType == kOpLocalRef)
+                && ((previousType == kOpMemberRef) || (previousType == kOpLocalRef))
 				&& FITS_IN_BITS(previousVal, 12) && FITS_IN_BITS(uVal, 12) )
 			{
                 // LOCALREF OP combo - bits 0:11 are frame offset, bits 12:23 are opcode

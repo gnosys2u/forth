@@ -9,21 +9,6 @@ autoforget PIZZASHOP
 AsyncLock asyncDeliveredCountLock
 int pizzasDelivered
 
-true -> bool usePrintLocks
-AsyncLock printLock
-: p[
-  if(usePrintLocks)
-    printLock.grab
-  endif
-;
-
-: ]p
-  if(usePrintLocks)
-    printLock.ungrab
-  endif
-;
-
-
 class: AsyncPizzaDriver
   Thread deliverThread
   AsyncSemaphore pizzaReadyToDeliver

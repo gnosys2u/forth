@@ -547,6 +547,7 @@ FORTHOP(doOp)
     pEngine->CompileBuiltinOpcode( OP_ABORT );
     pEngine->CompileInt( 0 );
     pEngine->StartLoopContinuations();
+    pEngine->ClearPeephole();
 }
 
 // has precedence!
@@ -563,6 +564,7 @@ FORTHOP(checkDoOp)
     pEngine->CompileBuiltinOpcode( OP_ABORT );
     pEngine->CompileInt( 0 );
     pEngine->StartLoopContinuations();
+    pEngine->ClearPeephole();
 }
 
 // has precedence!
@@ -584,6 +586,7 @@ FORTHOP(loopOp)
     // fill in the branch to after loop opcode
     *pDoOp = COMPILED_OP( kOpBranch, (GET_DP - pDoOp) - 1 );
     pEngine->EndLoopContinuations(kShellTagDo);
+    pEngine->ClearPeephole();
 }
 
 // has precedence!
@@ -605,6 +608,7 @@ FORTHOP(loopNOp)
     // fill in the branch to after loop opcode
     *pDoOp = COMPILED_OP( kOpBranch, (GET_DP - pDoOp) - 1 );
     pEngine->EndLoopContinuations(kShellTagDo);
+    pEngine->ClearPeephole();
 }
 
 // if - has precedence
@@ -620,6 +624,7 @@ FORTHOP( ifOp )
     pShellStack->PushAddress(branchAddr);
     // flag that this is the "if" branch
     pShellStack->PushTag(kShellTagIf);
+    pEngine->ClearPeephole();
 }
 
 // ]if - has precedence
@@ -635,6 +640,7 @@ FORTHOP(elifOp)
     pShellStack->PushAddress(branchAddr);
     // flag that this is the "if" branch
     pShellStack->PushTag(kShellTagElif);
+    pEngine->ClearPeephole();
 }
 
 // orif - has precedence
@@ -650,6 +656,7 @@ FORTHOP(orifOp)
     pShellStack->PushAddress(branchAddr);
     // flag that this is an "orif" clause
     pShellStack->PushTag(kShellTagOrIf);
+    pEngine->ClearPeephole();
 }
 
 // andif - has precedence
@@ -665,6 +672,7 @@ FORTHOP(andifOp)
     pShellStack->PushAddress(branchAddr);
     // flag that this is an "andif" clause
     pShellStack->PushTag(kShellTagAndIf);
+    pEngine->ClearPeephole();
 }
 
 
@@ -824,6 +832,7 @@ FORTHOP( beginOp )
     pShellStack->PushAddress(GET_DP);
     pShellStack->PushTag( kShellTagBegin );
     pEngine->StartLoopContinuations();
+    pEngine->ClearPeephole();
 }
 
 
@@ -865,6 +874,7 @@ FORTHOP( whileOp )
     pShellStack->PushTag(kShellTagWhile);
     pShellStack->PushAddress(oldAddress);
     pShellStack->PushTag(kShellTagBegin);
+    pEngine->ClearPeephole();
 }
 
 
@@ -886,10 +896,12 @@ FORTHOP( repeatOp )
         return;
     }
     // fill in the branch taken when "while" fails
-    forthop*pBranch =  (forthop*) pShellStack->Pop();
+    forthop* pBranch =  (forthop*) pShellStack->Pop();
     //*pBranch = COMPILED_OP((branchTag == kShellTagBranchZ) ? kOpBranchZ : kOpBranch, (GET_DP - pBranch));
     pEngine->PatchOpcode(kOpBranchZ, (GET_DP - pBranch), pBranch);
+    forthop* branchAddress = GET_DP;
     pEngine->CompileOpcode(kOpBranch, (pBeginAddress - GET_DP) - 1);
+    printf("repeat compiled branch 0x%x @ %p\n", *branchAddress, branchAddress);
     pEngine->EndLoopContinuations(kShellTagBegin);
     pEngine->ClearPeephole();
 }
@@ -921,6 +933,7 @@ FORTHOP( caseOp )
    pShellStack->Push( 0 );
    pShellStack->PushTag( kShellTagCase );
    pEngine->StartLoopContinuations();
+   pEngine->ClearPeephole();
 }
 
 
@@ -952,6 +965,7 @@ FORTHOP( ofifOp )
     pEngine->CompileBuiltinOpcode( OP_ABORT );
 	// if the ofif test succeeded, we need to dispose of the switch input value
     pEngine->CompileBuiltinOpcode( OP_DROP );
+    pEngine->ClearPeephole();
 }
 
 
@@ -1004,6 +1018,7 @@ FORTHOP( endofOp )
     // save address for endcase
     pShellStack->PushAddress(pDP);
     pShellStack->PushTag( kShellTagCase );
+    pEngine->ClearPeephole();
 }
 
 
@@ -1306,6 +1321,7 @@ FORTHOP(tryOp)
     pShellStack->PushTag(kShellTagTry);
     pEngine->CompileInt(0);
     pEngine->CompileInt(0);
+    pEngine->ClearPeephole();
 }
 
 FORTHOP(exceptOp)
@@ -1324,6 +1340,7 @@ FORTHOP(exceptOp)
     *pHandlerOffsets = GET_DP - pHandlerOffsets;
     pShellStack->PushAddress(pHandlerOffsets);
     pShellStack->PushTag(kShellTagExcept);
+    pEngine->ClearPeephole();
 }
 
 FORTHOP(doFinallyOp)
@@ -1360,6 +1377,7 @@ FORTHOP(finallyOp)
     forthop* pBranch = pHandlerOffsets +(pHandlerOffsets[0] - 1);
     *pBranch = COMPILED_OP(kOpBranch, (dp - pBranch) - 1);
     pShellStack->PushTag(kShellTagFinally);
+    pEngine->ClearPeephole();
 }
 
 FORTHOP(endtryOp)
@@ -1388,6 +1406,7 @@ FORTHOP(endtryOp)
         *pBranch = COMPILED_OP(kOpBranch, (dp - pBranch) - 1);
     }
     pEngine->CompileBuiltinOpcode(OP_DO_ENDTRY);
+    pEngine->ClearPeephole();
 }
 
 FORTHOP(doEndtryOp)
@@ -1445,6 +1464,7 @@ FORTHOP(buildsOp)
     gpSavedDP = GET_DP;
     // compile dummy word at DP, will be filled in by does
     pEngine->CompileInt( 0 );
+    pEngine->ClearPeephole();
 }
 
 // does
@@ -1493,12 +1513,14 @@ FORTHOP( doesOp )
 FORTHOP( endBuildsOp )
 {
     // finish current symbol definition (of op defined by builds)
-    GET_ENGINE->GetDefinitionVocabulary()->UnSmudgeNewestSymbol();
+    ForthEngine* pEngine = GET_ENGINE;
+    pEngine->GetDefinitionVocabulary()->UnSmudgeNewestSymbol();
     
     // fetch opcode at pIP, compile it into dummy word remembered by builds
     *gpSavedDP = *GET_IP;
     // we are done defining, bail out
     SET_IP( (forthop* ) (RPOP) );
+    pEngine->ClearPeephole();
 }
 
 // exit has precedence
@@ -1509,7 +1531,8 @@ FORTHOP( exitOp )
     long flags = pEngine->GetFlags();
 
 	bool isMethodDef = ((flags & kEngineFlagIsMethod) != 0);
-	if ( pEngine->HasLocalVariables() )
+    pEngine->ClearPeephole();
+    if ( pEngine->HasLocalVariables() )
 	{
 		pEngine->CompileBuiltinOpcode( isMethodDef ? OP_DO_EXIT_ML : OP_DO_EXIT_L );
 	}
@@ -1517,6 +1540,7 @@ FORTHOP( exitOp )
 	{
 		pEngine->CompileBuiltinOpcode( isMethodDef ? OP_DO_EXIT_M : OP_DO_EXIT );
 	}
+    pEngine->ClearPeephole();
 }
 
 // semi has precedence
@@ -1572,6 +1596,7 @@ FORTHOP( colonNoNameOp )
     pEngine->SetFlag( kEngineFlagNoNameDefinition );
 
 	pEngine->GetShell()->StartDefinition("", "coln");
+    pEngine->ClearPeephole();
 }
 
 
@@ -1620,6 +1645,7 @@ FORTHOP( funcOp )
     //pEngine->ClearFlag( kEngineFlagNoNameDefinition);
 
 	pEngine->GetShell()->StartDefinition("", "func");
+    pEngine->ClearPeephole();
 }
 
 // ;func has precedence
@@ -1652,6 +1678,7 @@ FORTHOP( endfuncOp )
 			pEngine->SetCompileState(0);
 		}
 	}
+    pEngine->ClearPeephole();
 }
 
 FORTHOP( codeOp )
@@ -1662,6 +1689,7 @@ FORTHOP( codeOp )
     pEntry[1] = BASE_TYPE_TO_CODE( kBaseTypeUserDefinition );
     forthop newestOp = *pEntry;
     *pEntry = COMPILED_OP( kOpNative, FORTH_OP_VALUE( newestOp ) );
+    pEngine->ClearPeephole();
 }
 
 FORTHOP( createOp )
@@ -1673,6 +1701,7 @@ FORTHOP( createOp )
     // remember current DP (for does)
     gpSavedDP = GET_DP;
     pEngine->CompileBuiltinOpcode( OP_DO_VAR );
+    pEngine->ClearPeephole();
 }
 
 FORTHOP( forthVocabOp )

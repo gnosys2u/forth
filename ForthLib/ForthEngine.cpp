@@ -54,7 +54,7 @@ void defaultTraceOutRoutine(void *pData, const char* pFormat, va_list argList)
 	{
 #if defined(LINUX) || defined(MACOSX)
 		vsnprintf(buffer, sizeof(buffer), pFormat, argList);
-#elif defined(_WIN64)
+#elif defined(_WIN64) || defined(WIN32)
         StringCchVPrintfA(buffer, sizeof(buffer), pFormat, argList);
 #else
 		wvnsprintf(buffer, sizeof(buffer), pFormat, argList);
@@ -66,7 +66,7 @@ void defaultTraceOutRoutine(void *pData, const char* pFormat, va_list argList)
     {
 #if defined(LINUX) || defined(MACOSX)
         vsnprintf(buffer, sizeof(buffer), pFormat, argList);
-#elif defined(_WIN64)
+#elif defined(_WIN64) || defined(WIN32)
         StringCchVPrintfA(buffer, sizeof(buffer), pFormat, argList);
 #else
         wvnsprintf(buffer, sizeof(buffer), pFormat, argList);
@@ -79,7 +79,7 @@ void defaultTraceOutRoutine(void *pData, const char* pFormat, va_list argList)
 	{
 #if defined(LINUX) || defined(MACOSX)
 		vsnprintf(buffer, sizeof(buffer), pFormat, argList);
-#elif defined(_WIN64)
+#elif defined(_WIN64) || defined(WIN32)
         StringCchVPrintfA(buffer, sizeof(buffer), pFormat, argList);
 #else
 		wvnsprintf(buffer, sizeof(buffer), pFormat, argList);
@@ -2391,6 +2391,11 @@ ForthEngine::CompileBuiltinOpcode(forthop op )
 	{
 		CompileOpcode( gCompiledOps[op] );
 	}
+
+    if (op == OP_ABORT)
+    {
+        ClearPeephole();
+    }
 }
 
 void

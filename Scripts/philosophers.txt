@@ -7,20 +7,6 @@ autoforget PHILOSOPHERS
 5 -> int defaultNumPhilosophers
 true -> bool useForks
 
-true -> bool usePrintLocks
-AsyncLock printLock
-: p[
-  if(usePrintLocks)
-    printLock.grab
-  endif
-;
-
-: ]p
-  if(usePrintLocks)
-    printLock.ungrab
-  endif
-;
-
 class: Philosopher
   Fiber eatingFiber
   Lock firstFork

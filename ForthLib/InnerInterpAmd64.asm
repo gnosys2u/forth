@@ -853,7 +853,7 @@ entry memberRefType
 	
 ;-----------------------------------------------
 ;
-; local byte ops
+; byte ops
 ;
 entry localByteType
 	mov	rax, rbx
@@ -880,6 +880,22 @@ localByteFetch:
 	mov	[rpsp], rbx
 	jmp	rnext
 
+localByte1:
+	cmp	rbx, kVarMinusStore
+	jg	badVarOperation
+	; dispatch based on value in rbx
+	mov rcx, localByteActionTable
+	mov	rbx, [rcx + rbx*8]
+	jmp	rbx
+
+localByteActionTable:
+	DQ	localByteFetch
+	DQ	localByteFetch
+	DQ	localRef
+	DQ	localByteStore
+	DQ	localBytePlusStore
+	DQ	localByteMinusStore
+
 entry localUByteType
 	mov	rax, rbx
 	; see if a varop is specified
@@ -897,7 +913,7 @@ localUByteType1:
 ubyteEntry:
 	mov	rbx, [rcore + FCore.varMode]
 	or	rbx, rbx
-	jnz	localByte1
+	jnz	localUByte1
 	; fetch local unsigned byte
 localUByteFetch:
 	sub	rpsp, 8
@@ -906,15 +922,23 @@ localUByteFetch:
 	mov	[rpsp], rbx
 	jmp	rnext
 
-localByte1:
+localUByte1:
 	cmp	rbx, kVarMinusStore
 	jg	badVarOperation
 	; dispatch based on value in rbx
-	mov rcx, localByteActionTable
+	mov rcx, localUByteActionTable
 	mov	rbx, [rcx + rbx*8]
 	jmp	rbx
 
-localByteRef:
+localUByteActionTable:
+	DQ	localUByteFetch
+	DQ	localUByteFetch
+	DQ	localRef
+	DQ	localByteStore
+	DQ	localBytePlusStore
+	DQ	localByteMinusStore
+
+localRef:
 	sub	rpsp, 8
 	mov	[rpsp], rax
 	; set var operation back to fetch
@@ -952,22 +976,6 @@ localByteMinusStore:
 	xor	rax, rax
 	mov	[rcore + FCore.varMode], rax
 	jmp	rnext
-
-localByteActionTable:
-	DQ	localByteFetch
-	DQ	localByteFetch
-	DQ	localByteRef
-	DQ	localByteStore
-	DQ	localBytePlusStore
-	DQ	localByteMinusStore
-
-localUByteActionTable:
-	DQ	localUByteFetch
-	DQ	localUByteFetch
-	DQ	localByteRef
-	DQ	localByteStore
-	DQ	localBytePlusStore
-	DQ	localByteMinusStore
 
 entry fieldByteType
 	mov	rax, rbx
@@ -1097,7 +1105,7 @@ entry memberUByteArrayType
 
 ;-----------------------------------------------
 ;
-; local short ops
+; short ops
 ;
 entry localShortType
 	mov	rax, rbx
@@ -1124,6 +1132,22 @@ localShortFetch:
 	mov	[rpsp], rbx
 	jmp	rnext
 
+localShort1:
+	cmp	rbx, kVarMinusStore
+	jg	badVarOperation
+	; dispatch based on value in rbx
+	mov rcx, localShortActionTable
+	mov	rbx, [rcx + rbx*8]
+	jmp	rbx
+
+localShortActionTable:
+	DQ	localShortFetch
+	DQ	localShortFetch
+	DQ	localRef
+	DQ	localShortStore
+	DQ	localShortPlusStore
+	DQ	localShortMinusStore
+
 entry localUShortType
 	mov	rax, rbx
 	; see if a varop is specified
@@ -1141,7 +1165,7 @@ localUShortType1:
 ushortEntry:
 	mov	rbx, [rcore + FCore.varMode]
 	or	rbx, rbx
-	jnz	localShort1
+	jnz	localUShort1
 	; fetch local unsigned short
 localUShortFetch:
 	sub	rpsp, 8
@@ -1152,21 +1176,22 @@ localUShortFetch:
 	mov	[rpsp], rbx
 	jmp	rnext
 
-localShort1:
+localUShort1:
 	cmp	rbx, kVarMinusStore
 	jg	badVarOperation
 	; dispatch based on value in rbx
-	mov rcx, localShortActionTable
+	mov rcx, localUShortActionTable
 	mov	rbx, [rcx + rbx*8]
 	jmp	rbx
-localShortRef:
-	sub	rpsp, 8
-	mov	[rpsp], rax
-	; set var operation back to fetch
-	xor	rax, rax
-	mov	[rcore + FCore.varMode], rax
-	jmp	rnext
-	
+
+localUShortActionTable:
+	DQ	localUShortFetch
+	DQ	localUShortFetch
+	DQ	localRef
+	DQ	localShortStore
+	DQ	localShortPlusStore
+	DQ	localShortMinusStore
+
 localShortStore:
 	mov	rbx, [rpsp]
 	mov	[rax], bx
@@ -1195,22 +1220,6 @@ localShortMinusStore:
 	xor	rax, rax
 	mov	[rcore + FCore.varMode], rax
 	jmp	rnext
-
-localShortActionTable:
-	DQ	localShortFetch
-	DQ	localShortFetch
-	DQ	localShortRef
-	DQ	localShortStore
-	DQ	localShortPlusStore
-	DQ	localShortMinusStore
-
-localUShortActionTable:
-	DQ	localUShortFetch
-	DQ	localUShortFetch
-	DQ	localShortRef
-	DQ	localShortStore
-	DQ	localShortPlusStore
-	DQ	localShortMinusStore
 
 entry fieldShortType
 	mov	rax, rbx
@@ -1349,7 +1358,7 @@ entry memberUShortArrayType
 
 ;-----------------------------------------------
 ;
-; local int ops
+; int ops
 ;
 entry localIntType
 	mov	rax, rbx
@@ -1376,14 +1385,65 @@ localIntFetch:
 	mov	[rpsp], rbx
 	jmp	rnext
 
-localIntRef:
-	sub	rpsp, 8
-	mov	[rpsp], rax
-	; set var operation back to fetch
-	xor	rax, rax
+localInt1:
+	cmp	rbx, kVarMinusStore
+	jg	badVarOperation
+	; dispatch based on value in rbx
+	mov rcx, localIntActionTable
+	mov	rbx, [rcx + rbx*8]
+	jmp	rbx
+
+localIntActionTable:
+	DQ	localIntFetch
+	DQ	localIntFetch
+	DQ	localRef
+	DQ	localIntStore
+	DQ	localIntPlusStore
+	DQ	localIntMinusStore
+
+entry localUIntType
+	mov	rax, rbx
+	; see if a varop is specified
+	and	rax, 00E00000h
+	jz localUIntType1
+	shr	rax, 21
 	mov	[rcore + FCore.varMode], rax
+localUIntType1:
+	; get ptr to int var into rax
+	mov	rax, rfp
+	and	rbx, 001FFFFFh
+	sal	rbx, 3
+	sub	rax, rbx
+	; see if it is a fetch
+uintEntry:
+	mov	rbx, [rcore + FCore.varMode]
+	or	rbx, rbx
+	jnz	localUInt1
+	; fetch local uint
+localUIntFetch:
+	sub	rpsp, 8
+	xor	rbx, rbx
+	mov	[rcore + FCore.varMode], rbx
+	mov	ebx, DWORD[rax]
+	mov	[rpsp], rbx
 	jmp	rnext
-	
+
+localUInt1:
+	cmp	rbx, kVarMinusStore
+	jg	badVarOperation
+	; dispatch based on value in rbx
+	mov rcx, localUIntActionTable
+	mov	rbx, [rcx + rbx*8]
+	jmp	rbx
+
+localUIntActionTable:
+	DQ	localUIntFetch
+	DQ	localUIntFetch
+	DQ	localRef
+	DQ	localIntStore
+	DQ	localIntPlusStore
+	DQ	localIntMinusStore
+
 localIntStore:
 	mov	ebx, [rpsp]
 	mov	[rax], ebx
@@ -1412,65 +1472,6 @@ localIntMinusStore:
 	xor	rax, rax
 	mov	[rcore + FCore.varMode], rax
 	jmp	rnext
-
-localIntActionTable:
-	DQ	localIntFetch
-	DQ	localIntFetch
-	DQ	localIntRef
-	DQ	localIntStore
-	DQ	localIntPlusStore
-	DQ	localIntMinusStore
-
-localInt1:
-	cmp	rbx, kVarMinusStore
-	jg	badVarOperation
-	; dispatch based on value in rbx
-	mov rcx, localIntActionTable
-	mov	rbx, [rcx + rbx*8]
-	jmp	rbx
-
-entry localUIntType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, 00E00000h
-	jz localIntType1
-	shr	rax, 21
-	mov	[rcore + FCore.varMode], rax
-localUIntType1:
-	; get ptr to int var into rax
-	mov	rax, rfp
-	and	rbx, 001FFFFFh
-	sal	rbx, 3
-	sub	rax, rbx
-	; see if it is a fetch
-uintEntry:
-	mov	rbx, [rcore + FCore.varMode]
-	or	rbx, rbx
-	jnz	localUInt1
-	; fetch local uint
-localUIntFetch:
-	sub	rpsp, 8
-	xor	rbx, rbx
-	mov	[rcore + FCore.varMode], rbx
-	mov	ebx, DWORD[rax]
-	mov	[rpsp], rbx
-	jmp	rnext
-
-localUIntActionTable:
-	DQ	localUIntFetch
-	DQ	localUIntFetch
-	DQ	localIntRef
-	DQ	localIntStore
-	DQ	localIntPlusStore
-	DQ	localIntMinusStore
-
-localUInt1:
-	cmp	rbx, kVarMinusStore
-	jg	badVarOperation
-	; dispatch based on value in rbx
-	mov rcx, localUIntActionTable
-	mov	rbx, [rcx + rbx*8]
-	jmp	rbx
 
 entry fieldIntType
 	; get ptr to int var into rax
@@ -1604,7 +1605,7 @@ entry memberUIntArrayType
 
 ;-----------------------------------------------
 ;
-; local float ops
+; float ops
 ;
 entry localFloatType
 	mov	rax, rbx
@@ -1632,14 +1633,6 @@ localFloatFetch:
 	mov	[rpsp], rbx
 	jmp	rnext
 
-localFloatRef:
-	sub	rpsp, 8
-	mov	[rpsp], rax
-	; set var operation back to fetch
-	xor	rax, rax
-	mov	[rcore + FCore.varMode], rax
-	jmp	rnext
-	
 localFloatStore:
 	mov	rbx, [rpsp]
 	mov	[rax], ebx
@@ -1672,7 +1665,7 @@ localFloatMinusStore:
 localFloatActionTable:
 	DQ	localFloatFetch
 	DQ	localFloatFetch
-	DQ	localFloatRef
+	DQ	localRef
 	DQ	localFloatStore
 	DQ	localFloatPlusStore
 	DQ	localFloatMinusStore
@@ -1752,7 +1745,7 @@ entry memberFloatArrayType
 	
 ;-----------------------------------------------
 ;
-; local double ops
+; double ops
 ;
 entry localDoubleType
 	mov	rax, rbx
@@ -1779,14 +1772,6 @@ localDoubleFetch:
 	mov	[rpsp], rbx
 	jmp	rnext
 
-localDoubleRef:
-	sub	rpsp, 8
-	mov	[rpsp], rax
-	; set var operation back to fetch
-	xor	rax, rax
-	mov	[rcore + FCore.varMode], rax
-	jmp	rnext
-	
 localDoubleStore:
 	mov	rbx, [rpsp]
 	mov	[rax], rbx
@@ -1819,7 +1804,7 @@ localDoubleMinusStore:
 localDoubleActionTable:
 	DQ	localDoubleFetch
 	DQ	localDoubleFetch
-	DQ	localDoubleRef
+	DQ	localRef
 	DQ	localDoubleStore
 	DQ	localDoublePlusStore
 	DQ	localDoubleMinusStore
@@ -1901,7 +1886,7 @@ entry memberDoubleArrayType
 	
 ;-----------------------------------------------
 ;
-; local string ops
+; string ops
 ;
 GLOBAL localStringType, stringEntry, localStringFetch, localStringStore, localStringAppend
 entry localStringType
@@ -2119,7 +2104,7 @@ entry memberStringArrayType
 
 ;-----------------------------------------------
 ;
-; local op ops
+; op ops
 ;
 entry localOpType
 	mov	rax, rbx
@@ -2148,7 +2133,7 @@ localOpExecute:
 localOpActionTable:
 	DQ	localOpExecute
 	DQ	localUIntFetch
-	DQ	localIntRef
+	DQ	localRef
 	DQ	localIntStore
 
 localOp1:
@@ -2226,7 +2211,7 @@ entry memberOpArrayType
 	
 ;-----------------------------------------------
 ;
-; local long (int64) ops
+; long (int64) ops
 ;
 entry localLongType
 	mov	rax, rbx
@@ -2261,14 +2246,6 @@ localLong1:
 	mov	rbx, [rcx + rbx*8]
 	jmp	rbx
 
-localLongRef:
-	sub	rpsp, 8
-	mov	[rpsp], rax
-	; set var operation back to fetch
-	xor	rax, rax
-	mov	[rcore + FCore.varMode], rax
-	jmp	rnext
-	
 localLongStore:
 	mov	rbx, [rpsp]
 	mov	[rax], rbx
@@ -2301,7 +2278,7 @@ localLongMinusStore:
 localLongActionTable:
 	DQ	localLongFetch
 	DQ	localLongFetch
-	DQ	localLongRef
+	DQ	localRef
 	DQ	localLongStore
 	DQ	localLongPlusStore
 	DQ	localLongMinusStore
@@ -2375,7 +2352,7 @@ entry memberLongArrayType
 	
 ;-----------------------------------------------
 ;
-; local object ops
+; object ops
 ;
 entry localObjectType
 	mov	rax, rbx
@@ -2410,14 +2387,6 @@ localObject1:
 	mov	rbx, [rcx + rbx*8]
 	jmp	rbx
 
-localObjectRef:
-	sub	rpsp, 8
-	mov	[rpsp], rax
-	; set var operation back to fetch
-	xor	rax, rax
-	mov	[rcore + FCore.varMode], rax
-	jmp	rnext
-	
 entry localObjectStore
 	; TOS is new object, rax points to destination/old object
 	xor	rbx, rbx			; set var operation back to default/fetch
@@ -2514,7 +2483,7 @@ lou2:
 localObjectActionTable:
 	DQ	localObjectFetch
 	DQ	localObjectFetch
-	DQ	localObjectRef
+	DQ	localRef
 	DQ	localObjectStore
 	DQ	localObjectStoreNoRef
 	DQ	localObjectUnref
@@ -6901,7 +6870,7 @@ entry opTypesTable
 	DQ	localShortType
 	DQ	localUShortType
 	DQ	localIntType
-	DQ	localIntType
+	DQ	localUIntType
 	DQ	localLongType
 	DQ	localLongType
 	DQ	localFloatType
@@ -6916,7 +6885,7 @@ entry opTypesTable
 	DQ	localShortArrayType
 	DQ	localUShortArrayType
 	DQ	localIntArrayType
-	DQ	localIntArrayType
+	DQ	localUIntArrayType
 	DQ	localLongArrayType
 	
 ;	50 - 59
@@ -6933,7 +6902,7 @@ entry opTypesTable
 	
 ;	60 - 69
 	DQ	fieldIntType
-	DQ	fieldIntType
+	DQ	fieldUIntType
 	DQ	fieldLongType
 	DQ	fieldLongType
 	DQ	fieldFloatType
@@ -6948,7 +6917,7 @@ entry opTypesTable
 	DQ	fieldShortArrayType
 	DQ	fieldUShortArrayType
 	DQ	fieldIntArrayType
-	DQ	fieldIntArrayType
+	DQ	fieldUIntArrayType
 	DQ	fieldLongArrayType
 	DQ	fieldLongArrayType
 	DQ	fieldFloatArrayType
@@ -6963,7 +6932,7 @@ entry opTypesTable
 	DQ	memberShortType
 	DQ	memberUShortType
 	DQ	memberIntType
-	DQ	memberIntType
+	DQ	memberUIntType
 	DQ	memberLongType
 	DQ	memberLongType
 	
@@ -6980,7 +6949,7 @@ entry opTypesTable
 	DQ	memberIntArrayType
 	
 ;	100 - 109
-	DQ	memberIntArrayType
+	DQ	memberUIntArrayType
 	DQ	memberLongArrayType
 	DQ	memberLongArrayType
 	DQ	memberFloatArrayType

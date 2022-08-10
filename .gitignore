@@ -129,3 +129,5 @@ ForthDLL/ReadMe.txt
 ForthDLL/res/ForthDLL.rc2
 ForthDLLxxx
 ForthDLLMainxxx
+ForthDLL/DbgAsm/ForthDLL.vcxproj.FileListAbsolute.txt
+ForthDLL/RelAsm/ForthDLL.vcxproj.FileListAbsolute.txt

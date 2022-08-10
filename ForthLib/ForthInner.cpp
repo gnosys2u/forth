@@ -733,8 +733,13 @@ GFORTHOP(doUIntBop)
 
 GFORTHOP(uintVarActionBop)
 {
+#ifdef FORTH64
     unsigned int* pVar = (unsigned int*)(SPOP);
     _doUIntVarop(pCore, pVar);
+#else
+    int* pVar = (int*)(SPOP);
+    _doIntVarop(pCore, pVar);
+#endif
 }
 #endif
 
