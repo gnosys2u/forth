@@ -66,10 +66,10 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
 {
     forthop* pOpcode = mpDictionarySection->pCurrent;
 	forthop op = COMPILED_OP( opType, opVal );
-	forthOpType previousType;
-    forthop previousVal;
+    forthOpType previousOpType = kOpUserDef;
+    forthop previousOpVal = 0;
 	
-    forthop uVal = opVal & OPCODE_VALUE_MASK;
+    forthop newOpVal = opVal & OPCODE_VALUE_MASK;
     switch( opType )
 	{
 	case NATIVE_OPTYPE:
@@ -77,22 +77,23 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
             forthop lastOp = op;
 
 			if (((mCompileComboOpFlags & kCERefOp) != 0)
-                && GetPreviousOpcode(previousType, previousVal)
-                && ((previousType == kOpMemberRef) || (previousType == kOpLocalRef))
-				&& FITS_IN_BITS(previousVal, 12) && FITS_IN_BITS(uVal, 12) )
+                && GetPreviousOpcode(previousOpType, previousOpVal)
+                && ((previousOpType == kOpMemberRef) || (previousOpType == kOpLocalRef))
+                && FITS_IN_BITS(previousOpVal, 12) && FITS_IN_BITS(newOpVal, 12) )
 			{
                 // LOCALREF OP combo - bits 0:11 are frame offset, bits 12:23 are opcode
                 // MEMBERREF OP combo - bits 0:11 are member offset, bits 12:23 are opcode
                 UncompileLastOpcode();
                 pOpcode--;
-                if (previousType == kOpMemberRef)
+                if (previousOpType == kOpMemberRef)
                 {
-                    op = COMPILED_OP(kOpMemberRefOpCombo, previousVal | (uVal << 12));
+                    op = COMPILED_OP(kOpMemberRefOpCombo, previousOpVal | (newOpVal << 12));
                 }
                 else
                 {
-                    op = COMPILED_OP(kOpLocalRefOpCombo, previousVal | (uVal << 12));
+                    op = COMPILED_OP(kOpLocalRefOpCombo, previousOpVal | (newOpVal << 12));
                 }
+                //printf("compiling 0x%x @ %p  previousOpType %0x\n", op, pOpcode, previousOpType);
             }
 
             if ((lastOp == gCompiledOps[OP_INTO]) || (lastOp == gCompiledOps[OP_INTO_PLUS]))
@@ -106,14 +107,14 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
 	case kOpBranchZ:
 		{
 			if (((mCompileComboOpFlags & kCEOpBranch) != 0)
-                && GetPreviousOpcode( previousType, previousVal )
-                && (previousType == NATIVE_OPTYPE)
-				&& FITS_IN_BITS(previousVal, 12) && FITS_IN_SIGNED_BITS(uVal, 12) )
+                && GetPreviousOpcode( previousOpType, previousOpVal )
+                && (previousOpType == NATIVE_OPTYPE)
+				&& FITS_IN_BITS(previousOpVal, 12) && FITS_IN_SIGNED_BITS(newOpVal, 12) )
 			{
 				// OP ZBRANCH combo - bits 0:11 are opcode, bits 12:23 are signed integer branch offset in longs
 				UncompileLastOpcode();
                 pOpcode--;
-				op = COMPILED_OP(kOpOZBCombo, previousVal | (uVal << 12));
+				op = COMPILED_OP(kOpOZBCombo, previousOpVal | (newOpVal << 12));
 			}
 		}
 		break;
@@ -121,26 +122,26 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
     case kOpBranchNZ:
     {
         if (((mCompileComboOpFlags & kCEOpBranch) != 0)
-            && GetPreviousOpcode(previousType, previousVal)
-            && (previousType == NATIVE_OPTYPE)
-            && FITS_IN_BITS(previousVal, 12) && FITS_IN_SIGNED_BITS(uVal, 12))
+            && GetPreviousOpcode(previousOpType, previousOpVal)
+            && (previousOpType == NATIVE_OPTYPE)
+            && FITS_IN_BITS(previousOpVal, 12) && FITS_IN_SIGNED_BITS(newOpVal, 12))
         {
             // OP NZBRANCH combo - bits 0:11 are opcode, bits 12:23 are signed integer branch offset in longs
             UncompileLastOpcode();
             pOpcode--;
-            op = COMPILED_OP(kOpONZBCombo, previousVal | (uVal << 12));
+            op = COMPILED_OP(kOpONZBCombo, previousOpVal | (newOpVal << 12));
         }
     }
     break;
 
 	default:
         if (((mCompileComboOpFlags & kCEVaropVar) != 0)
-            && GetPreviousOpcode(previousType, previousVal)
-            && (previousType == NATIVE_OPTYPE)
+            && GetPreviousOpcode(previousOpType, previousOpVal)
+            && (previousOpType == NATIVE_OPTYPE)
             && ((opType >= kOpLocalByte) && (opType <= kOpMemberObject))
-            && FITS_IN_BITS(uVal, 21))
+            && FITS_IN_BITS(newOpVal, 21))
         {
-            forthop previousOp = COMPILED_OP(previousType, previousVal);
+            forthop previousOp = COMPILED_OP(previousOpType, previousOpVal);
             if ((previousOp >= gCompiledOps[OP_FETCH]) && (previousOp <= gCompiledOps[OP_OCLEAR]))
             {
                 bool isLocal = (opType >= kOpLocalByte) && (opType <= kOpLocalObject);
@@ -250,6 +251,7 @@ forthop* ForthOpcodeCompiler::GetLastCompiledIntoPtr( void )
 
 bool ForthOpcodeCompiler::GetPreviousOpcode( forthOpType& opType, forthop& opVal, int index )
 {
+    // index of 0 means most recently opcode
 	if ( mPeepholeValidCount > index )
 	{
 		forthop op = *(mPeephole[(mPeepholeIndex - index) & PEEPHOLE_PTR_MASK]);

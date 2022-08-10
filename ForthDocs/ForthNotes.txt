@@ -166,6 +166,22 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 10 2022
+
+I understand how the evil localRefComboOp bug was happening - the previousType
+variable was never initialized before the call to GetPreviousOpcode, if the
+peephole was empty (as it often is), GetPreviousOpcode doesn't modify previousType,
+so the indeterminate value previousType had could be kOpLocalRef, which together
+with the missing parentheses bug allowed the second half of the conditional to
+be true, causing ForthOpcodeCompiler::CompileOpcode to replace the old valid
+opcode with the localRefCombo opcode.  Small changes to code, especially inside
+ForthOpcodeCompiler::CompileOpcode could cause the stack location assigned to
+previousType to change, changing how likely it would be to have the kOpLocalRef
+typecode.
+
+So the most confusing bug I've had in years came down to missing parentheses
+plus an uninitialized variable.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 9 2022
 
 I fixed the uint problem in the 64-bit build, then I tried to get the 32-bit

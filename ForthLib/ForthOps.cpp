@@ -901,7 +901,7 @@ FORTHOP( repeatOp )
     pEngine->PatchOpcode(kOpBranchZ, (GET_DP - pBranch), pBranch);
     forthop* branchAddress = GET_DP;
     pEngine->CompileOpcode(kOpBranch, (pBeginAddress - GET_DP) - 1);
-    printf("repeat compiled branch 0x%x @ %p\n", *branchAddress, branchAddress);
+    //printf("repeat compiled branch 0x%x @ %p\n", *branchAddress, branchAddress);
     pEngine->EndLoopContinuations(kShellTagBegin);
     pEngine->ClearPeephole();
 }
