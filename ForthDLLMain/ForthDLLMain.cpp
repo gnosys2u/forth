@@ -26,24 +26,24 @@ int main(int argc, char* argv[], char* envp[])
     {
         nRetCode = 1;
         pShell = CreateForthShell(argc, (const char**)(argv), (const char**)envp);
-#if 0
+
         if (argc > 1)
         {
 
             //
             // interpret the forth file named on the command line
             //
-            FILE* pInFile = fopen(argv[1], "r");
-            if (pInFile != NULL)
+            FILE* pInFile;
+            errno_t err = fopen_s(&pInFile, argv[1], "r");
+            if (err == 0)
             {
-                pInStream = CreateForthFileInputStream(pInFile);
+                pInStream = CreateForthFileInputStream(pInFile, argv[1], 10000, true);
                 nRetCode = pShell->Run(pInStream);
                 fclose(pInFile);
 
             }
         }
         else
-#endif
         {
             //
             // run forth in interactive mode

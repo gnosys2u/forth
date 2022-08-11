@@ -166,13 +166,26 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 11 2022
+
+I finally tracked down the oStringFormatSub/resizeOString crash today.  I was
+pushing r13 on the stack at the start of oStringFormatSub, but on exit I was
+popping its value into rdi, corrupting rdi which was being used in oStringAppendFormattedMethod
+to hold the 'roomLeft' value, causing it to call resizeOString with a bogus value
+when it didn't need to resize the string at all.  The same error was in each of
+the printf/scanf routines.  It only broke RelAsm because that was the only configuration
+which used rdi to hold roomLeft.
+
+I need to add tests for the printf/scanf routines.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 10 2022
 
 I'm not sure if this is good news, but the crash in adv is now consistent across
 platforms and configurations! Woohoo!
 There were errors in the location script, from when I split make_loc and make_loc_hint,
 which may have been a mistake.
-Could this be what was causing the old resizeOString bug?
+Could this be what was causing the old oStringFormatSub/resizeOString bug?
+-> nope, it still happens in the standalone test
 ---
 I understand how the evil localRefComboOp bug was happening - the previousType
 variable was never initialized before the call to GetPreviousOpcode, if the

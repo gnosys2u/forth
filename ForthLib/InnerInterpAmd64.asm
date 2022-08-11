@@ -6185,7 +6185,7 @@ entry fprintfSub
 	; do stack cleanup
 	mov rsp, rfp
 	mov	[rcore + FCore.SPtr], rpsp
-    pop rnext
+    pop rfp
     pop rpsp
     pop rcore
 	ret
@@ -6256,7 +6256,7 @@ entry snprintfSub
 	; do stack cleanup
 	mov rsp, rfp
 	mov	[rcore + FCore.SPtr], rpsp
-    pop rnext
+    pop rfp
     pop rpsp
     pop rcore
 	ret
@@ -6270,9 +6270,10 @@ entry oStringFormatSub
     ; rdx is bufferPtr
     ; r8 is bufferSize
     
-    push rcore
-    push rpsp
-    push rfp
+	;sub rsp, 128
+    push rcore			; r12
+    push rpsp			; r14
+    push rfp			; r13
 	; stack should be 16-byte aligned at this point
     ; params refer to parameters passed to snprintf: bufferPtr bufferSize formatStr arg1..argN
     ; arguments refer to things which are to be printed: arg1..argN
@@ -6331,9 +6332,10 @@ entry oStringFormatSub
 	; do stack cleanup
 	mov rsp, rfp
 	mov	[rcore + FCore.SPtr], rpsp
-    pop rnext
+    pop rfp
     pop rpsp
     pop rcore
+	;add rsp, 128
 	ret
 
 ;========================================
@@ -6401,7 +6403,7 @@ entry fscanfSub
 	; do stack cleanup
 	mov rsp, rfp
 	mov	[rcore + FCore.SPtr], rpsp
-    pop rnext
+    pop rfp
     pop rpsp
     pop rcore
 	ret
@@ -6471,7 +6473,7 @@ entry sscanfSub
 	; do stack cleanup
 	mov rsp, rfp
 	mov	[rcore + FCore.SPtr], rpsp
-    pop rnext
+    pop rfp
     pop rpsp
     pop rcore
 	ret
