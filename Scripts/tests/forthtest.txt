@@ -474,6 +474,30 @@ test[ 0xDEADBEEF 123456789 2= ]	// check for stack underflow or extra items
 
 ///////////////////////////////////////////////////////////
 
+// test fprintf snprintf
+64 arrayOf byte testBytes
+test[ fprintf(stdout "This line %s %c%c printed %d times\n" "should" 98 101 3 4) 36 =]
+test[ snprintf(0 ref testBytes 64 "This %s %s %c%c printed %d times\n"  "line" "should" 98 101 3 5) 36 =]
+0 ref testBytes %s
+"This line should be printed 3 times\n" %s
+
+// test sscanf
+cell a   cell b   cell c
+test[ sscanf("1 b 10 " "%d %c %x " ref a ref b ref c 3) 3 =  c 16 =  b 98 =  a 1 =]
+
+// test fscanf
+ptrTo int tfile
+test[ fopen("__test.txt" "w" ) -> tfile   tfile 0<>]
+test[ fputs("1 b 10 " tfile ) 0=]
+test[ fclose(tfile) 0=]
+test[ fopen("__test.txt" "r" ) -> tfile   tfile 0<>]
+test[ fscanf(tfile "%d %c %x " ref a ref b ref c 3) 3 =  c 16 =  b 98 =  a 1 =]
+test[ fclose(tfile) 0=]
+test[ remove("__test.txt") 0=]
+
+
+///////////////////////////////////////////////////////////
+
 //%nl %nl "Hit ENTER to exit" %s
 //stdin fgetc
 : finalCheck

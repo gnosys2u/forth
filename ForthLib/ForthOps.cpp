@@ -3877,15 +3877,15 @@ FORTHOP(addTempStringOp)
 #endif
 
 #ifdef PRINTF_SUBS_IN_ASM
-extern long fprintfSub( ForthCoreState* pCore );
-extern long snprintfSub(ForthCoreState* pCore);
-extern long fscanfSub(ForthCoreState* pCore);
-extern long sscanfSub( ForthCoreState* pCore );
+extern void fprintfSub( ForthCoreState* pCore );
+extern void snprintfSub(ForthCoreState* pCore);
+extern void fscanfSub(ForthCoreState* pCore);
+extern void sscanfSub( ForthCoreState* pCore );
 #else
 
-long fprintfSub( ForthCoreState* pCore )
+void fprintfSub( ForthCoreState* pCore )
 {
-    int a[8];
+    cell a[8];
     // TODO: assert if numArgs > 8
     long numArgs = SPOP;
     for ( int i = numArgs - 1; i >= 0; --i )
@@ -3894,12 +3894,13 @@ long fprintfSub( ForthCoreState* pCore )
     }
     const char* fmt = (const char *) SPOP;
     FILE* outfile = (FILE *) SPOP;
-    return fprintf( outfile, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    cell result = fprintf( outfile, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    SPUSH(result);
 }
 
-long snprintfSub( ForthCoreState* pCore )
+void snprintfSub( ForthCoreState* pCore )
 {
-    int a[8];
+    cell a[8];
     // TODO: assert if numArgs > 8
     long numArgs = SPOP;
     for ( int i = numArgs - 1; i >= 0; --i )
@@ -3909,10 +3910,17 @@ long snprintfSub( ForthCoreState* pCore )
     const char* fmt = (const char *) SPOP;
     size_t maxLen = (size_t) SPOP;
     char* outbuff = (char *) SPOP;
-	return SNPRINTF(outbuff, maxLen, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
+
+#if defined(WINDOWS_BUILD)
+    HRESULT hres = StringCchPrintf(outbuff, maxLen, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
+    cell result = (hres == S_OK) ? strlen(outbuff) : -1;
+#else
+    cell result = snprintf(outbuff, maxLen, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
+#endif
+    SPUSH(result);
 }
 
-long fscanfSub( ForthCoreState* pCore )
+void fscanfSub( ForthCoreState* pCore )
 {
     void* a[8];
     // TODO: assert if numArgs > 8
@@ -3923,21 +3931,23 @@ long fscanfSub( ForthCoreState* pCore )
     }
     const char* fmt = (const char *) SPOP;
     FILE* infile = (FILE *) SPOP;
-    return fscanf( infile, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    cell result = fscanf( infile, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    SPUSH(result);
 }
 
-long sscanfSub( ForthCoreState* pCore )
+void sscanfSub( ForthCoreState* pCore )
 {
     void* a[8];
     // TODO: assert if numArgs > 8
-    long numArgs = SPOP;
+    cell numArgs = SPOP;
     for ( int i = numArgs - 1; i >= 0; --i )
     {
         a[i] = (void *) SPOP;
     }
     const char* fmt = (const char *) SPOP;
     char* inbuff = (char *) SPOP;
-    return sscanf( inbuff, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    cell result = sscanf( inbuff, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    SPUSH(result);
 }
 
 cell oStringFormatSub(ForthCoreState* pCore, char* pBuffer, int bufferSize)

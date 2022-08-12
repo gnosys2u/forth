@@ -176,7 +176,8 @@ when it didn't need to resize the string at all.  The same error was in each of
 the printf/scanf routines.  It only broke RelAsm because that was the only configuration
 which used rdi to hold roomLeft.
 
-I need to add tests for the printf/scanf routines.
+I found and fixed multiple bugs in the printf/scanf routines, and added limited
+tests for all of them.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 10 2022
 
