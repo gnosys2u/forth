@@ -13,9 +13,11 @@
 #include <stdio.h>
 #if defined(WIN64)
 #include <ws2tcpip.h>
+#include "dirent.h"
 #elif defined(WIN32)
 #include <winsock2.h>
 #include <windows.h>
+#include "dirent.h"
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -24,12 +26,12 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <dirent.h>
 #endif
 #include "Forth.h"
 #include "ForthPipe.h"
 #include "ForthClient.h"
 #include "ForthMessages.h"
-#include "dirent.h"
 
 #ifndef SOCKADDR
 #define SOCKADDR struct sockaddr
