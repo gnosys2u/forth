@@ -462,7 +462,7 @@ namespace OStream
     FORTHOP(oInStreamIterCharMethod)
     {
         GET_THIS(oInStreamStruct, pInStream);
-        long found = 0;
+        int32_t found = 0;
         if ((pInStream->pInFuncs != nullptr)
             && (pInStream->pInFuncs->inChar != nullptr))
         {
@@ -494,7 +494,7 @@ namespace OStream
     FORTHOP(oInStreamIterBytesMethod)
     {
         GET_THIS(oInStreamStruct, pInStream);
-        long found = 0;
+        int32_t found = 0;
         if ((pInStream->pInFuncs != nullptr)
             && (pInStream->pInFuncs->inBytes != nullptr))
         {
@@ -528,7 +528,7 @@ namespace OStream
     FORTHOP(oInStreamIterLineMethod)
     {
         ForthEngine *pEngine = ForthEngine::GetInstance();
-        long found = 0;
+        int32_t found = 0;
         ForthObject obj = GET_TP;
         pEngine->FullyExecuteMethod(pCore, obj, kInStreamGetLineMethod);
         int numRead = (int)SPOP;
@@ -556,7 +556,7 @@ namespace OStream
     FORTHOP(oInStreamIterStringMethod)
     {
         ForthEngine *pEngine = ForthEngine::GetInstance();
-        long found = 0;
+        int32_t found = 0;
 
         ForthObject thisStream = GET_TP;
 
@@ -1200,7 +1200,7 @@ namespace OStream
 			for (int i = 0; i < numBytes; i++)
 			{
 				char ch = *pBuffer++;
-				SPUSH(((long)ch));
+				SPUSH(((int32_t)ch));
 				pEngine->FullyExecuteMethod(pCore, obj, kOutStreamPutCharMethod);
 			}
 		}
@@ -1225,10 +1225,10 @@ namespace OStream
 			for (int i = 0; i < numBytes; i++)
 			{
 				char ch = *pBuffer++;
-				SPUSH(((long)ch));
+				SPUSH(((int32_t)ch));
 				pEngine->FullyExecuteMethod(pCore, obj, kOutStreamPutCharMethod);
 			}
-			SPUSH((long)'\n');
+			SPUSH((int32_t)'\n');
 			pEngine->FullyExecuteMethod(pCore, obj, kOutStreamPutCharMethod);
 		}
 		else
@@ -1253,10 +1253,10 @@ namespace OStream
             for (int i = 0; i < numBytes; i++)
             {
                 char ch = *pBuffer++;
-                SPUSH(((long)ch));
+                SPUSH(((int32_t)ch));
                 pEngine->FullyExecuteMethod(pCore, obj, kOutStreamPutCharMethod);
             }
-            SPUSH((long)'\n');
+            SPUSH((int32_t)'\n');
             pEngine->FullyExecuteMethod(pCore, obj, kOutStreamPutCharMethod);
         }
         else

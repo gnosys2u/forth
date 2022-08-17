@@ -10,7 +10,7 @@ class ForthEngine;
 class ForthParseInfo
 {
 public:
-	ForthParseInfo(long *pBuffer, int numLongs);
+	ForthParseInfo(int32_t *pBuffer, int numLongs);
 	~ForthParseInfo();
 
 	// SetToken copies symbol to token buffer (if pSrc not NULL), sets the length byte,
@@ -23,7 +23,7 @@ public:
 	inline void     SetFlag(int flag) { mFlags |= flag; };
 
 	inline char *   GetToken(void) { return ((char *)mpToken) + 1; };
-    inline long *   GetTokenAsLong(void) { return mpToken; };
+    inline int32_t *   GetTokenAsLong(void) { return mpToken; };
     inline int      GetTokenLength(void) { return mNumChars; };
 	inline int      GetNumLongs(void) { return mNumLongs; };
 	inline int		GetMaxChars(void) const { return mMaxChars; };
@@ -34,7 +34,7 @@ public:
 	static char		BackslashChar(const char*& pSrc);
 
 private:
-	long *      mpToken;         // pointer to token buffer, first byte is strlen(token)
+	int32_t *      mpToken;         // pointer to token buffer, first byte is strlen(token)
 	int         mFlags;          // flags set by ForthShell::ParseToken for ForthEngine::ProcessToken
 	int         mNumLongs;       // number of longwords for fast comparison algorithm
     int         mNumChars;

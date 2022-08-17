@@ -13,7 +13,7 @@
 #include "ForthVocabulary.h"
 #include "ForthExtension.h"
 
-ForthParseInfo::ForthParseInfo(long *pBuffer, int numLongs)
+ForthParseInfo::ForthParseInfo(int32_t *pBuffer, int numLongs)
 	: mpToken(pBuffer)
 	, mMaxChars((numLongs << 2) - 2)
 	, mFlags(0)

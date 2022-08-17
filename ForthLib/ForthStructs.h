@@ -70,10 +70,10 @@ enum eForthStructInitType
 typedef struct
 {
 	eForthStructInitType fieldType;
-	long offset;
-	long len;
-	long typeIndex;
-	long numElements;
+	int32_t offset;
+	int32_t len;
+	int32_t typeIndex;
+	int32_t numElements;
 } ForthFieldInitInfo;
 
 class ForthInterface
@@ -135,13 +135,13 @@ public:
     ForthStructVocabulary*  GetStructVocabulary( forthop op );
 	ForthStructVocabulary*	GetStructVocabulary( const char* pName );
 
-    void GetFieldInfo( long fieldType, long& fieldBytes, long& alignment );
+    void GetFieldInfo( int32_t fieldType, int32_t& fieldBytes, int32_t& alignment );
 
     ForthStructVocabulary*  GetNewestStruct( void );
     ForthClassVocabulary*   GetNewestClass( void );
     forthBaseType           GetBaseTypeFromName( const char* typeName );
     ForthNativeType*        GetNativeTypeFromName( const char* typeName );
-    long                    GetBaseTypeSizeFromName( const char* typeName );
+    int32_t                    GetBaseTypeSizeFromName( const char* typeName );
     forthop*                GetClassMethods();
 
     virtual const char* GetTypeName();
@@ -185,14 +185,14 @@ public:
     virtual const char* GetType( void );
 
     virtual void        PrintEntry(forthop*   pEntry);
-    static void         TypecodeToString( long typeCode, char* outBuff, size_t outBuffSize );
+    static void         TypecodeToString( int32_t typeCode, char* outBuff, size_t outBuffSize );
 
     // handle invocation of a struct op - define a local/global struct or struct array, or define a field
     virtual void	    DefineInstance( void );
 
 	virtual bool		IsStruct( void );
 
-    void                AddField( const char* pName, long fieldType, int numElements );
+    void                AddField( const char* pName, int32_t fieldType, int numElements );
     int                 GetAlignment( void );
     int                 GetSize( void );
     void                StartUnion( void );
@@ -200,7 +200,7 @@ public:
 
     inline ForthStructVocabulary* BaseVocabulary( void ) { return mpSearchNext; }
 
-    inline long         GetTypeIndex( void ) { return mTypeIndex; };
+    inline int32_t         GetTypeIndex( void ) { return mTypeIndex; };
 
     virtual void        EndDefinition();
 
@@ -238,13 +238,13 @@ public:
 	int 				FindMethod( const char* pName );
 	void				Implements( const char* pName );
 	void				EndImplements( void );
-	long				GetClassId( void )		{ return mTypeIndex; }
+	int32_t				GetClassId( void )		{ return mTypeIndex; }
 
-	ForthInterface*		GetInterface( long index );
+	ForthInterface*		GetInterface( int32_t index );
     forthop*            GetMethods();
-    long                FindInterfaceIndex( long classId );
+    int32_t                FindInterfaceIndex( int32_t classId );
 	virtual bool		IsClass( void );
-	long				GetNumInterfaces( void );
+	int32_t				GetNumInterfaces( void );
     virtual void        Extends( ForthClassVocabulary *pParentClass );
     ForthClassObject*   GetClassObject(void);
     void                FixClassObjectMethods(void);
@@ -255,7 +255,7 @@ public:
     CustomObjectReader  GetCustomObjectReader();
 
 protected:
-    long                        mCurrentInterface;
+    int32_t                        mCurrentInterface;
 	ForthClassVocabulary*       mpParentClass;
 	std::vector<ForthInterface *>	mInterfaces;
     ForthClassObject*           mpClassObject;
@@ -268,14 +268,14 @@ class ForthNativeType
 public:
     ForthNativeType( const char* pName, int numBytes, forthBaseType nativeType );
     virtual ~ForthNativeType();
-    virtual void DefineInstance( ForthEngine *pEngine, void *pInitialVal, long flags=0 );
+    virtual void DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_t flags=0 );
 
-    inline long GetGlobalOp( void ) { return mBaseType + gCompiledOps[OP_DO_BYTE]; };
-    inline long GetGlobalArrayOp( void ) { return mBaseType + gCompiledOps[OP_DO_BYTE_ARRAY]; };
-    inline long GetLocalOp( void ) { return mBaseType + kOpLocalByte; };
-    inline long GetFieldOp( void ) { return mBaseType + kOpFieldByte; };
-    inline long GetAlignment( void ) { return (mNumBytes > 4) ? 4 : mNumBytes; };
-    inline long GetSize( void ) { return mNumBytes; };
+    inline int32_t GetGlobalOp( void ) { return mBaseType + gCompiledOps[OP_DO_BYTE]; };
+    inline int32_t GetGlobalArrayOp( void ) { return mBaseType + gCompiledOps[OP_DO_BYTE_ARRAY]; };
+    inline int32_t GetLocalOp( void ) { return mBaseType + kOpLocalByte; };
+    inline int32_t GetFieldOp( void ) { return mBaseType + kOpFieldByte; };
+    inline int32_t GetAlignment( void ) { return (mNumBytes > 4) ? 4 : mNumBytes; };
+    inline int32_t GetSize( void ) { return mNumBytes; };
     inline const char* GetName( void ) { return mpName; };
     inline forthBaseType GetBaseType( void ) { return mBaseType; };
 

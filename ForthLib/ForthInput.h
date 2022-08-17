@@ -54,7 +54,7 @@ public:
     
     virtual int     GetSourceID() = 0;		// for the 'source' ansi forth op
     virtual void    SeekToLineEnd();
-    virtual long    GetBlockNumber();
+    virtual int32_t    GetBlockNumber();
 
     virtual cell*   GetInputState() = 0;
     virtual bool    SetInputState(cell* pState) = 0;
@@ -108,7 +108,7 @@ protected:
     FILE            *mpInFile;
     char*           mpName;
     int             mLineNumber;
-    unsigned int    mLineStartOffset;
+    uint32_t    mLineStartOffset;
     cell            mState[8];
 };
 
@@ -187,7 +187,7 @@ protected:
 class ForthBlockInputStream : public ForthInputStream
 {
 public:
-    ForthBlockInputStream(ForthBlockFileManager* pManager, unsigned int firstBlock, unsigned int lastBlock);
+    ForthBlockInputStream(ForthBlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock);
     virtual ~ForthBlockInputStream();
 
     virtual int     GetSourceID();
@@ -196,7 +196,7 @@ public:
 	virtual const char* GetType( void );
  
     virtual void    SeekToLineEnd();
-    virtual long    GetBlockNumber();
+    virtual int32_t    GetBlockNumber();
 
     virtual cell*   GetInputState();
     virtual bool    SetInputState(cell* pState);
@@ -208,8 +208,8 @@ protected:
     bool            ReadBlock();
 
     ForthBlockFileManager* mpManager;
-    unsigned int    mCurrentBlock;
-    unsigned int    mLastBlock;
+    uint32_t    mCurrentBlock;
+    uint32_t    mLastBlock;
     char			*mpDataBuffer;
     cell            mState[8];
 };
@@ -246,7 +246,7 @@ protected:
 	void			ResetStrings();
 	inline bool		StackEmpty() { return mpStackCursor == mpStackTop; }
 
-	unsigned int		mStackSize;
+	uint32_t		mStackSize;
 	char*				mpStackBase;
 	char*				mpStackTop;
 	char*				mpStackCursor;

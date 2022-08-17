@@ -58,8 +58,8 @@ public:
 	void				Run();
 	void				Block();
 
-	inline ulong        GetWakeupTime() { return mWakeupTime; };
-	void				Sleep(ulong milliSeconds);
+	inline uint32_t        GetWakeupTime() { return mWakeupTime; };
+	void				Sleep(uint32_t milliSeconds);
 	void				Wake();
 	void				Stop();
 	void				Exit();
@@ -98,7 +98,7 @@ protected:
 	ForthThread	*mpParentThread;
     ForthCoreState      mCore;
     forthop             mOps[2];
-    ulong				mWakeupTime;
+    uint32_t				mWakeupTime;
 	eForthFiberRunState mRunState;
     ForthFiber*         mpJoinHead;
     ForthFiber*         mpNextJoiner;
@@ -113,7 +113,7 @@ public:
 	virtual ~ForthThread();
 
 	void                Reset(void);
-	long                Start();
+	int32_t                Start();
 	void                Exit();
 	ForthFiber*		    GetNextReadyFiber();
 	ForthFiber*		    GetNextSleepingFiber();
@@ -161,7 +161,7 @@ protected:
     pthread_cond_t		mExitSignal;
 #else
     HANDLE              mHandle;
-	ulong               mThreadId;
+	uint32_t               mThreadId;
     HANDLE              mExitSignal;
 #endif
 };

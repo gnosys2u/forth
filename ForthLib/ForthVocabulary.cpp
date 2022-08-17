@@ -234,7 +234,7 @@ forthop* ForthVocabulary::AddSymbol( const char *pSymName, forthop symValue)
     {
         *pVC++ = *pSymName++;
     }
-    // pad with 0s to make the total symbol entry a multiple of longwords long
+    // pad with 0s to make the total symbol entry a multiple of longwords int32_t
     nameLen++;
     while ( (nameLen & 3) != 0 )
     {
@@ -242,7 +242,7 @@ forthop* ForthVocabulary::AddSymbol( const char *pSymName, forthop symValue)
         nameLen++;
     }
 
-    ASSERT( (((ulong) pVC) & 3) == 0 );
+    ASSERT( (((uint32_t) pVC) & 3) == 0 );
     mNumSymbols++;
     
     return mpStorageBottom;
@@ -257,7 +257,7 @@ ForthVocabulary::CopyEntry(forthop* pEntry )
 
     numLongs = NextEntry( pEntry ) - pEntry;
     mpStorageBottom -= numLongs;
-    memcpy( mpStorageBottom, pEntry, numLongs * sizeof(long) );
+    memcpy( mpStorageBottom, pEntry, numLongs * sizeof(int32_t) );
     mNumSymbols++;
 #ifdef MAP_LOOKUP
     InitLookupMap();
@@ -303,7 +303,7 @@ ForthVocabulary::ForgetSymbol( const char *pSymName )
     forthop *pEntry, *pTmp, *pNewBottom;
     forthOpType opType;
     bool done;
-    long tmpSym[SYM_MAX_LONGS];
+    int32_t tmpSym[SYM_MAX_LONGS];
     ForthParseInfo parseInfo( tmpSym, SYM_MAX_LONGS );
 
     parseInfo.SetToken( pSymName );
@@ -323,7 +323,7 @@ ForthVocabulary::ForgetSymbol( const char *pSymName )
     {
 
         opType = GetEntryType( pEntry );
-		unsigned long opIndex = FORTH_OP_VALUE( *pEntry );
+		uint32_t opIndex = FORTH_OP_VALUE( *pEntry );
 		if ( opIndex < mpEngine->GetCoreState()->numBuiltinOps )
         {
             // sym is unknown, or in built-in ops - no way
@@ -388,7 +388,7 @@ ForthVocabulary::ForgetOp( forthop op )
     pNewBottom = NULL;
     // how many symbols are left after forget
     symbolsLeft = mNumSymbols;
-	unsigned long opIndex;
+	uint32_t opIndex;
 
     while ( symbolsLeft > 0 )
     {
@@ -479,7 +479,7 @@ ForthVocabulary::FindSymbol( const char *pSymName, ucell serial )
 forthop*
 ForthVocabulary::FindNextSymbol( const char *pSymName, forthop* pEntry, ucell serial )
 {
-    long tmpSym[SYM_MAX_LONGS];
+    int32_t tmpSym[SYM_MAX_LONGS];
     ForthParseInfo parseInfo( tmpSym, SYM_MAX_LONGS );
 
 #ifdef MAP_LOOKUP
@@ -686,7 +686,7 @@ ForthVocabulary::PrintEntry( forthop*   pEntry )
     char buff[BUFF_SIZE];
     ForthCoreState* pCore = mpEngine->GetCoreState();
     forthOpType entryType = GetEntryType( pEntry );
-    ulong entryValue = GetEntryValue( pEntry );
+    uint32_t entryValue = GetEntryValue( pEntry );
     sprintf( buff, "  %02x:%06x    ", entryType, entryValue );
     CONSOLE_STRING_OUT( buff );
 
@@ -703,7 +703,7 @@ ForthVocabulary::PrintEntry( forthop*   pEntry )
     case kOpNativeImmediate:
         immediateChar = 'I';
     case kOpNative:
-		if ( ((unsigned long) FORTH_OP_VALUE( *pEntry )) >= mpEngine->GetCoreState()->numBuiltinOps )
+		if ( ((uint32_t) FORTH_OP_VALUE( *pEntry )) >= mpEngine->GetCoreState()->numBuiltinOps )
 		{
 			showCodeAddress = true;
 		}
@@ -780,7 +780,7 @@ ForthVocabulary::Save( FILE* pOutFile )
 }
 
 bool
-ForthVocabulary::Restore( const char* pBuffer, unsigned int numBytes )
+ForthVocabulary::Restore( const char* pBuffer, uint32_t numBytes )
 {
     return true;
 }
@@ -824,7 +824,7 @@ ForthLocalVocabulary::GetFrameAllocOpPointer()
 }
 
 forthop*
-ForthLocalVocabulary::AddVariable( const char* pVarName, long fieldType, long varValue, int nCells)
+ForthLocalVocabulary::AddVariable( const char* pVarName, int32_t fieldType, int32_t varValue, int nCells)
 {
     forthop op = COMPILED_OP(fieldType, varValue);
     forthop* pEntry = AddSymbol(pVarName, op);
@@ -963,7 +963,7 @@ void ForthDLLVocabulary::UnloadDLL( void )
 #endif
 }
 
-forthop * ForthDLLVocabulary::AddEntry( const char *pFuncName, const char* pEntryName, long numArgs )
+forthop * ForthDLLVocabulary::AddEntry( const char *pFuncName, const char* pEntryName, int32_t numArgs )
 {
     forthop *pEntry = NULL;
 #if defined(WINDOWS_BUILD)
@@ -994,7 +994,7 @@ ForthDLLVocabulary::GetType( void )
 }
 
 void
-ForthDLLVocabulary::SetFlag( unsigned long flag )
+ForthDLLVocabulary::SetFlag( uint32_t flag )
 {
 	mDLLFlags |= flag;
 }
@@ -1127,7 +1127,7 @@ forthop* ForthVocabularyStack::FindSymbol( const char *pSymName, ForthVocabulary
 }
 
 // return pointer to symbol entry, NULL if not found, given its value
-forthop * ForthVocabularyStack::FindSymbolByValue( long val, ForthVocabulary** ppFoundVocab )
+forthop * ForthVocabularyStack::FindSymbolByValue( int32_t val, ForthVocabulary** ppFoundVocab )
 {
     forthop *pEntry = NULL;
 
@@ -1486,7 +1486,7 @@ namespace OVocabulary
 		GET_THIS(oVocabularyIterStruct, pIter);
 		ForthVocabulary* pVocab = pIter->vocabulary;
 		forthop* pEntry = NULL;
-		long val = SPOP;
+		int32_t val = SPOP;
 		if (pVocab != NULL)
 		{
 			pIter->cursor = pVocab->FindSymbolByValue(val);
@@ -1501,7 +1501,7 @@ namespace OVocabulary
 		GET_THIS(oVocabularyIterStruct, pIter);
 		ForthVocabulary* pVocab = pIter->vocabulary;
 		forthop* pEntry = NULL;
-		long val = SPOP;
+		int32_t val = SPOP;
 		if (pVocab != NULL)
 		{
 			pIter->cursor = pVocab->FindNextSymbolByValue(val, pEntry);

@@ -27,14 +27,14 @@
 #include "OSocket.h"
 
 #ifdef TRACK_OBJECT_ALLOCATIONS
-long gStatNews = 0;
-long gStatDeletes = 0;
-long gStatLinkNews = 0;
-long gStatLinkDeletes = 0;
-long gStatIterNews = 0;
-long gStatIterDeletes = 0;
-long gStatKeeps = 0;
-long gStatReleases = 0;
+int32_t gStatNews = 0;
+int32_t gStatDeletes = 0;
+int32_t gStatLinkNews = 0;
+int32_t gStatLinkDeletes = 0;
+int32_t gStatIterNews = 0;
+int32_t gStatIterDeletes = 0;
+int32_t gStatKeeps = 0;
+int32_t gStatReleases = 0;
 #endif
 
 // first time OString:printf fails due to overflow, it buffer is increased to this size
@@ -43,7 +43,7 @@ long gStatReleases = 0;
 #define OSTRING_PRINTF_LAST_OVERFLOW_SIZE 0x2000000
 
 extern "C" {
-	unsigned long SuperFastHash (const char * data, int len, unsigned long hash);
+	uint32_t SuperFastHash (const char * data, int len, uint32_t hash);
 	extern void unimplementedMethodOp( ForthCoreState *pCore );
 	extern void illegalMethodOp( ForthCoreState *pCore );
 	extern cell oStringFormatSub( ForthCoreState* pCore, char* pBuffer, int bufferSize );
@@ -98,7 +98,7 @@ namespace
     FORTHOP(objectNew)
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-        long nBytes = pClassVocab->GetSize();
+        int32_t nBytes = pClassVocab->GetSize();
 		MALLOCATE_OBJECT(oObjectStruct, pThis, pClassVocab);
         // clear the entire object area - this handles both its refcount and any object pointers it might contain
         memset(pThis, 0, nBytes);
@@ -171,7 +171,7 @@ namespace
 		// this is the big gaping hole - where should the pointer to the class vocabulary be stored?
 		// we could store it in the slot for method 0, but that would be kind of clunky - also,
 		// would slot 0 of non-primary interfaces also have to hold it?
-		// the class object is stored in the long before method 0
+		// the class object is stored in the int32_t before method 0
         ForthClassObject* pClassObject = GET_CLASS_OBJECT(GET_TP);
         PUSH_OBJECT(pClassObject);
 		METHOD_RETURN;
@@ -182,7 +182,7 @@ namespace
 		ForthObject thatVal;
 		POP_OBJECT(thatVal);
         ForthObject thisVal = (ForthObject)(GET_TP);
-        long result = 0;
+        int32_t result = 0;
 		if (thisVal != thatVal)
 		{
 			result = (thisVal > thatVal) ? 1 : -1;
@@ -211,7 +211,7 @@ namespace
 		else
 		{
 			ForthEngine *pEngine = ForthEngine::GetInstance();
-			ulong deleteOp = obj->pMethods[kMethodDelete];
+			uint32_t deleteOp = obj->pMethods[kMethodDelete];
 			pEngine->ExecuteOp(pCore, deleteOp);
 			// we are effectively chaining to the delete op, its method return will pop TPM & TPD for us
 		}
@@ -460,7 +460,7 @@ void ForthForgettableGlobalObject::ForgetCleanup( void* pForgetLimit, forthop op
 	// first longword is OP_DO_OBJECT or OP_DO_OBJECT_ARRAY, after that are object elements
 	if ((ucell)mpOpAddress > (ucell)pForgetLimit)
 	{
-		ForthObject* pObject = (ForthObject *)((long *)mpOpAddress + 1);
+		ForthObject* pObject = (ForthObject *)((int32_t *)mpOpAddress + 1);
 		ForthCoreState* pCore = ForthEngine::GetInstance()->GetCoreState();
 		for (int i = 0; i < mNumElements; i++)
 		{

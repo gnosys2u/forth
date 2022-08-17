@@ -128,7 +128,7 @@ void ForthStructCodeGenerator::HandlePreceedingVarop()
     else
     {
         // we are interpreting, clear any existing varAction, but compile an op to set it after first op
-        ulong varMode = GET_VAR_OPERATION;
+        uint32_t varMode = GET_VAR_OPERATION;
         if ( varMode )
         {
             CLEAR_VAR_OPERATION;
@@ -294,10 +294,10 @@ bool ForthStructCodeGenerator::HandleFirst()
 
     bool isPtr = CODE_IS_PTR( mTypeCode );
     bool isArray = CODE_IS_ARRAY( mTypeCode );
-    long baseType = CODE_TO_BASE_TYPE( mTypeCode );
+    int32_t baseType = CODE_TO_BASE_TYPE( mTypeCode );
     bool isObject = (baseType == kBaseTypeObject);
     bool isMethod = CODE_IS_METHOD( mTypeCode );
-    //long compileVarop = 0;
+    //int32_t compileVarop = 0;
 
     if (!explicitTOSCast)
     {
@@ -326,7 +326,7 @@ bool ForthStructCodeGenerator::HandleFirst()
 			{
 				// this method must return either a struct or an object
                 COMPILE_OP("method with this", kOpMethodWithThis, pEntry[0]);
-                long typeIndex = isObject ? CODE_TO_CONTAINED_CLASS_INDEX(mTypeCode) : CODE_TO_STRUCT_INDEX(mTypeCode);
+                int32_t typeIndex = isObject ? CODE_TO_CONTAINED_CLASS_INDEX(mTypeCode) : CODE_TO_STRUCT_INDEX(mTypeCode);
                 ForthTypeInfo* pStruct = mpTypeManager->GetTypeInfo(typeIndex);
 				if ( pStruct == NULL )
 				{
@@ -421,8 +421,8 @@ bool ForthStructCodeGenerator::HandleFirst()
 
     if (isObject)
     {
-        long containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(mTypeCode);
-        long containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(mTypeCode);
+        int32_t containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(mTypeCode);
+        int32_t containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(mTypeCode);
 
         if (containerTypeIndex == kBCIInvalid)
         {
@@ -516,10 +516,10 @@ bool ForthStructCodeGenerator::HandleMiddle()
     bool isNative = CODE_IS_NATIVE( mTypeCode );
     bool isPtr = CODE_IS_PTR( mTypeCode );
     bool isArray = CODE_IS_ARRAY( mTypeCode );
-    long baseType = CODE_TO_BASE_TYPE( mTypeCode );
+    int32_t baseType = CODE_TO_BASE_TYPE( mTypeCode );
     bool isObject = (baseType == kBaseTypeObject);
     bool isMethod = CODE_IS_METHOD( mTypeCode );
-    long opType;
+    int32_t opType;
     mOffset += pEntry[0];
     SPEW_STRUCTS( " offset %d", mOffset );
     if ( isArray )
@@ -622,8 +622,8 @@ bool ForthStructCodeGenerator::HandleMiddle()
     }
     if (bSetStructVocab)
     {
-        long containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(mTypeCode);
-        long containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(mTypeCode);
+        int32_t containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(mTypeCode);
+        int32_t containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(mTypeCode);
 
         if (containerTypeIndex == kBCIInvalid)
         {
@@ -718,10 +718,10 @@ bool ForthStructCodeGenerator::HandleLast()
     bool isNative = CODE_IS_NATIVE(mTypeCode);
     bool isPtr = CODE_IS_PTR(mTypeCode);
     bool isArray = CODE_IS_ARRAY(mTypeCode);
-    long baseType = CODE_TO_BASE_TYPE(mTypeCode);
+    int32_t baseType = CODE_TO_BASE_TYPE(mTypeCode);
     bool isObject = (baseType == kBaseTypeObject);
     bool isMethod = CODE_IS_METHOD(mTypeCode);
-    long opType;
+    int32_t opType;
     mOffset += pEntry[0];
     SPEW_STRUCTS(" offset %d", mOffset);
 
@@ -777,7 +777,7 @@ bool ForthStructCodeGenerator::HandleLast()
         //  back in this.pMethods after a methodWithSuper methods opcode
         // for delete, which is method 0, compile an rdrop instead, since we don't
         //   want to save the old pMethods into memory which we have just freed
-        long unSuperOp = gCompiledOps[(mOffset == 0) ? OP_RDROP : OP_UNSUPER];
+        int32_t unSuperOp = gCompiledOps[(mOffset == 0) ? OP_RDROP : OP_UNSUPER];
         SPEW_STRUCTS(" unsuperOp 0x%x", unSuperOp);
         *mpDst++ = unSuperOp;
     }

@@ -374,7 +374,7 @@ ForthInputStream::SeekToLineEnd()
     mReadOffset = mWriteOffset;
 }
 
-long
+int32_t
 ForthInputStream::GetBlockNumber()
 {
     return 0;
@@ -572,7 +572,7 @@ ForthFileInputStream::SetInputState( cell* pState)
         // TODO: report restore-input error - wrong number of parameters
         return false;
     }
-    if ( pState[1] != (long)this )
+    if ( pState[1] != (int32_t)this )
     {
         // TODO: report restore-input error - input object mismatch
         return false;
@@ -685,7 +685,7 @@ ForthConsoleInputStream::SetInputState(cell* pState)
         // TODO: report restore-input error - wrong number of parameters
         return false;
     }
-    if ( pState[1] != (long)this )
+    if ( pState[1] != (int32_t)this )
     {
         // TODO: report restore-input error - input object mismatch
         return false;
@@ -822,7 +822,7 @@ ForthBufferInputStream::SetInputState(cell* pState)
         // TODO: report restore-input error - wrong number of parameters
         return false;
     }
-    if ( pState[1] != (long)this )
+    if ( pState[1] != (int32_t)this )
     {
         // TODO: report restore-input error - input object mismatch
         return false;
@@ -847,7 +847,7 @@ ForthBufferInputStream::SetInputState(cell* pState)
 //                     ForthBlockInputStream
 // 
 
-ForthBlockInputStream::ForthBlockInputStream(ForthBlockFileManager* pManager, unsigned int firstBlock, unsigned int lastBlock)
+ForthBlockInputStream::ForthBlockInputStream(ForthBlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock)
 :   ForthInputStream( BYTES_PER_BLOCK + 1 )
 ,   mpManager(pManager)
 ,   mCurrentBlock( firstBlock )
@@ -940,7 +940,7 @@ ForthBlockInputStream::SetInputState(cell* pState)
         // TODO: report restore-input error - wrong number of parameters
         return false;
     }
-    if ( pState[1] != (long)this )
+    if ( pState[1] != (int32_t)this )
     {
         // TODO: report restore-input error - input object mismatch
         return false;
@@ -954,7 +954,7 @@ ForthBlockInputStream::SetInputState(cell* pState)
     return true;
 }
 
-long
+int32_t
 ForthBlockInputStream::GetBlockNumber()
 {
     return mCurrentBlock;
@@ -1060,7 +1060,7 @@ ForthExpressionInputStream::ProcessExpression(ForthInputStream* pInputStream)
 	char c;
 	char previousChar = '\0';
 	bool danglingPeriod = false;	 // to allow ")." at end of line to force continuation to next line
-	ForthParseInfo parseInfo((long *)mpBufferBase, mBufferLen);
+	ForthParseInfo parseInfo((int32_t *)mpBufferBase, mBufferLen);
 	ForthEngine* pEngine = ForthEngine::GetInstance();
 
 	bool done = false;

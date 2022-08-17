@@ -23,15 +23,15 @@ namespace ODeque
     struct oDequeStruct
     {
         forthop*        pMethods;
-        ulong			refCount;
+        uint32_t			refCount;
         oDeque          *que;
     };
 
     /*
     struct oDequeIterStruct
     {
-        long*               pMethods;
-        ulong				refCount;
+        int32_t*               pMethods;
+        uint32_t				refCount;
         ForthObject			parent;
         oDeque::iterator	*cursor;
     };
@@ -132,7 +132,7 @@ namespace ODeque
     FORTHOP(oDequeCountMethod)
     {
         GET_THIS(oDequeStruct, pDeque);
-        SPUSH((long)(pDeque->que->size()));
+        SPUSH((int32_t)(pDeque->que->size()));
         METHOD_RETURN;
     }
 

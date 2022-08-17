@@ -34,7 +34,7 @@ ForthOpcodeCompiler::ForthOpcodeCompiler(ForthMemorySection*	pDictionarySection)
 : mpDictionarySection( pDictionarySection )
 , mCompileComboOpFlags(ENABLED_COMBO_OPS)
 {
-	for ( unsigned int i = 0; i < MAX_PEEPHOLE_PTRS; ++i )
+	for ( uint32_t i = 0; i < MAX_PEEPHOLE_PTRS; ++i )
 	{
 		mPeephole[i] = NULL;
 	}
@@ -229,7 +229,7 @@ void ForthOpcodeCompiler::UncompileLastOpcode()
 	}
 }
 
-unsigned int ForthOpcodeCompiler::PeepholeValidCount()
+uint32_t ForthOpcodeCompiler::PeepholeValidCount()
 {
 	return (mPeepholeValidCount > MAX_PEEPHOLE_PTRS) ? MAX_PEEPHOLE_PTRS : mPeepholeValidCount;
 }

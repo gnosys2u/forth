@@ -27,8 +27,8 @@ protected:
 	bool IsLast();
 	void HandlePreceedingVarop();
 	
-	long mTOSTypeCode;
-	long mTypeCode;
+	int32_t mTOSTypeCode;
+	int32_t mTypeCode;
 
 	ForthParseInfo* mpParseInfo;
     ForthStructVocabulary* mpStructVocab;
@@ -41,8 +41,8 @@ protected:
 	int mBufferBytes;
 	char* mpToken;
 	char* mpNextToken;
-	ulong mCompileVarop;
-	ulong mOffset;
+	uint32_t mCompileVarop;
+	uint32_t mOffset;
 	char mErrorMsg[ 512 ];
     bool mUsesSuper;
 };

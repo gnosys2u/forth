@@ -30,14 +30,14 @@ namespace OMap
 	struct oMapStruct
 	{
         forthop*        pMethods;
-        ulong           refCount;
+        uint32_t           refCount;
 		oMap*	        elements;
 	};
 
 	struct oMapIterStruct
 	{
         forthop*            pMethods;
-        ulong				refCount;
+        uint32_t				refCount;
 		ForthObject			parent;
 		oMap::iterator*		cursor;
 	};
@@ -250,7 +250,7 @@ namespace OMap
     FORTHOP(oMapFindMethod)
     {
         GET_THIS(oMapStruct, pMap);
-        long found = 0;
+        int32_t found = 0;
 
         oMap& a = *(pMap->elements);
         ForthObject key;
@@ -298,7 +298,7 @@ namespace OMap
 	FORTHOP(oMapGrabMethod)
 	{
 		GET_THIS(oMapStruct, pMap);
-        long found = 0;
+        int32_t found = 0;
 		oMap& a = *(pMap->elements);
         ForthObject key;
         POP_OBJECT(key);
@@ -360,7 +360,7 @@ namespace OMap
 	{
 		GET_THIS(oMapStruct, pMap);
         ForthObject retVal = nullptr;
-		long found = 0;
+		int32_t found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oMap::iterator iter;
@@ -500,7 +500,7 @@ namespace OMap
     {
         GET_THIS(oMapIterStruct, pIter);
         oMapStruct* pMap = reinterpret_cast<oMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -509,7 +509,7 @@ namespace OMap
     {
         GET_THIS(oMapIterStruct, pIter);
         oMapStruct* pMap = reinterpret_cast<oMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -633,18 +633,18 @@ namespace OMap
 	//                 IntMap
 	//
 
-	typedef std::map<long, ForthObject> oIntMap;
+	typedef std::map<int32_t, ForthObject> oIntMap;
 	struct oIntMapStruct
 	{
         forthop*        pMethods;
-        ulong           refCount;
+        uint32_t           refCount;
 		oIntMap*		elements;
 	};
 
 	struct oIntMapIterStruct
 	{
         forthop*            pMethods;
-        ulong				refCount;
+        uint32_t				refCount;
 		ForthObject			parent;
 		oIntMap::iterator	*cursor;
 	};
@@ -817,10 +817,10 @@ namespace OMap
     FORTHOP(oIntMapFindMethod)
     {
         GET_THIS(oIntMapStruct, pMap);
-        long found = 0;
+        int32_t found = 0;
 
         oIntMap& a = *(pMap->elements);
-        long key = SPOP;
+        int32_t key = SPOP;
         oIntMap::iterator iter = a.find(key);
         if (iter != a.end())
         {
@@ -863,8 +863,8 @@ namespace OMap
 	{
 		GET_THIS(oIntMapStruct, pMap);
 		oIntMap& a = *(pMap->elements);
-		long key = SPOP;
-        long found = 0;
+		int32_t key = SPOP;
+        int32_t found = 0;
 
         oIntMap::iterator iter = a.find(key);
 		if (iter != a.end())
@@ -881,7 +881,7 @@ namespace OMap
     FORTHOP(oIntMapSetMethod)
 	{
 		GET_THIS(oIntMapStruct, pMap);
-        long key = SPOP;
+        int32_t key = SPOP;
         ForthObject newObj;
         POP_OBJECT(newObj);
         setIntMap(pMap, key, newObj, pCore);
@@ -904,7 +904,7 @@ namespace OMap
         int n = SPOP;
         for (int i = 0; i < n; i++)
         {
-            long key = SPOP;
+            int32_t key = SPOP;
             ForthObject newObj;
             POP_OBJECT(newObj);
             if (newObj != nullptr)
@@ -919,7 +919,7 @@ namespace OMap
     FORTHOP(oIntMapFindValueMethod)
 	{
 		GET_THIS(oIntMapStruct, pMap);
-		long found = 0;
+		int32_t found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oIntMap::iterator iter;
@@ -942,7 +942,7 @@ namespace OMap
 	{
 		GET_THIS(oIntMapStruct, pMap);
 		oIntMap& a = *(pMap->elements);
-		long key = SPOP;
+		int32_t key = SPOP;
 		oIntMap::iterator iter = a.find(key);
 		if (iter != a.end())
 		{
@@ -958,7 +958,7 @@ namespace OMap
 		ForthEngine *pEngine = ForthEngine::GetInstance();
 		GET_THIS(oIntMapStruct, pMap);
 		oIntMap& a = *(pMap->elements);
-		long key = SPOP;
+		int32_t key = SPOP;
 		oIntMap::iterator iter = a.find(key);
 		if (iter != a.end())
 		{
@@ -1052,7 +1052,7 @@ namespace OMap
     {
         GET_THIS(oIntMapIterStruct, pIter);
         oIntMapStruct* pMap = reinterpret_cast<oIntMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -1061,7 +1061,7 @@ namespace OMap
     {
         GET_THIS(oIntMapIterStruct, pIter);
         oIntMapStruct* pMap = reinterpret_cast<oIntMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -1187,14 +1187,14 @@ namespace OMap
 	struct oFloatMapStruct
 	{
         forthop*        pMethods;
-        ulong           refCount;
+        uint32_t           refCount;
 		oFloatMap*		elements;
 	};
 
 	struct oFloatMapIterStruct
 	{
         forthop*            pMethods;
-        ulong				refCount;
+        uint32_t				refCount;
 		ForthObject			parent;
 		oFloatMap::iterator	*cursor;
 	};
@@ -1349,7 +1349,7 @@ namespace OMap
     FORTHOP(oFloatMapFindMethod)
     {
         GET_THIS(oFloatMapStruct, pMap);
-        long found = 0;
+        int32_t found = 0;
 
         oFloatMap& a = *(pMap->elements);
         float key = FPOP;
@@ -1373,7 +1373,7 @@ namespace OMap
 		GET_THIS(oFloatMapStruct, pMap);
 		oFloatMap& a = *(pMap->elements);
 		float key = FPOP;
-        long found = 0;
+        int32_t found = 0;
 
         oFloatMap::iterator iter = a.find(key);
         if (iter != a.end())
@@ -1428,7 +1428,7 @@ namespace OMap
 	FORTHOP(oFloatMapFindValueMethod)
 	{
 		GET_THIS(oFloatMapStruct, pMap);
-		long found = 0;
+		int32_t found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oFloatMap::iterator iter;
@@ -1682,7 +1682,7 @@ namespace OMap
     FORTHOP(oLongMapFindMethod)
     {
         GET_THIS(oLongMapStruct, pMap);
-        long found = 0;
+        int32_t found = 0;
 
         oLongMap& a = *(pMap->elements);
         stackInt64 key;
@@ -1731,7 +1731,7 @@ namespace OMap
 		oLongMap& a = *(pMap->elements);
 		stackInt64 key;
 		LPOP(key);
-        long found = 0;
+        int32_t found = 0;
 
         oLongMap::iterator iter = a.find(key.s64);
         if (iter != a.end())
@@ -1789,7 +1789,7 @@ namespace OMap
 	{
 		GET_THIS(oLongMapStruct, pMap);
 		stackInt64 retVal;
-		long found = 0;
+		int32_t found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oLongMap::iterator iter;
@@ -1925,7 +1925,7 @@ namespace OMap
     {
         GET_THIS(oLongMapIterStruct, pIter);
         oLongMapStruct* pMap = reinterpret_cast<oLongMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -1934,7 +1934,7 @@ namespace OMap
     {
         GET_THIS(oLongMapIterStruct, pIter);
         oLongMapStruct* pMap = reinterpret_cast<oLongMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -2062,14 +2062,14 @@ namespace OMap
 	struct oDoubleMapStruct
 	{
         forthop*        pMethods;
-        ulong           refCount;
+        uint32_t           refCount;
 		oDoubleMap*	    elements;
 	};
 
 	struct oDoubleMapIterStruct
 	{
         forthop*            pMethods;
-        ulong				refCount;
+        uint32_t				refCount;
 		ForthObject			parent;
 		oDoubleMap::iterator*	cursor;
 	};
@@ -2243,7 +2243,7 @@ namespace OMap
     FORTHOP(oDoubleMapFindMethod)
     {
         GET_THIS(oDoubleMapStruct, pMap);
-        long found = 0;
+        int32_t found = 0;
 
         oDoubleMap& a = *(pMap->elements);
         double key = DPOP;
@@ -2292,7 +2292,7 @@ namespace OMap
 		GET_THIS(oDoubleMapStruct, pMap);
 		oDoubleMap& a = *(pMap->elements);
 		double key = DPOP;
-        long found = 0;
+        int32_t found = 0;
 
         oDoubleMap::iterator iter = a.find(key);
         if (iter != a.end())
@@ -2347,7 +2347,7 @@ namespace OMap
     FORTHOP(oDoubleMapFindValueMethod)
 	{
 		GET_THIS(oDoubleMapStruct, pMap);
-		long found = 0;
+		int32_t found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oDoubleMap::iterator iter;
@@ -2480,7 +2480,7 @@ namespace OMap
     {
         GET_THIS(oDoubleMapIterStruct, pIter);
         oDoubleMapStruct* pMap = reinterpret_cast<oDoubleMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -2489,7 +2489,7 @@ namespace OMap
     {
         GET_THIS(oDoubleMapIterStruct, pIter);
         oDoubleMapStruct* pMap = reinterpret_cast<oDoubleMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -2615,14 +2615,14 @@ namespace OMap
 	struct oStringIntMapStruct
 	{
         forthop*        pMethods;
-        ulong           refCount;
+        uint32_t           refCount;
 		oStringIntMap*	elements;
 	};
 
 	struct oStringIntMapIterStruct
 	{
         forthop*            pMethods;
-        ulong				refCount;
+        uint32_t				refCount;
 		ForthObject			parent;
 		oStringIntMap::iterator	*cursor;
 	};
@@ -2756,7 +2756,7 @@ namespace OMap
     FORTHOP(oStringIntMapFindMethod)
     {
         GET_THIS(oStringIntMapStruct, pMap);
-        long found = 0;
+        int32_t found = 0;
 
         oStringIntMap& a = *(pMap->elements);
         std::string key;
@@ -2800,7 +2800,7 @@ namespace OMap
 		oStringIntMap& a = *(pMap->elements);
 		std::string key;
 		key = (const char*)(SPOP);
-        long found = 0;
+        int32_t found = 0;
 
         oStringIntMap::iterator iter = a.find(key);
         if (iter != a.end())
@@ -2845,7 +2845,7 @@ namespace OMap
     FORTHOP(oStringIntMapFindValueMethod)
 	{
 		GET_THIS(oStringIntMapStruct, pMap);
-		long found = 0;
+		int32_t found = 0;
 		int soughtVal = SPOP;
 
 		oStringIntMap::iterator iter;
@@ -2958,7 +2958,7 @@ namespace OMap
     {
         GET_THIS(oStringIntMapIterStruct, pIter);
         oStringIntMapStruct* pMap = reinterpret_cast<oStringIntMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -2967,7 +2967,7 @@ namespace OMap
     {
         GET_THIS(oStringIntMapIterStruct, pIter);
         oStringIntMapStruct* pMap = reinterpret_cast<oStringIntMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -3189,14 +3189,14 @@ namespace OMap
 	struct oStringLongMapStruct
 	{
         forthop*        pMethods;
-        ulong           refCount;
+        uint32_t           refCount;
 		oStringLongMap*	elements;
 	};
 
 	struct oStringLongMapIterStruct
 	{
         forthop*            pMethods;
-        ulong				refCount;
+        uint32_t				refCount;
 		ForthObject			parent;
 		oStringLongMap::iterator	*cursor;
 	};
@@ -3327,7 +3327,7 @@ namespace OMap
     FORTHOP(oStringLongMapFindMethod)
     {
         GET_THIS(oStringLongMapStruct, pMap);
-        long found = 0;
+        int32_t found = 0;
 
         oStringLongMap& a = *(pMap->elements);
         std::string key;
@@ -3372,7 +3372,7 @@ namespace OMap
 		std::string key;
 		key = (const char*)(SPOP);
 		stackInt64 val;
-        long found = 0;
+        int32_t found = 0;
 
         oStringLongMap::iterator iter = a.find(key);
         if (iter != a.end())
@@ -3420,7 +3420,7 @@ namespace OMap
     FORTHOP(oStringLongMapFindValueMethod)
 	{
 		GET_THIS(oStringLongMapStruct, pMap);
-		long found = 0;
+		int32_t found = 0;
 		stackInt64 soughtVal;
 		LPOP(soughtVal);
 
@@ -3739,7 +3739,7 @@ namespace OMap
 	};
 
 
-    // TODO: string-double map iter, it can just be string-long map iter, but parent member should be type kBCIStringDoubleMap
+    // TODO: string-double map iter, it can just be string-int32_t map iter, but parent member should be type kBCIStringDoubleMap
 
 	void AddClasses(ForthEngine* pEngine)
 	{

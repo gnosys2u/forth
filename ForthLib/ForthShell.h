@@ -130,7 +130,7 @@ public:
     // returns true IFF file opened successfully
     virtual bool            PushInputFile( const char *pInFileName );
     virtual void            PushInputBuffer( const char *pDataBuffer, int dataBufferLen );
-    virtual void            PushInputBlocks(ForthBlockFileManager*  pManager, unsigned int firstBlock, unsigned int lastBlock);
+    virtual void            PushInputBlocks(ForthBlockFileManager*  pManager, uint32_t firstBlock, uint32_t lastBlock);
     virtual bool            PopInputStream( void );
     // NOTE: the input stream passed to Run will be deleted by ForthShell
 	virtual int             Run(ForthInputStream *pStream);
@@ -154,7 +154,7 @@ public:
     inline const char*      GetDLLDir() const { return mDLLDir; }
     inline const char*      GetBlockfilePath() const { return mBlockfilePath; }
 
-    bool                    CheckSyntaxError(const char *pString, eShellTag tag, long desiredTag);
+    bool                    CheckSyntaxError(const char *pString, eShellTag tag, int32_t desiredTag);
 	void					StartDefinition(const char*pDefinedSymbol, const char* pFourCharCode);
 	bool					CheckDefinitionEnd( const char* pDisplayName, const char* pFourCharCode );
 
@@ -187,7 +187,7 @@ public:
     virtual void            PoundElse();
     virtual void            PoundEndif();
 
-	static long				FourCharToLong(const char* pFourCC);
+	static int32_t				FourCharToLong(const char* pFourCC);
 protected:
 
     void                    SetCommandLine(int argc, const char ** argv);
@@ -217,7 +217,7 @@ protected:
     ForthFileInterface      mFileInterface;
 	ForthExpressionInputStream* mExpressionInputStream;
 
-    long                    mTokenBuffer[ TOKEN_BUFF_LONGS ];
+    int32_t                    mTokenBuffer[ TOKEN_BUFF_LONGS ];
 
     int                     mNumArgs;
     char **                 mpArgs;

@@ -92,7 +92,7 @@ int ForthClientMainLoop( ForthEngine *pEngine, const char* pServerStr, unsigned 
 {
     char workingDirPath[MAX_PATH + 1];
     char errorMessage[128];
-	unsigned long ipAddress = 0;
+	uint32_t ipAddress = 0;
 #if defined(WINDOWS_BUILD)
     startupSockets();
 #else
@@ -129,7 +129,7 @@ int ForthClientMainLoop( ForthEngine *pEngine, const char* pServerStr, unsigned 
         if (ptr->ai_family == AF_INET)
         {
             struct sockaddr_in *sockaddr_ipv4 = (struct sockaddr_in *) ptr->ai_addr;
-            ipAddress = *( (unsigned long *) &(sockaddr_ipv4->sin_addr));
+            ipAddress = *( (uint32_t *) &(sockaddr_ipv4->sin_addr));
             //WSAStringToAddress(sockaddr_ipv4->sin_addr, AF_INET, protoInfo, addrOut, addrOutLen);
             break;
         }
@@ -142,10 +142,10 @@ int ForthClientMainLoop( ForthEngine *pEngine, const char* pServerStr, unsigned 
         return -1;
     }
 
-    //*((unsigned long *)(host->h_addr_list[0]));
+    //*((uint32_t *)(host->h_addr_list[0]));
 #else
 	struct hostent *host = gethostbyname(pServerStr);
-	ipAddress = *((unsigned long *)(host->h_addr_list[0]));
+	ipAddress = *((uint32_t *)(host->h_addr_list[0]));
 #endif
 	printf( "Connecting to host %s (%d) on port %d\n", pServerStr, ipAddress, portNum );
 

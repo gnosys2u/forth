@@ -151,7 +151,7 @@ void StreamToOutputPane( CRichEditCtrl* pOutEdit, const char* pMessage )
 	// Grab the old selection and cursor placement.
 	CHARRANGE oldSelection;
 	pOutEdit->GetSel( oldSelection );
-	const long ixStart = pOutEdit->GetWindowTextLength();
+	const int32_t ixStart = pOutEdit->GetWindowTextLength();
 	const int oldLine = pOutEdit->LineFromChar( oldSelection.cpMax );
 	const int numLines = pOutEdit->GetLineCount();
 
@@ -665,7 +665,7 @@ eForthResult CForthGuiDlg::ProcessLine( char* pLine )
 FORTHOP( makeDialogOp )
 {
     ForthBlankDlg* pDialog = new ForthBlankDlg;
-    SPUSH( ((long) pDialog) );
+    SPUSH( ((int32_t) pDialog) );
 }
 
 baseDictionaryEntry dialogDict[] =

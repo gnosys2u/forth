@@ -210,8 +210,8 @@ struct oArrayIterStruct
 
 struct oString
 {
-	long		maxLen;
-	long		curLen;
+	int32_t		maxLen;
+	int32_t		curLen;
 	char		data[DEFAULT_STRING_DATA_BYTES];
 };
 

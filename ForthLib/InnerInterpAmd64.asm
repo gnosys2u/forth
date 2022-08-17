@@ -4,7 +4,7 @@ BITS 64
 
 %include "core64.inc"
 
-;
+; Windows:
 ; first four non-FP args are in rcx, rdx, r8, r9, rest are on stack
 ; floating point args are passed in xmm0 - xmm3
 ;
@@ -18,6 +18,22 @@ BITS 64
 ; 
 ; rax, rcx, rdx, r8, r9, r10, r11, xmm0-xmm5 are volatile and can be stomped by function calls.
 ; rbx, rbp, rdi, rsi, rsp, r12, r13, r14, r15, xmm6-xmm15 are non-volatile and must be saved/restored.
+;
+; Linux:
+; first 6 non-FP args are in rdi, rsi, rdx, rcx, r8, r9, rest are on stack
+; floating point args are passed in xmm0 - xmm3
+;
+; func1(int a, int b, int c, int d, int e);
+; a in RDI, b in RSI, c in RDX, d in RCX, e in R8
+;
+; func2(int a, double b, int c, float d);
+; a in RDI, b in XMM0, c in RSI, d in XMM1
+;
+; return value in rax
+; 
+; rax, rcx, rdx, r8, r9, r10, r11, r12, r13, r14, r15 are volatile and can be stomped by function calls.
+; rbx, rbp, rdi, rsi, rsp, r12, r13, r14, r15, xmm6-xmm15 are non-volatile and must be saved/restored.
+;
 ;
 ; amd64 register usage:
 ;	rsi			rip     IP
@@ -200,9 +216,15 @@ extOpType1:
 ; extern void InitAsmTables( ForthCoreState *pCore );
 entry InitAsmTables
 
-	; rcx -> ForthCore struct
+	; rcx -> ForthCore struct (rdi in Linux)
 	
 	; setup normal (non-debug) inner interpreter re-entry point
+%ifdef LINUX
+	push	rcx
+	push	rdx
+	push	r8
+	mov	rcx, rdi
+%endif
 	mov	rdx, interpLoopDebug
 	mov	[rcx + FCore.innerLoop], rdx
 	mov	rdx, interpLoopExecuteEntry
@@ -218,6 +240,11 @@ entry InitAsmTables
     add rax, 8
     dec rcx
     jnz .initAsmTables1
+%ifdef LINUX
+	pop	r8
+	pop	rdx
+	pop	rcx
+%endif
 	ret
 
 ;-----------------------------------------------
@@ -226,8 +253,8 @@ entry InitAsmTables
 ;
 ; extern eForthResult InterpretOneOpFast( ForthCoreState *pCore, forthop op );
 entry InterpretOneOpFast
-    ; rcx is pCore
-    ; rdx is op
+    ; rcx is pCore	(rdi in Linux)
+    ; rdx is op		(rsi in Linux)
     
 	push rbx
     push rdi
@@ -236,6 +263,12 @@ entry InterpretOneOpFast
     push r13
     push r14
     push r15
+%ifdef LINUX
+	push rcx
+	push rdx
+	mov	rcx, rdi
+	mov rdx, rsi
+%endif
 	; stack should be 16-byte aligned at this point
     mov rcore, rcx                        ; rcore -> ForthCoreState
 	mov	rpsp, [rcore + FCore.SPtr]
@@ -274,6 +307,10 @@ InterpretOneOpFastExit2:	; this is exit for state != OK
     pop rsi
     pop rdi
     pop rbx
+%ifdef LINUX
+	pop rdx
+	pop rcx
+%endif
 	ret
 
 ;-----------------------------------------------
@@ -291,7 +328,11 @@ entry InnerInterpreterFast
     push r15
 	; stack should be 16-byte aligned at this point
     
+%ifdef LINUX
+    mov rcore, rdi                        ; rcore -> ForthCoreState
+%else
     mov rcore, rcx                        ; rcore -> ForthCoreState
+%endif
 	call	interpFunc
 
 	mov	[rcore + FCore.SPtr], rpsp
@@ -312,7 +353,7 @@ entry InnerInterpreterFast
 ;-----------------------------------------------
 ;
 ; inner interpreter
-;   call has saved all non-volatile registers
+;   caller has saved all non-volatile registers
 ;   rcore is set by caller
 ;	jump to interpFuncReenter if you need to reload IP, SP, interpLoop
 entry interpFunc
@@ -474,6 +515,11 @@ cCodeType:
 	mov	[rcore + FCore.SPtr], rpsp
 	mov	[rcore + FCore.RPtr], rrp
 	mov	[rcore + FCore.FPtr], rfp
+%ifdef LINUX
+    mov rdi, rcore      ; 1st param - core
+%else
+    mov rcx, rcore      ; 1st param - core
+%endif
     mov rcx, rcore      ; 1st param - core
 	sub rsp, 32			; shadow space
 	call	rax
@@ -488,6 +534,9 @@ cCodeType:
 	mov roptab, [rcore + FCore.ops]
 	mov rnumops, [rcore + FCore.numOps]
 	mov racttab, [rcore + FCore.optypeAction]
+%ifdef LINUX
+	mov	rnext, [rcore + FCore.innerLoop]	; rnext/rdi was used as first arg (pCore) above
+%endif
 	or	rax, rax
 	jnz	interpLoopExit		; if something went wrong (should this be interpLoopErrorExit?)
 	jmp	rnext					; if everything is ok
@@ -1938,9 +1987,16 @@ localStringStore:
 	; rax -> dest string maxLen field
 	; TOS is src string addr
     mov rbx, rax            ; strlen will stomp rax
+%ifdef LINUX
+	mov	rdi, [rpsp]			; rdi/rnext -> chars of src string
+%else
 	mov	rcx, [rpsp]			; rcx -> chars of src string
+%endif
 	sub rsp, 32			; shadow space
 	xcall	strlen
+%ifdef LINUX
+	mov	rnext, [rcore + FCore.innerLoop]
+%endif
 	add rsp, 32
 	; rax is src string length
 	; rbx -> dest string maxLen field
@@ -1954,13 +2010,20 @@ lsStore1:
 	mov	[rbx + 4], eax
 	
 	; setup params for memcpy further down
+%ifdef LINUX
+    lea rdi, [rbx + 8]      ; 1st param - dest pointer
+    mov rsi, [rpsp]         ; 2nd param - src pointer
+    mov rdx, rax            ; 3rd param - num chars to copy
+    mov rbx, rdi
+%else
     lea rcx, [rbx + 8]      ; 1st param - dest pointer
     mov rdx, [rpsp]         ; 2nd param - src pointer
     mov r8, rax             ; 3rd param - num chars to copy
-
-    add rpsp, 8
     mov rbx, rcx
+%endif
+
     add rbx, rax            ; rbx -> end of dest string
+    add rpsp, 8
 	; add the terminating null
 	xor	rax, rax
 	mov	[rbx], al
@@ -1969,6 +2032,9 @@ lsStore1:
 
 	sub rsp, 32			; shadow space
 	xcall	memcpy
+%ifdef LINUX
+	mov	rnext, [rcore + FCore.innerLoop]
+%endif
 	add rsp, 32
 
 	jmp	restoreNext
@@ -1977,9 +2043,16 @@ localStringAppend:
 	; rax -> dest string maxLen field
 	; TOS is src string addr
     mov rbx, rax            ; strlen will stomp rax
+%ifdef LINUX
+	mov	rdi, [rpsp]			; rdi/rnext -> chars of src string
+%else
 	mov	rcx, [rpsp]			; rcx -> chars of src string
+%endif
 	sub rsp, 32			; shadow space
 	xcall	strlen
+%ifdef LINUX
+	mov	rnext, [rcore + FCore.innerLoop]
+%endif
 	add rsp, 32
 	; rax is src string length
 	; rbx -> dest string maxLen field

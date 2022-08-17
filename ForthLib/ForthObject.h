@@ -63,14 +63,14 @@ enum
 
 #define TRACK_OBJECT_ALLOCATIONS
 #ifdef TRACK_OBJECT_ALLOCATIONS
-extern long gStatNews;
-extern long gStatDeletes;
-extern long gStatLinkNews;
-extern long gStatLinkDeletes;
-extern long gStatIterNews;
-extern long gStatIterDeletes;
-extern long gStatKeeps;
-extern long gStatReleases;
+extern int32_t gStatNews;
+extern int32_t gStatDeletes;
+extern int32_t gStatLinkNews;
+extern int32_t gStatLinkDeletes;
+extern int32_t gStatIterNews;
+extern int32_t gStatIterDeletes;
+extern int32_t gStatKeeps;
+extern int32_t gStatReleases;
 
 #define TRACK_NEW			gStatNews++
 #define TRACK_DELETE		gStatDeletes++

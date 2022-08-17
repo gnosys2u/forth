@@ -30,105 +30,105 @@ FORTHOP( disableMidiOp )
 
 FORTHOP( midiInGetNumDevsOp )
 {
-    long count = ForthMidiExtension::GetInstance()->InputDeviceCount();
+    int32_t count = ForthMidiExtension::GetInstance()->InputDeviceCount();
     SPUSH( count );
 }
 
 FORTHOP( midiOutGetNumDevsOp )
 {
-    long count = ForthMidiExtension::GetInstance()->OutputDeviceCount();
+    int32_t count = ForthMidiExtension::GetInstance()->OutputDeviceCount();
     SPUSH( count );
 }
 
 FORTHOP( midiInOpenOp )
 {
-    long cbData = SPOP;
-    long cbOp = SPOP;
-    long deviceId = SPOP;
-    long result = ForthMidiExtension::GetInstance()->OpenInput( deviceId, cbOp, cbData );
+    int32_t cbData = SPOP;
+    int32_t cbOp = SPOP;
+    int32_t deviceId = SPOP;
+    int32_t result = ForthMidiExtension::GetInstance()->OpenInput( deviceId, cbOp, cbData );
     SPUSH( result );
 }
 
 FORTHOP( midiInCloseOp )
 {
-    long deviceId = SPOP;
-    long result = ForthMidiExtension::GetInstance()->CloseInput( deviceId );
+    int32_t deviceId = SPOP;
+    int32_t result = ForthMidiExtension::GetInstance()->CloseInput( deviceId );
     SPUSH( result );
 }
 
 FORTHOP( midiInStartOp )
 {
-    long deviceId = SPOP;
-    long result = ForthMidiExtension::GetInstance()->StartInput( deviceId );
+    int32_t deviceId = SPOP;
+    int32_t result = ForthMidiExtension::GetInstance()->StartInput( deviceId );
     SPUSH( result );
 }
 
 FORTHOP( midiInStopOp )
 {
-    long deviceId = SPOP;
-    long result = ForthMidiExtension::GetInstance()->StopInput( deviceId );
+    int32_t deviceId = SPOP;
+    int32_t result = ForthMidiExtension::GetInstance()->StopInput( deviceId );
     SPUSH( result );
 }
 
 FORTHOP( midiInGetErrorTextOp )
 {
-	long buffSize = SPOP;
+	int32_t buffSize = SPOP;
 	char* buff = (char *) SPOP;
-	long err = SPOP;
+	int32_t err = SPOP;
     ForthMidiExtension::GetInstance()->InGetErrorText( err, buff, buffSize );
 }
 
 FORTHOP( midiOutOpenOp )
 {
-    long cbData = SPOP;
-    long cbOp = SPOP;
-    long deviceId = SPOP;
-    long result = ForthMidiExtension::GetInstance()->OpenOutput( deviceId, cbOp, cbData );
+    int32_t cbData = SPOP;
+    int32_t cbOp = SPOP;
+    int32_t deviceId = SPOP;
+    int32_t result = ForthMidiExtension::GetInstance()->OpenOutput( deviceId, cbOp, cbData );
     SPUSH( result );
 }
 
 FORTHOP( midiOutCloseOp )
 {
-    long deviceId = SPOP;
-    long result = ForthMidiExtension::GetInstance()->CloseOutput( deviceId );
+    int32_t deviceId = SPOP;
+    int32_t result = ForthMidiExtension::GetInstance()->CloseOutput( deviceId );
     SPUSH( result );
 }
 
 FORTHOP( midiInGetDeviceNameOp )
 {
-    long deviceNum = SPOP;
+    int32_t deviceNum = SPOP;
     MIDIINCAPS* pCaps = ForthMidiExtension::GetInstance()->GetInputDeviceCapabilities( (UINT_PTR) deviceNum );
-    long result = (pCaps == NULL) ? 0 : (long) (&pCaps->szPname);
+    int32_t result = (pCaps == NULL) ? 0 : (int32_t) (&pCaps->szPname);
     SPUSH( result );
 }
 
 FORTHOP( midiInGetDeviceCapabilitiesOp )
 {
-    long deviceNum = SPOP;
+    int32_t deviceNum = SPOP;
     MIDIINCAPS* pCaps = ForthMidiExtension::GetInstance()->GetInputDeviceCapabilities( (UINT_PTR) deviceNum );
-    SPUSH( (long) pCaps );
+    SPUSH( (int32_t) pCaps );
 }
 
 FORTHOP( midiOutGetDeviceNameOp )
 {
-    long deviceNum = SPOP;
+    int32_t deviceNum = SPOP;
     MIDIOUTCAPS* pCaps = ForthMidiExtension::GetInstance()->GetOutputDeviceCapabilities( (UINT_PTR) deviceNum );
-    long result = (pCaps == NULL) ? 0 : (long) (&pCaps->szPname);
+    int32_t result = (pCaps == NULL) ? 0 : (int32_t) (&pCaps->szPname);
     SPUSH( result );
 }
 
 FORTHOP( midiOutGetDeviceCapabilitiesOp )
 {
-    long deviceNum = SPOP;
+    int32_t deviceNum = SPOP;
     MIDIOUTCAPS* pCaps = ForthMidiExtension::GetInstance()->GetOutputDeviceCapabilities( (UINT_PTR) deviceNum );
-    SPUSH( (long) pCaps );
+    SPUSH( (int32_t) pCaps );
 }
 
 FORTHOP( midiOutShortMsgOp )
 {
-    long msg = SPOP;
-    long deviceId = SPOP;
-    long result = ForthMidiExtension::GetInstance()->OutShortMsg( deviceId, msg );
+    int32_t msg = SPOP;
+    int32_t deviceId = SPOP;
+    int32_t result = ForthMidiExtension::GetInstance()->OutShortMsg( deviceId, msg );
     SPUSH( result );
 }
 
@@ -140,32 +140,32 @@ FORTHOP( midiHdrSizeOp )
 FORTHOP( midiOutPrepareHeaderOp )
 {
     MIDIHDR* pHdr = (MIDIHDR*) SPOP;
-    long deviceId = SPOP;
-    long result = ForthMidiExtension::GetInstance()->OutPrepareHeader( deviceId, pHdr );
+    int32_t deviceId = SPOP;
+    int32_t result = ForthMidiExtension::GetInstance()->OutPrepareHeader( deviceId, pHdr );
     SPUSH( result );
 }
 
 FORTHOP( midiOutUnprepareHeaderOp )
 {
     MIDIHDR* pHdr = (MIDIHDR*) SPOP;
-    long deviceId = SPOP;
-    long result = ForthMidiExtension::GetInstance()->OutUnprepareHeader( deviceId, pHdr );
+    int32_t deviceId = SPOP;
+    int32_t result = ForthMidiExtension::GetInstance()->OutUnprepareHeader( deviceId, pHdr );
     SPUSH( result );
 }
 
 FORTHOP( midiOutLongMsgOp )
 {
     MIDIHDR* pHdr = (MIDIHDR*) SPOP;
-    long deviceId = SPOP;
-    long result = ForthMidiExtension::GetInstance()->OutLongMsg( deviceId, pHdr );
+    int32_t deviceId = SPOP;
+    int32_t result = ForthMidiExtension::GetInstance()->OutLongMsg( deviceId, pHdr );
     SPUSH( result );
 }
 
 FORTHOP( midiOutGetErrorTextOp )
 {
-	long buffSize = SPOP;
+	int32_t buffSize = SPOP;
 	char* buff = (char *) SPOP;
-	long err = SPOP;
+	int32_t err = SPOP;
     ForthMidiExtension::GetInstance()->OutGetErrorText( err, buff, buffSize );
 }
 
@@ -262,16 +262,16 @@ void ForthMidiExtension::Shutdown()
 }
 
 
-void ForthMidiExtension::ForgetOp( ulong opNumber )
+void ForthMidiExtension::ForgetOp( uint32_t opNumber )
 {
-    for ( ulong i = 0; i < mInputDevices.size(); i++ )
+    for ( uint32_t i = 0; i < mInputDevices.size(); i++ )
     {
         if ( mInputDevices[i].mCbOp >= opNumber )
         {
             mInputDevices[i].mCbOp = 0;
         }
     }
-    for ( ulong i = 0; i < mOutputDevices.size(); i++ )
+    for ( uint32_t i = 0; i < mOutputDevices.size(); i++ )
     {
         if ( mOutputDevices[i].mCbOp >= opNumber )
         {
@@ -291,7 +291,7 @@ ForthMidiExtension* ForthMidiExtension::GetInstance( void )
 }
 
 
-long ForthMidiExtension::OpenInput( long deviceId, long cbOp, long cbOpData )
+int32_t ForthMidiExtension::OpenInput( int32_t deviceId, int32_t cbOp, int32_t cbOpData )
 {
     if ( (size_t) deviceId >= mInputDevices.size() )
     {
@@ -303,7 +303,7 @@ long ForthMidiExtension::OpenInput( long deviceId, long cbOp, long cbOpData )
     midiIn->mDeviceId = (UINT_PTR) deviceId;
     MMRESULT result = midiInOpen( &(midiIn->mHandle), (UINT_PTR) deviceId,
                                   (DWORD_PTR) MidiInCallback, (DWORD_PTR) deviceId, (CALLBACK_FUNCTION | MIDI_IO_STATUS) );
-    return (long) result;
+    return (int32_t) result;
 }
 
 
@@ -368,7 +368,7 @@ void ForthMidiExtension::HandleMidiIn( UINT wMsg, DWORD_PTR dwInstance, DWORD_PT
 			mpFiber->Reset();
 			mpFiber->SetOp( midiIn->mCbOp );
 			mpFiber->Push( wMsg );
-            mpFiber->Push( (long) (midiIn->mCbOpData) );
+            mpFiber->Push( (int32_t) (midiIn->mCbOpData) );
 			mpFiber->Push( dwParam1 );
 			mpFiber->Push( dwParam2 );
 			mpFiber->Run();
@@ -389,7 +389,7 @@ void ForthMidiExtension::HandleMidiIn( UINT wMsg, DWORD_PTR dwInstance, DWORD_PT
     else
     {
         // TBD: Error
-        long cbOp = -1;
+        int32_t cbOp = -1;
         if ( dwInstance < mInputDevices.size() )
         {
             cbOp = mInputDevices[dwInstance].mCbOp;
@@ -400,7 +400,7 @@ void ForthMidiExtension::HandleMidiIn( UINT wMsg, DWORD_PTR dwInstance, DWORD_PT
 }
 
 
-long ForthMidiExtension::CloseInput( long deviceId )
+int32_t ForthMidiExtension::CloseInput( int32_t deviceId )
 {
     MMRESULT result = MMSYSERR_NOERROR;
     if ( ((size_t) deviceId < mInputDevices.size()) && (mInputDevices[deviceId].mCbOp != 0) )
@@ -408,33 +408,33 @@ long ForthMidiExtension::CloseInput( long deviceId )
         result = midiInClose( mInputDevices[deviceId].mHandle );
         mInputDevices[deviceId].mCbOp = 0;
     }
-	return (long) result;
+	return (int32_t) result;
 }
 
 
-long ForthMidiExtension::StartInput( long deviceId )
+int32_t ForthMidiExtension::StartInput( int32_t deviceId )
 {
     MMRESULT result = MMSYSERR_NOERROR;
     if ( (size_t) deviceId < mInputDevices.size() )
     {
         result = midiInStart( mInputDevices[deviceId].mHandle );
     }
-	return (long) result;
+	return (int32_t) result;
 }
 
 
-long ForthMidiExtension::StopInput( long deviceId )
+int32_t ForthMidiExtension::StopInput( int32_t deviceId )
 {
     MMRESULT result = MMSYSERR_NOERROR;
     if ( (size_t) deviceId < mInputDevices.size() )
     {
         result = midiInStop( mInputDevices[deviceId].mHandle );
     }
-	return (long) result;
+	return (int32_t) result;
 }
 
 
-long ForthMidiExtension::OpenOutput( long deviceId, long cbOp, long cbOpData )
+int32_t ForthMidiExtension::OpenOutput( int32_t deviceId, int32_t cbOp, int32_t cbOpData )
 {
     if ( (size_t) deviceId >= mOutputDevices.size() )
     {
@@ -446,11 +446,11 @@ long ForthMidiExtension::OpenOutput( long deviceId, long cbOp, long cbOpData )
     midiOut->mDeviceId = (UINT_PTR) deviceId;
     MMRESULT result = midiOutOpen( &(midiOut->mHandle), (UINT_PTR) deviceId,
                                    (DWORD_PTR) MidiOutCallback, (DWORD_PTR) deviceId, CALLBACK_FUNCTION );
-    return (long) result;
+    return (int32_t) result;
 }
 
 
-long ForthMidiExtension::CloseOutput( long deviceId )
+int32_t ForthMidiExtension::CloseOutput( int32_t deviceId )
 {
     MMRESULT result = MMSYSERR_NOERROR;
     if ( ((size_t) deviceId < mOutputDevices.size()) && (mOutputDevices[deviceId].mCbOp != 0) )
@@ -458,7 +458,7 @@ long ForthMidiExtension::CloseOutput( long deviceId )
         result = midiOutClose( mOutputDevices[deviceId].mHandle );
         mOutputDevices[deviceId].mCbOp = 0;
     }
-	return (long) result;
+	return (int32_t) result;
 }
 
 void CALLBACK ForthMidiExtension::MidiOutCallback( HMIDIOUT hMidiOut, UINT wMsg, DWORD_PTR dwInstance,
@@ -479,7 +479,7 @@ void ForthMidiExtension::HandleMidiOut( UINT wMsg, DWORD_PTR dwInstance, DWORD_P
 			mpFiber->Reset();
 			mpFiber->SetOp( midiOut->mCbOp );
 			mpFiber->Push( wMsg );
-            mpFiber->Push( (long) (midiOut->mCbOpData) );
+            mpFiber->Push( (int32_t) (midiOut->mCbOpData) );
 			mpFiber->Push( dwParam1 );
 			mpFiber->Push( dwParam2 );
 			mpFiber->Run();
@@ -497,15 +497,15 @@ void ForthMidiExtension::Enable( bool enable )
 }
 
 
-long ForthMidiExtension::InputDeviceCount()
+int32_t ForthMidiExtension::InputDeviceCount()
 {
-    return (long) midiInGetNumDevs();
+    return (int32_t) midiInGetNumDevs();
 }
 
 
-long ForthMidiExtension::OutputDeviceCount()
+int32_t ForthMidiExtension::OutputDeviceCount()
 {
-    return (long) midiOutGetNumDevs();
+    return (int32_t) midiOutGetNumDevs();
 }
 
 MIDIOUTCAPS* ForthMidiExtension::GetOutputDeviceCapabilities( UINT_PTR deviceId )
@@ -530,52 +530,52 @@ MIDIINCAPS* ForthMidiExtension::GetInputDeviceCapabilities( UINT_PTR deviceId )
     return (result == MMSYSERR_NOERROR) ? &(mInputDevices[deviceId].mCaps) : NULL;
 }
 
-long ForthMidiExtension::OutShortMsg( UINT_PTR deviceId, DWORD msg )
+int32_t ForthMidiExtension::OutShortMsg( UINT_PTR deviceId, DWORD msg )
 {
 	MMRESULT result = MMSYSERR_BADDEVICEID;
     if ( deviceId < mOutputDevices.size() )
     {
 	    result = midiOutShortMsg( mOutputDevices[deviceId].mHandle, msg );
     }
-	return (long) result;
+	return (int32_t) result;
 }
 
-long ForthMidiExtension::OutPrepareHeader( long deviceId, MIDIHDR* pHdr )
+int32_t ForthMidiExtension::OutPrepareHeader( int32_t deviceId, MIDIHDR* pHdr )
 {
 	MMRESULT result = MMSYSERR_BADDEVICEID;
     if ( deviceId < mOutputDevices.size() )
     {
 		result = midiOutPrepareHeader( mOutputDevices[deviceId].mHandle, pHdr, sizeof(MIDIHDR) );
     }
-	return (long) result;
+	return (int32_t) result;
 }
 
-long ForthMidiExtension::OutUnprepareHeader( long deviceId, MIDIHDR* pHdr )
+int32_t ForthMidiExtension::OutUnprepareHeader( int32_t deviceId, MIDIHDR* pHdr )
 {
 	MMRESULT result = MMSYSERR_BADDEVICEID;
     if ( deviceId < mOutputDevices.size() )
     {
 		result = midiOutUnprepareHeader( mOutputDevices[deviceId].mHandle, pHdr, sizeof(MIDIHDR) );
     }
-	return (long) result;
+	return (int32_t) result;
 }
 
-long ForthMidiExtension::OutLongMsg( long deviceId, MIDIHDR* pHdr )
+int32_t ForthMidiExtension::OutLongMsg( int32_t deviceId, MIDIHDR* pHdr )
 {
 	MMRESULT result = MMSYSERR_BADDEVICEID;
     if ( deviceId < mOutputDevices.size() )
     {
 		result = midiOutLongMsg( mOutputDevices[deviceId].mHandle, pHdr, sizeof(MIDIHDR) );
     }
-	return (long) result;
+	return (int32_t) result;
 }
 
-void ForthMidiExtension::OutGetErrorText( long err, char* buff, long buffSize )
+void ForthMidiExtension::OutGetErrorText( int32_t err, char* buff, int32_t buffSize )
 {
 	midiOutGetErrorText( err, buff, buffSize );
 }
 
-void ForthMidiExtension::InGetErrorText( long err, char* buff, long buffSize )
+void ForthMidiExtension::InGetErrorText( int32_t err, char* buff, int32_t buffSize )
 {
 	midiInGetErrorText( err, buff, buffSize );
 }
