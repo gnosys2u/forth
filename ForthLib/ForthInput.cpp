@@ -540,7 +540,7 @@ ForthFileInputStream::GetType( void )
 int
 ForthFileInputStream::GetSourceID()
 {
-    return (int) mpInFile;
+    return static_cast<int>(reinterpret_cast<intptr_t>(mpInFile));
 }
 
 cell* ForthFileInputStream::GetInputState()
@@ -555,7 +555,7 @@ cell* ForthFileInputStream::GetInputState()
 
     cell* pState = &(mState[0]);
     pState[0] = 5;
-    pState[1] = (int)this;
+    pState[1] = (cell)this;
     pState[2] = mLineNumber;
     pState[3] = mReadOffset;
     pState[4] = mWriteOffset;
@@ -669,7 +669,7 @@ cell* ForthConsoleInputStream::GetInputState()
 
     cell* pState = &(mState[0]);
     pState[0] = 4;
-    pState[1] = (int)this;
+    pState[1] = (cell)this;
     pState[2] = mLineNumber;
     pState[3] = mReadOffset;
     pState[4] = mWriteOffset;
@@ -806,7 +806,7 @@ cell* ForthBufferInputStream::GetInputState()
 
     cell* pState = &(mState[0]);
     pState[0] = 4;
-    pState[1] = (int)this;
+    pState[1] = (cell)this;
     pState[2] = mInstanceNumber;
     pState[3] = mReadOffset;
     pState[4] = mWriteOffset;
@@ -925,7 +925,7 @@ cell* ForthBlockInputStream::GetInputState()
 
     cell* pState = &(mState[0]);
     pState[0] = 3;
-    pState[1] = (int)this;
+    pState[1] = (cell)this;
     pState[2] = mCurrentBlock;
     pState[3] = mReadOffset;
     

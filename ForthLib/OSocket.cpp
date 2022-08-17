@@ -290,7 +290,7 @@ namespace OSocket
         const void* addr = (const void *)(SPOP);
         int family = SPOP;
 
-        int result = (int)inet_ntop(family, addr, dst, dstLen);
+        cell result = (cell)inet_ntop(family, addr, dst, dstLen);
         SPUSH(result);
     }
 

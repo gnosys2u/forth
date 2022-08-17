@@ -799,7 +799,8 @@ ForthEngine::AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classInd
             else
             {
                 // this entry is a member variable
-                pManager->GetNewestStruct()->AddField(pMemberName, pEntries->returnType, (int)pEntries->value);
+                pManager->GetNewestStruct()->AddField(pMemberName, pEntries->returnType,
+                		static_cast<int>(reinterpret_cast<intptr_t>(pEntries->value)));
             }
         }
 

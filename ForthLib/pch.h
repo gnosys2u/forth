@@ -70,7 +70,9 @@
 
 #include <cassert>
 
+#ifndef ASSERT
 #define ASSERT assert
+#endif
 
 #ifndef ulong
 #define ulong unsigned long

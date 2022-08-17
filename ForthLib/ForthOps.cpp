@@ -4590,7 +4590,7 @@ FORTHOP( describeOp )
                 {
                     forthop* pMethods = ((ForthClassVocabulary *)pVocab)->GetMethods();
                     SNPRINTF(buff, sizeof(buff), "class vocabulary %s:  methods at 0x%08x, size %d\n",
-                        pVocab->GetName(), (int)pMethods, pVocab->GetSize());
+                        pVocab->GetName(), static_cast<int>(reinterpret_cast<intptr_t>(pMethods)), pVocab->GetSize());
                 }
                 else
                 {

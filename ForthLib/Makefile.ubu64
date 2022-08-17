@@ -10,15 +10,16 @@ CC = g++
 ASM = /usr/bin/nasm
 CDEBUG = -g
 # DEFINES = -DRASPI -DLINUX -DASM_INNER_INTERPRETER
-DEFINES = -DLINUX -DASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -DFORTH64 -DINCLUDE_TRACE
+#DEFINES = -DLINUX -DASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -DFORTH64 -DINCLUDE_TRACE
+DEFINES = -DLINUX -DNOASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -DFORTH64 -DINCLUDE_TRACE
 #CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -fno-leading-underscore
 CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -std=c++11 -m64
 WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wno-sign-compare -Wno-conversion-null -Wno-pointer-arith
 CPPFLAGS = $(CFLAGS)
 
-ASMFLAGS = -d ASM_INNER_INTERPRETER -d LINUX -felf32
+ASMFLAGS = -d ASM_INNER_INTERPRETER -d LINUX -felf64
 
-LDFLAGS = $(CDEBUG)
+LDFLAGS = $(CFLAGS) -no-pie
 
 SRCS = \
 	ForthShell.cpp \
@@ -44,6 +45,7 @@ SRCS = \
 	ForthMemoryManager.cpp \
 	kbhit.cpp \
 	OArray.cpp \
+	ODeque.cpp \
 	OList.cpp \
 	OMap.cpp \
 	ONumber.cpp \
@@ -53,8 +55,8 @@ SRCS = \
 	OSystem.cpp
 	
 	
-ASMSRCS = InnerInterp.asm \
-	AsmCore.asm
+ASMSRCS = InnerInterpAmd64.asm \
+	AsmCore64.asm
 
 OBJDIR = obj
 ASMOBJS := $(patsubst %.asm,$(OBJDIR)/%.o,$(ASMSRCS))
@@ -62,7 +64,7 @@ OBJS := $(patsubst %.cpp,$(OBJDIR)/%.o,$(SRCS)) $(ASMOBJS)
 DEPDIR = dep
 DEPS := $(patsubst %.cpp,$(DEPDIR)/%.d,$(SRCS))
 # XDEFS is used to pass in defines from the make command line
-LIBS := -lm -lstdc++ -ldl -lpthread
+LIBS := -lm -lstdc++ -ldl -lpthread -no-pie
 
 libforth.a:	$(OBJS)
 	ar rcs libforth.a $(OBJS)
@@ -78,10 +80,10 @@ stuff:
 #	echo "at " $@ "   less" $< "   star" $* "   pat" $(patsubst %.cpp,%.d,$@)
 	
 $(DEPDIR)/%.d: %.cpp
-	gcc -M $(CPPFLAGS) -o $(DEPDIR)/$*.d $<
+	$(CC) -M $(CPPFLAGS) -o $(DEPDIR)/$*.d $<
 	
 #%.d: ../%.cpp
-#	gcc -M $(CPPFLAGS) -o $*.d $<
+#	$(CC) -M $(CPPFLAGS) -o $*.d $<
 	
 #	echo "DEP at=" $@ "   less=" $< "   star=" $*
 

@@ -127,9 +127,14 @@ ForthMemoryPoolBucket::ForthMemoryPoolBucket(int size)
     , mpFreeChain(nullptr)
 {
     char buffer[32];
+#if defined(LINUX)
+    sprintf(buffer, "bucket %d", size);
+    mStats = new ForthMemoryStats(buffer);
+#else
     std::string name("bucket ");
     name.append(::itoa(size, buffer, 10));
     mStats = new ForthMemoryStats(name.c_str());
+#endif
 }
 
 ForthMemoryPoolBucket::~ForthMemoryPoolBucket()
