@@ -72,10 +72,6 @@
 
 #define ASSERT assert
 
-#ifndef ulong
-#define ulong unsigned long
-#endif
-
 #if 0
 #include "Forth.h"
 #include "ForthEngine.h"

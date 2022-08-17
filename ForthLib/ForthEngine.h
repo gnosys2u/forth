@@ -45,16 +45,16 @@ typedef enum {
     kEngineFlagNoNameDefinition          = 0x80,
 } FECompileFlags;
 
-    //long                *DP;            // dictionary pointer
-    //long                *DBase;         // base of dictionary
-    //ulong               DLen;           // max size of dictionary memory segment
+    //int32_t                *DP;            // dictionary pointer
+    //int32_t                *DBase;         // base of dictionary
+    //uint32_t               DLen;           // max size of dictionary memory segment
 
 class ForthEngineTokenStack
 {
 public:
 	ForthEngineTokenStack();
 	~ForthEngineTokenStack();
-	void Initialize(ulong numBytes);
+	void Initialize(uint32_t numBytes);
 	inline bool IsEmpty() const { return mpCurrent == mpLimit; };
 	void Push(const char* pToken);
 	char* Pop();
@@ -135,9 +135,9 @@ public:
 struct ForthEnumInfo
 {
     ForthVocabulary* pVocab;    // ptr to vocabulary enum is defined in
-    long size;                  // enum size in bytes (default to 4)
-    long numEnums;              // number of enums defined
-    long vocabOffset;           // offset in longs from top of vocabulary to last enum symbol defined
+    int32_t size;                  // enum size in bytes (default to 4)
+    int32_t numEnums;              // number of enums defined
+    int32_t vocabOffset;           // offset in longs from top of vocabulary to last enum symbol defined
     char nameStart;             // enum name string (including null terminator) plus zero padding to next longword
 };
 
@@ -176,7 +176,7 @@ public:
     // add an op to the operator dispatch table. returns the assigned opcode (without type field)
     forthop         AddOp( const void *pOp );
     forthop         AddUserOp( const char *pSymbol, forthop** pEntryOut=NULL, bool smudgeIt=false );
-    forthop*        AddBuiltinOp( const char* name, ulong flags, void* value );
+    forthop*        AddBuiltinOp( const char* name, uint32_t flags, void* value );
     void            AddBuiltinOps( baseDictionaryEntry *pEntries );
 
 	ForthClassVocabulary*   StartClassDefinition(const char* pClassName, eBuiltinClassIndex classIndex = kNumBuiltinClasses);
@@ -196,7 +196,7 @@ public:
     void InitCoreState(ForthCoreState& core);
 
     // return true IFF the last compiled opcode was an integer literal
-    bool            GetLastConstant( long& constantValue );
+    bool            GetLastConstant( int32_t& constantValue );
 
     // add a user-defined extension to the outer interpreter
     inline void     SetInterpreterExtension( interpreterExtensionRoutine *pRoutine )
@@ -214,7 +214,7 @@ public:
     // returns true IFF file opened successfully
     bool            PushInputFile( const char *pInFileName );
     void            PushInputBuffer( const char *pDataBuffer, int dataBufferLen );
-    void            PushInputBlocks(ForthBlockFileManager*  pManager, unsigned int firstBlock, unsigned int lastBlock);
+    void            PushInputBlocks(ForthBlockFileManager*  pManager, uint32_t firstBlock, uint32_t lastBlock);
     void            PopInputStream( void );
 
     // returns pointer to new vocabulary entry
@@ -223,19 +223,19 @@ public:
     // return pointer to symbol entry, NULL if not found
     forthop*        FindSymbol( const char *pSymName );
     void            DescribeSymbol( const char *pSymName );
-    void            DescribeOp( const char *pSymName, forthop op, long auxData );
+    void            DescribeOp( const char *pSymName, forthop op, int32_t auxData );
 
     void            StartStructDefinition( void );
     void            EndStructDefinition( void );
     // returns size of local stack frame in bytes after adding local var
-    long            AddLocalVar( const char *pName, long typeCode, long varSize );
-    long            AddLocalArray( const char *pName, long typeCode, long varSize );
+    int32_t            AddLocalVar( const char *pName, int32_t typeCode, int32_t varSize );
+    int32_t            AddLocalArray( const char *pName, int32_t typeCode, int32_t varSize );
 	bool			HasLocalVariables();
 
     eForthResult    ProcessToken( ForthParseInfo *pInfo );
     char *          GetLastInputToken( void );
 
-    const char *            GetOpTypeName( long opType );
+    const char *            GetOpTypeName( int32_t opType );
 	void                    TraceOp(forthop *pOp, forthop op);
 	void                    TraceStack(ForthCoreState* pCore);
     void                    DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUserDefs=false );
@@ -247,11 +247,11 @@ public:
     inline forthop*         GetDP() { return mDictionary.pCurrent; };
     inline void             SetDP( forthop* pNewDP ) { mDictionary.pCurrent = pNewDP; };
 #if defined(DEBUG)
-    void                    CompileInt(long v);
+    void                    CompileInt(int32_t v);
     void                    CompileDouble(double v);
     void                    CompileCell(cell v);
 #else
-    inline void             CompileInt(long v) { *mDictionary.pCurrent++ = v; };
+    inline void             CompileInt(int32_t v) { *mDictionary.pCurrent++ = v; };
     inline void             CompileDouble(double v) { *((double *)mDictionary.pCurrent) = v; mDictionary.pCurrent += 2; };
     inline void             CompileCell(cell v) { *((cell*)mDictionary.pCurrent) = v; mDictionary.pCurrent += CELL_LONGS; };
 #endif
@@ -290,22 +290,22 @@ public:
     inline cell             IsCompiling( void ) { return mCompileState; };
     inline bool             InStructDefinition( void ) { return ((mCompileFlags & kEngineFlagInStructDefinition) != 0); };
     inline bool             HasLocalVars( void ) { return (mpLocalAllocOp != NULL); };
-    inline long             GetFlags( void ) { return mCompileFlags; };
-    inline void             SetFlags( long flags ) { mCompileFlags = flags; };
-    inline void             SetFlag( long flags ) { mCompileFlags |= flags; };
-    inline void             ClearFlag( long flags ) { mCompileFlags &= (~flags); };
-    inline long             CheckFlag( long flags ) { return mCompileFlags & flags; };
-    inline long&            GetFeatures( void ) { return mFeatures; };
-    inline void             SetFeatures( long features ) { mFeatures = features; };
-    inline void             SetFeature( long features ) { mFeatures |= features; };
-    inline void             ClearFeature( long features ) { mFeatures &= (~features); };
-    inline long             CheckFeature( long features ) { return mFeatures & features; };
+    inline int32_t             GetFlags( void ) { return mCompileFlags; };
+    inline void             SetFlags( int32_t flags ) { mCompileFlags = flags; };
+    inline void             SetFlag( int32_t flags ) { mCompileFlags |= flags; };
+    inline void             ClearFlag( int32_t flags ) { mCompileFlags &= (~flags); };
+    inline int32_t             CheckFlag( int32_t flags ) { return mCompileFlags & flags; };
+    inline int32_t&            GetFeatures( void ) { return mFeatures; };
+    inline void             SetFeatures( int32_t features ) { mFeatures = features; };
+    inline void             SetFeature( int32_t features ) { mFeatures |= features; };
+    inline void             ClearFeature( int32_t features ) { mFeatures &= (~features); };
+    inline int32_t             CheckFeature( int32_t features ) { return mFeatures & features; };
     inline char *           GetTempBuffer(void) { return mpTempBuffer; };
 	inline int				GetTempBufferSize( void ) { return MAX_STRING_SIZE; };
     char *                  GrabTempBuffer(void);
     void                    UngrabTempBuffer(void);
-    inline void             SetArraySize(long numElements)        { mNumElements = numElements; };
-    inline long             GetArraySize( void )                    { return mNumElements; };
+    inline void             SetArraySize(int32_t numElements)        { mNumElements = numElements; };
+    inline int32_t             GetArraySize( void )                    { return mNumElements; };
     inline ForthEnumInfo*   GetNewestEnumInfo(void) { return mpNewestEnum; };
     void                    SetNewestEnumInfo(ForthEnumInfo *pInfo) { mpNewestEnum = pInfo; };
     void                    GetErrorString( char *pBuffer, int bufferSize );
@@ -335,13 +335,13 @@ public:
 	void					ResetConsoleOut( ForthCoreState& core );
 
     // return milliseconds since engine was created
-    unsigned long           GetElapsedTime( void );
+    uint32_t           GetElapsedTime( void );
 
 	void                    ConsoleOut( const char* pBuffer );
 	void                    TraceOut( const char* pFormat, ... );
 
-	long					GetTraceFlags( void );
-	void					SetTraceFlags( long flags );
+	int32_t					GetTraceFlags( void );
+	void					SetTraceFlags( int32_t flags );
 
 	void					SetTraceOutRoutine(traceOutRoutine traceRoutine, void* pTraceData);
 	void					GetTraceOutRoutine(traceOutRoutine& traceRoutine, void*& pTraceData) const;
@@ -349,14 +349,14 @@ public:
 	void					DumpCrashState();
 
 	// squish float/double down to 24-bits, returns true IFF number can be represented exactly OR approximateOkay==true and number is within range of squished float
-	bool					SquishFloat( float fvalue, bool approximateOkay, ulong& squishedFloat );
-	float					UnsquishFloat( ulong squishedFloat );
+	bool					SquishFloat( float fvalue, bool approximateOkay, uint32_t& squishedFloat );
+	float					UnsquishFloat( uint32_t squishedFloat );
 
-	bool					SquishDouble( double dvalue, bool approximateOkay, ulong& squishedDouble );
-	double					UnsquishDouble( ulong squishedDouble );
+	bool					SquishDouble( double dvalue, bool approximateOkay, uint32_t& squishedDouble );
+	double					UnsquishDouble( uint32_t squishedDouble );
 	// squish 64-bit int to 24 bits, returns true IFF number can be represented in 24 bits
-	bool					SquishLong( int64_t lvalue, ulong& squishedLong );
-	int64_t				UnsquishLong( ulong squishedLong );
+	bool					SquishLong( int64_t lvalue, uint32_t& squishedLong );
+	int64_t				UnsquishLong( uint32_t squishedLong );
 
     ForthBlockFileManager*  GetBlockFileManager();
 
@@ -420,9 +420,9 @@ protected:
 	ForthThread * mpThreads;
 	ForthThread * mpMainThread;
     ForthShell  *   mpShell;
-    long *          mpEngineScratch;
+    int32_t *          mpEngineScratch;
     char *          mpLastToken;
-    long            mLocalFrameSize;
+    int32_t            mLocalFrameSize;
     forthop*        mpLocalAllocOp;
     char *          mpErrorString;  // optional error information from shell
 
@@ -430,9 +430,9 @@ protected:
 
     interpreterExtensionRoutine *mpInterpreterExtension;
 
-    long            mCompileFlags;
-    long            mFeatures;
-    long            mNumElements;       // number of elements in next array declared
+    int32_t            mCompileFlags;
+    int32_t            mFeatures;
+    int32_t            mNumElements;       // number of elements in next array declared
 
 	traceOutRoutine	mTraceOutRoutine;
 	void*			mpTraceOutData;
@@ -472,9 +472,9 @@ public:
 
 protected:
     std::vector<forthop*> mContinuations;
-    long            mContinuationIx;
+    int32_t            mContinuationIx;
     forthop*        mContinueDestination;
-    long            mContinueCount;
+    int32_t            mContinueCount;
 
     ForthEnumInfo*  mpNewestEnum;
 

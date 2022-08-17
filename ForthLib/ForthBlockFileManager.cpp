@@ -31,7 +31,7 @@
 //                     ForthBlockFileManager
 // 
 
-#define INVALID_BLOCK_NUMBER ((unsigned int) ~0)
+#define INVALID_BLOCK_NUMBER ((uint32_t) ~0)
 // INVALID_BLOCK_NUMBER is also used to indicate 'no current buffer'
 
 
@@ -48,8 +48,8 @@ ForthBlockFileManager::ForthBlockFileManager( const char* pBlockFilename , ucell
 	mpBlockFilename = (char *)__MALLOC(strlen(pBlockFilename) + 1);
     strcpy( mpBlockFilename, pBlockFilename );
 
-	mLRUBuffers = (unsigned int *)__MALLOC(sizeof(unsigned int) * numBuffers);
-	mAssignedBlocks = (unsigned int *)__MALLOC(sizeof(unsigned int) * numBuffers);
+	mLRUBuffers = (uint32_t *)__MALLOC(sizeof(uint32_t) * numBuffers);
+	mAssignedBlocks = (uint32_t *)__MALLOC(sizeof(uint32_t) * numBuffers);
 	mUpdatedBlocks = (bool *)__MALLOC(sizeof(bool) * numBuffers);
 
 	mpBlocks = (char *)__MALLOC(mBytesPerBlock * numBuffers);
@@ -68,7 +68,7 @@ ForthBlockFileManager::~ForthBlockFileManager()
     __FREE( mpBlocks );
 }
 
-unsigned int
+uint32_t
 ForthBlockFileManager::GetNumBlocksInFile()
 {
     if ( mNumBlocksInFile == 0 )
@@ -112,7 +112,7 @@ ForthBlockFileManager::OpenBlockFile( bool forWrite )
 }
 
 char*
-ForthBlockFileManager::GetBlock( unsigned int blockNum, bool readContents )
+ForthBlockFileManager::GetBlock( uint32_t blockNum, bool readContents )
 {
     mCurrentBuffer = AssignBuffer( blockNum, readContents );
     UpdateLRU();
@@ -132,7 +132,7 @@ ForthBlockFileManager::UpdateCurrentBuffer()
 }
 
 bool
-ForthBlockFileManager::SaveBuffer( unsigned int bufferNum )
+ForthBlockFileManager::SaveBuffer( uint32_t bufferNum )
 {
     FILE* pBlockFile = OpenBlockFile( true );
     if ( pBlockFile == NULL )
@@ -167,14 +167,14 @@ ForthBlockFileManager::SaveBuffer( unsigned int bufferNum )
     return true;
 }
 
-unsigned int
-ForthBlockFileManager::AssignBuffer( unsigned int blockNum, bool readContents )
+uint32_t
+ForthBlockFileManager::AssignBuffer( uint32_t blockNum, bool readContents )
 {
     SPEW_IO( "ForthBlockFileManager::AssignBuffer to block %d\n", blockNum );
-    unsigned int availableBuffer = INVALID_BLOCK_NUMBER;
-    for ( unsigned int i = 0; i < mNumBuffers; ++i )
+    uint32_t availableBuffer = INVALID_BLOCK_NUMBER;
+    for ( uint32_t i = 0; i < mNumBuffers; ++i )
     {
-        unsigned int bufferBlockNum = mAssignedBlocks[i];
+        uint32_t bufferBlockNum = mAssignedBlocks[i];
         if ( bufferBlockNum == blockNum )
         {
             return i;
@@ -232,7 +232,7 @@ ForthBlockFileManager::UpdateLRU()
     SPEW_IO( "ForthBlockFileManager::UpdateLRU current=%d\n", mCurrentBuffer );
     if ( mCurrentBuffer < mNumBuffers )
     {
-        for ( unsigned int i = 0; i < mNumBuffers; ++i )
+        for ( uint32_t i = 0; i < mNumBuffers; ++i )
         {
             if ( mLRUBuffers[i] == mCurrentBuffer )
             {
@@ -259,7 +259,7 @@ void ForthBlockFileManager::SaveBuffers( bool unassignAfterSaving )
         return;
     }
 
-    for ( unsigned int i = 0; i < mNumBuffers; ++i )
+    for ( uint32_t i = 0; i < mNumBuffers; ++i )
     {
         if ( mUpdatedBlocks[i] )
         {
@@ -283,7 +283,7 @@ void
 ForthBlockFileManager::EmptyBuffers()
 {
     SPEW_IO( "ForthBlockFileManager::EmptyBuffers\n" );
-    for ( unsigned int i = 0; i < mNumBuffers; ++i )
+    for ( uint32_t i = 0; i < mNumBuffers; ++i )
     {
         mLRUBuffers[i] = i;
         mAssignedBlocks[i] = INVALID_BLOCK_NUMBER;
@@ -298,13 +298,13 @@ ForthBlockFileManager::ReportError( eForthError errorCode, const char* pErrorMes
     ForthEngine::GetInstance()->SetError( errorCode, pErrorMessage );
 }
 
-unsigned int
+uint32_t
 ForthBlockFileManager::GetBytesPerBlock() const
 {
     return mBytesPerBlock;
 }
 
-unsigned int
+uint32_t
 ForthBlockFileManager::GetNumBuffers() const
 {
     return mNumBuffers;
@@ -374,14 +374,14 @@ namespace OBlockFile
     FORTHOP(oBlockFileBlockMethod)
     {
         GET_THIS(oBlockFileStruct, pBlockFile);
-        SPUSH((cell)(pBlockFile->pManager->GetBlock((unsigned int)SPOP, true)));
+        SPUSH((cell)(pBlockFile->pManager->GetBlock((uint32_t)SPOP, true)));
         METHOD_RETURN;
     }
 
     FORTHOP(oBlockFileBufferMethod)
     {
         GET_THIS(oBlockFileStruct, pBlockFile);
-        SPUSH((cell)(pBlockFile->pManager->GetBlock((unsigned int)SPOP, false)));
+        SPUSH((cell)(pBlockFile->pManager->GetBlock((uint32_t)SPOP, false)));
         METHOD_RETURN;
     }
 
@@ -416,8 +416,8 @@ namespace OBlockFile
     FORTHOP(oBlockFileThruMethod)
     {
         GET_THIS(oBlockFileStruct, pBlockFile);
-        unsigned int lastBlock = (unsigned int)SPOP;
-        unsigned int firstBlock = (unsigned int)SPOP;
+        uint32_t lastBlock = (uint32_t)SPOP;
+        uint32_t firstBlock = (uint32_t)SPOP;
         ForthEngine* pEngine = GET_ENGINE;
         if (lastBlock < firstBlock)
         {

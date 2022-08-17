@@ -49,7 +49,7 @@ void defaultTraceOutRoutine(void *pData, const char* pFormat, va_list argList)
 #endif
 
 	ForthEngine* pEngine = ForthEngine::GetInstance();
-    long traceFlags = pEngine->GetTraceFlags();
+    int32_t traceFlags = pEngine->GetTraceFlags();
 	if ((traceFlags & kLogToConsole) != 0)
 	{
 #if defined(LINUX) || defined(MACOSX)
@@ -112,19 +112,19 @@ extern "C"
                 if (opType == kOpMethodWithThis)
                 {
                     ForthObject thisObject = GET_TP;
-                    long opVal = FORTH_OP_VALUE(op);
+                    int32_t opVal = FORTH_OP_VALUE(op);
                     SpewMethodName(thisObject, opVal);
                 }
                 else if (opType == kOpMethodWithTOS)
                 {
                     ForthObject thisObject = (ForthObject)*(pCore->SP);
-                    long opVal = FORTH_OP_VALUE(op);
+                    int32_t opVal = FORTH_OP_VALUE(op);
                     SpewMethodName(thisObject, opVal);
                 }
                 else if (opType == kOpMethodWithSuper)
                 {
                     ForthObject thisObject = GET_TP;
-                    long opVal = FORTH_OP_VALUE(op);
+                    int32_t opVal = FORTH_OP_VALUE(op);
                     SpewMethodName(thisObject, opVal);
                 }
             }
@@ -232,7 +232,7 @@ ForthEngineTokenStack::~ForthEngineTokenStack()
 	}
 }
 
-void ForthEngineTokenStack::Initialize(ulong numBytes)
+void ForthEngineTokenStack::Initialize(uint32_t numBytes)
 {
 	mpBase = (char *)__MALLOC(numBytes);
 	mpLimit = mpBase + numBytes;
@@ -333,7 +333,7 @@ ForthEngine::ForthEngine()
     // scratch area for temporary definitions
     ASSERT( mpInstance == NULL );
     mpInstance = this;
-    mpEngineScratch = new long[70];
+    mpEngineScratch = new int32_t[70];
     mpErrorString = new char[ ERROR_STRING_MAX + 1 ];
 
     // remember creation time for elapsed time method
@@ -386,7 +386,7 @@ ForthEngine::~ForthEngine()
 #ifdef WIN32
 		VirtualFree( mDictionary.pBase, 0, MEM_RELEASE );
 #elif MACOSX
-        munmap(mDictionary.pBase, mDictionary.len * sizeof(long));
+        munmap(mDictionary.pBase, mDictionary.len * sizeof(int32_t));
 #else
         __FREE( mDictionary.pBase );
 #endif
@@ -651,7 +651,7 @@ forthop ForthEngine::AddUserOp( const char *pSymbol, forthop** pEntryOut, bool s
     return newestOp;
 }
 
-forthop* ForthEngine::AddBuiltinOp(const char* name, ulong flags, void* value)
+forthop* ForthEngine::AddBuiltinOp(const char* name, uint32_t flags, void* value)
 {
     forthop newestOp = AddOp(value);
     newestOp = COMPILED_OP(flags, newestOp);
@@ -736,7 +736,7 @@ ForthEngine::AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classInd
     while ( pEntries->name != NULL )
     {
         const char* pMemberName = pEntries->name;
-        ulong entryType = pEntries->returnType;
+        uint32_t entryType = pEntries->returnType;
         if (CODE_IS_METHOD(entryType))
         {
             if ( !strcmp( pMemberName, "__newOp" ) )
@@ -750,9 +750,9 @@ ForthEngine::AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classInd
             {
                 // this entry is a member method
                 // add method routine to builtinOps table
-                long methodOp = gCompiledOps[OP_BAD_OP];
+                int32_t methodOp = gCompiledOps[OP_BAD_OP];
                 // do "method:"
-                long methodIndex = pVocab->FindMethod( pMemberName );
+                int32_t methodIndex = pVocab->FindMethod( pMemberName );
                 StartOpDefinition( pMemberName, false );
                 forthop* pEntry = pVocab->GetNewestEntry();
                 methodOp = FORTH_OP_VALUE(*pEntry);
@@ -779,7 +779,7 @@ ForthEngine::AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classInd
         }
         else
         {
-            ulong baseType = CODE_TO_BASE_TYPE(entryType);
+            uint32_t baseType = CODE_TO_BASE_TYPE(entryType);
             if (baseType == kBaseTypeUserDefinition)
             {
                 // forth op defined within class
@@ -864,7 +864,7 @@ ForthEngine::ForgetSymbol( const char *pSym, bool quietMode )
     {
         op = ForthVocabulary::GetEntryValue( pEntry );
         opType = ForthVocabulary::GetEntryType( pEntry );
-		unsigned long opIndex = ((unsigned long)FORTH_OP_VALUE( op ));
+		uint32_t opIndex = ((uint32_t)FORTH_OP_VALUE( op ));
         switch ( opType )
         {
             case kOpNative:
@@ -1049,7 +1049,7 @@ ForthEngine::PushInputBuffer( const char *pDataBuffer, int dataBufferLen )
 }
 
 void
-ForthEngine::PushInputBlocks(ForthBlockFileManager* pManager, unsigned int firstBlock, unsigned int lastBlock)
+ForthEngine::PushInputBlocks(ForthBlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock)
 {
     mpShell->PushInputBlocks(pManager, firstBlock, lastBlock);
 }
@@ -1124,7 +1124,7 @@ ForthEngine::FindSymbol( const char *pSymName )
 }
 
 void
-ForthEngine::DescribeOp( const char* pSymName, forthop op, long auxData )
+ForthEngine::DescribeOp( const char* pSymName, forthop op, int32_t auxData )
 {
     char buff[256];
     char buff2[128];
@@ -1132,8 +1132,8 @@ ForthEngine::DescribeOp( const char* pSymName, forthop op, long auxData )
     int line = 1;
     bool notDone = true;
 
-    long opType = FORTH_OP_TYPE( op );
-    long opValue = FORTH_OP_VALUE( op );
+    int32_t opType = FORTH_OP_TYPE( op );
+    int32_t opValue = FORTH_OP_VALUE( op );
     bool isUserOp = (opType == kOpUserDef) || (opType == kOpUserDefImmediate);
     const char* pStr = GetOpTypeName( opType );
     if ( isUserOp )
@@ -1156,7 +1156,7 @@ ForthEngine::DescribeOp( const char* pSymName, forthop op, long auxData )
         {
             ForthEnumInfo* pEnumInfo = (ForthEnumInfo *)(curIP + 1);
             ForthVocabulary* pVocab = pEnumInfo->pVocab;
-            long numEnums = pEnumInfo->numEnums;
+            int32_t numEnums = pEnumInfo->numEnums;
             forthop* pEntry = pVocab->GetEntriesEnd() - pEnumInfo->vocabOffset;
             SNPRINTF(buff, sizeof(buff), "Enum size %d entries %d\n", pEnumInfo->size, numEnums);
             ConsoleOut(buff);
@@ -1224,8 +1224,8 @@ forthop*
 ForthEngine::NextOp(forthop *pOp )
 {
     forthop op = *pOp++;
-    long opType = FORTH_OP_TYPE( op );
-    long opVal = FORTH_OP_VALUE( op );
+    int32_t opType = FORTH_OP_TYPE( op );
+    int32_t opVal = FORTH_OP_VALUE( op );
 
     switch ( opType )
     {
@@ -1263,16 +1263,16 @@ ForthEngine::EndStructDefinition( void )
     mCompileFlags &= (~kEngineFlagInStructDefinition);
 }
 
-long
+int32_t
 ForthEngine::AddLocalVar( const char        *pVarName,
-                          long              typeCode,
-                          long              varSize )
+                          int32_t              typeCode,
+                          int32_t              varSize )
 {
     forthop *pEntry;
 	int frameCells = mpLocalVocab->GetFrameCells();
     varSize = BYTES_TO_CELLS(varSize);
-    long baseType = CODE_TO_BASE_TYPE( typeCode );
-    long fieldType = kOpLocalCell;
+    int32_t baseType = CODE_TO_BASE_TYPE( typeCode );
+    int32_t fieldType = kOpLocalCell;
     if ( !CODE_IS_PTR( typeCode ) )
     {
         if ( baseType <= kBaseTypeObject )
@@ -1303,33 +1303,33 @@ ForthEngine::AddLocalVar( const char        *pVarName,
     return mpLocalVocab->GetFrameCells();
 }
 
-long
+int32_t
 ForthEngine::AddLocalArray( const char          *pArrayName,
-                            long                typeCode,
-                            long                elementSize )
+                            int32_t                typeCode,
+                            int32_t                elementSize )
 {
     forthop *pEntry;
 	int frameCells = mpLocalVocab->GetFrameCells();
 
-    long elementType = CODE_TO_BASE_TYPE( typeCode );
+    int32_t elementType = CODE_TO_BASE_TYPE( typeCode );
     if ( elementType != kBaseTypeStruct )
     {
         // array of non-struct
-        long arraySize = elementSize * mNumElements;
+        int32_t arraySize = elementSize * mNumElements;
         arraySize = BYTES_TO_CELLS(arraySize);
-        long opcode = CODE_IS_PTR(typeCode) ? kOpLocalCellArray : (kOpLocalByteArray + CODE_TO_BASE_TYPE(typeCode));
+        int32_t opcode = CODE_IS_PTR(typeCode) ? kOpLocalCellArray : (kOpLocalByteArray + CODE_TO_BASE_TYPE(typeCode));
         pEntry = mpLocalVocab->AddVariable( pArrayName, opcode, frameCells + arraySize, arraySize );
     }
     else
     {
         // array of struct
-        long fieldBytes, alignment, padding, alignMask;
+        int32_t fieldBytes, alignment, padding, alignMask;
         ForthTypesManager* pManager = ForthTypesManager::GetInstance();
         pManager->GetFieldInfo( typeCode, fieldBytes, alignment );
         alignMask = alignment - 1;
         padding = fieldBytes & alignMask;
-        long paddedSize = (padding) ? (fieldBytes + (alignment - padding)) : fieldBytes;
-        long arraySize = paddedSize * mNumElements;
+        int32_t paddedSize = (padding) ? (fieldBytes + (alignment - padding)) : fieldBytes;
+        int32_t arraySize = paddedSize * mNumElements;
         if ( CODE_IS_PTR(typeCode) )
         {
 	        pEntry = mpLocalVocab->AddVariable( pArrayName, kOpLocalCellArray, frameCells + arraySize, arraySize );
@@ -1360,7 +1360,7 @@ ForthEngine::HasLocalVariables()
 
 // TODO: tracing of built-in ops won't work for user-added builtins...
 const char *
-ForthEngine::GetOpTypeName( long opType )
+ForthEngine::GetOpTypeName( int32_t opType )
 {
     return (opType < kOpLocalUserDefined) ? opTypeNames[opType] : "unknown";
 }
@@ -1487,7 +1487,7 @@ ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
 {
     forthop op = *pOp;
     forthOpType opType = FORTH_OP_TYPE( op );
-    ulong opVal = FORTH_OP_VALUE( op );
+    uint32_t opVal = FORTH_OP_VALUE( op );
     ForthVocabulary *pFoundVocab = NULL;
     forthop *pEntry = NULL;
 
@@ -1641,8 +1641,8 @@ ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
             case kOpOZBCombo:  case kOpONZBCombo:
             {
                 const char* pBranchType = (opType == kOpOZBCombo) ? "BranchFalse" : "BranchTrue";
-                long embeddedOp = opVal & 0xFFF;
-                long branchOffset = opVal >> 12;
+                int32_t embeddedOp = opVal & 0xFFF;
+                int32_t branchOffset = opVal >> 12;
                 if (opVal & 0x800000)
                 {
                     branchOffset |= 0xFFFFF000;
@@ -1655,8 +1655,8 @@ ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
             case kOpLocalRefOpCombo:  case kOpMemberRefOpCombo:
             {
                 const char* pVarType = (opType == kOpLocalRefOpCombo) ? "Local" : "Member";
-                long varOffset = opVal & 0xFFF;
-                long embeddedOp = opVal >> 12;
+                int32_t varOffset = opVal & 0xFFF;
+                int32_t embeddedOp = opVal >> 12;
                 SNPRINTF(pBuffer, buffSize, "%s   &%s_%x   %s", opTypeName,
                     pVarType, varOffset, gOpNames[embeddedOp]);
                 break;
@@ -1698,7 +1698,7 @@ ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
 				break;
 
             default:
-                if ( opType >= (unsigned int)(sizeof(opTypeNames) / sizeof(char *)) )
+                if ( opType >= (uint32_t)(sizeof(opTypeNames) / sizeof(char *)) )
                 {
                     SNPRINTF( pBuffer, buffSize, "BAD OPTYPE!" );
                 }
@@ -1755,7 +1755,7 @@ ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
 void ForthEngine::AddOpExecutionToProfile(forthop op)
 {
     forthOpType opType = FORTH_OP_TYPE(op);
-    ulong opVal = FORTH_OP_VALUE(op);
+    uint32_t opVal = FORTH_OP_VALUE(op);
 
     switch (opType)
     {
@@ -1808,11 +1808,11 @@ void ForthEngine::DumpExecutionProfile()
             while (pEntry != nullptr)
             {
                 forthop op = *pEntry;
-                long typeCode = pEntry[1];
+                int32_t typeCode = pEntry[1];
                 if (CODE_IS_METHOD(typeCode))
                 {
-                    ulong opVal = FORTH_OP_VALUE(op);
-                    long methodOp = pMethods[opVal];
+                    uint32_t opVal = FORTH_OP_VALUE(op);
+                    int32_t methodOp = pMethods[opVal];
                     forthOpType opType = FORTH_OP_TYPE(methodOp);
                     opVal = FORTH_OP_VALUE(methodOp);
                     switch (opType)
@@ -1853,7 +1853,7 @@ void ForthEngine::DumpExecutionProfile()
             {
                 forthop op = *pEntry;
                 forthOpType opType = FORTH_OP_TYPE(op);
-                ulong opVal = FORTH_OP_VALUE(op);
+                uint32_t opVal = FORTH_OP_VALUE(op);
 
                 switch (opType)
                 {
@@ -1992,7 +1992,7 @@ ForthEngine::ScanIntegerToken( char         *pToken,
                                bool         &isOffset,
                                bool&        isSingle )
 {
-    long digit;
+    int32_t digit;
     bool isNegative;
     char c;
     int digitsFound = 0;
@@ -2210,10 +2210,10 @@ bool ForthEngine::ScanFloatToken( char *pToken, float& fvalue, double& dvalue, b
 // squish float down to 24-bits, returns true IFF number can be represented exactly
 //   OR approximateOkay==true and number is within range of squished float
 bool
-ForthEngine::SquishFloat( float fvalue, bool approximateOkay, ulong& squishedFloat )
+ForthEngine::SquishFloat( float fvalue, bool approximateOkay, uint32_t& squishedFloat )
 {
 	// single precision format is 1 sign, 8 exponent, 23 mantissa
-	ulong inVal = *(reinterpret_cast<ulong *>( &fvalue ));
+	uint32_t inVal = *(reinterpret_cast<uint32_t *>( &fvalue ));
 
 	// if bottom 5 bits of inVal aren't 0, number can't be exactly represented in squished format
 	if ( !approximateOkay && ((inVal & 0x1f) != 0) )
@@ -2221,14 +2221,14 @@ ForthEngine::SquishFloat( float fvalue, bool approximateOkay, ulong& squishedFlo
 		// number can't be represented exactly
 		return false;
 	}
-    ulong sign = (inVal & 0x80000000) >> 8;
-	long exponent = (((inVal >> 23) & 0xff) - (127 - 15));
+    uint32_t sign = (inVal & 0x80000000) >> 8;
+	int32_t exponent = (((inVal >> 23) & 0xff) - (127 - 15));
 	// if exponent is less than 0 or greater than 31, number can't be represented in squished format at all
 	if ( (exponent < 0) || (exponent > 31) )
 	{
 		return false;
 	}
-	ulong mantissa = (inVal >> 5) & 0x3ffff;
+	uint32_t mantissa = (inVal >> 5) & 0x3ffff;
 	squishedFloat = sign | (exponent << 18) | mantissa;
 
 	return true;
@@ -2237,11 +2237,11 @@ ForthEngine::SquishFloat( float fvalue, bool approximateOkay, ulong& squishedFlo
 // squish double down to 24-bits, returns true IFF number can be represented exactly
 //   OR approximateOkay==true and number is within range of squished float
 bool
-ForthEngine::SquishDouble( double dvalue, bool approximateOkay, ulong& squishedDouble )
+ForthEngine::SquishDouble( double dvalue, bool approximateOkay, uint32_t& squishedDouble )
 {
 	// double precision format is 1 sign, 11 exponent, 52 mantissa
-	ulong* pInVal = reinterpret_cast<ulong *>( &dvalue );
-	ulong inVal = pInVal[1];
+	uint32_t* pInVal = reinterpret_cast<uint32_t *>( &dvalue );
+	uint32_t inVal = pInVal[1];
 
 	// if bottom 34 bits of inVal aren't 0, number can't be exactly represented in squished format
 	if ( !approximateOkay && ( (pInVal[0] != 0) || ((inVal & 0x3) != 0) ) )
@@ -2249,54 +2249,54 @@ ForthEngine::SquishDouble( double dvalue, bool approximateOkay, ulong& squishedD
 		// number can't be represented exactly
 		return false;
 	}
-    ulong sign = (inVal & 0x80000000) >> 8;
-	long exponent = (((inVal >> 20) & 0x7ff) - (1023 - 15));
+    uint32_t sign = (inVal & 0x80000000) >> 8;
+	int32_t exponent = (((inVal >> 20) & 0x7ff) - (1023 - 15));
 	// if exponent is less than 0 or greater than 31, number can't be represented in squished format at all
 	if ( (exponent < 0) || (exponent > 31) )
 	{
 		return false;
 	}
-	ulong mantissa = (inVal >> 2) & 0x3ffff;
+	uint32_t mantissa = (inVal >> 2) & 0x3ffff;
 	squishedDouble = sign | (exponent << 18) | mantissa;
 
 	return true;
 }
 
 float
-ForthEngine::UnsquishFloat( ulong squishedFloat )
+ForthEngine::UnsquishFloat( uint32_t squishedFloat )
 {
-	ulong unsquishedFloat;
+	uint32_t unsquishedFloat;
 
-	ulong sign = (squishedFloat & 0x800000) << 8;
-	ulong exponent = (((squishedFloat >> 18) & 0x1f) + (127 - 15)) << 23;
-	ulong mantissa = (squishedFloat & 0x3ffff) << 5;
+	uint32_t sign = (squishedFloat & 0x800000) << 8;
+	uint32_t exponent = (((squishedFloat >> 18) & 0x1f) + (127 - 15)) << 23;
+	uint32_t mantissa = (squishedFloat & 0x3ffff) << 5;
 	unsquishedFloat = sign | exponent | mantissa;
 
 	return *(reinterpret_cast<float *>( &unsquishedFloat ));
 }
 
 double
-ForthEngine::UnsquishDouble( ulong squishedDouble )
+ForthEngine::UnsquishDouble( uint32_t squishedDouble )
 {
-	ulong unsquishedDouble[2];
+	uint32_t unsquishedDouble[2];
 
 	unsquishedDouble[0] = 0;
-	ulong sign = (squishedDouble & 0x800000) << 8;
-	ulong exponent = (((squishedDouble >> 18) & 0x1f) + (1023 - 15)) << 20;
-	ulong mantissa = (squishedDouble & 0x3ffff) << 2;
+	uint32_t sign = (squishedDouble & 0x800000) << 8;
+	uint32_t exponent = (((squishedDouble >> 18) & 0x1f) + (1023 - 15)) << 20;
+	uint32_t mantissa = (squishedDouble & 0x3ffff) << 2;
 	unsquishedDouble[1] = sign | exponent | mantissa;
 
 	return *(reinterpret_cast<double *>( &unsquishedDouble[0] ));
 }
 
 bool
-ForthEngine::SquishLong( int64_t lvalue, ulong& squishedLong )
+ForthEngine::SquishLong( int64_t lvalue, uint32_t& squishedLong )
 {
 	bool isValid = false;
-	long* pLValue = reinterpret_cast<long*>( &lvalue );
-	long hiPart = pLValue[1];
-	ulong lowPart = static_cast<ulong>( pLValue[0] & 0x00FFFFFF );
-	ulong midPart = static_cast<ulong>( pLValue[0] & 0xFF000000 );
+	int32_t* pLValue = reinterpret_cast<int32_t*>( &lvalue );
+	int32_t hiPart = pLValue[1];
+	uint32_t lowPart = static_cast<uint32_t>( pLValue[0] & 0x00FFFFFF );
+	uint32_t midPart = static_cast<uint32_t>( pLValue[0] & 0xFF000000 );
 
 	if ( (lowPart & 0x800000) != 0 )
 	{
@@ -2321,9 +2321,9 @@ ForthEngine::SquishLong( int64_t lvalue, ulong& squishedLong )
 }
 
 int64_t
-ForthEngine::UnsquishLong( ulong squishedLong )
+ForthEngine::UnsquishLong( uint32_t squishedLong )
 {
-	long unsquishedLong[2];
+	int32_t unsquishedLong[2];
 
 	unsquishedLong[0] = 0;
 	if ( (squishedLong & 0x800000) != 0 )
@@ -2350,7 +2350,7 @@ ForthEngine::CompileOpcode(forthOpType opType, forthop opVal)
 }
 
 #if defined(DEBUG)
-void ForthEngine::CompileInt(long v)
+void ForthEngine::CompileInt(int32_t v)
 {
     SPEW_COMPILATION("Compiling 0x%08x @ 0x%08x\n", v, mDictionary.pCurrent);
     *mDictionary.pCurrent++ = v;
@@ -2438,7 +2438,7 @@ ForthEngine::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
         // compile the literal value
         if (isSingle)
         {
-            long lvalue = value;
+            int32_t lvalue = value;
             if ((lvalue < (1 << 23)) && (lvalue >= -(1 << 23)))
             {
                 // value fits in opcode immediate field
@@ -2464,7 +2464,7 @@ ForthEngine::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
         {
             // compile the literal value
             // TODO: support 64-bit offsets?
-            ulong squishedLong;
+            uint32_t squishedLong;
             if (SquishLong(value, squishedLong))
             {
                 CompileOpcode(kOpSquishedLong, squishedLong);
@@ -2517,7 +2517,7 @@ ForthEngine::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
 
 // return true IFF the last compiled opcode was an integer literal
 bool
-ForthEngine::GetLastConstant( long& constantValue )
+ForthEngine::GetLastConstant( int32_t& constantValue )
 {
     forthop *pLastCompiledOpcode = mpOpcodeCompiler->GetLastCompiledOpcodePtr();
     if ( pLastCompiledOpcode != NULL )
@@ -2758,7 +2758,7 @@ ForthEngine::GetErrorString( char *pBuffer, int bufferSize )
 eForthResult
 ForthEngine::CheckStacks( void )
 {
-    long depth;
+    int32_t depth;
     eForthResult result = kResultOk;
 
     // check parameter stack for over/underflow
@@ -2768,7 +2768,7 @@ ForthEngine::CheckStacks( void )
         SetError( kForthErrorParamStackUnderflow );
         result = kResultError;
     }
-    else if ( depth >= (long) mpCore->SLen )
+    else if ( depth >= (int32_t) mpCore->SLen )
     {
         SetError( kForthErrorParamStackOverflow );
         result = kResultError;
@@ -2781,7 +2781,7 @@ ForthEngine::CheckStacks( void )
         SetError( kForthErrorReturnStackUnderflow );
         result = kResultError;
     }
-    else if ( depth >= (long) mpCore->RLen )
+    else if ( depth >= (int32_t) mpCore->RLen )
     {
         SetError( kForthErrorReturnStackOverflow );
         result = kResultError;
@@ -2846,12 +2846,12 @@ void ForthEngine::ConsoleOut( const char* pBuff )
 }
 
 
-long ForthEngine::GetTraceFlags( void )
+int32_t ForthEngine::GetTraceFlags( void )
 {
 	return mpCore->traceFlags;
 }
 
-void ForthEngine::SetTraceFlags( long flags )
+void ForthEngine::SetTraceFlags( int32_t flags )
 {
 	mpCore->traceFlags = flags;
 }
@@ -2878,10 +2878,10 @@ ForthEngine::EndEnumDefinition( void )
 }
 
 // return milliseconds since engine was created
-unsigned long
+uint32_t
 ForthEngine::GetElapsedTime( void )
 {
-	unsigned long millisecondsElapsed = 0;
+	uint32_t millisecondsElapsed = 0;
 #if defined(WIN32)
 #if defined(MSDEV)
 	struct __timeb32 now;
@@ -2889,22 +2889,22 @@ ForthEngine::GetElapsedTime( void )
 	_ftime32_s( &now );
 	__time32_t seconds = now.time - mStartTime.time;
     __time32_t milliseconds = now.millitm - mStartTime.millitm;
-	millisecondsElapsed =  (unsigned long) ((seconds * 1000) + milliseconds);
+	millisecondsElapsed =  (uint32_t) ((seconds * 1000) + milliseconds);
 #else
 	struct _timeb now;
     _ftime( &now );
 
-    long seconds = now.time - mStartTime.time;
-    long milliseconds = now.millitm - mStartTime.millitm;
-	millisecondsElapsed = (unsigned long) ((seconds * 1000) + milliseconds);
+    int32_t seconds = now.time - mStartTime.time;
+    int32_t milliseconds = now.millitm - mStartTime.millitm;
+	millisecondsElapsed = (uint32_t) ((seconds * 1000) + milliseconds);
 #endif
 #else
 	struct timeb now;
     ftime( &now );
 
-    long seconds = now.time - mStartTime.time;
-    long milliseconds = now.millitm - mStartTime.millitm;
-	millisecondsElapsed = (unsigned long) ((seconds * 1000) + milliseconds);
+    int32_t seconds = now.time - mStartTime.time;
+    int32_t milliseconds = now.millitm - mStartTime.millitm;
+	millisecondsElapsed = (uint32_t) ((seconds * 1000) + milliseconds);
 #endif
 	return millisecondsElapsed;
 }
@@ -3024,8 +3024,8 @@ forthop * ForthEngine::FindUserDefinition( ForthVocabulary* pVocab, forthop*& pC
 
 	for ( int i = 0; i < pVocab->GetNumEntries(); i++ )
 	{
-		long typeCode = pEntry[1];
-		unsigned long opcode = 0;
+		int32_t typeCode = pEntry[1];
+		uint32_t opcode = 0;
 		if ( CODE_TO_BASE_TYPE(pEntry[1]) == kBaseTypeUserDefinition )
 		{
 			switch ( FORTH_OP_TYPE( *pEntry ) )
@@ -3033,7 +3033,7 @@ forthop * ForthEngine::FindUserDefinition( ForthVocabulary* pVocab, forthop*& pC
 				case kOpUserDef:
 				case kOpUserDefImmediate:
 					{
-						opcode = ((unsigned long)FORTH_OP_VALUE( *pEntry ));
+						opcode = ((uint32_t)FORTH_OP_VALUE( *pEntry ));
 					}
 					break;
 				default:
@@ -3047,7 +3047,7 @@ forthop * ForthEngine::FindUserDefinition( ForthVocabulary* pVocab, forthop*& pC
 			ForthInterface* pInterface = pClassVocab->GetInterface(0);
 			// TODO: deal with secondary interfaces
 			opcode = pInterface->GetMethod( *pEntry );
-			opcode = ((unsigned long)FORTH_OP_VALUE( opcode ));
+			opcode = ((uint32_t)FORTH_OP_VALUE( opcode ));
 		}
 		if ( (opcode > 0) && (opcode < mpCore->numOps) )
 		{
@@ -3242,7 +3242,7 @@ void ForthEngine::EndLoopContinuations(int controlFlowType)  // actually takes a
         {
             if (mContinuationIx >= 2)
             {
-                long opType = PopContinuationType();
+                int32_t opType = PopContinuationType();
                 forthop* target = PopContinuationAddress();
                 if (((cell)target & 1) != 0)
                 {
@@ -3530,7 +3530,7 @@ ForthEngine::ProcessToken( ForthParseInfo   *pInfo )
                 //
                 ////////////////////////////////////
                 SPEW_OUTER_INTERPRETER( "Local variable reference {%s}\n", pToken + 1);
-                long varOffset = FORTH_OP_VALUE( *pEntry );
+                int32_t varOffset = FORTH_OP_VALUE( *pEntry );
                 CompileOpcode( COMPILED_OP( kOpLocalRef, varOffset ) );
                 return kResultOk;
             }
@@ -3686,7 +3686,7 @@ ForthEngine::ProcessToken( ForthParseInfo   *pInfo )
           if ( mCompileState )
           {
               // compile the literal value
-			  ulong squishedFloat;
+			  uint32_t squishedFloat;
 			  if ( SquishFloat( fvalue, isApproximate, squishedFloat ) )
 			  {
 	              CompileOpcode( kOpSquishedFloat, squishedFloat );
@@ -3717,7 +3717,7 @@ ForthEngine::ProcessToken( ForthParseInfo   *pInfo )
           if ( mCompileState )
           {
               // compile the literal value
-			  ulong squishedDouble;
+			  uint32_t squishedDouble;
 			  if (  SquishDouble( dvalue, isApproximate, squishedDouble ) )
 			  {
 	              CompileOpcode( kOpSquishedDouble, squishedDouble );

@@ -25,33 +25,33 @@ public:
     virtual void Initialize( ForthEngine* pEngine );
     virtual void Reset();
     virtual void Shutdown();
-    virtual void ForgetOp( ulong opNumber );
+    virtual void ForgetOp( uint32_t opNumber );
 
     static ForthMidiExtension*     GetInstance( void );
 
-    long OpenInput( long deviceId, long cbOp, long cbOpData );
-    long CloseInput( long deviceId );
-    long StartInput( long deviceId );
-    long StopInput( long deviceId );
-	void InGetErrorText( long err, char* buff, long buffsize );
+    int32_t OpenInput( int32_t deviceId, int32_t cbOp, int32_t cbOpData );
+    int32_t CloseInput( int32_t deviceId );
+    int32_t StartInput( int32_t deviceId );
+    int32_t StopInput( int32_t deviceId );
+	void InGetErrorText( int32_t err, char* buff, int32_t buffsize );
 
-    long OpenOutput( long deviceId, long cbOp, long cbOpData );
-    long CloseOutput( long deviceId );
+    int32_t OpenOutput( int32_t deviceId, int32_t cbOp, int32_t cbOpData );
+    int32_t CloseOutput( int32_t deviceId );
 
     void Enable( bool enable );
 
-    long InputDeviceCount();
-    long OutputDeviceCount();
+    int32_t InputDeviceCount();
+    int32_t OutputDeviceCount();
 
     MIDIOUTCAPS* GetOutputDeviceCapabilities( UINT_PTR deviceId );
     MIDIINCAPS* GetInputDeviceCapabilities( UINT_PTR deviceId );
 
-	long ForthMidiExtension::OutShortMsg( UINT_PTR deviceId, DWORD msg );
+	int32_t ForthMidiExtension::OutShortMsg( UINT_PTR deviceId, DWORD msg );
 
-	long OutPrepareHeader( long deviceId, MIDIHDR* pHdr );
-	long OutUnprepareHeader( long deviceId, MIDIHDR* pHdr );
-	long OutLongMsg( long deviceId, MIDIHDR* pHdr );
-	void OutGetErrorText( long err, char* buff, long buffsize );
+	int32_t OutPrepareHeader( int32_t deviceId, MIDIHDR* pHdr );
+	int32_t OutUnprepareHeader( int32_t deviceId, MIDIHDR* pHdr );
+	int32_t OutLongMsg( int32_t deviceId, MIDIHDR* pHdr );
+	void OutGetErrorText( int32_t err, char* buff, int32_t buffsize );
 
 protected:
     static ForthMidiExtension* mpInstance;
@@ -69,7 +69,7 @@ protected:
     public:
         InDeviceInfo();
 
-        ulong       mCbOp;
+        uint32_t       mCbOp;
         void*       mCbOpData;
         HMIDIIN     mHandle;
         UINT_PTR    mDeviceId;
@@ -81,7 +81,7 @@ protected:
     public:
         OutDeviceInfo();
 
-        ulong       mCbOp;
+        uint32_t       mCbOp;
         void*       mCbOpData;
         HMIDIOUT    mHandle;
         UINT_PTR    mDeviceId;

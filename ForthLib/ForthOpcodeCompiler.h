@@ -15,7 +15,7 @@ public:
 	void			CompileOpcode( forthOpType opType, forthop opVal );
     void			PatchOpcode(forthOpType opType, forthop opVal, forthop* pOpcode);
     void			UncompileLastOpcode();
-	unsigned int	PeepholeValidCount();
+	uint32_t	PeepholeValidCount();
 	void			ClearPeephole();
     forthop*        GetLastCompiledOpcodePtr();
     forthop*        GetLastCompiledIntoPtr();
@@ -26,9 +26,9 @@ public:
 private:
 	ForthMemorySection*	mpDictionarySection;
     forthop*        mPeephole[MAX_PEEPHOLE_PTRS];
-	unsigned int	mPeepholeIndex;
-	unsigned int	mPeepholeValidCount;
+	uint32_t	mPeepholeIndex;
+	uint32_t	mPeepholeValidCount;
     forthop*        mpLastIntoOpcode;
-    long            mCompileComboOpFlags;
+    int32_t            mCompileComboOpFlags;
 };
 

@@ -32,7 +32,7 @@ struct ForthFileInterface
     int                 (*fileExists)( const char* pPath );
     int                 (*fileSeek)( FILE* pFile, long offset, int ctrl );
     long                (*fileTell) ( FILE* pFile );
-    long                (*fileGetLength)( FILE* pFile );
+    int32_t                (*fileGetLength)( FILE* pFile );
     char*               (*fileGetString)( char* buffer, int bufferLength, FILE* pFile );
     int                 (*filePutString)( const char* buffer, FILE* pFile );
     int                 (*fileRemove)( const char* buffer );
@@ -107,9 +107,9 @@ struct ForthCoreState
 
 	ForthObject			consoleOutStream;
 
-    long                base;               // output base
+    int32_t                base;               // output base
     ucell               signedPrintMode;   // if numers are printed as signed/unsigned
-    long                traceFlags;
+    int32_t                traceFlags;
 
     ForthExceptionFrame* pExceptionFrame;  // points to current exception handler frame in rstack
     ucell               scratch[NUM_CORE_SCRATCH_CELLS];
@@ -130,12 +130,12 @@ void _doIntVarop(ForthCoreState* pCore, int* pVar);
 void SpewMethodName(ForthObject obj, forthop opVal);
 
 // DLLRoutine is used for any external DLL routine - it can take any number of arguments
-typedef long (*DLLRoutine)();
+typedef int32_t (*DLLRoutine)();
 // CallDLLRoutine is an assembler routine which:
 // 1) moves arguments from the forth parameter stack to the real stack in reverse order
 // 2) calls the DLL routine
 // 3) leaves the DLL routine result on the forth parameter stack
-extern void CallDLLRoutine( DLLRoutine function, long argCount, unsigned long flags, ForthCoreState *pCore );
+extern void CallDLLRoutine( DLLRoutine function, int32_t argCount, uint32_t flags, ForthCoreState *pCore );
 
 inline forthop GetCurrentOp( ForthCoreState *pCore )
 {

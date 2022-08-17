@@ -166,6 +166,27 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 16 2022
+
+I tried to get the Linux 64-bit build working, I got it to compile but it crashes
+during startup in InitAsmTables.  I didn't know that Linux/MacOs uses a completely
+different calling convention from Windows for Amd64.  Ugh, this will be ugly and
+painful to deal with.
+
+I decided to try to just get the non-assembler build working on Linux, and ran
+into an even bigger problem - on 64-bit Linux long is 64-bits!  I need to switch
+over to types like int32_t to fix this.
+
+I changed ulong to uint32_t, long to int32_t, unsingned int uint32_t.  I left plain
+int alone.
+
+Problem cases:
+printNumInCurrentBase in ForthOps.cpp - div takes a long
+fseek/ftell and fileSeek/fileTell in ForthServer.cpp/h - explicitly take longs
+
+Is the compiler just being pedantic here - long and int32_t should have the same size
+on 64-bit Windows.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 11 2022
 
 I finally tracked down the oStringFormatSub/resizeOString crash today.  I was

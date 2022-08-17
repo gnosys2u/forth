@@ -117,7 +117,7 @@ namespace
         return pShell->FileGetPosition( pFile );
     }
 
-    long fileGetLength( FILE* pFile )
+    int32_t fileGetLength( FILE* pFile )
     {
         ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
         return pShell->FileGetLength( pFile );
@@ -291,7 +291,7 @@ int ForthServerMainLoop( ForthEngine *pEngine, bool doAutoload, unsigned short p
 				unsigned char* pAddrBytes = (unsigned char*) pInAddr[i];
 				printf( "%d.%d.%d.%d   use %d for forth client address\n",
 					pAddrBytes[0], pAddrBytes[1], pAddrBytes[2], pAddrBytes[3],
-					*(reinterpret_cast<long*>(pAddrBytes)) );
+					*(reinterpret_cast<int32_t*>(pAddrBytes)) );
 				i++;
 			}
 		}
@@ -332,7 +332,7 @@ int ForthServerMainLoop( ForthEngine *pEngine, bool doAutoload, unsigned short p
 						unsigned char* pAddrBytes = (unsigned char*) (&resultAddr->ai_addr->sa_data[2]);
 						printf( "IPv4 %d.%d.%d.%d   use %u for forth client address\n",
 							pAddrBytes[0], pAddrBytes[1], pAddrBytes[2], pAddrBytes[3],
-							*(reinterpret_cast<long*>(pAddrBytes)) );
+							*(reinterpret_cast<int32_t*>(pAddrBytes)) );
 					}
 					break;
 

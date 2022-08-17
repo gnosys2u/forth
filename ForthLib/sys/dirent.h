@@ -222,7 +222,7 @@ extern "C" {
 
 /* Wide-character version */
 struct _wdirent {
-    long d_ino;                                 /* Always zero */
+    int32_t d_ino;                                 /* Always zero */
     unsigned short d_reclen;                    /* Structure size */
     size_t d_namlen;                            /* Length of name without \0 */
     int d_type;                                 /* File type */
@@ -256,7 +256,7 @@ static void _wrewinddir (_WDIR* dirp);
 
 /* Multi-byte character versions */
 struct dirent {
-    long d_ino;                                 /* Always zero */
+    int32_t d_ino;                                 /* Always zero */
     unsigned short d_reclen;                    /* Structure size */
     size_t d_namlen;                            /* Length of name without \0 */
     int d_type;                                 /* File type */

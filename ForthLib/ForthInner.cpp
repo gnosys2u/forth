@@ -74,7 +74,7 @@ VarAction byteOps[] =
 void _doByteVarop( ForthCoreState* pCore, signed char* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    ulong varOp = GET_VAR_OPERATION;
+    uint32_t varOp = GET_VAR_OPERATION;
     if ( varOp )
     {
         if ( varOp <= kVarMinusStore )
@@ -133,7 +133,7 @@ VarAction ubyteOps[] =
 static void _doUByteVarop( ForthCoreState* pCore, unsigned char* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    ulong varOp = GET_VAR_OPERATION;
+    uint32_t varOp = GET_VAR_OPERATION;
     if ( varOp )
     {
         if ( varOp <= kVarMinusStore )
@@ -173,7 +173,7 @@ GFORTHOP( ubyteVarActionBop )
 }
 #endif
 
-#define SET_OPVAL ulong varMode = opVal >> 21; 	if (varMode != 0) { pCore->varMode = varMode; opVal &= 0x1FFFFF; }
+#define SET_OPVAL uint32_t varMode = opVal >> 21; 	if (varMode != 0) { pCore->varMode = varMode; opVal &= 0x1FFFFF; }
 
 OPTYPE_ACTION( LocalByteAction )
 {
@@ -350,7 +350,7 @@ VarAction shortOps[] =
 static void _doShortVarop( ForthCoreState* pCore, short* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    ulong varOp = GET_VAR_OPERATION;
+    uint32_t varOp = GET_VAR_OPERATION;
     if ( varOp )
     {
         if ( varOp <= kVarMinusStore )
@@ -409,7 +409,7 @@ VarAction ushortOps[] =
 static void _doUShortVarop( ForthCoreState* pCore, unsigned short* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    ulong varOp = GET_VAR_OPERATION;
+    uint32_t varOp = GET_VAR_OPERATION;
     if ( varOp )
     {
         if ( varOp <= kVarMinusStore )
@@ -587,7 +587,7 @@ OPTYPE_ACTION( MemberUShortArrayAction )
 // doInt{Fetch,Ref,Store,PlusStore,MinusStore} are parts of doIntOp
 VAR_ACTION( doIntFetch ) 
 {
-    long *pA = (long *) (SPOP);
+    int32_t *pA = (int32_t *) (SPOP);
     SPUSH( *pA );
 }
 
@@ -597,19 +597,19 @@ VAR_ACTION( doIntRef )
 
 VAR_ACTION( doIntStore ) 
 {
-    long *pA = (long *) (SPOP);
+    int32_t *pA = (int32_t *) (SPOP);
     *pA = SPOP;
 }
 
 VAR_ACTION( doIntPlusStore ) 
 {
-    long *pA = (long *) (SPOP);
+    int32_t *pA = (int32_t *) (SPOP);
     *pA += SPOP;
 }
 
 VAR_ACTION( doIntMinusStore ) 
 {
-    long *pA = (long *) (SPOP);
+    int32_t *pA = (int32_t *) (SPOP);
     *pA -= SPOP;
 }
 
@@ -626,7 +626,7 @@ VarAction intOps[] =
 void _doIntVarop( ForthCoreState* pCore, int* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    ulong varOp = GET_VAR_OPERATION;
+    uint32_t varOp = GET_VAR_OPERATION;
     if ( varOp )
     {
         if ( varOp <= kVarMinusStore )
@@ -675,7 +675,7 @@ GFORTHOP( intVarActionBop )
 
 VAR_ACTION(doUIntFetch)
 {
-    unsigned int s = *(unsigned int*)(SPOP);
+    uint32_t s = *(uint32_t*)(SPOP);
     SPUSH((cell)s);
 }
 
@@ -689,10 +689,10 @@ VarAction uintOps[] =
     doIntMinusStore
 };
 
-static void _doUIntVarop(ForthCoreState* pCore, unsigned int* pVar)
+static void _doUIntVarop(ForthCoreState* pCore, uint32_t* pVar)
 {
     ForthEngine* pEngine = (ForthEngine*)pCore->pEngine;
-    ulong varOp = GET_VAR_OPERATION;
+    uint32_t varOp = GET_VAR_OPERATION;
     if (varOp)
     {
         if (varOp <= kVarMinusStore)
@@ -716,13 +716,13 @@ static void _doUIntVarop(ForthCoreState* pCore, unsigned int* pVar)
 #endif
 
 #ifndef ASM_INNER_INTERPRETER
-// this is an internal op that is compiled before the data field of each unsigned int variable
+// this is an internal op that is compiled before the data field of each uint32_t variable
 GFORTHOP(doUIntBop)
 {
     // IP points to data field
 
 #ifdef FORTH64
-    unsigned int* pVar = (unsigned int*)(GET_IP);
+    uint32_t* pVar = (uint32_t*)(GET_IP);
     _doUIntVarop(pCore, pVar);
 #else
     int* pVar = (int*)(GET_IP);
@@ -734,7 +734,7 @@ GFORTHOP(doUIntBop)
 GFORTHOP(uintVarActionBop)
 {
 #ifdef FORTH64
-    unsigned int* pVar = (unsigned int*)(SPOP);
+    uint32_t* pVar = (uint32_t*)(SPOP);
     _doUIntVarop(pCore, pVar);
 #else
     int* pVar = (int*)(SPOP);
@@ -773,7 +773,7 @@ OPTYPE_ACTION( MemberIntAction )
 OPTYPE_ACTION(LocalUIntAction)
 {
     SET_OPVAL;
-    unsigned int* pVar = (unsigned int*)(GET_FP - opVal);
+    uint32_t* pVar = (uint32_t*)(GET_FP - opVal);
 
     _doUIntVarop(pCore, pVar);
 }
@@ -781,7 +781,7 @@ OPTYPE_ACTION(LocalUIntAction)
 OPTYPE_ACTION(FieldUIntAction)
 {
     SET_OPVAL;
-    unsigned int* pVar = (unsigned int*)(SPOP + opVal);
+    uint32_t* pVar = (uint32_t*)(SPOP + opVal);
 
     _doUIntVarop(pCore, pVar);
 }
@@ -789,7 +789,7 @@ OPTYPE_ACTION(FieldUIntAction)
 OPTYPE_ACTION(MemberUIntAction)
 {
     SET_OPVAL;
-    unsigned int* pVar = (unsigned int*)(((cell)(GET_TP)) + opVal);
+    uint32_t* pVar = (uint32_t*)(((cell)(GET_TP)) + opVal);
 
     _doUIntVarop(pCore, pVar);
 }
@@ -846,7 +846,7 @@ OPTYPE_ACTION( MemberIntArrayAction )
 OPTYPE_ACTION(LocalUIntArrayAction)
 {
     SET_OPVAL;
-    unsigned int* pVar = ((unsigned int*)(GET_FP - opVal)) + SPOP;
+    uint32_t* pVar = ((uint32_t*)(GET_FP - opVal)) + SPOP;
 
     _doUIntVarop(pCore, pVar);
 }
@@ -856,7 +856,7 @@ OPTYPE_ACTION(FieldUIntArrayAction)
     SET_OPVAL;
     // TOS is struct base, NOS is index
     // opVal is byte offset of int[0]
-    unsigned int* pVar = (unsigned int*)(SPOP + opVal);
+    uint32_t* pVar = (uint32_t*)(SPOP + opVal);
     pVar += SPOP;
 
     _doUIntVarop(pCore, pVar);
@@ -867,7 +867,7 @@ OPTYPE_ACTION(MemberUIntArrayAction)
     SET_OPVAL;
     // TOS is index
     // opVal is byte offset of byte[0]
-    unsigned int* pVar = ((unsigned int*)(((cell)(GET_TP)) + opVal)) + SPOP;
+    uint32_t* pVar = ((uint32_t*)(((cell)(GET_TP)) + opVal)) + SPOP;
 
     _doUIntVarop(pCore, pVar);
 }
@@ -910,7 +910,7 @@ VarAction floatOps[] =
 static void _doFloatVarop( ForthCoreState* pCore, float* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    ulong varOp = GET_VAR_OPERATION;
+    uint32_t varOp = GET_VAR_OPERATION;
     if ( varOp )
     {
         if ( varOp <= kVarMinusStore )
@@ -928,7 +928,7 @@ static void _doFloatVarop( ForthCoreState* pCore, float* pVar )
     else
     {
         // just a fetch
-        SPUSH( *((long *) pVar) );
+        SPUSH( *((int32_t *) pVar) );
     }
 }
 
@@ -1058,7 +1058,7 @@ VarAction doubleOps[] =
 static void _doDoubleVarop( ForthCoreState* pCore, double* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    ulong varOp = GET_VAR_OPERATION;
+    uint32_t varOp = GET_VAR_OPERATION;
     if ( varOp )
     {
         if ( varOp <= kVarMinusStore )
@@ -1184,10 +1184,10 @@ VAR_ACTION( doStringFetch )
 VAR_ACTION( doStringStore ) 
 {
     // TOS:  ptr to dst maxLen field, ptr to src first byte
-    long *pLen = (long *) (SPOP);
+    int32_t *pLen = (int32_t *) (SPOP);
     char *pSrc = (char *) (SPOP);
-    long srcLen = strlen( pSrc );
-    long maxLen = *pLen++;
+    int32_t srcLen = strlen( pSrc );
+    int32_t maxLen = *pLen++;
     if ( srcLen > maxLen )
     {
         srcLen = maxLen;
@@ -1202,12 +1202,12 @@ VAR_ACTION( doStringStore )
 VAR_ACTION( doStringAppend ) 
 {
     // TOS:  ptr to dst maxLen field, ptr to src first byte
-    long *pLen = (long *) (SPOP);
+    int32_t *pLen = (int32_t *) (SPOP);
     char *pSrc = (char *) (SPOP);
-    long srcLen = strlen( pSrc );
-    long maxLen = *pLen++;
-    long curLen = *pLen;
-    long newLen = curLen + srcLen;
+    int32_t srcLen = strlen( pSrc );
+    int32_t maxLen = *pLen++;
+    int32_t curLen = *pLen;
+    int32_t newLen = curLen + srcLen;
     if ( newLen > maxLen )
     {
         newLen = maxLen;
@@ -1232,7 +1232,7 @@ VarAction stringOps[] =
 static void _doStringVarop( ForthCoreState* pCore, char* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    ulong varOp = GET_VAR_OPERATION;
+    uint32_t varOp = GET_VAR_OPERATION;
     if ( varOp )
     {
         if ( varOp <= kVarMinusStore )
@@ -1303,7 +1303,7 @@ GFORTHOP( doStringArrayBop )
     // IP points to data field
     int32_t *pLongs = (int32_t *) GET_IP;
     int index = SPOP;
-    long len = ((*pLongs) >> 2) + 3;      // length of one string in longwords
+    int32_t len = ((*pLongs) >> 2) + 3;      // length of one string in longwords
     char *pVar = (char *) (pLongs + (index * len));
 
 	_doStringVarop( pCore, pVar );
@@ -1316,7 +1316,7 @@ OPTYPE_ACTION( LocalStringArrayAction )
 	SET_OPVAL;
     cell *pLongs = GET_FP - opVal;
     int index = SPOP;
-    long len = ((*pLongs) >> 2) + 3;      // length of one string in longwords
+    int32_t len = ((*pLongs) >> 2) + 3;      // length of one string in longwords
     char *pVar = (char *) (pLongs + (index * len));
 
 	_doStringVarop( pCore, pVar );
@@ -1327,9 +1327,9 @@ OPTYPE_ACTION( FieldStringArrayAction )
 	SET_OPVAL;
     // TOS is struct base, NOS is index
     // opVal is byte offset of string[0]
-    long *pLongs = (long *) (SPOP + opVal);
+    int32_t *pLongs = (int32_t *) (SPOP + opVal);
     int index = SPOP;
-    long len = ((*pLongs) >> 2) + 3;      // length of one string in longwords
+    int32_t len = ((*pLongs) >> 2) + 3;      // length of one string in longwords
     char *pVar = (char *) (pLongs + (index * len));
 
 	_doStringVarop( pCore, pVar );
@@ -1340,9 +1340,9 @@ OPTYPE_ACTION( MemberStringArrayAction )
 	SET_OPVAL;
     // TOS is index
     // opVal is byte offset of string[0]
-    long *pLongs = (long *) ((cell)(GET_TP) + opVal);
+    int32_t *pLongs = (int32_t *) ((cell)(GET_TP) + opVal);
     int index = SPOP;
-    long len = ((*pLongs) >> 2) + 3;      // length of one string in longwords
+    int32_t len = ((*pLongs) >> 2) + 3;      // length of one string in longwords
     char *pVar = (char *) (pLongs + (index * len));
 
 	_doStringVarop( pCore, pVar );
@@ -1357,7 +1357,7 @@ OPTYPE_ACTION( MemberStringArrayAction )
 
 VAR_ACTION( doOpExecute ) 
 {
-    ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore,  *(long *)(SPOP) );
+    ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore,  *(int32_t *)(SPOP) );
 }
 
 VarAction opOps[] =
@@ -1368,10 +1368,10 @@ VarAction opOps[] =
     doIntStore,
 };
 
-static void _doOpVarop( ForthCoreState* pCore, long* pVar )
+static void _doOpVarop( ForthCoreState* pCore, int32_t* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    ulong varOp = GET_VAR_OPERATION;
+    uint32_t varOp = GET_VAR_OPERATION;
     if ( varOp )
     {
         if ( varOp <= kVarMinusStore )
@@ -1397,7 +1397,7 @@ static void _doOpVarop( ForthCoreState* pCore, long* pVar )
 GFORTHOP( doOpBop )
 {    
     // IP points to data field
-    long* pVar = (long *)(GET_IP);
+    int32_t* pVar = (int32_t *)(GET_IP);
     SET_IP((forthop *)(RPOP));
 
 	_doOpVarop( pCore, pVar );
@@ -1405,7 +1405,7 @@ GFORTHOP( doOpBop )
 
 GFORTHOP( opVarActionBop )
 {
-    long* pVar = (long *)(SPOP);
+    int32_t* pVar = (int32_t *)(SPOP);
 	_doOpVarop( pCore, pVar );
 }
 #endif
@@ -1413,7 +1413,7 @@ GFORTHOP( opVarActionBop )
 OPTYPE_ACTION( LocalOpAction )
 {
 	SET_OPVAL;
-    long* pVar = (long *)(GET_FP - opVal);
+    int32_t* pVar = (int32_t *)(GET_FP - opVal);
 
 	_doOpVarop( pCore, pVar );
 }
@@ -1422,7 +1422,7 @@ OPTYPE_ACTION( LocalOpAction )
 OPTYPE_ACTION( FieldOpAction )
 {
 	SET_OPVAL;
-    long* pVar = (long *)(SPOP + opVal);
+    int32_t* pVar = (int32_t *)(SPOP + opVal);
 
 	_doOpVarop( pCore, pVar );
 }
@@ -1431,7 +1431,7 @@ OPTYPE_ACTION( FieldOpAction )
 OPTYPE_ACTION( MemberOpAction )
 {
 	SET_OPVAL;
-    long *pVar = (long *) (((cell)(GET_TP)) + opVal);
+    int32_t *pVar = (int32_t *) (((cell)(GET_TP)) + opVal);
 
 	_doOpVarop( pCore, pVar );
 }
@@ -1441,7 +1441,7 @@ OPTYPE_ACTION( MemberOpAction )
 GFORTHOP( doOpArrayBop )
 {
     // IP points to data field
-    long* pVar = ((long *) (GET_IP)) + SPOP;
+    int32_t* pVar = ((int32_t *) (GET_IP)) + SPOP;
     SET_IP((forthop *)(RPOP));
 
 	_doOpVarop( pCore, pVar );
@@ -1451,7 +1451,7 @@ GFORTHOP( doOpArrayBop )
 OPTYPE_ACTION( LocalOpArrayAction )
 {
 	SET_OPVAL;
-    long* pVar = ((long *) (GET_FP - opVal)) + SPOP;
+    int32_t* pVar = ((int32_t *) (GET_FP - opVal)) + SPOP;
 
 	_doOpVarop( pCore, pVar );
 }
@@ -1461,7 +1461,7 @@ OPTYPE_ACTION( FieldOpArrayAction )
 	SET_OPVAL;
     // TOS is struct base, NOS is index
     // opVal is byte offset of op[0]
-    long* pVar = (long *)(SPOP + opVal);
+    int32_t* pVar = (int32_t *)(SPOP + opVal);
     pVar += SPOP;
 
 	_doOpVarop( pCore, pVar );
@@ -1472,7 +1472,7 @@ OPTYPE_ACTION( MemberOpArrayAction )
 	SET_OPVAL;
     // TOS is index
     // opVal is byte offset of byte[0]
-    long* pVar = ((long *) (((cell)(GET_TP)) + opVal)) + SPOP;
+    int32_t* pVar = ((int32_t *) (((cell)(GET_TP)) + opVal)) + SPOP;
 
 	_doOpVarop( pCore, pVar );
 }
@@ -1489,7 +1489,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
 
-	ulong varOp = GET_VAR_OPERATION;
+	uint32_t varOp = GET_VAR_OPERATION;
 	CLEAR_VAR_OPERATION;
 	switch ( varOp )
 	{
@@ -1724,7 +1724,7 @@ VarAction longOps[] =
 void longVarAction( ForthCoreState* pCore, int64_t* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    ulong varOp = GET_VAR_OPERATION;
+    uint32_t varOp = GET_VAR_OPERATION;
     if ( varOp )
     {
         if ( varOp <= kVarMinusStore )
@@ -1988,7 +1988,7 @@ OPTYPE_ACTION(PushBranchAction)
 OPTYPE_ACTION(RelativeDefBranchAction)
 {
 	// push the opcode for the immediately following anonymous def
-	long opcode = (GET_IP - pCore->pDictionary->pBase) | (kOpRelativeDef << 24);
+	int32_t opcode = (GET_IP - pCore->pDictionary->pBase) | (kOpRelativeDef << 24);
 	SPUSH(opcode);
 	// and branch around the anonymous def
 	SET_IP(GET_IP + opVal);
@@ -2092,9 +2092,9 @@ OPTYPE_ACTION( MemberRefAction )
 OPTYPE_ACTION( DLLEntryPointAction )
 {
 #ifdef WIN32
-    ulong entryIndex = CODE_TO_DLL_ENTRY_INDEX( opVal );
-    ulong argCount = CODE_TO_DLL_ENTRY_NUM_ARGS( opVal );
-	ulong flags = CODE_TO_DLL_ENTRY_FLAGS( opVal );
+    uint32_t entryIndex = CODE_TO_DLL_ENTRY_INDEX( opVal );
+    uint32_t argCount = CODE_TO_DLL_ENTRY_NUM_ARGS( opVal );
+	uint32_t flags = CODE_TO_DLL_ENTRY_FLAGS( opVal );
     if ( entryIndex < GET_NUM_OPS )
     {
         CallDLLRoutine( (DLLRoutine)(OP_TABLE[entryIndex]), argCount, flags, pCore );
@@ -2128,7 +2128,7 @@ void SpewMethodName(ForthObject obj, forthop opVal)
 			{
 				if (pEntry != nullptr)
 				{
-					long typeCode = pEntry[1];
+					int32_t typeCode = pEntry[1];
 					bool isMethod = CODE_IS_METHOD(typeCode);
 					if (isMethod)
 					{
@@ -2239,7 +2239,7 @@ OPTYPE_ACTION( MemberStringInitAction )
     // bits 0..11 are string length in bytes, bits 12..23 are member offset in longs
     // init the current & max length fields of a local string
     ForthObject pThis = GET_TP;
-    long* pStr = ((long *)pThis) + (opVal >> 12);
+    int32_t* pStr = ((int32_t *)pThis) + (opVal >> 12);
     *pStr++ = (opVal & 0xFFF);          // max length
     *pStr++ = 0;                        // current length
     *((char *) pStr) = 0;               // terminating null
@@ -2250,7 +2250,7 @@ OPTYPE_ACTION( NumVaropOpComboAction )
 	// NUM VAROP OP combo - bits 0:10 are signed integer, bits 11:12 are varop-2, bits 13-23 are opcode
 
 	// push signed int in bits 0:10
-	long num = opVal;
+	int32_t num = opVal;
     if ( (opVal & 0x400) != 0 )
     {
       num |= 0xFFFFF800;
@@ -2274,7 +2274,7 @@ OPTYPE_ACTION( NumVaropComboAction )
 	// NUM VAROP combo - bits 0:21 are signed integer, bits 22:23 are varop-2
 
 	// push signed int in bits 0:21
-	long num = opVal;
+	int32_t num = opVal;
     if ( (opVal & 0x200000) != 0 )
     {
       num |= 0xFFE00000;
@@ -2294,7 +2294,7 @@ OPTYPE_ACTION( NumOpComboAction )
 	// NUM OP combo - bits 0:12 are signed integer, bit 13 is builtin/userdef, bits 14:23 are opcode
 
 	// push signed int in bits 0:12
-	long num = opVal;
+	int32_t num = opVal;
     if ( (opVal & 0x1000) != 0 )
     {
       num |= 0xFFFFE000;
@@ -2329,7 +2329,7 @@ OPTYPE_ACTION( OpZBranchComboAction )
     ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore,  op );
     if ( SPOP == 0 )
     {
-		long branchOffset = opVal >> 12;
+		int32_t branchOffset = opVal >> 12;
         if ( (branchOffset & 0x800) != 0 )
         {
             // TODO: trap a hard loop (opVal == -1)?
@@ -2346,7 +2346,7 @@ OPTYPE_ACTION(OpNZBranchComboAction)
     ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore, op);
     if (SPOP != 0)
     {
-        long branchOffset = opVal >> 12;
+        int32_t branchOffset = opVal >> 12;
         if ((branchOffset & 0x800) != 0)
         {
             // TODO: trap a hard loop (opVal == -1)?
@@ -2418,7 +2418,7 @@ OPTYPE_ACTION( MethodAction )
     forthop op = GET_CURRENT_OP;
     forthOpType opType = FORTH_OP_TYPE( op );
     int methodNum = ((int) opType) & 0x7F;
-    long* pObj = NULL;
+    int32_t* pObj = NULL;
     if ( opVal & 0x00800000 )
     {
         // object ptr is in local variable
@@ -2429,7 +2429,7 @@ OPTYPE_ACTION( MethodAction )
         // object ptr is in global op
         if ( opVal < pCore->numUserOps )
         {
-            pObj = (long *) (pCore->userOps[opVal]);
+            pObj = (int32_t *) (pCore->userOps[opVal]);
         }
         else
         {
@@ -2441,7 +2441,7 @@ OPTYPE_ACTION( MethodAction )
         // pObj is a pair of pointers, first pointer is to
         //   class descriptor for this type of object,
         //   second pointer is to storage for object (this ptr)
-        long *pClass = (long *) (*pObj);
+        int32_t *pClass = (int32_t *) (*pObj);
         if ( (pClass[1] == CLASS_MAGIC_NUMBER)
             && (pClass[2] > methodNum) )
         {

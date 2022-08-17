@@ -178,7 +178,7 @@ namespace OList
     FORTHOP(oListCountMethod)
     {
         GET_THIS(oListStruct, pList);
-        long count = 0;
+        int32_t count = 0;
         oListElement* pCur = pList->head;
         while (pCur != NULL)
         {
@@ -662,7 +662,7 @@ namespace OList
     FORTHOP(oListIterAtHeadMethod)
     {
         GET_THIS(oListIterStruct, pIter);
-        long retVal = (pIter->cursor = reinterpret_cast<oListStruct *>(pIter->parent)->head) ? ~0 : 0;
+        int32_t retVal = (pIter->cursor = reinterpret_cast<oListStruct *>(pIter->parent)->head) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -670,7 +670,7 @@ namespace OList
     FORTHOP(oListIterAtTailMethod)
     {
         GET_THIS(oListIterStruct, pIter);
-        long retVal = (pIter->cursor == nullptr) ? ~0 : 0;
+        int32_t retVal = (pIter->cursor == nullptr) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -799,7 +799,7 @@ namespace OList
 	{
 		GET_THIS(oListIterStruct, pIter);
 		oListElement* pCur = pIter->cursor;
-        long found = 0;
+        int32_t found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		if (pCur != NULL)

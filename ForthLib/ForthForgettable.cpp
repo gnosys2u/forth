@@ -82,7 +82,7 @@ ForthForgettable::Save( FILE* pOutFile )
 }
 
 bool
-ForthForgettable::Restore( const char* pBuffer, unsigned int numBytes )
+ForthForgettable::Restore( const char* pBuffer, uint32_t numBytes )
 {
     (void) pBuffer;
     (void) numBytes;
@@ -100,7 +100,7 @@ void ForthForgettable::ForgetPropagate( void* pForgetLimit, forthop op )
     while ( pNext != NULL )
     {
         pTmp = pNext->mpNext;
-        if ( (ulong) pNext->mpOpAddress > (ulong) pForgetLimit )
+        if ( (uint32_t) pNext->mpOpAddress > (uint32_t) pForgetLimit )
         {
             delete pNext;
         }

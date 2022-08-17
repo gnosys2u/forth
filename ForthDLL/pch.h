@@ -25,10 +25,6 @@
 
 #define ASSERT assert
 
-#ifndef ulong
-#define ulong unsigned long
-#endif
-
 // these had to be added to get ForthDLL DbgAsm and RelAsm configurations to compile
 // I don't understand how these are different from Debug and Release for this case
 # ifndef _CRT_SECURE_NO_WARNINGS

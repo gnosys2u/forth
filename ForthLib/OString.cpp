@@ -21,7 +21,7 @@
 
 extern "C"
 {
-	unsigned long SuperFastHash (const char * data, int len, unsigned long hash);
+	uint32_t SuperFastHash (const char * data, int len, uint32_t hash);
 	extern cell oStringFormatSub( ForthCoreState* pCore, char* pBuffer, int bufferSize );
 };
 
@@ -66,7 +66,7 @@ namespace OString
     void appendOString(oStringStruct* pString, const char* pSrc, int numNewBytes)
     {
         oString* dst = pString->str;
-        long newLen = dst->curLen + numNewBytes;
+        int32_t newLen = dst->curLen + numNewBytes;
         if (newLen > dst->maxLen)
         {
             // enlarge string
@@ -81,7 +81,7 @@ namespace OString
     void prependOString(oStringStruct* pString, const char* pSrc, int numNewBytes)
     {
         oString* dst = pString->str;
-        long newLen = dst->curLen + numNewBytes;
+        int32_t newLen = dst->curLen + numNewBytes;
         if (newLen > dst->maxLen)
         {
             // enlarge string
@@ -205,10 +205,10 @@ namespace OString
 
     void setString(oStringStruct* pString, const char* srcStr)
     {
-        long len = 0;
+        int32_t len = 0;
         if (srcStr != NULL)
         {
-            len = (long)strlen(srcStr);
+            len = (int32_t)strlen(srcStr);
         }
         else
         {
@@ -264,7 +264,7 @@ namespace OString
 		GET_THIS(oStringStruct, pString);
 		ForthObject srcObj;
 		POP_OBJECT(srcObj);
-		long srcLen = 0;
+		int32_t srcLen = 0;
 		oStringStruct* srcStr = nullptr;
 		if (srcObj != nullptr)
 		{
@@ -360,7 +360,7 @@ namespace OString
     FORTHOP(oStringResizeMethod)
     {
         GET_THIS( oStringStruct, pString );
-		long newLen = SPOP;
+		int32_t newLen = SPOP;
 		oString* dst = resizeOString(pString, newLen);
 		dst->data[newLen] = '\0';
         pString->hash = 0;
@@ -372,7 +372,7 @@ namespace OString
     {
         GET_THIS(oStringStruct, pString);
         oString* str = pString->str;
-        long newLen = SPOP;
+        int32_t newLen = SPOP;
         if (newLen < 0)
         {
             ForthEngine *pEngine = ForthEngine::GetInstance();
@@ -392,7 +392,7 @@ namespace OString
     {
         GET_THIS(oStringStruct, pString);
         oString* str = pString->str;
-        long newLen = SPOP;
+        int32_t newLen = SPOP;
         char* data = &(str->data[0]);
         if (newLen < 0)
         {
@@ -418,8 +418,8 @@ namespace OString
     {
         GET_THIS(oStringStruct, pString);
         oString* str = pString->str;
-        long newLen = SPOP;
-        long firstChar = SPOP;
+        int32_t newLen = SPOP;
+        int32_t firstChar = SPOP;
         ForthEngine *pEngine = ForthEngine::GetInstance();
         if (firstChar < 0)
         {
@@ -439,7 +439,7 @@ namespace OString
             }
             else
             {
-                long charsLeft = str->curLen - firstChar;
+                int32_t charsLeft = str->curLen - firstChar;
                 if (newLen > charsLeft)
                 {
                     newLen = charsLeft;
@@ -465,7 +465,7 @@ namespace OString
     {
         GET_THIS(oStringStruct, pString);
         oString* str = pString->str;
-        long newLen = SPOP;
+        int32_t newLen = SPOP;
         if (newLen < 0)
         {
             ForthEngine *pEngine = ForthEngine::GetInstance();
@@ -485,7 +485,7 @@ namespace OString
     {
         GET_THIS(oStringStruct, pString);
         oString* str = pString->str;
-        long newLen = SPOP;
+        int32_t newLen = SPOP;
         char* data = &(str->data[0]);
         if (newLen < 0)
         {
@@ -510,8 +510,8 @@ namespace OString
     {
         GET_THIS(oStringStruct, pString);
         oString* str = pString->str;
-        long newLen = SPOP;
-        long firstChar = SPOP;
+        int32_t newLen = SPOP;
+        int32_t firstChar = SPOP;
         ForthEngine *pEngine = ForthEngine::GetInstance();
         char* pBytes = &(str->data[0]);
         if (firstChar < 0)
@@ -536,7 +536,7 @@ namespace OString
             {
                 // starting char is within string
                 pBytes += firstChar;
-                long charsLeft = str->curLen - firstChar;
+                int32_t charsLeft = str->curLen - firstChar;
                 if (newLen > charsLeft)
                 {
                     newLen = charsLeft;
@@ -553,10 +553,10 @@ namespace OString
     {
         GET_THIS( oStringStruct, pString );
 		const char* srcStr = (const char *) SPOP;
-		long result = 0;
+		int32_t result = 0;
 		if ( srcStr != NULL )
 		{
-			long len = (long) strlen( srcStr );
+			int32_t len = (int32_t) strlen( srcStr );
 			if ( (len == pString->str->curLen)
 				&& (strncmp( pString->str->data, srcStr, len ) == 0 ) )
 			{
@@ -571,10 +571,10 @@ namespace OString
 	{
 		GET_THIS(oStringStruct, pString);
 		const char* srcStr = (const char *)SPOP;
-		long result = 0;
+		int32_t result = 0;
 		if (srcStr != NULL)
 		{
-			long len = (long)strlen(srcStr);
+			int32_t len = (int32_t)strlen(srcStr);
 			if ((len <= pString->str->curLen)
 				&& (strncmp(pString->str->data, srcStr, len) == 0))
 			{
@@ -589,10 +589,10 @@ namespace OString
     {
         GET_THIS( oStringStruct, pString );
 		const char* srcStr = (const char *) SPOP;
-		long result = 0;
+		int32_t result = 0;
 		if ( srcStr != NULL )
 		{
-			long len = (long) strlen( srcStr );
+			int32_t len = (int32_t) strlen( srcStr );
 			if ( len <= pString->str->curLen )
 			{
 				const char* strEnd = pString->str->data + (pString->str->curLen - len);
@@ -610,9 +610,9 @@ namespace OString
     {
         GET_THIS( oStringStruct, pString );
 		const char* srcStr = (const char *) SPOP;
-		long result = 0;
+		int32_t result = 0;
 		if ( (srcStr != NULL)
-			&& ( (long) strlen( srcStr ) <= pString->str->curLen )
+			&& ( (int32_t) strlen( srcStr ) <= pString->str->curLen )
 			&& (strstr( pString->str->data, srcStr ) != NULL ) )
 		{
 			result = ~0;
@@ -1078,7 +1078,7 @@ namespace OString
     FORTHOP(oStringMapFindMethod)
     {
         GET_THIS(oStringMapStruct, pMap);
-        long found = 0;
+        int32_t found = 0;
         ForthObject soughtObj;
         POP_OBJECT(soughtObj);
         oStringMap::iterator iter;
@@ -1134,7 +1134,7 @@ namespace OString
 	FORTHOP(oStringMapGrabMethod)
 	{
 		GET_THIS(oStringMapStruct, pMap);
-        long found = 0;
+        int32_t found = 0;
         oStringMap& a = *(pMap->elements);
 		std::string key;
 		key = (const char*)(SPOP);
@@ -1190,7 +1190,7 @@ namespace OString
     FORTHOP(oStringMapFindValueMethod)
 	{
 		GET_THIS(oStringMapStruct, pMap);
-		long found = 0;
+		int32_t found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oStringMap::iterator iter;
@@ -1325,7 +1325,7 @@ namespace OString
     {
         GET_THIS(oStringMapIterStruct, pIter);
         oStringMapStruct* pMap = reinterpret_cast<oStringMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->begin()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }
@@ -1334,7 +1334,7 @@ namespace OString
     {
         GET_THIS(oStringMapIterStruct, pIter);
         oStringMapStruct* pMap = reinterpret_cast<oStringMapStruct *>(pIter->parent);
-        long retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
+        int32_t retVal = (*(pIter->cursor) == pMap->elements->end()) ? ~0 : 0;
         SPUSH(retVal);
         METHOD_RETURN;
     }

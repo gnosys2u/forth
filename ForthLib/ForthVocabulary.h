@@ -37,7 +37,7 @@ struct oVocabularyIterStruct
     forthop*            pMethods;
     ucell               refCount;
     ForthObject			parent;
-	long*				cursor;
+	int32_t*				cursor;
 	ForthVocabulary*	vocabulary;
 };
 
@@ -153,7 +153,7 @@ public:
         *pEntry = COMPILED_OP( opType, FORTH_OP_VALUE( *pEntry ) );
     };
 
-    static inline long          GetEntryValue( const forthop* pEntry ) {
+    static inline int32_t          GetEntryValue( const forthop* pEntry ) {
         return FORTH_OP_VALUE( *pEntry );
     };
 
@@ -202,7 +202,7 @@ public:
 
     virtual void AfterStart();
     virtual int Save( FILE* pOutFile );
-    virtual bool Restore( const char* pBuffer, unsigned int numBytes );
+    virtual bool Restore( const char* pBuffer, uint32_t numBytes );
 
 #ifdef MAP_LOOKUP
     void                        InitLookupMap();
@@ -221,7 +221,7 @@ protected:
     forthop*            mpNewestSymbol;
     char*               mpName;
     int                 mValueLongs;
-    ulong               mLastSerial;
+    uint32_t               mLastSerial;
     char                mNewestSymbol[ 256 ];
     // these are set right after forth is started, before any user definitions are loaded
     // they are used when saving/restoring vocabularies
@@ -251,7 +251,7 @@ public:
 
 	int					GetFrameCells();
     forthop*            GetFrameAllocOpPointer();
-    forthop*			AddVariable( const char* pVarName, long fieldType, long varValue, int nCells );
+    forthop*			AddVariable( const char* pVarName, int32_t fieldType, int32_t varValue, int nCells );
 	void				ClearFrame();
 
 protected:
@@ -277,11 +277,11 @@ public:
 
     void *              LoadDLL( void );
     void                UnloadDLL( void );
-	forthop*            AddEntry(const char* pFuncName, const char* pEntryName, long numArgs);
-	void				SetFlag( unsigned long flag );
+	forthop*            AddEntry(const char* pFuncName, const char* pEntryName, int32_t numArgs);
+	void				SetFlag( uint32_t flag );
 protected:
     char *              mpDLLName;
-	unsigned long		mDLLFlags;
+	uint32_t		mDLLFlags;
 #if defined(WINDOWS_BUILD)
     HINSTANCE           mhDLL;
 #endif
@@ -311,7 +311,7 @@ public:
     forthop*    FindSymbol( const char *pSymName, ForthVocabulary** ppFoundVocab=NULL );
 
     // return pointer to symbol entry, NULL if not found, given its value
-    forthop*    FindSymbolByValue( long val, ForthVocabulary** ppFoundVocab=NULL );
+    forthop*    FindSymbolByValue( int32_t val, ForthVocabulary** ppFoundVocab=NULL );
 
     // return pointer to symbol entry, NULL if not found
     // pSymName is required to be a longword aligned address, and to be padded with 0's

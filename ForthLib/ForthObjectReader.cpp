@@ -358,13 +358,13 @@ void ForthObjectReader::processElement(const std::string& name)
                 mContext.pVocab = newClassVocab;
                 mContext.objIndex = (int) mObjects.size();
 
-                long initOpcode = mContext.pVocab->GetInitOpcode();
-                SPUSH((long)mContext.pVocab);
+                int32_t initOpcode = mContext.pVocab->GetInitOpcode();
+                SPUSH((int32_t)mContext.pVocab);
                 mpEngine->FullyExecuteOp(pCore, (static_cast<ForthClassVocabulary *>(mContext.pVocab))->GetClassObject()->newOp);
                 if (initOpcode != 0)
                 {
                     // copy object data pointer to TOS to be used by init 
-                    long a = (GET_SP)[1];
+                    int32_t a = (GET_SP)[1];
                     SPUSH(a);
                     mpEngine->FullyExecuteOp(pCore, initOpcode);
                 }
@@ -409,14 +409,14 @@ void ForthObjectReader::processElement(const std::string& name)
             if (pEntry != nullptr)
             {
                 // TODO - handle number, string, object, array
-                long elementSize = VOCABENTRY_TO_ELEMENT_SIZE(pEntry);
+                int32_t elementSize = VOCABENTRY_TO_ELEMENT_SIZE(pEntry);
                 if (elementSize == 0)
                 {
                     throwError("attempt to read zero size element");
                 }
-                long typeCode = VOCABENTRY_TO_TYPECODE(pEntry);
-                long byteOffset = VOCABENTRY_TO_FIELD_OFFSET(pEntry);
-                long baseType = CODE_TO_BASE_TYPE(typeCode);
+                int32_t typeCode = VOCABENTRY_TO_TYPECODE(pEntry);
+                int32_t byteOffset = VOCABENTRY_TO_FIELD_OFFSET(pEntry);
+                int32_t baseType = CODE_TO_BASE_TYPE(typeCode);
                 //bool isNative = CODE_IS_NATIVE(typeCode);
                 bool isPtr = CODE_IS_PTR(typeCode);
                 bool isArray = CODE_IS_ARRAY(typeCode);
@@ -506,7 +506,7 @@ void ForthObjectReader::processElement(const std::string& name)
                         }
                         if (sscanf(str.c_str(), "%lld", &lval) != 1)
                         {
-                            throwError("failed to parse long");
+                            throwError("failed to parse int32_t");
                         }
                         *(int64_t *)pDst = lval;
                         bytesConsumed = 8;

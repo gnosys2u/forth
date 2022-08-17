@@ -31,7 +31,7 @@ public:
 
     // ForgetOp is called whenever a forget operation occurs, so the extension can cleanup any
     //  internal state that is affected by the ops which were just deleted
-    virtual void ForgetOp( ulong opNumber );
+    virtual void ForgetOp( uint32_t opNumber );
 
 protected:
     ForthEngine*    mpEngine;

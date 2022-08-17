@@ -229,11 +229,11 @@ FORTHOP( udivmodOp )
     NEEDS(3);
     stackInt64 a;
     stackInt64 quotient;
-    unsigned long b = (unsigned long)SPOP;
+    uint32_t b = (uint32_t)SPOP;
     LPOP(a);
     quotient.s64 = a.u64 / b;
-    unsigned long remainder = a.u64 % b;
-    SPUSH(((long)remainder));
+    uint32_t remainder = a.u64 % b;
+    SPUSH(((int32_t)remainder));
     LPUSH(quotient);
 #endif
 }
@@ -264,10 +264,10 @@ FORTHOP( timesDivModOp )
 FORTHOP( umDivModOp )
 {
     stackInt64 a;
-    unsigned int denom = SPOP;
+    uint32_t denom = SPOP;
     LPOP(a);
-	unsigned int quotient = a.u64 / denom;
-	unsigned int remainder = a.u64 % denom;
+	uint32_t quotient = a.u64 / denom;
+	uint32_t remainder = a.u64 % denom;
 	SPUSH(remainder);
 	SPUSH(quotient);
 }
@@ -1202,7 +1202,7 @@ FORTHOP( here0Op )
 FORTHOP( mallocOp )
 {
     NEEDS(1);
-    long numBytes = SPOP;
+    int32_t numBytes = SPOP;
 	void* pMemory = __MALLOC(numBytes);
     SPUSH( (cell) pMemory  );
 }
@@ -1224,14 +1224,14 @@ FORTHOP( freeOp )
 FORTHOP(initStringArrayOp)
 {
 	// TOS: maximum length, number of elements, ptr to first char of first element
-	long len, nLongs;
-	long* pStr;
+	int32_t len, nLongs;
+	int32_t* pStr;
 	int i, numElements;
 
 	len = SPOP;
 	numElements = SPOP;
     // TODO!
-	pStr = ((long *)(SPOP)) - 2;
+	pStr = ((int32_t *)(SPOP)) - 2;
 	nLongs = (len >> 2) + 3;
 
 	for (i = 0; i < numElements; i++)
@@ -1260,10 +1260,10 @@ FORTHOP(initStructArrayOp)
 		{
 			if (pVocab->IsStruct())
 			{
-				long initStructOp = pVocab->GetInitOpcode();
+				int32_t initStructOp = pVocab->GetInitOpcode();
 				if (initStructOp != 0)
 				{
-					long len = pVocab->GetSize();
+					int32_t len = pVocab->GetSize();
 
 					for (int i = 0; i < numElements; i++)
 					{
@@ -1528,7 +1528,7 @@ FORTHOP( exitOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
     // compile exitOp
-    long flags = pEngine->GetFlags();
+    int32_t flags = pEngine->GetFlags();
 
 	bool isMethodDef = ((flags & kEngineFlagIsMethod) != 0);
     pEngine->ClearPeephole();
@@ -2018,7 +2018,7 @@ FORTHOP( opOp )
 
 //FORTHOP( objectOp )
 //{
-//    long val[2] = { 0, 0  };
+//    int32_t val[2] = { 0, 0  };
 //	gNativeTypeObject.DefineInstance( GET_ENGINE, val );
 //}
 
@@ -2029,7 +2029,7 @@ FORTHOP( voidOp )
 FORTHOP( arrayOfOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
-    long numElements;
+    int32_t numElements;
 
     if ( pEngine->IsCompiling() )
     {
@@ -2249,7 +2249,7 @@ FORTHOP( returnsOp )
 FORTHOP( doMethodOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
-    long methodIndex = SPOP;
+    int32_t methodIndex = SPOP;
     RPUSH( ((cell) GET_TP) );
     ForthObject obj;
     POP_OBJECT(obj);
@@ -2358,7 +2358,7 @@ FORTHOP( strSizeOfOp )
 	char *pSym = (char *)(SPOP);
     ForthVocabulary* pFoundVocab;
     forthop* pEntry = pEngine->GetVocabularyStack()->FindSymbol( pSym, &pFoundVocab );
-	long size = 0;
+	int32_t size = 0;
 
     if ( pEntry )
     {
@@ -2389,7 +2389,7 @@ FORTHOP( strOffsetOfOp )
 {
     // TODO: allow offsetOf to be variable.field instead of just type.field
     ForthEngine *pEngine = GET_ENGINE;
-	long size = 0;
+	int32_t size = 0;
 
 	char *pType = (char *)(SPOP);
     char *pField = strchr( pType, '.' );
@@ -2491,7 +2491,7 @@ void __newOp(ForthCoreState* pCore, const char* pClassName)
 
         if ( pClassVocab && pClassVocab->IsClass() )
         {
-			long initOpcode = pClassVocab->GetInitOpcode();
+			int32_t initOpcode = pClassVocab->GetInitOpcode();
 			if (pEngine->IsCompiling())
             {
 				pEngine->ProcessConstant(pClassVocab->GetTypeIndex(), false);
@@ -2509,7 +2509,7 @@ void __newOp(ForthCoreState* pCore, const char* pClassName)
 				if (initOpcode != 0)
 				{
 					// copy object data pointer to TOS to be used by init 
-					long a = (GET_SP)[1];
+					int32_t a = (GET_SP)[1];
 					SPUSH(a);
 					pEngine->FullyExecuteOp(pCore, initOpcode);
 				}
@@ -2550,13 +2550,13 @@ FORTHOP(strNewOp)
 
 		if (pClassVocab && pClassVocab->IsClass())
 		{
-			long initOpcode = pClassVocab->GetInitOpcode();
+			int32_t initOpcode = pClassVocab->GetInitOpcode();
 			SPUSH((cell)pClassVocab);
 			pEngine->FullyExecuteOp(pCore, pClassVocab->GetClassObject()->newOp);
 			if (initOpcode != 0)
 			{
 				// copy object data pointer to TOS to be used by init 
-				long a = (GET_SP)[1];
+				int32_t a = (GET_SP)[1];
 				SPUSH(a);
 				pEngine->FullyExecuteOp(pCore, initOpcode);
 			}
@@ -2659,7 +2659,7 @@ FORTHOP( allocObjectOp )
     forthop* pMethods = pClassVocab->GetMethods();
     if (pMethods)
     {
-        long nBytes = pClassVocab->GetSize();
+        int32_t nBytes = pClassVocab->GetSize();
         ForthObject newObject = (ForthObject) __ALLOCATE_BYTES( nBytes );
 		memset(newObject, 0, nBytes );
         newObject->pMethods = pMethods;
@@ -2694,14 +2694,14 @@ FORTHOP( initMemberStringOp )
         return;
     }
 
-    long typeCode = pEntry[1];
+    int32_t typeCode = pEntry[1];
     if ( !CODE_IS_SIMPLE(typeCode) || !CODE_IS_NATIVE(typeCode) || (CODE_TO_BASE_TYPE(typeCode) != kBaseTypeString) )
     {
         pEngine->SetError( kForthErrorBadSyntax, "initMemberString can only be used on a simple string" );
         return;
     }
 	// pEntry[2] is the total string struct length in bytes, subtract 9 for maxLen, curLen and terminating null
-    long len = pEntry[2] - 9;
+    int32_t len = pEntry[2] - 9;
 	if ( len > 4095 )
     {
         pEngine->SetError( kForthErrorBadParameter, "initMemberString can not be used on string with size > 4095" );
@@ -2714,7 +2714,7 @@ FORTHOP( initMemberStringOp )
     }
 
 	// only shift up by 10 bits since pEntry[0] is member byte offset, opcode holds member offset in longs
-    long varOffset = (pEntry[0] << 10) | len;
+    int32_t varOffset = (pEntry[0] << 10) | len;
 
     pEngine->CompileOpcode( kOpMemberStringInit, varOffset );
 }
@@ -2798,14 +2798,14 @@ FORTHOP(findEnumSymbolOp)
 {
     ForthEngine *pEngine = GET_ENGINE;
     ForthEnumInfo* pEnumInfo = (ForthEnumInfo*)(SPOP);
-    long enumValue = SPOP;
+    int32_t enumValue = SPOP;
     ForthVocabulary* pVocab = pEnumInfo->pVocab;
     // NOTE: this will only find enums which are defined as constants with 24 bits or less
-    long numEnums = pEnumInfo->numEnums;
-    long lastEnumOffset = pEnumInfo->vocabOffset;
-    long numSymbols = pVocab->GetNumEntries();
+    int32_t numEnums = pEnumInfo->numEnums;
+    int32_t lastEnumOffset = pEnumInfo->vocabOffset;
+    int32_t numSymbols = pVocab->GetNumEntries();
     forthop* pFoundEntry = nullptr;
-    long currentVocabOffset = pVocab->GetEntriesEnd() - pVocab->GetNewestEntry();
+    int32_t currentVocabOffset = pVocab->GetEntriesEnd() - pVocab->GetNewestEntry();
     if (currentVocabOffset >= lastEnumOffset)
     {
         forthop* pEntry = pVocab->GetEntriesEnd() - lastEnumOffset;
@@ -2985,7 +2985,7 @@ FORTHOP( precedenceOp )
     if ( pEntry )
     {
         forthop op = *pEntry;
-        ulong opVal = FORTH_OP_VALUE( op );
+        uint32_t opVal = FORTH_OP_VALUE( op );
         switch ( FORTH_OP_TYPE( op ) )
         {
             case kOpNative:
@@ -3210,8 +3210,8 @@ FORTHOP( bodyOp )
     ForthEngine *pEngine = GET_ENGINE;
 
     forthop op = SPOP;
-    unsigned long opIndex = FORTH_OP_VALUE( op );
-    long opType = FORTH_OP_TYPE( op );
+    uint32_t opIndex = FORTH_OP_VALUE( op );
+    int32_t opType = FORTH_OP_TYPE( op );
     switch ( opType )
     {
     case kOpNativeImmediate:
@@ -3290,7 +3290,7 @@ printNumInCurrentBase( ForthCoreState   *pCore,
     ldiv_t v;
     long base;
     bool bIsNegative, bPrintUnsigned;
-    ulong urem;
+    uint32_t urem;
     ePrintSignedMode signMode;
 
     if ( val == 0 )
@@ -3324,9 +3324,9 @@ printNumInCurrentBase( ForthCoreState   *pCore,
                 // since div is defined as signed divide/mod, make sure
                 //   that the number is not negative by generating the bottom digit
                 bIsNegative = false;
-                urem = ((ulong) val) % ((ulong) base);
+                urem = ((uint32_t) val) % ((uint32_t) base);
                 *--pNext = (char) ( (urem < 10) ? (urem + '0') : ((urem - 10) + 'a') );
-                val = ((ulong) val) / ((ulong) base);
+                val = ((uint32_t) val) / ((uint32_t) base);
             }
             else
             {
@@ -3372,9 +3372,9 @@ printLongNumInCurrentBase( ForthCoreState   *pCore,
 #define PRINT_NUM_BUFF_CHARS 68
     char buff[ PRINT_NUM_BUFF_CHARS ];
     char *pNext = &buff[ PRINT_NUM_BUFF_CHARS ];
-    ulong base;
+    uint32_t base;
     bool bIsNegative, bPrintUnsigned;
-    ulong urem;
+    uint32_t urem;
 	uint64_t uval;
     ePrintSignedMode signMode;
 
@@ -3385,7 +3385,7 @@ printLongNumInCurrentBase( ForthCoreState   *pCore,
     }
     else
     {
-        base = (ulong) *(GET_BASE_REF);
+        base = (uint32_t) *(GET_BASE_REF);
 
         signMode = (ePrintSignedMode) GET_PRINT_SIGNED_NUM_MODE;
         if ( base == 10 ) 
@@ -3648,7 +3648,7 @@ FORTHOP(format32Op)
 			}
 			default:
 			{
-				long val = SPOP;
+				int32_t val = SPOP;
 				SNPRINTF( pDst, buffLen, pFmt, val );
 			}
 		}
@@ -3866,7 +3866,7 @@ FORTHOP(addTempStringOp)
     NEEDS(2);
 
     ForthEngine *pEngine = GET_ENGINE;
-    long stringSize = SPOP;
+    int32_t stringSize = SPOP;
     char* pSrc = (char *)(SPOP);
     char *pDst = pEngine->AddTempString(pSrc, stringSize);
     SPUSH((cell)pDst);
@@ -3887,7 +3887,7 @@ void fprintfSub( ForthCoreState* pCore )
 {
     cell a[8];
     // TODO: assert if numArgs > 8
-    long numArgs = SPOP;
+    int32_t numArgs = SPOP;
     for ( int i = numArgs - 1; i >= 0; --i )
     {
         a[i] = SPOP;
@@ -3902,7 +3902,7 @@ void snprintfSub( ForthCoreState* pCore )
 {
     cell a[8];
     // TODO: assert if numArgs > 8
-    long numArgs = SPOP;
+    int32_t numArgs = SPOP;
     for ( int i = numArgs - 1; i >= 0; --i )
     {
         a[i] = SPOP;
@@ -3924,7 +3924,7 @@ void fscanfSub( ForthCoreState* pCore )
 {
     void* a[8];
     // TODO: assert if numArgs > 8
-    long numArgs = SPOP;
+    int32_t numArgs = SPOP;
     for ( int i = numArgs - 1; i >= 0; --i )
     {
         a[i] = (void *) SPOP;
@@ -4063,7 +4063,7 @@ FORTHOP(printStrOp)
 FORTHOP( printBytesOp )
 {
     NEEDS(2);
-    long count = SPOP;
+    int32_t count = SPOP;
     const char* pChars = (const char*)(SPOP);
 	if ( pChars == NULL )
 	{
@@ -4318,8 +4318,8 @@ FORTHOP( errnoOp)
 
 FORTHOP( strerrorOp)
 {
-	long errVal = SPOP;
-    SPUSH( reinterpret_cast<long>(strerror(errVal)) );
+	int32_t errVal = SPOP;
+    SPUSH( reinterpret_cast<int32_t>(strerror(errVal)) );
 }
 
 FORTHOP( shellRunOp )
@@ -4390,7 +4390,7 @@ FORTHOP( saveInputOp )
 {
     ForthShell *pShell = GET_ENGINE->GetShell();
     cell* pData = pShell->GetInput()->InputStream()->GetInputState();
-    long nItems = *pData;
+    int32_t nItems = *pData;
     for ( int i = 0; i < nItems; i++ )
     {
         SPUSH( pData[nItems - i] );
@@ -4402,7 +4402,7 @@ FORTHOP(restoreInputOp)
 {
     ForthShell *pShell = GET_ENGINE->GetShell();
     cell* pSP = GET_SP;
-    long nItems = *pSP;
+    int32_t nItems = *pSP;
     pShell->GetInput()->InputStream()->SetInputState(pSP);
     SET_SP(pSP + (nItems + 1));
 }
@@ -4670,7 +4670,7 @@ FORTHOP( addDLLEntryOp )
         pEngine->AddErrorText( pVocab->GetName() );
         pEngine->SetError( kForthErrorBadParameter, " is not a DLL vocabulary - addDllEntry" );
     }
-    ulong numArgs = SPOP;
+    uint32_t numArgs = SPOP;
 	pVocab->AddEntry(pProcName, pProcName, numArgs);
 }
 
@@ -4687,7 +4687,7 @@ FORTHOP(addDLLEntryExOp)
 		pEngine->AddErrorText(pVocab->GetName());
 		pEngine->SetError(kForthErrorBadParameter, " is not a DLL vocabulary - addDllEntry");
 	}
-	ulong numArgs = SPOP;
+	uint32_t numArgs = SPOP;
 	pVocab->AddEntry(pProcName, pEntryName, numArgs);
 }
 
@@ -5021,18 +5021,18 @@ FORTHOP( randOp )
 
 FORTHOP( srandOp )
 {
-    srand( (unsigned int) (SPOP) );
+    srand( (uint32_t) (SPOP) );
 }
 
 // Paul Hsieh's fast hash    http://www.azillionmonkeys.com/qed/hash.html
-#define get16bits(d) ((((unsigned long)(((const unsigned char *)(d))[1])) << 8)\
-						+(unsigned long)(((const unsigned char *)(d))[0]) )
+#define get16bits(d) ((((uint32_t)(((const unsigned char *)(d))[1])) << 8)\
+						+(uint32_t)(((const unsigned char *)(d))[0]) )
 
-unsigned long
-SuperFastHash (const char * data, int len, unsigned long hash)
+uint32_t
+SuperFastHash (const char * data, int len, uint32_t hash)
 {
 
-	unsigned long tmp;
+	uint32_t tmp;
 	int rem;
 
 	rem = len & 3;
@@ -5077,7 +5077,7 @@ SuperFastHash (const char * data, int len, unsigned long hash)
 // data len hashIn ... hashOut
 FORTHOP( phHashContinueOp )
 {
-    unsigned int hashVal = SPOP;
+    uint32_t hashVal = SPOP;
     int len = SPOP;
     const char* pData = (const char*) (SPOP);
     hashVal = SuperFastHash( pData, len, hashVal );
@@ -5087,7 +5087,7 @@ FORTHOP( phHashContinueOp )
 // data len ... hashOut
 FORTHOP(phHashOp)
 {
-	unsigned int hashVal = 0;
+	uint32_t hashVal = 0;
 	int len = SPOP;
 	const char* pData = (const char*)(SPOP);
 	hashVal = SuperFastHash(pData, len, hashVal);
@@ -5097,7 +5097,7 @@ FORTHOP(phHashOp)
 // Fowler/Noll/Vo hash from http://www.isthe.com/chongo/src/fnv/hash_32.c and http://www.isthe.com/chongo/src/fnv/fnv.h
 #define FNV_32_PRIME ((Fnv32_t)0x01000193)
 #define FNV1_32_INIT ((Fnv32_t)0x811c9dc5)
-typedef unsigned long Fnv32_t;
+typedef uint32_t Fnv32_t;
 
 Fnv32_t
 fnv_32_buf(const void *buf, size_t len, Fnv32_t hval)
@@ -5128,7 +5128,7 @@ fnv_32_buf(const void *buf, size_t len, Fnv32_t hval)
 // data len ... hashOut
 FORTHOP(fnvHashOp)
 {
-	unsigned int hashVal = FNV1_32_INIT;
+	uint32_t hashVal = FNV1_32_INIT;
 	int len = SPOP;
 	const char* pData = (const char*)(SPOP);
 	hashVal = fnv_32_buf(pData, len, hashVal);
@@ -5138,7 +5138,7 @@ FORTHOP(fnvHashOp)
 // data len hashIn ... hashOut
 FORTHOP(fnvHashContinueOp)
 {
-	unsigned int hashVal = SPOP;
+	uint32_t hashVal = SPOP;
 	int len = SPOP;
 	const char* pData = (const char*)(SPOP);
 	hashVal = fnv_32_buf(pData, len, hashVal);
@@ -5186,8 +5186,8 @@ namespace
 
     int u32Compare( const void* pA, const void* pB, int )
     {
-        unsigned int a = *((unsigned int *) pA);
-        unsigned int b = *((unsigned int *) pB);
+        uint32_t a = *((uint32_t *) pA);
+        uint32_t b = *((uint32_t *) pB);
         if ( a > b ) 
         {
             return 1;
@@ -5358,9 +5358,9 @@ FORTHOP( qsortOp )
     qsInfo qs;
 
     qs.offset = SPOP;
-    long compareType = SPOP;
+    int32_t compareType = SPOP;
     qs.elementSize = SPOP;
-    long numElements = SPOP;
+    int32_t numElements = SPOP;
     void* pArrayBase = (void *)(SPOP);
 	qs.temp = __MALLOC(qs.elementSize);
 
@@ -5438,13 +5438,13 @@ FORTHOP(bsearchOp)
     // bsearch( KEY_ADDR ARRAY_ADDR NUM_ELEMENTS ELEMENT_SIZE COMPARE_TYPE COMPARE_OFFSET )
     NEEDS(7);
 
-    long offset = SPOP;
-    long compareType = SPOP;
-    long elementSize = SPOP;
-    long numElements = SPOP;
+    int32_t offset = SPOP;
+    int32_t compareType = SPOP;
+    int32_t elementSize = SPOP;
+    int32_t numElements = SPOP;
     char* pData = (char *)(SPOP);
     char* pKey = (char *)(SPOP);
-    long compareSize;
+    int32_t compareSize;
     int (*compare)( const void* a, const void* b, int ) = s8Compare;
 
     switch ( CODE_TO_BASE_TYPE(compareType) )
@@ -5739,7 +5739,7 @@ FORTHOP(setTraceBop)
 FORTHOP(ssPushBop)
 {
 	NEEDS(1);
-	long v = SPOP;
+	int32_t v = SPOP;
 	GET_ENGINE->GetShell()->GetShellStack()->Push(v);
 }
 
@@ -5806,8 +5806,8 @@ FORTHOP( updateOp )
 
 FORTHOP( thruOp )
 {
-    unsigned int lastBlock = (unsigned int) SPOP;
-    unsigned int firstBlock = (unsigned int) SPOP;
+    uint32_t lastBlock = (uint32_t) SPOP;
+    uint32_t firstBlock = (uint32_t) SPOP;
     ForthEngine* pEngine = GET_ENGINE;
     if ( lastBlock < firstBlock )
     {
@@ -5837,7 +5837,7 @@ FORTHOP( createThreadOp )
 	ForthObject asyncThread;
 	int returnStackLongs = (int)(SPOP);
 	int paramStackLongs = (int)(SPOP);
-	long threadOp = SPOP;
+	int32_t threadOp = SPOP;
 	ForthEngine* pEngine = GET_ENGINE;
 	OThread::CreateThreadObject(asyncThread, pEngine, threadOp, paramStackLongs, returnStackLongs);
 
@@ -5853,7 +5853,7 @@ FORTHOP(createFiberOp)
 	ForthThread* pThread = pFiber->GetParent();
 	int returnStackLongs = (int)(SPOP);
 	int paramStackLongs = (int)(SPOP);
-	long threadOp = SPOP;
+	int32_t threadOp = SPOP;
 	OThread::CreateFiberObject(fiber, pThread, pEngine, threadOp, paramStackLongs, returnStackLongs);
 
 	PUSH_OBJECT(fiber);
@@ -5882,7 +5882,7 @@ FORTHOP(sleepFiberOp)
 {
 	SET_STATE(kResultYield);
 	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
-	ulong sleepMilliseconds = (ulong)(SPOP);
+	uint32_t sleepMilliseconds = (uint32_t)(SPOP);
 	pFiber->Sleep(sleepMilliseconds);
 }
 
@@ -6024,7 +6024,7 @@ FORTHOP( findCloseOp )
 FORTHOP( showConsoleOp )
 {
 	NEEDS(1);
-	long showIt = SPOP;
+	int32_t showIt = SPOP;
 	ShowWindow( GetConsoleWindow(), (showIt != 0) ? SW_RESTORE : SW_HIDE );
 }
 
@@ -6442,8 +6442,8 @@ FORTHOP( divmodBop )
 FORTHOP( mtimesBop )
 {
     NEEDS(2);
-    long b = SPOP;
-    long a = SPOP;
+    int32_t b = SPOP;
+    int32_t a = SPOP;
     stackInt64 result;
     result.s64 = ((int64_t) a) * b;
     LPUSH( result );
@@ -6452,8 +6452,8 @@ FORTHOP( mtimesBop )
 FORTHOP( umtimesBop )
 {
     NEEDS(2);
-    ulong b = (ulong)(SPOP);
-    ulong a = (ulong)(SPOP);
+    uint32_t b = (uint32_t)(SPOP);
+    uint32_t a = (uint32_t)(SPOP);
     stackInt64 result;
     result.u64 = ((uint64_t) a) * b;
     LPUSH( result );
@@ -6464,11 +6464,11 @@ FORTHOP( ummodBop )
 {
     NEEDS(2);
     ldiv_t v;
-    unsigned long b = SPOP;
+    uint32_t b = SPOP;
     stackInt64 a;
     LPOP( a );
-    unsigned long quotient = a.64 / b;
-    unsigned long remainder = a.64 % b;
+    uint32_t quotient = a.64 / b;
+    uint32_t remainder = a.64 % b;
     SPUSH( remainder );
     SPUSH( quotient );
 }
@@ -7075,7 +7075,7 @@ FORTHOP(gotoBop)
 FORTHOP(doDoBop)
 {
     NEEDS(2);
-    long startIndex = SPOP;
+    int32_t startIndex = SPOP;
     // skip over loop exit IP right after this op
     forthop* newIP = (GET_IP) + 1;
     SET_IP( newIP );
@@ -7090,8 +7090,8 @@ FORTHOP(doDoBop)
 FORTHOP(doCheckDoBop)
 {
     NEEDS(2);
-    long startIndex = SPOP;
-    long endIndex = SPOP;
+    int32_t startIndex = SPOP;
+    int32_t endIndex = SPOP;
     // skip over loop exit IP right after this op
 	if ( startIndex < endIndex)
 	{
@@ -7234,7 +7234,7 @@ FORTHOP(lshift64Bop)
     SPUSH(a);
 #else
     NEEDS(3);
-    unsigned long b = SPOP;
+    uint32_t b = SPOP;
     stackInt64 a;
     LPOP(a);
     a.u64 <<= b;
@@ -7259,7 +7259,7 @@ FORTHOP(rshift64Bop)
     SPUSH(a);
 #else
     NEEDS(3);
-    unsigned long b = SPOP;
+    uint32_t b = SPOP;
     stackInt64 a;
     LPOP(a);
     a.u64 >>= b;
@@ -7308,8 +7308,8 @@ FORTHOP(reverseBop)
 {
     NEEDS(1);
     //Knuth's algorithm from http://www.hackersdelight.org/revisions.pdf
-    unsigned long a = SPOP;
-    unsigned long t;
+    uint32_t a = SPOP;
+    uint32_t t;
     a = (a << 15) | (a >> 17);
     t = (a ^ (a >> 10)) & 0x003f801f;
     a = (t + (t << 10)) ^ a;
@@ -8170,7 +8170,7 @@ FORTHOP(npickBop)
 	/*
 	for ( int i = 0; i <= n; i++ )
 	{
-      long* pSP = (GET_SP);
+      int32_t* pSP = (GET_SP);
 	  SPUSH( pSP[offset] );
 	}
 	*/
@@ -8235,9 +8235,9 @@ FORTHOP(ifetchBop)
 FORTHOP(istoreNextBop)
 {
     NEEDS(2);
-    long **ppB = (long **)(SPOP);
-    long *pB = *ppB;
-    long a = (long)SPOP;
+    int32_t **ppB = (int32_t **)(SPOP);
+    int32_t *pB = *ppB;
+    int32_t a = (int32_t)SPOP;
     *pB++ = a;
     *ppB = pB;
 }
@@ -8245,9 +8245,9 @@ FORTHOP(istoreNextBop)
 FORTHOP(ifetchNextBop)
 {
     NEEDS(1);
-    long **ppA = (long **)(SPOP);
-    long *pA = *ppA;
-    long a = *pA++;
+    int32_t **ppA = (int32_t **)(SPOP);
+    int32_t *pA = *ppA;
+    int32_t a = *pA++;
     SPUSH(a);
     *ppA = pA;
 }
@@ -8263,7 +8263,7 @@ FORTHOP(bstoreBop)
 {
     NEEDS(2);
     char *pB = (char *) (SPOP);
-    long a = SPOP;
+    int32_t a = SPOP;
     *pB = (char) a;
 }
 
@@ -8279,7 +8279,7 @@ FORTHOP(bstoreNextBop)
     NEEDS(2);
     char **ppB = (char **)(SPOP);
     char *pB = *ppB;
-    long a = SPOP;
+    int32_t a = SPOP;
     *pB++ = (char) a;
     *ppB = pB;
 }
@@ -8298,7 +8298,7 @@ FORTHOP(sstoreBop)
 {
     NEEDS(2);
     short *pB = (short *) (SPOP);
-    long a = SPOP;
+    int32_t a = SPOP;
     *pB = (short) a;
 }
 
@@ -8314,7 +8314,7 @@ FORTHOP(sstoreNextBop)
     NEEDS(2);
     short **ppB = (short **)(SPOP);
     short *pB = *ppB;
-    long a = SPOP;
+    int32_t a = SPOP;
     *pB++ = (short) a;
     *ppB = pB;
 }
@@ -8565,12 +8565,12 @@ FORTHOP( strtokBop )
 
 FORTHOP( initStringBop )
 {
-    long len;
-    long* pStr;
+    int32_t len;
+    int32_t* pStr;
 
     // TOS: maximum length, ptr to first char
     len = SPOP;
-	pStr = (long *) (SPOP);
+	pStr = (int32_t *) (SPOP);
 	pStr[-2] = len;
     pStr[-1] = 0;
     *((char *) pStr) = 0;
@@ -8578,7 +8578,7 @@ FORTHOP( initStringBop )
 
 FORTHOP( strFixupBop )
 {
-    long *pSrcLongs = (long *) SPOP;
+    int32_t *pSrcLongs = (int32_t *) SPOP;
     char* pSrc = (char *) pSrcLongs;
     pSrc[pSrcLongs[-2]] = '\0';
     int len = strlen( pSrc );
@@ -8661,7 +8661,7 @@ FORTHOP( doStructArrayBop )
 {
     // IP points to data field
     forthop*pA = GET_IP;
-    long nBytes = (*pA++) * SPOP;
+    int32_t nBytes = (*pA++) * SPOP;
 
     SPUSH( ((cell) pA) + nBytes );
     SET_IP( (forthop*) (RPOP) );
@@ -8673,7 +8673,7 @@ FORTHOP( executeBop )
     ForthEngine *pEngine = GET_ENGINE;
 	pEngine->ExecuteOp(pCore,  op );
 #if 0
-    long prog[2];
+    int32_t prog[2];
     forthop*oldIP = GET_IP;
 
 	// execute the opcode
@@ -9161,7 +9161,7 @@ extern GFORTHOP( doObjectArrayBop );
 
 typedef struct {
    const char       *name;
-   ulong            flags;
+   uint32_t            flags;
    void*            value;
    int              index;
 } baseDictionaryCompiledEntry;
@@ -9510,7 +9510,7 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(    dcmpBop,                 "dcmp" ),
 
     ///////////////////////////////////////////
-    //  integer/long/float/double conversion
+    //  integer/int32_t/float/double conversion
     ///////////////////////////////////////////
     NATIVE_DEF(    i2fBop,                  "i2f" ), 
     NATIVE_DEF(    i2dBop,                  "i2d" ),

@@ -65,7 +65,7 @@ ForthCoreState::ForthCoreState(int paramStackSize, int returnStackSize)
     RT = RB + RLen;
 
 #ifdef CHECK_GAURD_AREAS
-    long checkVal = 0x03020100;
+    int32_t checkVal = 0x03020100;
     for (int i = 0; i < GAURD_AREA; i++)
     {
         SB[i - GAURD_AREA] = checkVal;
@@ -207,7 +207,7 @@ void ForthFiber::Destroy()
 bool
 ForthFiber::CheckGaurdAreas( void )
 {
-    long checkVal = 0x03020100;
+    int32_t checkVal = 0x03020100;
     bool retVal = false;
     for ( int i = 0; i < 64; i++ )
     {
@@ -360,9 +360,9 @@ void ForthFiber::SetRunState(eForthFiberRunState newState)
 	mRunState = newState;
 }
 
-void ForthFiber::Sleep(ulong sleepMilliSeconds)
+void ForthFiber::Sleep(uint32_t sleepMilliSeconds)
 {
-	ulong now = mpEngine->GetElapsedTime();
+	uint32_t now = mpEngine->GetElapsedTime();
 #ifdef WIN32
 	mWakeupTime = (sleepMilliSeconds == MAXINT32) ? MAXINT32 : now + sleepMilliSeconds;
 #else
@@ -540,7 +540,7 @@ void* ForthThread::RunLoop(void *pUserData)
 			// - switch to next runnable thread
 			// - sleep if all threads are sleeping
 			// - deal with all threads stopped
-			ulong now = pEngine->GetElapsedTime();
+			uint32_t now = pEngine->GetElapsedTime();
 
 			ForthFiber* pNextFiber = pParentThread->GetNextReadyFiber();
 			if (pNextFiber != nullptr)
@@ -552,7 +552,7 @@ void* ForthThread::RunLoop(void *pUserData)
 				pNextFiber = pParentThread->GetNextSleepingFiber();
 				if (pNextFiber != nullptr)
 				{
-					ulong wakeupTime = pNextFiber->GetWakeupTime();
+					uint32_t wakeupTime = pNextFiber->GetWakeupTime();
 					if (now >= wakeupTime)
 					{
 						pNextFiber->Wake();
@@ -662,7 +662,7 @@ void ForthThread::InnerLoop()
             // - switch to next runnable thread
             // - sleep if all threads are sleeping
             // - deal with all threads stopped
-            ulong now = pEngine->GetElapsedTime();
+            uint32_t now = pEngine->GetElapsedTime();
 
             ForthFiber* pNextFiber = GetNextReadyFiber();
             if (pNextFiber != nullptr)
@@ -676,7 +676,7 @@ void ForthThread::InnerLoop()
                 pNextFiber = GetNextSleepingFiber();
                 if (pNextFiber != nullptr)
                 {
-                    ulong wakeupTime = pNextFiber->GetWakeupTime();
+                    uint32_t wakeupTime = pNextFiber->GetWakeupTime();
                     if (now >= wakeupTime)
                     {
                         //printf("Switching from thread 0x%x to waking thread 0x%x\n", pActiveFiber, pNextFiber);
@@ -781,7 +781,7 @@ ForthFiber* ForthThread::GetNextSleepingFiber()
 {
 	ForthFiber* pFiberToWake = nullptr;
 	int originalFiberIndex = mActiveFiberIndex;
-	ulong minWakeupTime = (ulong)(~0);
+	uint32_t minWakeupTime = (uint32_t)(~0);
 	do
 	{
         mActiveFiberIndex++;
@@ -792,7 +792,7 @@ ForthFiber* ForthThread::GetNextSleepingFiber()
 		ForthFiber* pNextFiber = mFibers[mActiveFiberIndex];
 		if (pNextFiber->GetRunState() == kFTRSSleeping)
 		{
-			ulong wakeupTime = pNextFiber->GetWakeupTime();
+			uint32_t wakeupTime = pNextFiber->GetWakeupTime();
 			if (wakeupTime < minWakeupTime)
 			{
 				minWakeupTime = wakeupTime;
@@ -803,7 +803,7 @@ ForthFiber* ForthThread::GetNextSleepingFiber()
 	return pFiberToWake;
 }
 
-long ForthThread::Start()
+int32_t ForthThread::Start()
 {
 #ifdef WIN32
 	// securityAttribPtr, stackSize, threadCodeAddr, threadUserData, flags, pThreadIdReturn
@@ -822,7 +822,7 @@ long ForthThread::Start()
 	mHandle = pthread_create(&mThread, NULL, ForthThread::RunLoop, this);
 
 #endif
-	return (long)mHandle;
+	return (int32_t)mHandle;
 }
 
 void ForthThread::Exit()
@@ -954,7 +954,7 @@ namespace OThread
 		ForthThread* pThread = pThreadStruct->pThread;
 		ForthFiber* pFiber = pThread->GetFiber(0);
 		pFiber->Reset();
-		long result = pThread->Start();
+		int32_t result = pThread->Start();
 		SPUSH(result);
 		METHOD_RETURN;
 	}
@@ -977,7 +977,7 @@ namespace OThread
 #endif
 			pCore->SP += numArgs;
 		}
-		long result = pThread->Start();
+		int32_t result = pThread->Start();
 		SPUSH(result);
 		METHOD_RETURN;
 	}
@@ -1015,7 +1015,7 @@ namespace OThread
 	FORTHOP(oThreadGetRunStateMethod)
 	{
 		GET_THIS(oThreadStruct, pThreadStruct);
-		SPUSH((long)(pThreadStruct->pThread->GetRunState()));
+		SPUSH((int32_t)(pThreadStruct->pThread->GetRunState()));
 		METHOD_RETURN;
 	}
 
@@ -1157,7 +1157,7 @@ namespace OThread
 	{
 		GET_THIS(oFiberStruct, pFiberStruct);
         SET_STATE(kResultYield);
-        ulong sleepMilliseconds = SPOP;
+        uint32_t sleepMilliseconds = SPOP;
 		pFiberStruct->pFiber->Sleep(sleepMilliseconds);
 		METHOD_RETURN;
 	}
@@ -1180,7 +1180,7 @@ namespace OThread
 	FORTHOP(oFiberPopMethod)
 	{
 		GET_THIS(oFiberStruct, pFiberStruct);
-		long val = pFiberStruct->pFiber->Pop();
+		int32_t val = pFiberStruct->pFiber->Pop();
 		SPUSH(val);
 		METHOD_RETURN;
 	}
@@ -1195,7 +1195,7 @@ namespace OThread
 	FORTHOP(oFiberRPopMethod)
 	{
 		GET_THIS(oFiberStruct, pFiberStruct);
-		long val = pFiberStruct->pFiber->RPop();
+		int32_t val = pFiberStruct->pFiber->RPop();
 		SPUSH(val);
 		METHOD_RETURN;
 	}
@@ -1203,7 +1203,7 @@ namespace OThread
 	FORTHOP(oFiberGetRunStateMethod)
 	{
 		GET_THIS(oFiberStruct, pFiberStruct);
-		SPUSH((long)(pFiberStruct->pFiber->GetRunState()));
+		SPUSH((int32_t)(pFiberStruct->pFiber->GetRunState()));
 		METHOD_RETURN;
 	}
 
@@ -1213,17 +1213,17 @@ namespace OThread
 		ForthFiber* pFiber = pFiberStruct->pFiber;
 		ForthCoreState* pFiberCore = pFiber->GetCore();
 		forthop op = *(pFiberCore->IP)++;
-		long result;
+		int32_t result;
 #ifdef ASM_INNER_INTERPRETER
         ForthEngine *pEngine = GET_ENGINE;
 		if (pEngine->GetFastMode())
 		{
-			result = (long)InterpretOneOpFast(pFiberCore, op);
+			result = (int32_t)InterpretOneOpFast(pFiberCore, op);
 		}
 		else
 #endif
 		{
-			result = (long)InterpretOneOp(pFiberCore, op);
+			result = (int32_t)InterpretOneOp(pFiberCore, op);
 		}
 		if (result == kResultDone)
 		{
@@ -1250,7 +1250,7 @@ namespace OThread
     FORTHOP(oFiberGetCoreMethod)
     {
         GET_THIS(oFiberStruct, pFiberStruct);
-        SPUSH((long)(pFiberStruct->pFiber->GetCore()));
+        SPUSH((int32_t)(pFiberStruct->pFiber->GetCore()));
         METHOD_RETURN;
     }
 
@@ -1652,7 +1652,7 @@ namespace OLock
     struct oSemaphoreStruct
     {
         forthop*        pMethods;
-        ulong			refCount;
+        uint32_t			refCount;
         cell            id;
         cell            count;
 #ifdef WIN32
@@ -1808,7 +1808,7 @@ namespace OLock
     struct oAsyncSemaphoreStruct
     {
         forthop*        pMethods;
-        ulong			refCount;
+        uint32_t			refCount;
         cell            id;
 #ifdef WIN32
         HANDLE pSemaphore;

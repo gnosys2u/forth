@@ -107,11 +107,11 @@ namespace
         return result;
     }
 
-    long fileGetLength( FILE* pFile )
+    int32_t fileGetLength( FILE* pFile )
     {
-        long oldPos = ftell( pFile );
+        int32_t oldPos = ftell( pFile );
         fseek( pFile, 0, SEEK_END );
-        long result = ftell( pFile );
+        int32_t result = ftell( pFile );
         fseek( pFile, oldPos, SEEK_SET );
         return result;
     }
@@ -173,7 +173,7 @@ namespace
 #if defined(WIN32)
 DWORD WINAPI ConsoleInputThreadRoutine( void* pThreadData );
 #elif defined(LINUX) || defined(MACOSX)
-unsigned long ConsoleInputThreadRoutine( void* pThreadData );
+uint32_t ConsoleInputThreadRoutine( void* pThreadData );
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -356,7 +356,7 @@ ForthShell::PushInputBuffer( const char *pDataBuffer, int dataBufferLen )
 
 
 void
-ForthShell::PushInputBlocks(ForthBlockFileManager* pManager, unsigned int firstBlock, unsigned int lastBlock)
+ForthShell::PushInputBlocks(ForthBlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock)
 {
     mpInput->PushInputStream( new ForthBlockInputStream(pManager, firstBlock, lastBlock) );
 }
@@ -1608,9 +1608,9 @@ ForthShell::GetEnvironmentVar(const char* envVarName)
 
 
 bool
-ForthShell::CheckSyntaxError(const char *pString, eShellTag tag, long desiredTags)
+ForthShell::CheckSyntaxError(const char *pString, eShellTag tag, int32_t desiredTags)
 {
-    long tagVal = (long)tag;
+    int32_t tagVal = (int32_t)tag;
     bool tagsMatched = ((tagVal & desiredTags) != 0);
 	// special case: BranchZ will match either Branch or BranchZ
     /*
@@ -1653,7 +1653,7 @@ ForthShell::CheckDefinitionEnd(const char* pDisplayName, const char* pFourCharCo
 	if (CheckSyntaxError(pDisplayName, defineTag, kShellTagDefine))
 	{
 		cell defineType = mpStack->Pop();
-		long expectedDefineType = FourCharToLong(pFourCharCode);
+		int32_t expectedDefineType = FourCharToLong(pFourCharCode);
         char definedSymbol[128];
 		definedSymbol[0] = '\0';
 		bool gotString = mpStack->PopString(definedSymbol, sizeof(definedSymbol) - 1);
@@ -1919,9 +1919,9 @@ FILE* ForthShell::OpenForthFile( const char* pPath )
 }
 
 
-long ForthShell::FourCharToLong(const char* pFourCC)
+int32_t ForthShell::FourCharToLong(const char* pFourCC)
 {
-	long retVal = 0;
+	int32_t retVal = 0;
 	memcpy(&retVal, pFourCC, sizeof(retVal));
 	return retVal;
 }
@@ -1961,7 +1961,7 @@ ForthShellStack::PushTag(eShellTag tag)
         if (ForthEngine::GetInstance()->GetTraceFlags() & kLogShell)
         {
             GetTagString(tag, tagString);
-            SPEW_SHELL("ShellStack: pushed tag %s 0x%08x\n", tagString, (long) tag);
+            SPEW_SHELL("ShellStack: pushed tag %s 0x%08x\n", tagString, (int32_t) tag);
         }
     }
     else
@@ -2164,7 +2164,7 @@ ForthShellStack::ShowStack()
         sprintf(buff, "%16p   ", tag);
         ForthEngine::GetInstance()->ConsoleOut(buff);
         // TODO!
-        long tagChars = reinterpret_cast<long>(tag);
+        int32_t tagChars = reinterpret_cast<int32_t>(tag);
         for (int i = 0; i < 4; ++i)
         {
             char ch = (char)(tagChars & 0x7f);
@@ -2198,7 +2198,7 @@ ForthShellStack::ShowStack()
 #if defined(WIN32)
 DWORD WINAPI ConsoleInputThreadRoutine( void* pThreadData )
 #elif defined(LINUX) || defined(MACOSX)
-unsigned long ConsoleInputThreadRoutine( void* pThreadData )
+uint32_t ConsoleInputThreadRoutine( void* pThreadData )
 #endif
 {
     ForthShell* pShell = (ForthShell *) pThreadData;

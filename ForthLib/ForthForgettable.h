@@ -30,13 +30,13 @@ public:
     virtual void AfterStart();
     virtual int Save( FILE* pOutFile );
     // return false
-    virtual bool Restore( const char* pBuffer, unsigned int numBytes );
+    virtual bool Restore( const char* pBuffer, uint32_t numBytes );
 
 protected:
     virtual void    ForgetCleanup( void *pForgetLimit, forthop op ) = 0;
 
     void*                       mpOpAddress;
-    long                        mOp;
+    int32_t                        mOp;
     ForthForgettable*           mpNext;
 private:
     static ForthForgettable*    mpChainHead;

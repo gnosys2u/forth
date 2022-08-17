@@ -28,10 +28,6 @@ struct ForthCoreState;
 #define ucell uint32_t
 #endif
 
-#ifndef ulong
-#define ulong unsigned long
-#endif
-
 #define MAX_STRING_SIZE (8 * 1024)
 
 #define DEFAULT_BASE 10
@@ -72,7 +68,7 @@ typedef enum
     kOpLocalRef,        // low 24 bits is offset in longs
     kOpLocalStringInit,     // bits 0:11 are string length in bytes, bits 12:23 are frame offset in longs
     kOpLocalStructArray,   // bits 0:11 are padded struct size in bytes, bits 12:23 are frame offset in longs
-    kOpOffsetFetch,          // low 24 bits is signed offset in longs, TOS is long ptr
+    kOpOffsetFetch,          // low 24 bits is signed offset in longs, TOS is int32_t ptr
     kOpMemberRef,		// low 24 bits is offset in bytes
 
     kOpLocalByte = 30,	// low 24 bits is offset in bytes

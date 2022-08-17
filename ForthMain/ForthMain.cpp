@@ -61,7 +61,7 @@ void OutputToLogger(const char* pBuffer)
 void myInvalidParameterHandler(const wchar_t* expression,
 	const wchar_t* function,
 	const wchar_t* file,
-	unsigned int line,
+	uint32_t line,
 	uintptr_t pReserved)
 {
     wprintf(L"Invalid parameter detected in function %s.", function);

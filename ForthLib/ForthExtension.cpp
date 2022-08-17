@@ -41,7 +41,7 @@ void ForthExtension::Shutdown()
 }
 
 
-void ForthExtension::ForgetOp( ulong opNumber )
+void ForthExtension::ForgetOp( uint32_t opNumber )
 {
 }
 

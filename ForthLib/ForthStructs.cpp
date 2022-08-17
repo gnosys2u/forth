@@ -90,10 +90,10 @@ ForthTypesManager::ForthTypesManager()
 	ForthTypeInfo structInfo;
 	structInfo.pVocab = NULL;
 	structInfo.op = OP_ABORT;
-	structInfo.typeIndex = static_cast<long>(kBCIInvalid);
+	structInfo.typeIndex = static_cast<int32_t>(kBCIInvalid);
 	for (int i = 0; i < kNumBuiltinClasses; ++i)
 	{
-		mStructInfo.emplace_back(ForthTypeInfo(NULL, OP_ABORT, static_cast<long>(kBCIInvalid)));
+		mStructInfo.emplace_back(ForthTypeInfo(NULL, OP_ABORT, static_cast<int32_t>(kBCIInvalid)));
 	}
 }
 
@@ -171,10 +171,10 @@ ForthTypesManager::DefineInitOpcode()
 
 		forthop* pEntry = pEngine->StartOpDefinition("_init", true, kOpUserDef);
 		pEntry[1] = BASE_TYPE_TO_CODE(kBaseTypeUserDefinition);
-		long structInitOp = *pEntry;
+		int32_t structInitOp = *pEntry;
 		pVocab->SetInitOpcode(structInitOp);
 
-		for (unsigned int i = 0; i < mFieldInitInfos.size(); i++)
+		for (uint32_t i = 0; i < mFieldInitInfos.size(); i++)
 		{
 			const ForthFieldInitInfo& initInfo = mFieldInitInfos[i];
 			if (i != (mFieldInitInfos.size() - 1))
@@ -190,7 +190,7 @@ ForthTypesManager::DefineInitOpcode()
 			{
 				ForthStructVocabulary *pParentVocab = pVocab->BaseVocabulary();
 				ASSERT(pParentVocab != NULL);
-				long parentInitOp = pVocab->BaseVocabulary()->GetInitOpcode();
+				int32_t parentInitOp = pVocab->BaseVocabulary()->GetInitOpcode();
 				ASSERT(parentInitOp != 0);
 				pEngine->CompileOpcode(parentInitOp);
 				break;
@@ -208,7 +208,7 @@ ForthTypesManager::DefineInitOpcode()
 			{
 				ForthStructVocabulary *pStructVocab = mStructInfo[initInfo.typeIndex].pVocab;
 				ASSERT(pStructVocab != NULL);
-				long structFieldInitOpcode = pStructVocab->GetInitOpcode();
+				int32_t structFieldInitOpcode = pStructVocab->GetInitOpcode();
 				ASSERT(structFieldInitOpcode != 0);
 				if (initInfo.offset != 0)
 				{
@@ -260,7 +260,7 @@ ForthTypesManager::DefineInitOpcode()
 		ForthStructVocabulary *pParentVocab = pVocab->BaseVocabulary();
 		if (pParentVocab != NULL)
 		{
-			long parentInitOp = pVocab->BaseVocabulary()->GetInitOpcode();
+			int32_t parentInitOp = pVocab->BaseVocabulary()->GetInitOpcode();
 			if (parentInitOp != 0)
 			{
 				pVocab->SetInitOpcode(parentInitOp);
@@ -394,9 +394,9 @@ ForthTypesManager::GetInstance( void )
 }
 
 void
-ForthTypesManager::GetFieldInfo( long fieldType, long& fieldBytes, long& alignment )
+ForthTypesManager::GetFieldInfo( int32_t fieldType, int32_t& fieldBytes, int32_t& alignment )
 {
-    long subType = CODE_TO_BASE_TYPE(fieldType);
+    int32_t subType = CODE_TO_BASE_TYPE(fieldType);
     if ( CODE_IS_PTR( fieldType ) )
     {
         fieldBytes = sizeof(char *);
@@ -417,7 +417,7 @@ ForthTypesManager::GetFieldInfo( long fieldType, long& fieldBytes, long& alignme
     }
     else
     {
-        long typeIndex = (subType == kBaseTypeObject) ? CODE_TO_CONTAINED_CLASS_INDEX(fieldType) : CODE_TO_STRUCT_INDEX(fieldType);
+        int32_t typeIndex = (subType == kBaseTypeObject) ? CODE_TO_CONTAINED_CLASS_INDEX(fieldType) : CODE_TO_STRUCT_INDEX(fieldType);
         ForthTypeInfo* pInfo = GetTypeInfo(typeIndex);
         if ( pInfo )
         {
@@ -508,13 +508,13 @@ ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, eForthResult& exi
     }
     if ( pEntry )
     {
-        long offset = *pEntry;
-        long typeCode = pEntry[1];
-        long opType;
+        int32_t offset = *pEntry;
+        int32_t typeCode = pEntry[1];
+        int32_t opType;
         bool isNative = CODE_IS_NATIVE( typeCode );
         bool isPtr = CODE_IS_PTR( typeCode );
         bool isArray = CODE_IS_ARRAY( typeCode );
-        long baseType = CODE_TO_BASE_TYPE( typeCode );
+        int32_t baseType = CODE_TO_BASE_TYPE( typeCode );
 
 		if ( CODE_IS_USER_DEFINITION( typeCode ) )
 		{
@@ -607,7 +607,7 @@ ForthTypesManager::GetBaseTypeFromName( const char* typeName )
 }
 
 
-long
+int32_t
 ForthTypesManager::GetBaseTypeSizeFromName( const char* typeName )
 {
     for ( int i = 0; i <= kBaseTypeObject; i++ )
@@ -681,17 +681,17 @@ ForthStructVocabulary::DefineInstance( void )
     char *pToken = mpEngine->GetNextSimpleToken();
     int nBytes = mMaxNumBytes;
     char *pHere;
-    long val = 0;
+    int32_t val = 0;
     ForthVocabulary *pVocab;
     forthop* pEntry;
-    long typeCode;
+    int32_t typeCode;
     bool isPtr = false;
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
     ForthCoreState *pCore = mpEngine->GetCoreState();        // so we can GET_VAR_OPERATION
 
-    long numElements = mpEngine->GetArraySize();
+    int32_t numElements = mpEngine->GetArraySize();
     bool isArray = (numElements != 0);
-    long arrayFlag = (isArray) ? kDTIsArray : 0;
+    int32_t arrayFlag = (isArray) ? kDTIsArray : 0;
     mpEngine->SetArraySize( 0 );
     typeCode = STRUCT_TYPE_TO_CODE( arrayFlag, mTypeIndex );
 
@@ -765,8 +765,8 @@ ForthStructVocabulary::DefineInstance( void )
         pEntry = mpEngine->GetDefinitionVocabulary()->GetNewestEntry();
         if ( isArray )
         {
-            long padding = 0;
-            long alignMask = mAlignment - 1;
+            int32_t padding = 0;
+            int32_t alignMask = mAlignment - 1;
             if ( nBytes & alignMask )
             {
                 padding = mAlignment - (nBytes & alignMask);
@@ -814,14 +814,14 @@ ForthStructVocabulary::DefineInstance( void )
 }
 
 void
-ForthStructVocabulary::AddField( const char* pName, long fieldType, int numElements )
+ForthStructVocabulary::AddField( const char* pName, int32_t fieldType, int numElements )
 {
     // a struct vocab entry has the following value fields:
     // - field offset in bytes
     // - field type
     // - padded element size (valid only for array fields)
 
-    long fieldBytes, alignment, alignMask, padding;
+    int32_t fieldBytes, alignment, alignMask, padding;
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
     bool isPtr = CODE_IS_PTR( fieldType );
     bool isNative = CODE_IS_NATIVE( fieldType );
@@ -953,7 +953,7 @@ ForthStructVocabulary::GetType( void )
 forthop *
 ForthStructVocabulary::FindSymbol( const char *pSymName, ucell serial )
 {
-    long tmpSym[SYM_MAX_LONGS];
+    int32_t tmpSym[SYM_MAX_LONGS];
     forthop* pEntry;
     ForthParseInfo parseInfo( tmpSym, SYM_MAX_LONGS );
 
@@ -979,7 +979,7 @@ ForthStructVocabulary::PrintEntry( forthop*   pEntry )
     char buff[BUFF_SIZE];
     char nameBuff[128];
     ForthCoreState* pCore = mpEngine->GetCoreState();
-    long typeCode = pEntry[1];
+    int32_t typeCode = pEntry[1];
 
     // print out the base class stuff - name and value fields
     sprintf( buff, "  %08x    ", *pEntry );
@@ -1010,7 +1010,7 @@ ForthStructVocabulary::PrintEntry( forthop*   pEntry )
 }
 
 void
-ForthStructVocabulary::TypecodeToString( long typeCode, char* outBuff, size_t outBuffSize )
+ForthStructVocabulary::TypecodeToString( int32_t typeCode, char* outBuff, size_t outBuffSize )
 {
     char buff[BUFF_SIZE];
     char buff2[64];
@@ -1036,16 +1036,16 @@ ForthStructVocabulary::TypecodeToString( long typeCode, char* outBuff, size_t ou
     }
     else
     {
-        long baseType = CODE_TO_BASE_TYPE( typeCode );
+        int32_t baseType = CODE_TO_BASE_TYPE( typeCode );
         switch ( baseType )
         {
         case kBaseTypeObject:
             {
-                long containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(typeCode);
+                int32_t containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(typeCode);
                 ForthTypeInfo* pContainedInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containedTypeIndex);
                 if (pContainedInfo)
                 {
-                    long containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(typeCode);
+                    int32_t containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(typeCode);
                     if (containerTypeIndex == kBCIInvalid)
                     {
                         sprintf(buff2, "%s", pContainedInfo->pVocab->GetName());
@@ -1072,7 +1072,7 @@ ForthStructVocabulary::TypecodeToString( long typeCode, char* outBuff, size_t ou
 
         case kBaseTypeStruct:
             {
-                long typeIndex = CODE_TO_STRUCT_INDEX( typeCode );
+                int32_t typeIndex = CODE_TO_STRUCT_INDEX( typeCode );
                 ForthTypeInfo* pInfo = ForthTypesManager::GetInstance()->GetTypeInfo( typeIndex );
                 if ( pInfo )
                 {
@@ -1157,21 +1157,21 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
 	int previousOffset = pVocab->GetSize();
     while (pEntry < pEntriesEnd)
     {
-        long elementSize = VOCABENTRY_TO_ELEMENT_SIZE(pEntry);
+        int32_t elementSize = VOCABENTRY_TO_ELEMENT_SIZE(pEntry);
 
         if (elementSize != 0)
         {
-            long typeCode = VOCABENTRY_TO_TYPECODE(pEntry);
-            long byteOffset = VOCABENTRY_TO_FIELD_OFFSET(pEntry);
+            int32_t typeCode = VOCABENTRY_TO_TYPECODE(pEntry);
+            int32_t byteOffset = VOCABENTRY_TO_FIELD_OFFSET(pEntry);
             // this relies on the fact that entries come up in reverse order of base offset
-            long numElements = (previousOffset - byteOffset) / elementSize;
+            int32_t numElements = (previousOffset - byteOffset) / elementSize;
             previousOffset = byteOffset;
-            long baseType = CODE_TO_BASE_TYPE(typeCode);
+            int32_t baseType = CODE_TO_BASE_TYPE(typeCode);
             bool isNative = CODE_IS_NATIVE(typeCode);
             bool isPtr = CODE_IS_PTR(typeCode);
             bool isArray = CODE_IS_ARRAY(typeCode);
             int sval;
-            unsigned int uval;
+            uint32_t uval;
 
             // skip displaying __refCount (at offset 0) if the showRefCount flag is false
             if ((baseType != kBaseTypeUserDefinition) && (baseType != kBaseTypeVoid)
@@ -1239,7 +1239,7 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
                         break;
 
                     case kBaseTypeUInt:
-                        uval = *((const unsigned int*)(pStruct + byteOffset));
+                        uval = *((const uint32_t*)(pStruct + byteOffset));
                         sprintf(buffer, "%u", uval);
                         break;
 
@@ -1264,7 +1264,7 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
                         break;
 
                     case kBaseTypeOp:
-                        uval = *((const unsigned int*)(pStruct + byteOffset));
+                        uval = *((const uint32_t*)(pStruct + byteOffset));
                         sprintf(buffer, "0x%x", uval);
                         break;
 
@@ -1368,7 +1368,7 @@ ForthClassVocabulary::ForthClassVocabulary( const char*     pName,
 
 ForthClassVocabulary::~ForthClassVocabulary()
 {
-    for ( unsigned int i = 0; i < mInterfaces.size(); i++ )
+    for ( uint32_t i = 0; i < mInterfaces.size(); i++ )
     {
         delete mInterfaces[i];
     }
@@ -1401,11 +1401,11 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
     ForthObject* pHere;
     ForthVocabulary *pVocab;
     forthop* pEntry;
-    long typeCode;
+    int32_t typeCode;
     bool isPtr = false;
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
     ForthCoreState *pCore = mpEngine->GetCoreState();
-    long typeIndex = mTypeIndex;
+    int32_t typeIndex = mTypeIndex;
 
     if (pContainedClassName != nullptr)
     {
@@ -1430,9 +1430,9 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
             return;
         }
     }
-    long numElements = mpEngine->GetArraySize();
+    int32_t numElements = mpEngine->GetArraySize();
     bool isArray = (numElements != 0);
-    long arrayFlag = (isArray) ? kDTIsArray : 0;
+    int32_t arrayFlag = (isArray) ? kDTIsArray : 0;
     mpEngine->SetArraySize( 0 );
     typeCode = OBJECT_TYPE_TO_CODE( arrayFlag, typeIndex );
 
@@ -1477,7 +1477,7 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
 		}
 
         // define global object(s)
-        long newGlobalOp = mpEngine->AddUserOp( pInstanceName );
+        int32_t newGlobalOp = mpEngine->AddUserOp( pInstanceName );
 
 		// create object which will release object referenced by this global when it is forgotten
 		new ForthForgettableGlobalObject( pInstanceName, mpEngine->GetDP(), newGlobalOp, isArray ? numElements : 1 );
@@ -1585,7 +1585,7 @@ ForthClassVocabulary::Extends( ForthClassVocabulary *pParentClass )
 {
 	if ( pParentClass->IsClass() )
 	{
-		long numInterfaces = pParentClass->GetNumInterfaces();
+		int32_t numInterfaces = pParentClass->GetNumInterfaces();
 		for ( int i = 1; i < numInterfaces; i++ )
 		{
 			delete mInterfaces[i];
@@ -1624,7 +1624,7 @@ ForthClassVocabulary::Implements( const char* pName )
 		if ( pVocab->IsClass() )
 		{
 			ForthClassVocabulary* pClassVocab = reinterpret_cast<ForthClassVocabulary *>(pVocab);
-            long interfaceIndex = FindInterfaceIndex( pClassVocab->GetClassId() );
+            int32_t interfaceIndex = FindInterfaceIndex( pClassVocab->GetClassId() );
             if ( interfaceIndex > 0 )
             {
                 // this is an interface we have already inherited from superclass
@@ -1669,9 +1669,9 @@ ForthClassVocabulary::IsClass( void )
 }
 
 ForthInterface*
-ForthClassVocabulary::GetInterface( long index )
+ForthClassVocabulary::GetInterface( int32_t index )
 {
-	return (index < static_cast<long>(mInterfaces.size())) ? mInterfaces[index] : nullptr;
+	return (index < static_cast<int32_t>(mInterfaces.size())) ? mInterfaces[index] : nullptr;
 }
 
 forthop* ForthClassVocabulary::GetMethods()
@@ -1679,10 +1679,10 @@ forthop* ForthClassVocabulary::GetMethods()
     return mInterfaces[0]->GetMethods();
 }
 
-long
-ForthClassVocabulary::FindInterfaceIndex( long classId )
+int32_t
+ForthClassVocabulary::FindInterfaceIndex( int32_t classId )
 {
-    for ( unsigned int i = 0; i < mInterfaces.size(); i++ )
+    for ( uint32_t i = 0; i < mInterfaces.size(); i++ )
     {
         ForthClassVocabulary* pVocab = mInterfaces[i]->GetDefiningClass();
         if ( pVocab->GetClassId() == classId )
@@ -1694,7 +1694,7 @@ ForthClassVocabulary::FindInterfaceIndex( long classId )
 }
 
 
-long
+int32_t
 ForthClassVocabulary::GetNumInterfaces( void )
 {
 	return mInterfaces.size();
@@ -1729,9 +1729,9 @@ ForthClassVocabulary::PrintEntry(forthop*   pEntry )
 {
     char buff[BUFF_SIZE];
     char nameBuff[128];
-    long methodNum = *pEntry;
-    long typeCode = pEntry[1];
-    long baseType = CODE_TO_BASE_TYPE(typeCode);
+    int32_t methodNum = *pEntry;
+    int32_t typeCode = pEntry[1];
+    int32_t baseType = CODE_TO_BASE_TYPE(typeCode);
     
     if (baseType == kBaseTypeUserDefinition)
     {
@@ -1793,16 +1793,16 @@ ForthClassVocabulary::PrintEntry(forthop*   pEntry )
     }
     else
     {
-        long baseType = CODE_TO_BASE_TYPE( typeCode );
+        int32_t baseType = CODE_TO_BASE_TYPE( typeCode );
         switch ( baseType )
         {
         case kBaseTypeObject:
             {
-                long containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(typeCode);
+                int32_t containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(typeCode);
                 ForthTypeInfo* pContainedInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containedTypeIndex);
                 if (pContainedInfo)
                 {
-                    long containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(typeCode);
+                    int32_t containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(typeCode);
                     if (containerTypeIndex == kBCIInvalid)
                     {
                         sprintf(buff, "%s", pContainedInfo->pVocab->GetName());
@@ -1829,7 +1829,7 @@ ForthClassVocabulary::PrintEntry(forthop*   pEntry )
 
         case kBaseTypeStruct:
             {
-                long typeIndex = CODE_TO_STRUCT_INDEX( typeCode );
+                int32_t typeIndex = CODE_TO_STRUCT_INDEX( typeCode );
                 ForthTypeInfo* pInfo = ForthTypesManager::GetInstance()->GetTypeInfo( typeIndex );
                 if ( pInfo )
                 {
@@ -2007,7 +2007,7 @@ ForthInterface::AddMethod( forthop method )
 int
 ForthInterface::GetNumMethods( void )
 {
-    return static_cast<long>( mMethods.size() - INTERFACE_SKIPPED_ENTRIES);
+    return static_cast<int32_t>( mMethods.size() - INTERFACE_SKIPPED_ENTRIES);
 }
 
 
@@ -2031,7 +2031,7 @@ ForthInterface::GetMethodIndex( const char* pName )
 		pEntry = pVocab->FindNextSymbol( pName, pEntry );
 		if ( pEntry )
 		{
-			long typeCode = pEntry[1];
+			int32_t typeCode = pEntry[1];
 			if ( CODE_IS_METHOD( typeCode ) )
 			{
 				methodIndex = pEntry[0];
@@ -2071,17 +2071,17 @@ ForthNativeType::~ForthNativeType()
 }
 
 void
-ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, long flags )
+ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_t flags )
 {
     char *pToken = pEngine->GetNextSimpleToken();
     int nBytes = mNumBytes;
     char *pHere;
     int i;
-    long val = 0;
+    int32_t val = 0;
     forthBaseType baseType = mBaseType;
     ForthVocabulary *pVocab;
     forthop* pEntry;
-    long typeCode, len, varOffset, storageLen;
+    int32_t typeCode, len, varOffset, storageLen;
     char *pStr;
     ForthCoreState *pCore = pEngine->GetCoreState();        // so we can SPOP maxbytes
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
@@ -2090,7 +2090,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, long f
 
 	if (!isString && ((pEngine->GetFlags() & kEngineFlagInEnumDefinition) != 0))
 	{
-		// byte/short/int/long inside an enum definition sets the number of bytes an enum of this type requires
+		// byte/short/int/int32_t inside an enum definition sets the number of bytes an enum of this type requires
         ForthEnumInfo* pNewestEnum = pEngine->GetNewestEnumInfo();
         if (pNewestEnum != nullptr)
         {
@@ -2116,7 +2116,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, long f
         }
     }
 
-    long numElements = pEngine->GetArraySize();
+    int32_t numElements = pEngine->GetArraySize();
     if ( numElements != 0 )
     {
         flags |= kDTIsArray;
