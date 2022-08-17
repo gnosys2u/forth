@@ -3,13 +3,13 @@
 // ForthServer.cpp: Forth server support
 //
 //////////////////////////////////////////////////////////////////////
-#include "StdAfx.h"
+#include "pch.h"
 #ifdef WIN32
 //#include <winsock2.h>
 //#include <windows.h>
 #include <ws2tcpip.h>
 #include <io.h>
-#include "dirent.h"
+#include "sys/dirent.h"
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -21,7 +21,9 @@
 #if defined(MACOSX)
 #include <sys/uio.h>
 #else
+#ifndef RASPI
 #include <sys/io.h>
+#endif
 #endif
 #include <dirent.h>
 #endif
@@ -70,13 +72,13 @@ namespace
     size_t fileRead( void* data, size_t itemSize, size_t numItems, FILE* pFile )
     {
         ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
-        return pShell->FileRead( pFile, data, itemSize, numItems );
+        return (size_t)pShell->FileRead( pFile, data, itemSize, numItems );
     }
 
     size_t fileWrite( const void* data, size_t itemSize, size_t numItems, FILE* pFile )
     {
         ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
-        return pShell->FileWrite( pFile, data, itemSize, numItems );
+        return (size_t)pShell->FileWrite( pFile, data, itemSize, numItems );
     }
 
     int fileGetChar( FILE* pFile )
@@ -716,7 +718,7 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
 
 	ForthCoreState* pCore = mpEngine->GetCoreState();
 	CreateForthFunctionOutStream( pCore, mConsoleOutObject, NULL, NULL, consoleOutToClient, pCore );
-	mpEngine->ResetConsoleOut( pCore );
+	mpEngine->ResetConsoleOut( *pCore );
     mpInput->PushInputStream( pStream );
 
     if ( mDoAutoload )

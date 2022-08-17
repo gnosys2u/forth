@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include <stdio.h>
 #include <deque>
 
@@ -105,7 +105,6 @@ namespace ODeque
             SAFE_RELEASE(pCore, o);
             deq->pop_back();
         }
-        FREE_OBJECT(pDeque);
         METHOD_RETURN;
     }
 
@@ -114,7 +113,7 @@ namespace ODeque
         GET_THIS(oDequeStruct, pDeque);
         oDeque::iterator iter;
         oDeque& deq = *(pDeque->que);
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         pShowContext->BeginElement("queue");
         pShowContext->BeginArray();
         if (!deq.empty())

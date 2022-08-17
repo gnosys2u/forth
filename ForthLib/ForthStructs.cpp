@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include "ForthEngine.h"
 #include "ForthVocabulary.h"
 #include "ForthShell.h"
@@ -1123,7 +1123,7 @@ ForthStructVocabulary::GetTypeName( void )
 void
 ForthStructVocabulary::ShowData(const void* pData, ForthCoreState* pCore, bool showId)
 {
-	ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+    GET_SHOW_CONTEXT;
 
     pShowContext->BeginObject(GetName(), pData, showId);
 
@@ -1149,7 +1149,7 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
 
     char buffer[256];
     const char* pStruct = (const char*)pData;
-    ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+    GET_SHOW_CONTEXT;
     ForthStructVocabulary* pVocab = this;
 
     const char* pVocabName = pVocab->GetName();
@@ -1576,7 +1576,9 @@ ForthClassVocabulary::FindMethod( const char* pName )
 
 
 // TODO: find a better way to do this
+extern forthop gObjectDeleteOpcode;
 extern forthop gObjectShowInnerOpcode;
+
 
 void
 ForthClassVocabulary::Extends( ForthClassVocabulary *pParentClass )
@@ -1603,6 +1605,7 @@ ForthClassVocabulary::Extends( ForthClassVocabulary *pParentClass )
 
 			isPrimaryInterface = false;
 		}
+        mInterfaces[0]->GetMethods()[kMethodDelete] = gObjectDeleteOpcode;
         mInterfaces[0]->GetMethods()[kMethodShowInner] = gObjectShowInnerOpcode;
         mpClassObject->newOp = pParentClass->mpClassObject->newOp;
 	}
@@ -1861,7 +1864,7 @@ ForthClassVocabulary::PrintEntry(forthop*   pEntry )
 ForthClassVocabulary*
 ForthClassVocabulary::ParentClass( void )
 {
-	return mpSearchNext->IsClass() ? (ForthClassVocabulary *) mpSearchNext : NULL;
+	return ((mpSearchNext != nullptr) && mpSearchNext->IsClass()) ? (ForthClassVocabulary *) mpSearchNext : NULL;
 }
 
 const char *

@@ -1,7 +1,7 @@
 // ForthClient.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
+#include "pch.h"
 #include <winsock2.h>
 
 #include "Forth.h"

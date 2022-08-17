@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include <stdio.h>
 #include <string.h>
 #include <map>
@@ -112,14 +112,13 @@ namespace OString
         // go through all elements and release any which are not null
         GET_THIS( oStringStruct, pString );
 		free( pString->str );
-        FREE_OBJECT( pString );
         METHOD_RETURN;
     }
 
     FORTHOP( oStringShowInnerMethod )
     {
 		char buffer[16];
-		ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
 
 		pShowContext->BeginElement("value");
 		GET_THIS(oStringStruct, pString);
@@ -1006,9 +1005,8 @@ namespace OString
 			SAFE_RELEASE(pCore, o);
 		}
 		delete pMap->elements;
-		FREE_OBJECT(pMap);
-		METHOD_RETURN;
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oStringMapShowInnerMethod)
 	{
@@ -1016,7 +1014,7 @@ namespace OString
 		oStringMap::iterator iter;
 		oStringMap& a = *(pMap->elements);
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");
         pShowContext->BeginNestedShow();
@@ -1176,8 +1174,8 @@ namespace OString
             SAFE_RELEASE(pCore, o);
         }
         a.clear();
-        int n = SPOP;
-        for (int i = 0; i < n; i++)
+        cell n = SPOP;
+        for (cell i = 0; i < n; i++)
         {
             std::string key;
             key = (const char*)(SPOP);
@@ -1463,20 +1461,41 @@ namespace OString
 	void stringCharOut( ForthCoreState* pCore, void *pData, char ch )
 	{
         oStringStruct* pString = reinterpret_cast<oStringStruct*>(static_cast<oStringOutStreamStruct*>(pData)->outString);
-        appendOString( pString, &ch, 1 );
+        if (pString != nullptr)
+        {
+            appendOString(pString, &ch, 1);
+        }
+        else
+        {
+            GET_ENGINE->SetError(kForthErrorBadParameter, "stringCharOut destination string null");
+        }
 	}
 
 	void stringBlockOut( ForthCoreState* pCore, void *pData, const char *pBuffer, int numChars )
 	{
         oStringStruct* pString = reinterpret_cast<oStringStruct*>(static_cast<oStringOutStreamStruct*>(pData)->outString);
-        appendOString( pString, pBuffer, numChars );
+        if (pString != nullptr)
+        {
+            appendOString(pString, pBuffer, numChars);
+        }
+        else
+        {
+            GET_ENGINE->SetError(kForthErrorBadParameter, "stringBlockOut destination string null");
+        }
 	}
 
 	void stringStringOut( ForthCoreState* pCore, void *pData, const char *pBuffer )
 	{
 		oStringStruct* pString = reinterpret_cast<oStringStruct*>(static_cast<oStringOutStreamStruct*>(pData)->outString);
-		int numChars = (int)strlen( pBuffer );
-		appendOString( pString, pBuffer, numChars );
+        if (pString != nullptr)
+        {
+            int numChars = (int)strlen(pBuffer);
+            appendOString(pString, pBuffer, numChars);
+        }
+        else
+        {
+            GET_ENGINE->SetError(kForthErrorBadParameter, "stringStringOut destination string null");
+        }
 	}
 
     bool customStringReader(const std::string& elementName, ForthObjectReader* reader)
@@ -1484,10 +1503,18 @@ namespace OString
         if (elementName == "value")
         {
             oStringStruct *dstString = (oStringStruct *)(reader->getCustomReaderContext().pData);
-            std::string value;
-            reader->getString(value);
-            setString(dstString, value.c_str());
-            return true;
+            if (dstString != nullptr)
+            {
+                std::string value;
+                reader->getString(value);
+                setString(dstString, value.c_str());
+                return true;
+            }
+            else
+            {
+                ForthEngine::GetInstance()->SetError(kForthErrorBadParameter, "customStringReader destination string null");
+                return false;
+            }
         }
         else
         {
@@ -1507,6 +1534,11 @@ namespace OString
         {
             ForthCoreState* pCore = reader->GetCoreState();
             oStringMapStruct *dstMap = (oStringMapStruct *)(reader->getCustomReaderContext().pData);
+            if (dstMap == nullptr)
+            {
+                ForthEngine::GetInstance()->SetError(kForthErrorBadParameter, "customStringMapReader destination map null");
+                return false;
+            }
             reader->getRequiredChar('{');
             std::string name;
             ForthObject obj;

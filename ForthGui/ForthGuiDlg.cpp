@@ -1,7 +1,7 @@
 // ForthGuiDlg.cpp : implementation file
 //
 
-#include "stdafx.h"
+#include "pch.h"
 #include "ForthGui.h"
 #include "ForthGuiDlg.h"
 #include "ForthBlankDlg.h"
@@ -398,7 +398,7 @@ void CForthGuiDlg::CreateForth()
 	CreateDialogOps();
 
 	pEngine->SetDefaultConsoleOut(mConsoleOutObject );
-	pEngine->ResetConsoleOut( pCore );
+	pEngine->ResetConsoleOut(*pCore);
 	//pEngine->SetTraceOutRoutine(ForthTraceOutRoutine, GetDlgItem(IDC_RICHEDT_DEBUG));
 	mInBuffer[0] = '\0';
     mpInStream = new ForthBufferInputStream( mInBuffer, INPUT_BUFFER_SIZE, true );
@@ -429,7 +429,8 @@ void CForthGuiDlg::DestroyForth()
 {
 	if ( mpShell )
 	{
-		ReleaseForthObject( mpShell->GetEngine()->GetCoreState(), mConsoleOutObject );
+		ForthEngine* pEngine = mpShell->GetEngine();
+		pEngine->ReleaseObject(pEngine->GetCoreState(), mConsoleOutObject);
 		delete mpShell;
 		// the shell destructor deletes all the streams on the input stack, including mpInStream
 		mpShell = NULL;

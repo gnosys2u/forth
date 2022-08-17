@@ -54,8 +54,8 @@ mko Int mostRandomNumber   mostRandomNumber.set(17)
 mko Int theAnswer   theAnswer.set(42)
 test[ mostRandomNumber.value 2* 8+ theAnswer.get = ]
 test[ mostRandomNumber.compare(theAnswer) 0< ]
-test[ theAnswer.set(0xabcfe1a3)   theAnswer.getByte 0xffffffa3 =   theAnswer.getUByte 0xa3 = ]
-test[ theAnswer.getShort 0xffffe1a3 =   theAnswer.getUShort 0xe1a3 = ]
+test[ theAnswer.set(0xabcfe1a3)   theAnswer.getByte -0x5d =   theAnswer.getUByte 0xa3 = ]
+test[ theAnswer.getShort -0x1e5d =   theAnswer.getUShort 0xe1a3 = ]
 test[ theAnswer.set(0xabcf7123)   theAnswer.getByte 0x23 =   theAnswer.getUByte 0x23 = ]
 test[ theAnswer.getShort 0x7123 =   theAnswer.getUShort 0x7123 = ]
 

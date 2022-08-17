@@ -1,7 +1,7 @@
 // ForthMain.cpp : Defines the entry point for the console application.
 //
 
-#include "StdAfx.h"
+#include "pch.h"
 
 #if defined(WIN32) && !defined(MINGW)
 #define AFX_BUILD 1

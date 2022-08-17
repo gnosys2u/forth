@@ -85,9 +85,9 @@ class: Game extends IGame
   //========== Data structures for objects. =================================
   // This section corresponds to sections 63--70 in Knuth.
   
-  : toting objs.place 0< ;
-  : is_immobile objs.base NOTHING <> ;
-  : there //(t, loc)
+  : toting objs.place 0< ;                  // OBJID ... TRUE/FALSE
+  : is_immobile objs.base NOTHING <> ;      // OBJID ... TRUE/FALSE
+  : there                                   // OBJID LOCID ... TRUE/FALSE
     swap objs.place =
   ;
   
@@ -158,7 +158,7 @@ class: Game extends IGame
     endif
   ;
   
-  : carry
+  : carry       // OBJECT
     -> ObjectWord t
     objs(t) ->o ObjectData obj
     obj.place -> Location loc
@@ -173,7 +173,7 @@ class: Game extends IGame
   ;
   
 spoo before move
-  : move  // t loc
+  : move        // OBJECT LOC
     -> Location loc
     -> ObjectWord t
     carry(t)
@@ -244,6 +244,7 @@ spoo before move
     d[ "addObjDesc " %s description.get %s %nl ]d
     objs ->o ObjectData obj
     obj.desc.push(description)
+    oclear description
   ;
   
 spoo before build_object_table
@@ -615,7 +616,6 @@ continue:
     false -> bool stalking
     // The pirate leaves you alone once you've found the chest.
     if(loc R_PIRATES_NEST =) orif(objs(CHEST).prop 0>=)
-    ." not nest or found chest" %nl
       exit
     endif
     do(MAX_OBJ 1+ MIN_OBJ)
@@ -876,7 +876,7 @@ closing soon.  All adventurers exit immediately through main office.\"")
       objs(GRATE).setProp(0)
       objs(FISSURE).setProp(0)
       do(6 0)
-        dwarves.get(i) -> Dwarf dwarf
+        dwarves.get(i) ->o Dwarf dwarf
         false -> dwarf.seen
         R_LIMBO -> dwarf.loc
       loop
@@ -1665,7 +1665,7 @@ things.  I cannot tell you where remote things are.")
     endif
 
     do(6 1)
-      dwarves.get(i) -> Dwarf dwarf
+      dwarves.get(i) ->o Dwarf dwarf
       if(dwarf.loc loc =)
         dwarf.setLoc(R_LIMBO)  // Once killed, a dwarf never comes back.
         false -> dwarf.seen

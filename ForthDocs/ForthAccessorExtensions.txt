@@ -1,0 +1,252 @@
+#####################################################################################
+#
+# Forth Accessor extensions
+#
+#####################################################################################
+
+This is a major change to Forth that allows variable/members to have special characters
+appended to their base symbols to do common operations which would normally require
+several forth operations to be executed with a single opcode, these are things like
+adding directly to a variable and incrementing loop variables:
+
+  6 a!          // store 6 into a
+  3 a+!         // add 6 to a
+  a--@          // decrement a then push its value
+  a&            // push the address of a
+  a             // push the value stored in a
+  a(ix)         // push the value stored in array a at index ix
+
+Methodology: look at common usage of important types, see what syntax would work
+The aim is to produce something which:
+o adds value for common access cases
+o does not do unexpected things
+o doesn't support infinitely extendability like:
+  like array(ii).struct.memberArray(jj).foo@++
+
+The syntax extensions are only applied to the last member of an accessor chain.
+
+scalar types
+  integer - byte ubyte short ushort int uint long ulong
+  real - float double
+  op
+arrays
+  array of scalars
+  array of pointers
+    ? do we 
+  array of objects
+  array of structs
+
+--------
+integer types - byte ubyte short ushort int uint long ulong
+
+a           fetch a to TOS
+a&          fetch address of a to TOS
+a@          fetch a to TOS
+a!          store TOS to a
+a+!         add TOS to a
+a-!         subtract TOS from a
+a++         increment a
+a--         decrement a
+a@++        fetch a to TOS, increment a
+a++@        increment a, fetch a to TOS
+a@--        fetch a to TOS, decrement a
+a--@        decrement a, fetch a to TOS
+
+--------
+real types - double float
+
+a           fetch a to TOS
+a&          fetch address of a to TOS
+a@          fetch a to TOS
+a!          store TOS to a
+a+!         add TOS to a
+a-!         subtract TOS from a
+
+--------
+op type
+
+a           execute a
+a&          fetch address of a to TOS
+a@          fetch a to TOS
+a!          store TOS to a
+
+--------
+string type
+
+a           fetch address of first character of a to TOS
+a&          fetch address of base field of a (max length) to TOS
+a@(i)       fetch character in a at index i to TOS, -1 if out of range
+a!          store null-terminated string on TOS to a
+a+!         append null-terminated string on TOS to a
+
+--------
+array of integer types - byte ubyte short ushort int uint long ulong
+
+a(i)        fetch a(i) to TOS
+a&(i)       fetch address of a(i) to TOS
+a@(i)       fetch a(i) to TOS
+a!(i)       store TOS to a(i)
+a+!(i)      add TOS to a(i)
+a-!(i)      subtract TOS from a(i)
+a++(i)      increment a
+a--(i)      decrement a
+a@++(i)     fetch a(i) to TOS, increment a(i)
+a++@(i)     increment a(i), fetch a(i) to TOS
+a@--(i)     fetch a(i) to TOS, decrement a(i)
+a--@(i)     decrement a(i), fetch a(i) to TOS
+
+--------
+array of real types - float double
+
+a(i)        fetch a(i) to TOS
+a&(i)       fetch address of a(i) to TOS
+a@(i)       fetch a(i) to TOS
+a!(i)       store TOS to a(i)
+a+!(i)      add TOS to a(i)
+a-!(i)      subtract TOS from a(i)
+
+--------
+pointer to scalar types
+
+a           fetch pointer a to TOS
+a@          fetch value at a to TOS
+a!          store TOS to pointer a
+a&          fetch address of pointer a to TOS
+a+!         add TOS to pointer a
+a-!         subtract TOS from pointer a
+a@+!        add TOS to value at a
+a@-!        subtract TOS from value at a
+a@++        fetch value at a to TOS, change a to point to next value
+a++@        change a to point to next value, fetch value at a to TOS
+a@--        fetch value at a to TOS, change a to point to previous value
+a--@        change a to point to previous value, fetch value at a to TOS
+
+-------------------------------------------------------------------
+
+    int, long, float, double
+a       a&      get address of a
+a@      a       get value of a
+a!      a!      set a
+a+!     a+!     add TOS to a
+a-!     a-!     subtract TOS from a
+
+    int and long vars
+a@++    a
+a@--
+a--@
+a++@
+
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+|                                                                             |
+|   Force fetches to be explicit                                              |
+|                                                                             |
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+integer types - byte ubyte short ushort int uint long ulong
+
+a           fetch address of a to TOS
+a@          fetch a to TOS
+a!          store TOS to a
+a+!         add TOS to a
+a-!         subtract TOS from a
+a++         increment a
+a--         decrement a
+a@++        fetch a to TOS, increment a
+a++@        increment a, fetch a to TOS
+a@--        fetch a to TOS, decrement a
+a--@        decrement a, fetch a to TOS
+
+--------
+real types - double float
+
+a           fetch address of a to TOS
+a@          fetch a to TOS
+a!          store TOS to a
+a+!         add TOS to a
+a-!         subtract TOS from a
+
+--------
+op type
+
+a           execute a
+a@          fetch a to TOS
+a!          store TOS to a
+??          fetch address of a to TOS
+
+--------
+string type
+
+a           fetch address of first character of a to TOS
+a!          store null-terminated string on TOS to a
+a+!         append null-terminated string on TOS to a
+?? how to deal with current and max length fields
+
+--------
+array of integer types - byte ubyte short ushort int uint long ulong
+
+a(i)        fetch address of a(i) to TOS
+a@(i)       fetch value of a(i) to TOS
+a!(i)       store TOS to a(i)
+a+!(i)      add TOS to a(i)
+a-!(i)      subtract TOS from a(i)
+a++(i)      increment a(i)
+a--(i)      decrement a(i)
+a@++(i)     fetch a(i) to TOS, increment a(i)
+a++@(i)     increment a(i), fetch a(i) to TOS
+a@--(i)     fetch a(i) to TOS, decrement a(i)
+a--@(i)     decrement a(i), fetch a(i) to TOS
+
+--------
+array of real types - float double
+
+a(i)        fetch address of a(i) to TOS
+a@(i)       fetch a(i) to TOS
+a!(i)       store TOS to a(i)
+a+!(i)      add TOS to a(i)
+a-!(i)      subtract TOS from a(i)
+
+--------
+pointer to scalar types
+
+a           fetch address of pointer a to TOS
+a@          fetch value of pointer a to TOS
+a!          store address on TOS to pointer a
+a@@         fetch value at address pointed to by a to TOS
+a@!         store TOS to address pointed to by a
+a+!         add TOS to pointer a
+a-!         subtract TOS from pointer a
+a@+!        add TOS to value at a
+a@-!        subtract TOS from value at a
+a@@++       fetch value at a to TOS, change a to point to next value
+a++@@       change a to point to next value, fetch value at a to TOS
+a@@--       fetch value at a to TOS, change a to point to previous value
+a--@@       change a to point to previous value, fetch value at a to TOS
+a@!++       store TOS to address pointed to by a, change a to point to next value
+a++@!       change a to point to next value, store TOS to address pointed to by a
+a@!--       store TOS to address pointed to by a, change a to point to previous value
+a--@!       change a to point to previous value, store TOS to address pointed to by a
+a++         change a to point to next value
+a--         change a to point to previous value
+
+
+Is it better to encode things like 'fetch pointer' as distinct from 'fetch cell'?
+It would make displaying things in the debugger more obvious, and could also
+make compilation less complicated, but would be less bit efficient.
+
+b   ub  s   us  i   ui  l   ul  f   d
+
+Maybe the best choice would be:
+1) implement the basics - a a@ a! a+! a-!
+2) have local and member combo ops that push var address and then execute an op, like:
+  a @++   // instead of a@++ as a single symbol
+This wouldn't require any opcode changes, just outer interpreter work.
+
+This doesn't answer what to do about objects, in particular about '->o' and 'oclear'.
+I suppose '!' could mean assign-with-no-addref, '+!' could mean assign-and-addref,
+'-!' could mean oclear, but it seems sucky.
+? or maybe keep oclear as is?
+
+current idea:
+^!      to store and increment refcount
+^-      to clear and decrement refcount
+!       store leaving refcount untouched

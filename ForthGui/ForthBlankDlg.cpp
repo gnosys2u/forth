@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
+#include "pch.h"
 #include "ForthBlankDlg.h"
 
 #include "../ForthLib/ForthShell.h"

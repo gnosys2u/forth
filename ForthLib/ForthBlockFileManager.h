@@ -18,7 +18,7 @@ class ForthEngine;
 class ForthBlockFileManager
 {
 public:
-    ForthBlockFileManager(const char* pBlockFilename, unsigned int numBuffers = NUM_BLOCK_BUFFERS, unsigned int bytesPerBlock = BYTES_PER_BLOCK);
+    ForthBlockFileManager(const char* pBlockFilename, ucell numBuffers = NUM_BLOCK_BUFFERS, ucell bytesPerBlock = BYTES_PER_BLOCK);
     ~ForthBlockFileManager();
 
     const char*     GetBlockFilename();

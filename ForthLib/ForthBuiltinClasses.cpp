@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include <stdio.h>
 #include <string.h>
 #include <map>
@@ -99,7 +99,7 @@ namespace
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
         long nBytes = pClassVocab->GetSize();
-        ForthObject pThis = (ForthObject)__MALLOC(nBytes);
+		MALLOCATE_OBJECT(oObjectStruct, pThis, pClassVocab);
         // clear the entire object area - this handles both its refcount and any object pointers it might contain
         memset(pThis, 0, nBytes);
         pThis->pMethods = pClassVocab->GetMethods();
@@ -107,17 +107,17 @@ namespace
         PUSH_OBJECT(pThis);
     }
 
-    FORTHOP(objectDeleteMethod)
-    {
-        // TODO: warn if refcount isn't zero
-        FREE_OBJECT(GET_TP);
-        METHOD_RETURN;
-    }
+	FORTHOP(objectDeleteMethod)
+	{
+		// this never gets called, it just needs to be here because of how builtin classes are defined.
+		// the Object method table delete entry gets stuffed with the 'noop' opcode in ForthTypesManager::AddBuiltinClasses (end of this file)
+		METHOD_RETURN;
+	}
 
-    FORTHOP(objectShowMethod)
+	FORTHOP(objectShowMethod)
     {
         ForthObject obj = GET_TP;
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
         ForthEngine *pEngine = ForthEngine::GetInstance();
 
@@ -158,7 +158,7 @@ namespace
     FORTHOP(objectShowInnerMethod)
     {
         ForthObject obj = GET_TP;
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
         ForthEngine *pEngine = ForthEngine::GetInstance();
 
@@ -313,7 +313,7 @@ namespace
 	FORTHOP(classSetNewMethod)
 	{
 		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TP);
-		pClassObject->newOp = SPOP;
+		pClassObject->newOp = (forthop)(SPOP);
 		METHOD_RETURN;
 	}
 
@@ -387,8 +387,8 @@ namespace
 bool ForthShowAlreadyShownObject(ForthObject obj, ForthCoreState* pCore, bool addIfUnshown)
 {
 	ForthEngine* pEngine = ForthEngine::GetInstance();
-	ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
-	if (obj != nullptr)
+    GET_SHOW_CONTEXT;
+    if (obj != nullptr)
 	{
         ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
         if (pShowContext->ObjectAlreadyShown(obj))
@@ -417,8 +417,8 @@ void ForthShowObject(ForthObject& obj, ForthCoreState* pCore)
 	if (!ForthShowAlreadyShownObject(obj, pCore, false))
 	{
 		ForthEngine* pEngine = ForthEngine::GetInstance();
-		ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
-		pEngine->FullyExecuteMethod(pCore, obj, kMethodShow);
+        GET_SHOW_CONTEXT;
+        pEngine->FullyExecuteMethod(pCore, obj, kMethodShow);
 		pShowContext->AddObject(obj);
 	}
 }
@@ -433,7 +433,7 @@ ForthForgettableGlobalObject::ForthForgettableGlobalObject( const char* pName, v
 : ForthForgettable( pOpAddress, op )
 ,	mNumElements( numElements )
 {
-    int nameLen = strlen( pName );
+    size_t nameLen = strlen( pName );
     mpName = (char *) __MALLOC(nameLen + 1);
     strcpy( mpName, pName );
 }
@@ -458,7 +458,7 @@ ForthForgettableGlobalObject::GetTypeName( void )
 void ForthForgettableGlobalObject::ForgetCleanup( void* pForgetLimit, forthop op )
 {
 	// first longword is OP_DO_OBJECT or OP_DO_OBJECT_ARRAY, after that are object elements
-	if ((ulong)mpOpAddress > (ulong)pForgetLimit)
+	if ((ucell)mpOpAddress > (ucell)pForgetLimit)
 	{
 		ForthObject* pObject = (ForthObject *)((long *)mpOpAddress + 1);
 		ForthCoreState* pCore = ForthEngine::GetInstance()->GetCoreState();
@@ -485,6 +485,7 @@ ForthTypesManager::GetTypeName( void )
 
 // TODO: find a better way to do this
 forthop gObjectShowInnerOpcode = 0;
+forthop gObjectDeleteOpcode = 0;
 
 void
 ForthTypesManager::AddBuiltinClasses(ForthEngine* pEngine)
@@ -492,6 +493,7 @@ ForthTypesManager::AddBuiltinClasses(ForthEngine* pEngine)
 
     ForthClassVocabulary* pObjectClassVocab = pEngine->AddBuiltinClass("Object", kBCIObject, kBCIInvalid, objectMembers);
     gObjectShowInnerOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodShowInner);
+	gObjectDeleteOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodDelete);
 
     ForthClassVocabulary* pClassClassVocab = pEngine->AddBuiltinClass("Class", kBCIClass, kBCIObject, classMembers);
     mpClassMethods = pClassClassVocab->GetMethods();

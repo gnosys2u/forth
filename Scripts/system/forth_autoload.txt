@@ -114,12 +114,20 @@ alias CellArray LongArray
 MAXULONG -> cell MAXCELL
 MINLONG -> cell MINCELL
 MAXULONG -> cell MAXUCELL
+
+: depth s0 sp - 3 rshift 1- ;
+: aligned 7+ -8 and ;
+
 #else
 alias Cell Int
 alias CellArray IntArray
 MAXINT -> cell MAXCELL
 MININT -> cell MINCELL
 MAXUINT -> cell MAXUCELL
+
+: depth s0 sp - 2 rshift 1- ;
+: aligned 3+ -4 and ;
+
 #endif
 
 : ' blword $' ;
@@ -139,9 +147,6 @@ MAXUINT -> cell MAXUCELL
 : %nc swap 0 ?do dup %c loop drop ;
 0x20 constant bl
 : spaces bl %nc ;
-
-: depth s0 sp - 2 rshift 1- ;
-: aligned 3+ 0xFFFFFFFC and ;
 
 : autoload
   if( blword $find  0= )
@@ -370,7 +375,7 @@ int dumpWidth
 : _ldump
   -> int offset		// offset is subtracted from the actual data address before display
   and( 3+ invert( 3 ) ) -> int len
-  and( invert( 3 ) ) -> int addr
+  and( invert( 3 ) ) -> cell addr
   int columns
   int endAddr
   int ch
@@ -412,8 +417,8 @@ int dumpWidth
   -> op dumpOp
   -> int len
   -> int offset
-  "rb" fopen -> int infile
-  int buff
+  "rb" fopen -> cell infile
+  cell buff
 
   if( infile 0= )
     "open failure" %s %nl
@@ -517,8 +522,8 @@ alias space %bl
 
 addHelp $enum       enumInfo enumValue ... str      convert an enum value into its string
 : $enum
-  -> int enumInfo
-  -> int enumValue
+  -> cell enumInfo
+  -> cell enumValue
   findEnumSymbol(enumValue enumInfo)
   if(0=)
     mko String ss
@@ -567,10 +572,10 @@ addHelp cd	cd BLAH			change working directory to BLAH
   true -> int okay
   null -> ptrTo byte outName
   null -> ptrTo byte errName
-  null -> int outStream
-  null -> int errStream
-  -1   -> int oldStdOut
-  -1   -> int oldStdErr
+  null -> cell outStream
+  null -> cell errStream
+  -1   -> cell oldStdOut
+  -1   -> cell oldStdErr
   0    -> int bytesRead
   2048 -> int readSize
   malloc( readSize 1+ ) -> ptrTo byte buffer
@@ -762,7 +767,7 @@ addHelp rm	rm FILENAME		remove a file
 addHelp more more FILENAME	display FILENAME on screen
 : more
   255 string linebuff
-  fopen( blword "r" ) -> int infile
+  fopen( blword "r" ) -> cell infile
   if( infile null = )
     exit
   endif
@@ -1088,11 +1093,6 @@ addHelp pushFileOut   OUTPUT_FILENAME pushFileOut ...   redirect output stream t
   oclear outFile
 ;
 
-addHelp pushAuxOut ... redirect output stream to aux out stream
-: pushAuxOut
-  system.getAuxOut pushConsoleOut
-;
-
 addHelp popConsoleOut   popConsoleOut ... OLD_CONSOLE_OUTSTREAM      restore previous console output stream
 : popConsoleOut
   if(consoleOutStreamStack.count)
@@ -1111,6 +1111,22 @@ mko TraceOutStream traceOut
 addHelp outToScreen   restore output to the normal console
 : outToScreen getDefaultConsoleOut setConsoleOut ;
 
+// use err[ ... ]err to quickly redirect all print output to the error stream
+// in particular, use this around any output you want to see in test summary
+: err[ pushConsoleOut(getErrorOut) ;
+: ]err popConsoleOut drop ;
+
+// use p[ ... ]p around console output commands to prevent multiple threads from 
+//  having garbled output - don't put anything inside p[...]p that could block
+//  your thread, or you will get a deadlock
+AsyncLock printLock
+: p[ printLock.grab ;
+: ]p printLock.ungrab ;
+
+// use this version of printlocks if you want to be able to turn it off dynamically:
+//true -> bool usePrintLocks
+//: p[ if(usePrintLocks) printLock.grab endif ;
+//: ]p if(usePrintLocks) printLock.ungrab endif ;
 
 //######################################################################
 addHelp pushContext save the current base, search vocabularies and definitions vocabulary on stack

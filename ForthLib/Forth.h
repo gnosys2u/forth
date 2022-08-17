@@ -6,7 +6,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-//#include "StdAfx.h"
+//#include "pch.h"
 
 #include "ForthMemoryManager.h"
 
@@ -33,6 +33,9 @@ struct ForthCoreState;
 #endif
 
 #define MAX_STRING_SIZE (8 * 1024)
+
+#define DEFAULT_BASE 10
+
 
 // these are opcode types, they are held in the top byte of an opcode, and in
 // a vocabulary entry value field
@@ -241,7 +244,7 @@ typedef enum {
 	kResultYield,		// exit because of a stopThread/yield/sleepThread opcode
 } eForthResult;
 
-// run state of ForthThreads
+// run state of ForthFibers
 typedef enum
 {
 	kFTRSStopped,		// initial state, or after executing stop, needs another thread to Start it
@@ -249,7 +252,7 @@ typedef enum
 	kFTRSSleeping,		// sleeping until wakeup time is reached
 	kFTRSBlocked,		// blocked on a soft lock
 	kFTRSExited,		// done running - executed exitThread
-} eForthThreadRunState;
+} eForthFiberRunState;
 
 typedef enum {
 	kForthErrorNone,
@@ -389,11 +392,12 @@ extern void GetForthConsoleOutStream( ForthCoreState* pCore, ForthObject& outObj
 extern void CreateForthFileOutStream( ForthCoreState* pCore, ForthObject& outObject, FILE* pOutFile );
 extern void CreateForthFunctionOutStream( ForthCoreState* pCore, ForthObject& outObject, streamCharOutRoutine outChar,
 											  streamBytesOutRoutine outBlock, streamStringOutRoutine outString, void* pUserData );
-extern void ReleaseForthObject( ForthCoreState* pCore, ForthObject& inObject );
+extern void GetForthErrorOutStream(ForthCoreState* pCore, ForthObject& outObject);
 
 extern void ForthConsoleCharOut( ForthCoreState* pCore, char ch );
 extern void ForthConsoleBytesOut( ForthCoreState* pCore, const char* pBuffer, int numChars );
-extern void ForthConsoleStringOut( ForthCoreState* pCore, const char* pBuffer );
+extern void ForthConsoleStringOut(ForthCoreState* pCore, const char* pBuffer);
+extern void ForthErrorStringOut(ForthCoreState* pCore, const char* pBuffer);
 
 // the bottom 24 bits of a forth opcode is a value field
 // the top 8 bits is the type field
@@ -408,6 +412,7 @@ extern void ForthConsoleStringOut( ForthCoreState* pCore, const char* pBuffer );
 #define RNEEDS(A)
 
 class ForthThread;
+class ForthFiber;
 
 #define COMPILED_OP( OP_TYPE, VALUE ) (((OP_TYPE) << 24) | ((VALUE) & OPCODE_VALUE_MASK))
 // These are opcodes that built-in ops must compile directly
@@ -500,6 +505,7 @@ enum {
     OP_RAISE,
     OP_UNSUPER,
     OP_RDROP,
+    OP_NOOP,
 
 	NUM_COMPILED_OPS,
 
@@ -523,10 +529,10 @@ typedef struct
 } baseDictionaryEntry;
 
 // helper macro for built-in op entries in baseDictionary
-#define OP_DEF( func, funcName )  { funcName, kOpCCode, func }
+#define OP_DEF( func, funcName )  { funcName, kOpCCode, (void *)func }
 
 // helper macro for ops which have precedence (execute at compile time)
-#define PRECOP_DEF( func, funcName )  { funcName, kOpCCodeImmediate, func }
+#define PRECOP_DEF( func, funcName )  { funcName, kOpCCodeImmediate, (void *)func }
 
 
 typedef struct
@@ -671,8 +677,8 @@ enum
 //////////////////////////////////////////////////////////////////////
 ////
 ///     built-in forth ops are implemented with static C-style routines
-//      which take a pointer to the ForthThread they are being run in
-//      the thread is accesed through "g->" in the code
+//      which take a pointer to the ForthFiber they are being run in
+//      the thread is accessed through "pCore->" in the code
 
 #define FORTHOP(NAME) void NAME( ForthCoreState *pCore )
 // GFORTHOP is used for forthops which are defined outside of the dictionary source module
@@ -746,6 +752,9 @@ typedef enum
     kDTIsMethod     = 64,
     kDTIsFunky      = 128       // use depends on context
 } storageDescriptor;
+
+// this is the bottom 6-bits, baseType + ptr and array flags
+#define STORAGE_DESCRIPTOR_TYPE_MASK ((kNumBaseTypes - 1) | kDTIsPtr | kDTIsArray)
 
 // user-defined structure fields have a 32-bit descriptor with the following format:
 // 3...0        base type

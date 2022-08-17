@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #if defined(LINUX) || defined(MACOSX)
 #include <unistd.h>
 #include <sys/types.h>
@@ -12,12 +12,14 @@
 #if defined(MACOSX)
 #include <sys/uio.h>
 #else
+#ifndef RASPI
 #include <sys/io.h>
+#endif
 #endif
 #include <dirent.h>
 #else
 #include <io.h>
-#include "dirent.h"
+#include "sys/dirent.h"
 #endif
 #include "ForthEngine.h"
 #include "ForthThread.h"
@@ -199,7 +201,7 @@ ForthShell::ForthShell(int argc, const char ** argv, const char ** envp, ForthEn
 , mContinuationBytesStored(0)
 , mInContinuationLine(false)
 {
-    initMemoryAllocation();
+    startMemoryManager();
 
     mFileInterface.fileOpen = fopen;
     mFileInterface.fileClose = fclose;
@@ -270,7 +272,7 @@ ForthShell::ForthShell(int argc, const char ** argv, const char ** envp, ForthEn
 #if 0
     if ( mpThread == NULL )
     {
-        mpThread = mpEngine->CreateAsyncThread( 0, PSTACK_LONGS, RSTACK_LONGS );
+        mpThread = mpEngine->CreateThread( 0, PSTACK_LONGS, RSTACK_LONGS );
     }
     mpEngine->SetCurrentThread( mpThread );
 #endif
@@ -279,7 +281,7 @@ ForthShell::ForthShell(int argc, const char ** argv, const char ** envp, ForthEn
 	mpStack = new ForthShellStack( shellStackLongs );
 
 #if 0
-    mMainThreadId = GetThreadId( GetMainThread() );
+    mMainThreadId = GetThreadId( GetMainFiber() );
     mConsoleInputThreadId = 0;
     mConsoleInputThreadHandle = _beginthreadex( NULL,		// thread security attribs
                                                 0,			// stack size (default)
@@ -317,6 +319,8 @@ ForthShell::~ForthShell()
 	{
 		delete mpEngine;
 	}
+
+    stopMemoryManager();
 #if 0
     delete mpReadyThreads;
     CloseHandle( mConsoleInputEvent );
@@ -383,14 +387,15 @@ ForthShell::RunOneStream(ForthInputStream *pInStream)
 	{
 		// try to fetch a line from current stream
 		pBuffer = mpInput->GetLine(mpEngine->GetFastMode() ? "ok>" : "OK>");
-		if (pBuffer == NULL)
+        pBuffer = AddToInputLine(pBuffer);
+        if (pBuffer == nullptr)
 		{
             bQuit = PopInputStream() || (mpInput->InputStream() == pOldInput);
 		}
 
-		if (!bQuit)
+		if (!bQuit && !mInContinuationLine)
 		{
-			result = ProcessLine();
+			result = ProcessLine(pBuffer);
 
 			switch (result)
 			{
@@ -449,6 +454,7 @@ ForthShell::Run( ForthInputStream *pInStream )
 		// no internal file found, try opening app_autoload.txt as a standard file
 		pFile = fopen( autoloadFilename, "r" );
 	}
+
     if ( pFile != NULL )
     {
         // there is an app autoload file, use that
@@ -699,7 +705,7 @@ ForthShell::InterpretLine( const char *pSrcLine )
 				try
 				{
 					result = mpEngine->ProcessToken( &parseInfo );
-					CHECK_STACKS( mpEngine->GetMainThread() );
+					CHECK_STACKS( mpEngine->GetMainFiber() );
 				}
 				catch(...)
 				{
@@ -711,11 +717,11 @@ ForthShell::InterpretLine( const char *pSrcLine )
 			else
 			{
                 result = mpEngine->ProcessToken( &parseInfo );
-                CHECK_STACKS( mpEngine->GetMainThread() );
+                CHECK_STACKS( mpEngine->GetMainFiber() );
 			}
 #else
             result = mpEngine->ProcessToken( &parseInfo );
-            CHECK_STACKS( mpEngine->GetMainThread() );
+            CHECK_STACKS( mpEngine->GetMainFiber() );
 #endif
             if ( result == kResultOk )
 			{
@@ -789,7 +795,7 @@ ForthShell::ReportError( void )
         strcpy( errorBuf1, errorBuf2 );
     }
     SPEW_SHELL( "%s", errorBuf1 );
-	CONSOLE_STRING_OUT( errorBuf1 );
+	ERROR_STRING_OUT( errorBuf1 );
     const char *pBase = mpInput->GetBufferBasePointer();
     pLastInputToken = mpInput->GetBufferPointer();
     if ( (pBase != NULL) && (pLastInputToken != NULL) )
@@ -811,7 +817,7 @@ ForthShell::ReportError( void )
         *pBuf++ = '\0';
     }
 	SPEW_SHELL( "%s", errorBuf1 );
-	CONSOLE_STRING_OUT( errorBuf1 );
+    ERROR_STRING_OUT( errorBuf1 );
 
 	if (mpStack->GetDepth() > 0)
 	{

@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include "ForthBlockFileManager.h"
 #include "ForthEngine.h"
 
@@ -35,7 +35,7 @@
 // INVALID_BLOCK_NUMBER is also used to indicate 'no current buffer'
 
 
-ForthBlockFileManager::ForthBlockFileManager( const char* pBlockFilename , unsigned int numBuffers, unsigned int bytesPerBlock )
+ForthBlockFileManager::ForthBlockFileManager( const char* pBlockFilename , ucell numBuffers, ucell bytesPerBlock )
 :   mNumBuffers( numBuffers )
 ,   mBytesPerBlock(bytesPerBlock)
 ,   mCurrentBuffer( INVALID_BLOCK_NUMBER )

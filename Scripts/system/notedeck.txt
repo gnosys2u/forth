@@ -278,10 +278,10 @@ class: NoteDeck
   StringMap linkTypeMap
 
   // predefined link types
-  long kLTParent
-  long kLTChild
-  long kLTTag
-  long kLTLink
+  int kLTParent
+  int kLTChild
+  int kLTTag
+  int kLTLink
   
   m: clearAll
     oclear name
@@ -297,7 +297,6 @@ class: NoteDeck
   
   m: delete
     clearAll
-    super.delete
   ;m
   
   m: addTagDef returns NoteTagDef      // NAME DISPLAY_NAME DESCRIPTION ... NEW_TAG_DEF
@@ -446,6 +445,12 @@ class: NoteDeck
     endif
   ;m
 
+  m: getLinkIter returns NoteLinkIter       // NOTE ... NOTE_LINK_ITER
+    mko NoteLinkIter iter
+    iter.init
+    unref iter
+  ;m
+  
 ;class
 
 loaddone
@@ -485,6 +490,30 @@ name field for the method name.
 ? is there a general 'index' needed to replace Note:children StringMap?
 ? maybe NoteDeck has StringMap of StringIntMap indices, which is map of named indices?
 ? replace Note:params with a Bag?
+
+Maybe a Note can have a "children" param, which if it exists will always
+be (by convention) the first element in params and be a StringIntMap.
+
+Should there be a way of defining ops which are specific to a notebook?
+Note and NoteDeck seem like a flexible way of defining data without having
+to define new structs and classes, it seems like there should be a way of
+defining actions related to notes without having to define new ops or class
+methods to do them.
+
+What I am heading towards is two scenarios:
+
+1) the help command
+2) collosal cave adventure can be implemented almost entirely inside NoteDeck
+=============================================
+collosal cave adventure
+
+adv.txt
+  is_forced has_light has_water has_oil - these should be tags
+  IGame:init sets R_LIMBO -> last_knife_loc
+game.txt
+  Game:build_object_table puts objects in locations
+  Game:initDwarves
+  Game:is_treasure 
 =============================================
 There is always a default 'incoming' notebook
 other notebooks are projects/interestAreas for user

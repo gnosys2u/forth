@@ -1,7 +1,7 @@
 // ForthGui.cpp : Defines the class behaviors for the application.
 //
 
-#include "stdafx.h"
+#include "pch.h"
 #include "ForthGui.h"
 #include "ForthGuiDlg.h"
 

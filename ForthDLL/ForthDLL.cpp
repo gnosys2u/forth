@@ -1,53 +1,36 @@
-// ForthDLL.cpp : Defines the initialization routines for the DLL.
+// ForthDLL.cpp : Defines the exported functions for the DLL.
 //
 
-#include "stdafx.h"
+#include "pch.h"
+#include "framework.h"
 #include "ForthDLL.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
+
+#if 0
+// This is an example of an exported variable
+FORTHDLL_API int nForthDLL=0;
+
+// This is an example of an exported function.
+FORTHDLL_API int fnForthDLL(void)
+{
+    return 0;
+}
+
+// This is the constructor of a class that has been exported.
+CForthDLL::CForthDLL()
+{
+    return;
+}
 #endif
 
-//
-//TODO: If this DLL is dynamically linked against the MFC DLLs,
-//		any functions exported from this DLL which call into
-//		MFC must have the AFX_MANAGE_STATE macro added at the
-//		very beginning of the function.
-//
-//		For example:
-//
-//		extern "C" BOOL PASCAL EXPORT ExportedFunction()
-//		{
-//			AFX_MANAGE_STATE(AfxGetStaticModuleState());
-//			// normal function body here
-//		}
-//
-//		It is very important that this macro appear in each
-//		function, prior to any calls into MFC.  This means that
-//		it must appear as the first statement within the 
-//		function, even before any object variable declarations
-//		as their constructors may generate calls into the MFC
-//		DLL.
-//
-//		Please see MFC Technical Notes 33 and 58 for additional
-//		details.
-//
-
-// CForthDLLApp
-
-BEGIN_MESSAGE_MAP(CForthDLLApp, CWinApp)
-END_MESSAGE_MAP()
-
-
-// TODO: OutputToLogger is copied from ForthMain.cpp, stick it in its own file
 static HANDLE hLoggingPipe = INVALID_HANDLE_VALUE;
 
-void OutputToLogger(const char* pBuffer)
+FORTHDLL_API void OutputToLogger(const char* pBuffer)
 {
     //OutputDebugString(buffer);
 
     DWORD dwWritten;
-    int bufferLen = 1 + strlen(pBuffer);
+    int bufferLen = 1 + (int) strlen(pBuffer);
 
     if (hLoggingPipe == INVALID_HANDLE_VALUE)
     {
@@ -73,77 +56,54 @@ void OutputToLogger(const char* pBuffer)
     return;
 }
 
-// CForthDLLApp construction
-
-CForthDLLApp::CForthDLLApp()
+FORTHDLL_API ForthEngine* CreateForthEngine()
 {
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
+    return new ForthEngine;
 }
 
-
-// The one and only CForthDLLApp object
-
-CForthDLLApp theApp;
-
-
-// CForthDLLApp initialization
-
-BOOL CForthDLLApp::InitInstance()
+FORTHDLL_API ForthShell* CreateForthShell(int argc, const char** argv, const char** envp, ForthEngine* pEngine, ForthExtension* pExtension, int shellStackLongs)
 {
-	CWinApp::InitInstance();
-
-	return TRUE;
+    return new ForthShell(argc, argv, envp, pEngine, pExtension, shellStackLongs);
 }
 
-ForthEngine* CreateForthEngine()
+FORTHDLL_API ForthBufferInputStream* CreateForthBufferInputStream(const char* pDataBuffer, int dataBufferLen, int bufferLen, bool deleteWhenEmpty)
 {
-	return new ForthEngine;
-}
-
-ForthShell* CreateForthShell(int argc, const char ** argv, const char ** envp, ForthEngine *pEngine, ForthExtension *pExtension, int shellStackLongs )
-{
-	return new ForthShell(argc, argv, envp, pEngine, pExtension, shellStackLongs );
-}
-
-ForthBufferInputStream* CreateForthBufferInputStream( const char *pDataBuffer, int dataBufferLen, int bufferLen, bool deleteWhenEmpty)
-{
-    ForthBufferInputStream* inStream = new ForthBufferInputStream( pDataBuffer, dataBufferLen, bufferLen );
+    ForthBufferInputStream* inStream = new ForthBufferInputStream(pDataBuffer, dataBufferLen, bufferLen);
     inStream->SetDeleteWhenEmpty(deleteWhenEmpty);
     return inStream;
 }
 
-ForthConsoleInputStream* CreateForthConsoleInputStream( int bufferLen, bool deleteWhenEmpty )
+FORTHDLL_API ForthConsoleInputStream* CreateForthConsoleInputStream(int bufferLen, bool deleteWhenEmpty)
 {
-    ForthConsoleInputStream* inStream = new ForthConsoleInputStream( bufferLen );
+    ForthConsoleInputStream* inStream = new ForthConsoleInputStream(bufferLen);
     inStream->SetDeleteWhenEmpty(deleteWhenEmpty);
     return inStream;
 }
 
-ForthFileInputStream* CreateForthFileInputStream( FILE *pInFile, const char *pFilename, int bufferLen, bool deleteWhenEmpty)
+FORTHDLL_API ForthFileInputStream* CreateForthFileInputStream(FILE* pInFile, const char* pFilename, int bufferLen, bool deleteWhenEmpty)
 {
-    ForthFileInputStream* inStream = new ForthFileInputStream( pInFile, pFilename, bufferLen );
+    ForthFileInputStream* inStream = new ForthFileInputStream(pInFile, pFilename, bufferLen);
     inStream->SetDeleteWhenEmpty(deleteWhenEmpty);
     return inStream;
 }
 
-void DeleteForthEngine( ForthEngine* pEngine )
+FORTHDLL_API void DeleteForthEngine(ForthEngine* pEngine)
 {
-	delete pEngine;
+    delete pEngine;
 }
 
-void DeleteForthShell( ForthShell* pShell )
+FORTHDLL_API void DeleteForthShell(ForthShell* pShell)
 {
-	delete pShell;
+    delete pShell;
 }
 
-void DeleteForthThread( ForthThread* pThread )
+FORTHDLL_API void DeleteForthFiber(ForthFiber* pFiber)
 {
-	delete pThread;
+    delete pFiber;
 }
 
-void DeleteForthInputStream( ForthInputStream* pStream )
+FORTHDLL_API void DeleteForthInputStream(ForthInputStream* pStream)
 {
-	delete pStream;
+    delete pStream;
 }
 

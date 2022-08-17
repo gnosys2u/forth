@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include <stdio.h>
 #include <string.h>
 #include <map>
@@ -18,6 +18,7 @@
 #include "ForthPortability.h"
 
 #include "OSystem.h"
+#include "OStream.h"
 
 namespace OSystem
 {
@@ -126,7 +127,7 @@ namespace OSystem
 
 	FORTHOP(oSystemGetSearchVocabAtMethod)
 	{
-		cell vocabStackIndex = SPOP;
+		int vocabStackIndex = (int) SPOP;
 
 		ForthVocabularyStack* pVocabStack = GET_ENGINE->GetVocabularyStack();
 		ForthVocabulary* pVocab = pVocabStack->GetElement(vocabStackIndex);
@@ -241,13 +242,13 @@ namespace OSystem
         METHOD_RETURN;
     }
 
-	FORTHOP(oSystemCreateAsyncThreadMethod)
+	FORTHOP(oSystemCreateThreadMethod)
 	{
 		ForthObject asyncThread;
 		int returnStackLongs = (int)SPOP;
 		int paramStackLongs = (int)SPOP;
         forthop threadOp = (forthop)SPOP;
-		OThread::CreateAsyncThreadObject(asyncThread, GET_ENGINE, threadOp, paramStackLongs, returnStackLongs);
+		OThread::CreateThreadObject(asyncThread, GET_ENGINE, threadOp, paramStackLongs, returnStackLongs);
 
 		PUSH_OBJECT(asyncThread);
 		METHOD_RETURN;
@@ -271,20 +272,15 @@ namespace OSystem
         METHOD_RETURN;
     }
 
-    FORTHOP(oSystemSetAuxOutMethod)
+    FORTHOP(oSystemGetConsoleOutMethod)
     {
-        ForthEngine* pEngine = GET_ENGINE;
-        ForthObject obj;
-        POP_OBJECT(obj);
-
-        pEngine->SetAuxOut(pCore, obj);
+        PUSH_OBJECT(OStream::getStdoutObject());
         METHOD_RETURN;
     }
 
-    FORTHOP(oSystemGetAuxOutMethod)
+    FORTHOP(oSystemGetErrorOutMethod)
     {
-        ForthEngine* pEngine = GET_ENGINE;
-        pEngine->PushAuxOut(pCore);
+        PUSH_OBJECT(OStream::getStderrObject());
         METHOD_RETURN;
     }
 
@@ -324,12 +320,12 @@ namespace OSystem
         METHOD_RET("getOpsTable", oSystemGetOpsTableMethod, RETURNS_NATIVE(kBaseTypeCell)),
         METHOD_RET("getClassByIndex", oSystemGetClassByIndexMethod, RETURNS_OBJECT(kBCIObject)),
         METHOD_RET("getNumClasses", oSystemGetNumClassesMethod, RETURNS_NATIVE(kBaseTypeCell)),
-        METHOD_RET("createAsyncThread", oSystemCreateAsyncThreadMethod, RETURNS_OBJECT(kBCIAsyncThread)),
+        METHOD_RET("createThread", oSystemCreateThreadMethod, RETURNS_OBJECT(kBCIThread)),
         METHOD_RET("createAsyncLock", oSystemCreateAsyncLockMethod, RETURNS_OBJECT(kBCIAsyncLock)),
         METHOD_RET("createAsyncSemaphore", oSystemCreateAsyncSemaphoreMethod, RETURNS_OBJECT(kBCIAsyncSemaphore)),
-        METHOD("setAuxOut", oSystemSetAuxOutMethod),
-        METHOD_RET("getAuxOut", oSystemGetAuxOutMethod, RETURNS_OBJECT(kBCIOutStream)),
         METHOD_RET("getInputInfo", oSystemGetInputInfoMethod, RETURNS_NATIVE(kBaseTypeCell)),
+        METHOD_RET("getStdOut", oSystemGetConsoleOutMethod, RETURNS_OBJECT(kBCIConsoleOutStream)),
+        METHOD_RET("getErrOut", oSystemGetErrorOutMethod, RETURNS_OBJECT(kBCIErrorOutStream)),
 
         MEMBER_VAR("namedObjects", OBJECT_TYPE_TO_CODE(0, kBCIStringMap)),
         MEMBER_VAR("args", OBJECT_TYPE_TO_CODE(0, kBCIArray)),
@@ -437,7 +433,7 @@ namespace OSystem
     FORTHOP(oShellStackPeekMethod)
     {
         ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
-        cell i = SPOP;
+        int i = (int) SPOP;
         cell v = stack->Peek(i);
         SPUSH(v);
         METHOD_RETURN;
@@ -446,7 +442,7 @@ namespace OSystem
     FORTHOP(oShellStackPeekTagMethod)
     {
         ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
-        cell i = SPOP;
+        int i = (int)SPOP;
         cell v = (cell)stack->PeekTag(i);
         SPUSH(v);
         METHOD_RETURN;
@@ -455,7 +451,7 @@ namespace OSystem
     FORTHOP(oShellStackPeekAddressMethod)
     {
         ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
-        cell i = SPOP;
+        int i = (int)SPOP;
         cell v = (cell)stack->PeekAddress(i);
         SPUSH(v);
         METHOD_RETURN;

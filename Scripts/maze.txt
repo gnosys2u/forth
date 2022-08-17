@@ -412,5 +412,132 @@ class: mazeGenerator
 new mazeGenerator -> mazeGenerator m
 m.gen m.drawBig
 
+requires randoms
+
+// recursive backtracking maze generator
+// algorithm from http://weblog.jamisbuck.org/2010/12/27/maze-generation-recursive-backtracking
+
+// may have a bug where it accesses one beyond end of maze storage
+
+class: MazeDirection
+  cell wall
+  cell oppositeWall
+  cell name
+  cell dx
+  cell dy
+
+  m: init
+    -> dy
+    -> dx
+    -> oppositeWall
+    -> wall
+    -> name
+  ;m
+  
+;class
+
+
+class: MazeGen1
+
+  Array of MazeDirection dirs
+  ByteArray grid
+  int width
+  int height
+  RandomIntGenerator random
+  MazeDirection north
+  MazeDirection south
+  MazeDirection east
+  MazeDirection west
+  
+  m: delete
+    oclear dirs
+    oclear grid
+    oclear random
+    oclear north oclear south oclear east oclear west
+  ;m
+ 
+  : addDirection
+    mko MazeDirection dir
+    dir.init
+    dirs.push(dir)
+    dir
+    oclear dir
+  ;
+  
+  m: init
+    -> height
+    -> width
+    new RandomIntGenerator -> random
+    new ByteArray -> grid
+    grid.resize(width height *)
+    
+    
+    new Array -> dirs
+    `N` 1 2   0 -1 addDirection -> north
+    `S` 2 1   0  1 addDirection -> south
+    `E` 4 8   1  0 addDirection -> east
+    `W` 8 4  -1  0 addDirection -> west
+  ;m
+
+  : gridRef grid.ref(width * +) ;
+
+  m: carvePassages recursive
+    -> cell cy
+    -> cell cx
+    gridRef(cx cy) -> ptrTo byte posRef
+    
+    random.shuffle(dirs)
+    dirs.headIter -> ArrayIter iter
+    
+    begin
+    while(iter.next)
+      -> MazeDirection dir
+      cx dir.dx + -> cell nx
+      cy dir.dy + -> cell ny
+
+      if(within(ny 0 height)) andif(within(nx 0 width))
+        gridRef(nx ny) -> ptrTo byte nextPosRef
+        if(nextPosRef b@ 0=)
+          posRef b@ dir.wall or posRef b!
+          nextPosRef b@ dir.oppositeWall or nextPosRef b!
+          //"carve @" %s cx %d %bl cy %d %bl dir.name %c %nl 
+          carvePassages(nx ny)
+        endif
+      endif
+    repeat
+    
+    oclear iter
+  ;m
+  
+  m: draw
+    ptrTo byte posRef
+    ` ` %c
+    do(width 2* 1- 0)
+      `_` %c
+    loop
+    %nl
+    do(height 0)
+      `|` %c
+      do(width 0)
+        gridRef(i j) -> posRef
+        if(posRef b@ south.wall and) ` ` else `_` endif %c
+        if(posRef b@ east.wall and)
+          // isn't this possibly looking one beyond end of maze?
+          if(posRef b@ posRef 1+ b@ or south.wall and) ` ` else `_` endif %c
+        else
+          `|` %c
+        endif
+      loop
+      %nl
+    loop
+  ;m
+  
+;class
+
+mko MazeGen1 maze
+maze.init(40 30)
+maze.carvePassages(0 0)
+maze.draw
+
 loaddone
 

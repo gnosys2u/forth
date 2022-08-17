@@ -62,90 +62,90 @@
     <ProjectGuid>{749E1CE7-CD96-4DCC-8D3C-DE275F32C926}</ProjectGuid>
     <RootNamespace>ForthLib</RootNamespace>
     <Keyword>MFCProj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -254,12 +254,12 @@
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MSDEV;WIN32;INCLUDE_TRACE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;X86_ARCHITECTURE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>INCLUDE_TRACE;MSDEV;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;X86_ARCHITECTURE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -291,7 +291,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -318,12 +318,12 @@
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MSDEV;WIN32;INCLUDE_TRACE;ASM_INNER_INTERPRETER;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;X86_ARCHITECTURE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ASM_INNER_INTERPRETER;INCLUDE_TRACE;MSDEV;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;X86_ARCHITECTURE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -355,7 +355,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -389,7 +389,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -421,7 +421,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -447,13 +447,13 @@
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MSDEV;WIN32;ASM_INNER_INTERPRETER;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;X86_ARCHITECTURE;_NO_CRT_STDIO_INLINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ASM_INNER_INTERPRETER;MSDEV;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;X86_ARCHITECTURE;_NO_CRT_STDIO_INLINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -485,7 +485,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -514,7 +514,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -543,7 +543,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -573,7 +573,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -601,7 +601,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -628,7 +628,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -657,7 +657,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -956,7 +956,7 @@
     <ClCompile Include="OStream.cpp" />
     <ClCompile Include="OString.cpp" />
     <ClCompile Include="OSystem.cpp" />
-    <ClCompile Include="StdAfx.cpp">
+    <ClCompile Include="pch.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">EnableFastChecks</BasicRuntimeChecks>
@@ -1005,32 +1005,32 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="AsmCore.asm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">core.inc;%(AdditionalInputs)</AdditionalInputs>
@@ -1065,51 +1065,51 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dASM_INNER_INTERPRETER</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dASM_INNER_INTERPRETER</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dASM_INNER_INTERPRETER</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dASM_INNER_INTERPRETER</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dWIN64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dWIN64</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dWIN64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dWIN64</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <None Include="core.inc" />
     <CustomBuild Include="InnerInterp.asm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">E:\Apps\NASM\nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">core.inc;%(AdditionalInputs)</AdditionalInputs>
@@ -1148,18 +1148,17 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dASM_INNER_INTERPRETER -dWIN64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dASM_INNER_INTERPRETER -dWIN64</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dASM_INNER_INTERPRETER -dWIN64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dASM_INNER_INTERPRETER -dWIN64</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dirent.h" />
     <ClInclude Include="Forth.h" />
     <ClInclude Include="ForthBlockFileManager.h" />
     <ClInclude Include="ForthBuiltinClasses.h" />
@@ -1193,7 +1192,8 @@
     <ClInclude Include="OStream.h" />
     <ClInclude Include="OString.h" />
     <ClInclude Include="OSystem.h" />
-    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="sys\dirent.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Readme.txt" />

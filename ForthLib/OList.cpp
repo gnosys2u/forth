@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include <stdio.h>
 #include <string.h>
 #include <map>
@@ -50,7 +50,6 @@ namespace OList
 			FREE_LINK(pCur);
 			pCur = pNext;
 		}
-		FREE_OBJECT(pList);
 		METHOD_RETURN;
 	}
 
@@ -58,7 +57,7 @@ namespace OList
 	{
 		GET_THIS(oListStruct, pList);
 		oListElement* pCur = pList->head;
-		ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         pShowContext->BeginElement("elements");
         pShowContext->BeginArray();
 		while (pCur != NULL)
@@ -590,7 +589,7 @@ namespace OList
 	{
 		GET_THIS(oListIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		FREE_ITER(pIter);
+		TRACK_ITER_DELETE;
 		METHOD_RETURN;
 	}
 
@@ -599,7 +598,7 @@ namespace OList
 		GET_THIS(oListIterStruct, pIter);
         char buffer[32];
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         oListElement* pCur = reinterpret_cast<oListStruct *>(pIter->parent)->head;
         int cursor = 0;
         while (pCur != NULL)

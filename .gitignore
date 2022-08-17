@@ -39,6 +39,9 @@
 *.project
 *.cproject
 *.filters
+*.lastbuildstate
+*.tlog
+.vs
 build
 Backup
 ColossalCaveAdventure
@@ -77,6 +80,8 @@ releases
 relOld
 relSource
 Sandbox
+sandbox
+sandbox.old
 TestDLL
 TextToSpeech
 Unused
@@ -97,14 +102,14 @@ Forth_for_ARM.txt
 ForthARM/gdbs.txt
 ForthARM/sdlt.txt
 ForthARM/t.txt
-ForthClient/ForthClient.vcxproj
+ForthARM/obj
+ForthARM/forth
+ForthARM/logfile.txt
 ForthClient/ForthClient.vcxproj.filters
 ForthDocs/ForthDocs.vcxproj.filters
 ForthDocs/Manual/*.txt
 *.nas
-ForthLogger/ForthLogger.vcxproj
 ForthLogger/ReadMe.txt
-ForthMidi/ForthMidi.vcxproj
 ForthMidi/Resource.h
 ForthMidi/stdafx.cpp
 ForthMidi/stdafx.h
@@ -123,3 +128,8 @@ x64
 ForthDLL/ReadMe.txt
 ForthDLL/res/ForthDLL.rc2
 .settings
+ForthDLLxxx
+ForthDLLMainxxx
+ForthDLL/DbgAsm/ForthDLL.vcxproj.FileListAbsolute.txt
+ForthDLL/RelAsm/ForthDLL.vcxproj.FileListAbsolute.txt
+

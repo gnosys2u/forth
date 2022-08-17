@@ -66,7 +66,6 @@ class: HelpDeck extends NoteDeck
     oclear classesNote
     oclear memberSchema
     oclear memberTypeParamDef
-    super.delete
   ;m
   
   m: setTags
@@ -1035,6 +1034,7 @@ addOp DeleteCriticalSection|CRITSECTIONPTR ...|
 addOp EnterCriticalSection|CRITSECTIONPTR ...|
 addOp LeaveCriticalSection|CRITSECTIONPTR ...|
 addOp createThread|PSTACK_SIZE RSTACK_SIZE THREAD_OPCODE ... THREADPTR|
+addOp createFiber|PSTACK_SIZE RSTACK_SIZE THREAD_OPCODE ... THREADPTR|
 addOp destroyThread|THREADPTR ...|
 addOp startThread|THREADPTR ... RESULT|
 addOp exitThread||
@@ -1644,45 +1644,45 @@ addMethod removeEntry|ENTRY_PTR ...|remove entry specified by ENTRY_PTR from voc
 addMember parent|... VOCAB_OBJECT|associated Vocabulary object
 addMember cursor|... ENTRY_PTR|current position of iterator
 
-addClass Thread|Object|synchronous thread object
-addMethod start|...|mark this thread as ready to run
-addMethod startWithArgs|ARGS INT_NUM_ARGS ... BOOL|push specified arguments onto thread param stack and start running it, returns if start worked (always true for now)
-addMethod stop|...|stop this thread from running
-addMethod join|...|stop calling thread and wait for this thread to finish running
-addMethod sleep|INT_MILLISECONDS ...|sleep this thread for specified number of milliseconds
-addMethod wake|...|wake this thread from a sleep
-addMethod push|INT_VALUE ...|push INT_VALUE onto this threads parameter stack
-addMethod pop|... INT_VALUE|pop INT_VALUE from this threads parameter stack
-addMethod rpush|INT_VALUE ...|push INT_VALUE onto this threads return stack
-addMethod rpop|... INT_VALUE|pop INT_VALUE from this threads return stack
-addMethod getRunState|... INT_RUNSTATE|get this threads run state
-addMethod step|... INT_RESULT|single step this thread, see eInterpreterResult in forth_internals.txt for INT_RESULT meaning
-addMethod reset|...|reset this thread - clear it stacks, set its IP back to its starting IP
-addMethod resetIP|...|set this threads IP back to its starting IP
-addMethod getCore|... CORE_PTR|return this threads core pointer
-addMember id|...|this threads thread id
+addClass Fiber|Object|synchronous thread object
+addMethod start|...|mark this fiber as ready to run
+addMethod startWithArgs|ARGS INT_NUM_ARGS ... BOOL|push specified arguments onto fiber param stack and start running it, returns if start worked (always true for now)
+addMethod stop|...|stop this fiber from running
+addMethod join|...|stop calling fiber and wait for this fiber to finish running
+addMethod sleep|INT_MILLISECONDS ...|sleep this fiber for specified number of milliseconds
+addMethod wake|...|wake this fiber from a sleep
+addMethod push|INT_VALUE ...|push INT_VALUE onto this fibers parameter stack
+addMethod pop|... INT_VALUE|pop INT_VALUE from this fibers parameter stack
+addMethod rpush|INT_VALUE ...|push INT_VALUE onto this fibers return stack
+addMethod rpop|... INT_VALUE|pop INT_VALUE from this fibers return stack
+addMethod getRunState|... INT_RUNSTATE|get this fibers run state
+addMethod step|... INT_RESULT|single step this fiber, see eInterpreterResult in forth_internals.txt for INT_RESULT meaning
+addMethod reset|...|reset this fiber - clear fibers stacks, set its IP back to its starting IP
+addMethod resetIP|...|set this fibers IP back to its starting IP
+addMethod getCore|... CORE_PTR|return this fibers core pointer
+addMember id|...|this fibers thread id
 
-addClass AsyncThread|Object|asynchronous thread - runs multiple synchronous threads
+addClass Thread|Object|asynchronous thread - runs multiple Fibers (synchronous threads)
 addMethod start|...|start this thread running asynchronously
 addMethod startWithArgs|ARGS INT_NUM_ARGS ... BOOL|push specified arguments onto thread param stack and start running it, returns if start worked
-addMethod join|...|stop current thread and wait for this thread to exit
-addMethod reset|...|reset all the sync threads which this thread is running
-addMethod createThread|MAINLOOP_OP INT_PSTACK_SIZE INT_RSTACK_SIZE ... SYNC_THREAD_OBJECT|create a synchronous thread with specified stacks and main loop op
+addMethod join|...|stop current fiber and wait for this thread to exit
+addMethod reset|...|reset all the fibers which this thread is running
+addMethod createFiber|MAINLOOP_OP INT_PSTACK_SIZE INT_RSTACK_SIZE ... SYNC_THREAD_OBJECT|create a Fiber with specified stacks and main loop op
 addMethod getRunState|...INT_RUN_STATE|
 addMember id|int|this threads thread id
 
 addClass AsyncLock|Object|asynchronous lock object
-addMethod grab|...|attempt to grab this lock - grabbing async thread will block if lock is already grabbed
+addMethod grab|...|attempt to grab this lock - grabbing thread will block if lock is already grabbed
 addMethod tryGrab|... BOOL|attempt to grab this lock - result is true if lock was grabbed
 addMethod ungrab|...|release this lock
 addMember id|...|this locks id
 
 addClass Lock|Object|synchronous lock object
-addMethod grab|...|attempt to grab this lock - grabbing sync thread will block if lock is already grabbed
+addMethod grab|...|attempt to grab this lock - grabbing fiber will block if lock is already grabbed
 addMethod tryGrab|... BOOL|attempt to grab this lock - result is true if lock was grabbed
-addMethod ungrab|...|release this lock - may cause this sync thread to yield to another sync thread waiting on this lock
+addMethod ungrab|...|release this lock - may cause this fiber to yield to another fiber waiting on this lock
 addMember id|...|this locks id
-addMember lockDepth|...|how many times this sync thread has redundantly grabbed this lock
+addMember lockDepth|...|how many times this fiber has redundantly grabbed this lock
 
 addClass AsyncSemaphore|Object|asynchronous semaphore object
 addMethod init|INT_COUNT ...|initialize this semaphore with count INT_COUNT
@@ -1692,7 +1692,7 @@ addMember id|int|this semaphores id
 
 addClass Semaphore|Object|synchronous semaphore object
 addMethod init|INT_COUNT ...|initialize this semaphore with count INT_COUNT
-addMethod wait|...|decrement the semaphore count, block this thread if semaphore count is zero
+addMethod wait|...|decrement the semaphore count, block this fiber if semaphore count is zero
 addMethod post|...|increment the semaphore count
 addMember id|int|this semaphores id
 addMember count|int|this semaphores count value
@@ -1712,7 +1712,7 @@ addMethod getOpsTable|... OPTABLE_PTR|
 addMethod getClassByIndex|INT_TYPE_INDEX ... CLASS_OBJECT|return class object for specified type index, null if index out of range or not a class
 addMethod getNumClasses|... INT_TYPE_INDEX|return 1 more than highest class index
 
-addMethod createAsyncThread|MAINLOOP_OP INT_PSTACK_SIZE INT_RSTACK_SIZE ... SYNC_THREAD_OBJECT|create an asynchronous thread with specified stacks and main loop op
+addMethod createThread|MAINLOOP_OP INT_PSTACK_SIZE INT_RSTACK_SIZE ... SYNC_THREAD_OBJECT|create an asynchronous thread with specified stacks and main loop op
 addMethod createAsyncLock|... ASYNC_LOCK_OBJECT|create an asynchronous lock object
 addMethod createAsyncSemaphore|... ASYNC_SEMAPHORE_OBJECT|create an asynchronous semaphore object
 addMember namedObjects|StringMap|system named objects map

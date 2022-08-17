@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include <stdio.h>
 #include <string.h>
 #include <algorithm>
@@ -110,7 +110,6 @@ namespace OArray
 			SAFE_RELEASE(pCore, o);
 		}
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
 		METHOD_RETURN;
 	}
 
@@ -119,7 +118,7 @@ namespace OArray
 		GET_THIS(oArrayStruct, pArray);
 		oArray::iterator iter;
 		oArray& a = *(pArray->elements);
-		ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         pShowContext->BeginElement("elements");
         pShowContext->BeginArray();
 		for (iter = a.begin(); iter != a.end(); ++iter)
@@ -266,7 +265,6 @@ namespace OArray
             ForthObject newObj;
             POP_OBJECT(newObj);
             OBJECT_ASSIGN(pCore, oldObj, newObj);
-            a[ix] = newObj;
         }
         else
         {
@@ -715,9 +713,9 @@ namespace OArray
 	{
 		GET_THIS(oArrayIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		FREE_ITER(pIter);
-		METHOD_RETURN;
-	}
+        TRACK_ITER_DELETE;
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oArrayIterSeekNextMethod)
 	{
@@ -1086,7 +1084,6 @@ namespace OArray
             SAFE_RELEASE(pCore, element.obj);
         }
         delete pBag->elements;
-        FREE_OBJECT(pBag);
         METHOD_RETURN;
     }
 
@@ -1097,7 +1094,7 @@ namespace OArray
         oBag& a = *(pBag->elements);
         char tag[12] = "12345678\0";
         ForthEngine *pEngine = ForthEngine::GetInstance();
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         pShowContext->BeginElement("elements");
         pShowContext->ShowTextReturn("{");
         pShowContext->BeginNestedShow();
@@ -1294,7 +1291,6 @@ namespace OArray
             LPOP(element.tag);
             POP_OBJECT(newObj);
             OBJECT_ASSIGN(pCore, oldObj, newObj);
-            element.obj = newObj;
         }
         else
         {
@@ -1692,7 +1688,7 @@ namespace OArray
     {
         GET_THIS(oArrayIterStruct, pIter);
         SAFE_RELEASE(pCore, pIter->parent);
-        FREE_ITER(pIter);
+        TRACK_ITER_DELETE;
         METHOD_RETURN;
     }
 
@@ -2045,16 +2041,15 @@ namespace OArray
 	{
 		GET_THIS(oByteArrayStruct, pArray);
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
-		METHOD_RETURN;
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oByteArrayShowInnerMethod)
 	{
 		char buffer[8];
 		GET_THIS(oByteArrayStruct, pArray);
-		ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
-		oByteArray& a = *(pArray->elements);
+        GET_SHOW_CONTEXT;
+        oByteArray& a = *(pArray->elements);
         pShowContext->BeginElement("elements");
         pShowContext->BeginArray();
 		for (unsigned int i = 0; i < a.size(); i++)
@@ -2149,10 +2144,18 @@ namespace OArray
 
     FORTHOP(oByteArrayClearMethod)
     {
-        // go through all elements and release any which are not null
         GET_THIS(oByteArrayStruct, pArray);
         oByteArray& a = *(pArray->elements);
         a.clear();
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oByteArrayFillMethod)
+    {
+        GET_THIS(oByteArrayStruct, pArray);
+        oByteArray& a = *(pArray->elements);
+        char val = (char)SPOP;
+        memset(&(a[0]), val, pArray->elements->size());
         METHOD_RETURN;
     }
 
@@ -2416,6 +2419,7 @@ namespace OArray
         METHOD_RET("clone", oByteArrayCloneMethod, RETURNS_OBJECT(kBCIByteArray)),
         METHOD_RET("count", oByteArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
         METHOD("clear", oByteArrayClearMethod),
+        METHOD("fill", oByteArrayFillMethod),
 
         METHOD_RET("get", oByteArrayGetMethod, RETURNS_NATIVE(kBaseTypeByte)),
         METHOD("set", oByteArraySetMethod),
@@ -2456,9 +2460,9 @@ namespace OArray
 	{
 		GET_THIS(oByteArrayIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		FREE_ITER(pIter);
-		METHOD_RETURN;
-	}
+        TRACK_ITER_DELETE;
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oByteArrayIterSeekNextMethod)
 	{
@@ -2754,15 +2758,14 @@ namespace OArray
 	{
 		GET_THIS(oShortArrayStruct, pArray);
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
-		METHOD_RETURN;
-	}
+        METHOD_RETURN;
+    }
 
     FORTHOP(oShortArrayShowInnerMethod)
     {
         char buffer[32];
         GET_THIS(oShortArrayStruct, pArray);
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         oShortArray& a = *(pArray->elements);
         pShowContext->BeginElement("elements");
         pShowContext->BeginArray();
@@ -2860,6 +2863,18 @@ namespace OArray
         GET_THIS(oShortArrayStruct, pArray);
         oShortArray& a = *(pArray->elements);
         a.clear();
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oShortArrayFillMethod)
+    {
+        GET_THIS(oShortArrayStruct, pArray);
+        oShortArray& a = *(pArray->elements);
+        short val = (short)SPOP;
+        for (int i = 0; i < pArray->elements->size(); ++i)
+        {
+            a[i] = val;
+        }
         METHOD_RETURN;
     }
 
@@ -3114,6 +3129,7 @@ namespace OArray
         METHOD_RET("clone", oShortArrayCloneMethod, RETURNS_OBJECT(kBCIShortArray)),
         METHOD_RET("count", oShortArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
         METHOD("clear", oShortArrayClearMethod),
+        METHOD("fill", oShortArrayFillMethod),
 
         METHOD_RET("get", oShortArrayGetMethod, RETURNS_NATIVE(kBaseTypeShort)),
         METHOD("set", oShortArraySetMethod),
@@ -3154,9 +3170,9 @@ namespace OArray
 	{
 		GET_THIS(oShortArrayIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		FREE_ITER(pIter);
-		METHOD_RETURN;
-	}
+        TRACK_ITER_DELETE;
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oShortArrayIterSeekNextMethod)
 	{
@@ -3449,15 +3465,14 @@ namespace OArray
 	{
 		GET_THIS(oIntArrayStruct, pArray);
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
-		METHOD_RETURN;
-	}
+        METHOD_RETURN;
+    }
 
     FORTHOP(oIntArrayShowInnerMethod)
     {
         char buffer[32];
         GET_THIS(oIntArrayStruct, pArray);
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         oIntArray& a = *(pArray->elements);
         pShowContext->BeginElement("elements");
         pShowContext->BeginArray();
@@ -3558,6 +3573,18 @@ namespace OArray
         METHOD_RETURN;
     }
 
+    FORTHOP(oIntArrayFillMethod)
+    {
+        GET_THIS(oIntArrayStruct, pArray);
+        oIntArray& a = *(pArray->elements);
+        int val = (int)SPOP;
+        for (int i = 0; i < pArray->elements->size(); ++i)
+        {
+            a[i] = val;
+        }
+        METHOD_RETURN;
+    }
+
     FORTHOP(oIntArrayGetMethod)
     {
         GET_THIS(oIntArrayStruct, pArray);
@@ -3565,7 +3592,7 @@ namespace OArray
         ulong ix = (ulong)SPOP;
         if (a.size() > ix)
         {
-            SPUSH(a[ix]);
+            SPUSH((cell) a[ix]);
         }
         else
         {
@@ -3581,7 +3608,7 @@ namespace OArray
         ulong ix = (ulong)SPOP;
         if (a.size() > ix)
         {
-            a[ix] = SPOP;
+            a[ix] = (int) SPOP;
         }
         else
         {
@@ -3809,6 +3836,7 @@ namespace OArray
         METHOD_RET("clone", oIntArrayCloneMethod, RETURNS_OBJECT(kBCIIntArray)),
         METHOD_RET("count", oIntArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
         METHOD("clear", oIntArrayClearMethod),
+        METHOD("fill", oIntArrayFillMethod),
 
         METHOD_RET("get", oIntArrayGetMethod, RETURNS_NATIVE(kBaseTypeInt)),
         METHOD("set", oIntArraySetMethod),
@@ -3848,9 +3876,9 @@ namespace OArray
 	{
 		GET_THIS(oIntArrayIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		FREE_ITER(pIter);
-		METHOD_RETURN;
-	}
+        TRACK_ITER_DELETE;
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oIntArrayIterSeekNextMethod)
 	{
@@ -4106,7 +4134,7 @@ namespace OArray
     {
         char buffer[32];
         GET_THIS(oIntArrayStruct, pArray);
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         oIntArray& a = *(pArray->elements);
         pShowContext->BeginElement("elements");
         pShowContext->BeginArray();
@@ -4142,6 +4170,7 @@ namespace OArray
         METHOD_RET("clone", oIntArrayCloneMethod, RETURNS_OBJECT(kBCIIntArray)),
         METHOD_RET("count", oIntArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
         METHOD("clear", oIntArrayClearMethod),
+        METHOD("fill", oIntArrayFillMethod),
 
         METHOD_RET("get", oIntArrayGetMethod, RETURNS_NATIVE(kBaseTypeInt)),
         METHOD("set", oIntArraySetMethod),
@@ -4246,15 +4275,14 @@ namespace OArray
 	{
 		GET_THIS(oLongArrayStruct, pArray);
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
-		METHOD_RETURN;
-	}
+        METHOD_RETURN;
+    }
 
     FORTHOP(oLongArrayShowInnerMethod)
     {
         char buffer[32];
         GET_THIS(oLongArrayStruct, pArray);
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         oLongArray& a = *(pArray->elements);
         pShowContext->BeginElement("elements");
         pShowContext->BeginArray();
@@ -4355,6 +4383,20 @@ namespace OArray
         GET_THIS(oLongArrayStruct, pArray);
         oLongArray& a = *(pArray->elements);
         a.clear();
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oLongArrayFillMethod)
+    {
+        GET_THIS(oLongArrayStruct, pArray);
+        oLongArray& a = *(pArray->elements);
+        stackInt64 a64;
+        LPOP(a64);
+        int64_t longVal = a64.s64;
+        for (int i = 0; i < pArray->elements->size(); ++i)
+        {
+            a[i] = longVal;
+        }
         METHOD_RETURN;
     }
 
@@ -4620,6 +4662,7 @@ namespace OArray
         METHOD_RET("clone", oLongArrayCloneMethod, RETURNS_OBJECT(kBCILongArray)),
         METHOD_RET("count", oLongArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
         METHOD("clear", oLongArrayClearMethod),
+        METHOD("fill", oLongArrayFillMethod),
 
         METHOD_RET("get", oLongArrayGetMethod, RETURNS_NATIVE(kBaseTypeLong)),
         METHOD("set", oLongArraySetMethod),
@@ -4659,9 +4702,9 @@ namespace OArray
 	{
 		GET_THIS(oLongArrayIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		FREE_ITER(pIter);
-		METHOD_RETURN;
-	}
+        TRACK_ITER_DELETE;
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oLongArrayIterSeekNextMethod)
 	{
@@ -4961,15 +5004,14 @@ namespace OArray
 	{
 		GET_THIS(oDoubleArrayStruct, pArray);
 		delete pArray->elements;
-		FREE_OBJECT(pArray);
-		METHOD_RETURN;
-	}
+        METHOD_RETURN;
+    }
 
     FORTHOP(oDoubleArrayShowInnerMethod)
     {
         char buffer[32];
         GET_THIS(oDoubleArrayStruct, pArray);
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         oDoubleArray& a = *(pArray->elements);
         pShowContext->BeginElement("elements");
         pShowContext->BeginArray();
@@ -5192,6 +5234,7 @@ namespace OArray
         METHOD_RET("clone", oLongArrayCloneMethod, RETURNS_OBJECT(kBCILongArray)),
         METHOD_RET("count", oLongArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
         METHOD("clear", oLongArrayClearMethod),
+        METHOD("fill", oLongArrayFillMethod),
 
         METHOD_RET("get", oDoubleArrayGetMethod, RETURNS_NATIVE(kBaseTypeDouble)),
         METHOD("set", oDoubleArraySetMethod),
@@ -5314,7 +5357,6 @@ namespace OArray
     {
         GET_THIS(oStructArrayStruct, pArray);
         delete pArray->elements;
-        FREE_OBJECT(pArray);
         METHOD_RETURN;
     }
 
@@ -5324,7 +5366,7 @@ namespace OArray
         if (pArray->pVocab != nullptr)
         {
             ForthEngine *pEngine = GET_ENGINE;
-            ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+            GET_SHOW_CONTEXT;
             oStructArray& a = *(pArray->elements);
 
             pShowContext->BeginElement("structType");
@@ -5704,7 +5746,7 @@ namespace OArray
     {
         GET_THIS(oStructArrayIterStruct, pIter);
         SAFE_RELEASE(pCore, pIter->parent);
-        FREE_ITER(pIter);
+        TRACK_ITER_DELETE;
         METHOD_RETURN;
     }
 
@@ -5963,9 +6005,8 @@ namespace OArray
 		SAFE_RELEASE(pCore, oa);
 		ForthObject& ob = pPair->b;
 		SAFE_RELEASE(pCore, ob);
-		FREE_OBJECT(pPair);
-		METHOD_RETURN;
-	}
+        METHOD_RETURN;
+    }
 
     FORTHOP(oPairHeadIterMethod)
     {
@@ -6074,10 +6115,9 @@ namespace OArray
 	{
 		GET_THIS(oPairIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		delete pIter;
 		TRACK_ITER_DELETE;
-		METHOD_RETURN;
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oPairIterSeekNextMethod)
 	{
@@ -6302,9 +6342,8 @@ namespace OArray
 		SAFE_RELEASE(pCore, ob);
 		ForthObject& oc = pTriple->c;
 		SAFE_RELEASE(pCore, oc);
-		FREE_OBJECT(pTriple);
-		METHOD_RETURN;
-	}
+        METHOD_RETURN;
+    }
 
     FORTHOP(oTripleHeadIterMethod)
     {
@@ -6436,10 +6475,9 @@ namespace OArray
 	{
 		GET_THIS(oTripleIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
-		delete pIter;
 		TRACK_ITER_DELETE;
-		METHOD_RETURN;
-	}
+        METHOD_RETURN;
+    }
 
 	FORTHOP(oTripleIterSeekNextMethod)
 	{

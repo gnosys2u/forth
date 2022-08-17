@@ -3,21 +3,17 @@
 // ForthClient.cpp: Forth client support
 //
 //////////////////////////////////////////////////////////////////////
-#include "StdAfx.h"
+#include "pch.h"
 
 #pragma comment(lib, "wininet.lib")
-#if defined(WIN64)
 #pragma comment(lib, "Ws2_32.lib")
-#endif
 
 #include <stdio.h>
 #if defined(WIN64)
 #include <ws2tcpip.h>
-#include "dirent.h"
 #elif defined(WIN32)
 #include <winsock2.h>
 #include <windows.h>
-#include "dirent.h"
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -26,12 +22,20 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>
-#include <dirent.h>
 #endif
 #include "Forth.h"
 #include "ForthPipe.h"
 #include "ForthClient.h"
 #include "ForthMessages.h"
+#if defined(WIN64) || defined(WIN32)
+#include "sys/dirent.h"
+#else
+#include <dirent.h>
+#endif
+
+#ifndef MAX_PATH
+#define MAX_PATH 511
+#endif
 
 #ifndef SOCKADDR
 #define SOCKADDR struct sockaddr
@@ -368,7 +372,7 @@ int ForthClientMainLoop( ForthEngine *pEngine, const char* pServerStr, unsigned 
 						pReadBuffer = (char *)__REALLOC(pReadBuffer, numBytes);
                         readBufferSize = numBytes;
                     }
-                    int result = fread( pReadBuffer, itemSize, numItems, (FILE *) file );
+                    int result = (int) fread( pReadBuffer, itemSize, numItems, (FILE *) file );
 
                     pMsgPipe->StartMessage( kServerMsgFileReadResult );
                     pMsgPipe->WriteInt( result );
@@ -390,7 +394,7 @@ int ForthClientMainLoop( ForthEngine *pEngine, const char* pServerStr, unsigned 
                     pMsgPipe->ReadInt( itemSize );
                     pMsgPipe->ReadInt( numItems );
                     pMsgPipe->ReadCountedData( pData, numBytes );
-                    int result = fwrite( pData, itemSize, numItems, (FILE *) file );
+                    int result = (int)fwrite( pData, itemSize, numItems, (FILE *) file );
 
                     pMsgPipe->StartMessage( kServerMsgFileOpResult );
                     pMsgPipe->WriteInt( result );

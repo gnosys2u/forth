@@ -817,7 +817,7 @@ entry memberRefType
 	
 ;-----------------------------------------------
 ;
-; local byte ops
+; byte ops
 ;
 entry localByteType
 	mov	eax, ebx
@@ -844,6 +844,21 @@ localByteFetch:
 	mov	[rpsp], ebx
 	jmp	rnext
 
+localByte1:
+	cmp	ebx, kVarMinusStore
+	jg	badVarOperation
+	; dispatch based on value in ebx
+	mov	ebx, [localByteActionTable + ebx*4]
+	jmp	ebx
+
+localByteActionTable:
+	DD	localByteFetch
+	DD	localByteFetch
+	DD	localRef
+	DD	localByteStore
+	DD	localBytePlusStore
+	DD	localByteMinusStore
+
 entry localUByteType
 	mov	eax, ebx
 	; see if a varop is specified
@@ -861,7 +876,7 @@ localUByteType1:
 ubyteEntry:
 	mov	ebx, [rcore + FCore.varMode]
 	or	ebx, ebx
-	jnz	localByte1
+	jnz	localUByte1
 	; fetch local unsigned byte
 localUByteFetch:
 	sub	rpsp, 4
@@ -870,14 +885,22 @@ localUByteFetch:
 	mov	[rpsp], ebx
 	jmp	rnext
 
-localByte1:
+localUByte1:
 	cmp	ebx, kVarMinusStore
 	jg	badVarOperation
 	; dispatch based on value in ebx
-	mov	ebx, [localByteActionTable + ebx*4]
+	mov	ebx, [localUByteActionTable + ebx*4]
 	jmp	ebx
 
-localByteRef:
+localUByteActionTable:
+	DD	localUByteFetch
+	DD	localUByteFetch
+	DD	localRef
+	DD	localByteStore
+	DD	localBytePlusStore
+	DD	localByteMinusStore
+
+localRef:
 	sub	rpsp, 4
 	mov	[rpsp], eax
 	; set var operation back to fetch
@@ -915,22 +938,6 @@ localByteMinusStore:
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
-
-localByteActionTable:
-	DD	localByteFetch
-	DD	localByteFetch
-	DD	localByteRef
-	DD	localByteStore
-	DD	localBytePlusStore
-	DD	localByteMinusStore
-
-localUByteActionTable:
-	DD	localUByteFetch
-	DD	localUByteFetch
-	DD	localByteRef
-	DD	localByteStore
-	DD	localBytePlusStore
-	DD	localByteMinusStore
 
 entry fieldByteType
 	mov	eax, ebx
@@ -1060,7 +1067,7 @@ entry memberUByteArrayType
 
 ;-----------------------------------------------
 ;
-; local short ops
+;  short ops
 ;
 entry localShortType
 	mov	eax, ebx
@@ -1087,6 +1094,21 @@ localShortFetch:
 	mov	[rpsp], ebx
 	jmp	rnext
 
+localShort1:
+	cmp	ebx, kVarMinusStore
+	jg	badVarOperation
+	; dispatch based on value in ebx
+	mov	ebx, [localShortActionTable + ebx*4]
+	jmp	ebx
+
+localShortActionTable:
+	DD	localShortFetch
+	DD	localShortFetch
+	DD	localRef
+	DD	localShortStore
+	DD	localShortPlusStore
+	DD	localShortMinusStore
+
 entry localUShortType
 	mov	eax, ebx
 	; see if a varop is specified
@@ -1104,7 +1126,7 @@ localUShortType1:
 ushortEntry:
 	mov	ebx, [rcore + FCore.varMode]
 	or	ebx, ebx
-	jnz	localShort1
+	jnz	localUShort1
 	; fetch local unsigned short
 localUShortFetch:
 	sub	rpsp, 4
@@ -1114,20 +1136,21 @@ localUShortFetch:
 	mov	[rpsp], ebx
 	jmp	rnext
 
-localShort1:
+localUShort1:
 	cmp	ebx, kVarMinusStore
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localShortActionTable + ebx*4]
 	jmp	ebx
-localShortRef:
-	sub	rpsp, 4
-	mov	[rpsp], eax
-	; set var operation back to fetch
-	xor	eax, eax
-	mov	[rcore + FCore.varMode], eax
-	jmp	rnext
-	
+
+localUShortActionTable:
+	DD	localUShortFetch
+	DD	localUShortFetch
+	DD	localRef
+	DD	localShortStore
+	DD	localShortPlusStore
+	DD	localShortMinusStore
+
 localShortStore:
 	mov	ebx, [rpsp]
 	mov	[eax], bx
@@ -1156,22 +1179,6 @@ localShortMinusStore:
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
-
-localShortActionTable:
-	DD	localShortFetch
-	DD	localShortFetch
-	DD	localShortRef
-	DD	localShortStore
-	DD	localShortPlusStore
-	DD	localShortMinusStore
-
-localUShortActionTable:
-	DD	localUShortFetch
-	DD	localUShortFetch
-	DD	localShortRef
-	DD	localShortStore
-	DD	localShortPlusStore
-	DD	localShortMinusStore
 
 entry fieldShortType
 	mov	eax, ebx
@@ -1310,7 +1317,7 @@ entry memberUShortArrayType
 
 ;-----------------------------------------------
 ;
-; local int ops
+;  int ops
 ;
 entry localIntType
 	mov	eax, ebx
@@ -1320,7 +1327,7 @@ entry localIntType
 	shr	eax, 21
 	mov	[rcore + FCore.varMode], eax
 localIntType1:
-	; get ptr to float var into eax
+	; get ptr to int var into eax
 	mov	eax, [rcore + FCore.FPtr]
 	and	ebx, 001FFFFFh
 	sal	ebx, 2
@@ -1337,14 +1344,21 @@ localIntFetch:
 	mov	[rpsp], ebx
 	jmp	rnext
 
-localIntRef:
-	sub	rpsp, 4
-	mov	[rpsp], eax
-	; set var operation back to fetch
-	xor	eax, eax
-	mov	[rcore + FCore.varMode], eax
-	jmp	rnext
-	
+localInt1:
+	cmp	ebx, kVarMinusStore
+	jg	badVarOperation
+	; dispatch based on value in ebx
+	mov	ebx, [localIntActionTable + ebx*4]
+	jmp	ebx
+
+localIntActionTable:
+	DD	localIntFetch
+	DD	localIntFetch
+	DD	localRef
+	DD	localIntStore
+	DD	localIntPlusStore
+	DD	localIntMinusStore
+
 localIntStore:
 	mov	ebx, [rpsp]
 	mov	[eax], ebx
@@ -1373,21 +1387,6 @@ localIntMinusStore:
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
-
-localIntActionTable:
-	DD	localIntFetch
-	DD	localIntFetch
-	DD	localIntRef
-	DD	localIntStore
-	DD	localIntPlusStore
-	DD	localIntMinusStore
-
-localInt1:
-	cmp	ebx, kVarMinusStore
-	jg	badVarOperation
-	; dispatch based on value in ebx
-	mov	ebx, [localIntActionTable + ebx*4]
-	jmp	ebx
 
 entry fieldIntType
 	; get ptr to int var into eax
@@ -1456,7 +1455,7 @@ entry memberIntArrayType
 
 ;-----------------------------------------------
 ;
-; local float ops
+;  float ops
 ;
 entry localFloatType
 	mov	eax, ebx
@@ -1602,7 +1601,7 @@ entry memberFloatArrayType
 	
 ;-----------------------------------------------
 ;
-; local double ops
+;  double ops
 ;
 entry localDoubleType
 	mov	eax, ebx
@@ -1754,7 +1753,7 @@ entry memberDoubleArrayType
 	
 ;-----------------------------------------------
 ;
-; local string ops
+;  string ops
 ;
 GLOBAL localStringType, stringEntry, localStringFetch, localStringStore, localStringAppend
 entry localStringType
@@ -1974,7 +1973,7 @@ entry memberStringArrayType
 
 ;-----------------------------------------------
 ;
-; local op ops
+;  op ops
 ;
 entry localOpType
 	mov	eax, ebx
@@ -2012,7 +2011,7 @@ localOpFetch:
 localOpActionTable:
 	DD	localOpExecute
 	DD	localOpFetch
-	DD	localIntRef
+	DD	localRef
 	DD	localIntStore
 
 localOp1:
@@ -2089,7 +2088,7 @@ entry memberOpArrayType
 	
 ;-----------------------------------------------
 ;
-; local long (int64) ops
+;  long (int64) ops
 ;
 entry localLongType
 	mov	eax, ebx
@@ -2247,7 +2246,7 @@ entry memberLongArrayType
 	
 ;-----------------------------------------------
 ;
-; local object ops
+;  object ops
 ;
 entry localObjectType
 	mov	eax, ebx

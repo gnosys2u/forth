@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthThread.cpp: implementation of the ForthThread class.
+// ForthThread.cpp: implementation of the ForthThread and ForthFiber classes.
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #ifdef WIN32
 #include <process.h>
 #else
@@ -28,86 +28,145 @@
 #define GAURD_AREA 4
 #endif
 
-struct oAsyncThreadStruct
-{
-    forthop*            pMethods;
-    ucell               refCount;
-	cell                id;
-	ForthAsyncThread	*pThread;
-};
-
 struct oThreadStruct
 {
     forthop*            pMethods;
     ucell               refCount;
+	cell                id;
+	ForthThread	*pThread;
+};
+
+struct oFiberStruct
+{
+    forthop*            pMethods;
+    ucell               refCount;
     cell                id;
-	ForthThread			*pThread;
+	ForthFiber			*pFiber;
 };
 
 //////////////////////////////////////////////////////////////////////
 ////
 ///
-//                     ForthThread
+//                     ForthCoreState struct
 // 
 
-ForthThread::ForthThread(ForthEngine *pEngine, ForthAsyncThread *pParentThread, int threadIndex, int paramStackLongs, int returnStackLongs)
+ForthCoreState::ForthCoreState(int paramStackSize, int returnStackSize)
+    : SLen(paramStackSize)
+    , RLen(returnStackSize)
+{
+    // leave a few extra words above top of stacks, so that underflows don't
+    //   tromp on the memory allocator info
+    SB = new cell[SLen + (GAURD_AREA * 2)];
+    SB += GAURD_AREA;
+    ST = SB + SLen;
+
+    RB = new cell[RLen + (GAURD_AREA * 2)];
+    RB += GAURD_AREA;
+    RT = RB + RLen;
+
+#ifdef CHECK_GAURD_AREAS
+    long checkVal = 0x03020100;
+    for (int i = 0; i < GAURD_AREA; i++)
+    {
+        SB[i - GAURD_AREA] = checkVal;
+        RB[i - GAURD_AREA] = checkVal;
+        ST[i] = checkVal;
+        RT[i] = checkVal;
+        checkVal += 0x04040404;
+    }
+#endif
+    IP = nullptr;
+    FP = nullptr;
+    TP = nullptr;
+
+    optypeAction = nullptr;
+    numBuiltinOps = 0;
+    ops = nullptr;
+    numOps = 0;
+    maxOps = 0;
+
+    pEngine = nullptr;
+    pFiber = nullptr;
+    pDictionary = nullptr;
+    pFileFuncs = nullptr;
+    consoleOutStream = nullptr;
+    pExceptionFrame = nullptr;
+
+    innerLoop = nullptr;
+    innerExecute = nullptr;
+
+    varMode = kVarDefaultOp;
+    state = kResultDone;
+    error = kForthErrorNone;
+
+    base = DEFAULT_BASE;
+    signedPrintMode = kPrintSignedDecimal;
+    traceFlags = 0;
+
+    for (int i = 0; i < NUM_CORE_SCRATCH_CELLS; i++)
+    {
+        scratch[i] = 0;
+    }
+}
+
+
+void ForthCoreState::InitializeFromEngine(void* engineIn)
+{
+    ForthEngine* engine = (ForthEngine *)engineIn;
+    pEngine = engineIn;
+    pDictionary = engine->GetDictionaryMemorySection();
+    //    core.pFileFuncs = mpShell->GetFileInterface();
+
+    ForthCoreState* pEngineCore = engine->GetCoreState();
+    if (pEngineCore != NULL)
+    {
+        // fill in optype & opcode action tables from engine thread
+        optypeAction = pEngineCore->optypeAction;
+        numBuiltinOps = pEngineCore->numBuiltinOps;
+        numOps = pEngineCore->numOps;
+        maxOps = pEngineCore->maxOps;
+        ops = pEngineCore->ops;
+        innerLoop = pEngineCore->innerLoop;
+        innerExecute = pEngineCore->innerExecute;
+        innerExecute = pEngineCore->innerExecute;
+    }
+
+    engine->ResetConsoleOut(*this);
+}
+
+
+//////////////////////////////////////////////////////////////////////
+////
+///
+//                     ForthFiber
+// 
+
+ForthFiber::ForthFiber(ForthEngine *pEngine, ForthThread *pParentThread, int fiberIndex, int paramStackLongs, int returnStackLongs)
 : mpEngine( pEngine )
 , mpParentThread(pParentThread)
-, mThreadIndex(threadIndex)
+, mIndex(fiberIndex)
 , mWakeupTime(0)
 , mpPrivate( NULL )
 , mpShowContext(NULL)
 , mpJoinHead(nullptr)
 , mpNextJoiner(nullptr)
+, mObject(nullptr)
+, mCore(paramStackLongs, returnStackLongs)
 {
-    mCore.pThread = this;
-    mCore.SLen = paramStackLongs;
-    mCore.RLen = returnStackLongs;
-    // leave a few extra words above top of stacks, so that underflows don't
-    //   tromp on the memory allocator info
-    mCore.SB = new cell[mCore.SLen + (GAURD_AREA * 2)];
-    mCore.SB += GAURD_AREA;
-    mCore.ST = mCore.SB + mCore.SLen;
+    mCore.pFiber = this;
 
-    mCore.RB = new cell[mCore.RLen + (GAURD_AREA * 2)];
-    mCore.RB += GAURD_AREA;
-    mCore.RT = mCore.RB + mCore.RLen;
-
-#ifdef CHECK_GAURD_AREAS
-    long checkVal = 0x03020100;
-    for ( int i = 0; i < 64; i++ )
-    {
-        mCore.SB[i - GAURD_AREA] = checkVal;
-        mCore.RB[i - GAURD_AREA] = checkVal;
-        mCore.ST[i] = checkVal;
-        mCore.RT[i] = checkVal;
-        checkVal += 0x04040404;
-    }
-#endif
-    mCore.optypeAction = NULL;
-    mCore.numBuiltinOps = 0;
-    mCore.ops = NULL;
-    mCore.numOps = 0;
-    mCore.maxOps = 0;
-    mCore.IP = NULL;
-    mCore.pEngine = pEngine;
-
-    mCore.pDictionary = NULL;
-
-	mCore.consoleOutStream = nullptr;
-
-    pEngine->ResetConsoleOut( &mCore );
+    mCore.InitializeFromEngine(pEngine);
 
     mOps[1] = gCompiledOps[OP_DONE];
 
     Reset();
 }
 
-ForthThread::~ForthThread()
+ForthFiber::~ForthFiber()
 {
     if (mpJoinHead != nullptr)
     {
-        WakeAllJoiningThreads();
+        WakeAllJoiningFibers();
     }
     // TODO: warn if mpNextJoiner is not null
 
@@ -120,18 +179,23 @@ ForthThread::~ForthThread()
 	{
 		delete mpShowContext;
 	}
-	oThreadStruct* pThreadStruct = (oThreadStruct *)mObject;
-	if (pThreadStruct->pThread != NULL)
-	{
-		FREE_OBJECT(pThreadStruct);
-	}
+
+    if (mObject)
+    {
+        oFiberStruct* pFiberStruct = (oFiberStruct *)mObject;
+		// WTF?
+        if (pFiberStruct != nullptr)
+        {
+            mpEngine->DeleteObject(&mCore, mObject);
+        }
+    }
 }
 
-void ForthThread::Destroy()
+void ForthFiber::Destroy()
 {
     if (mpParentThread != nullptr)
     {
-        mpParentThread->DeleteThread(this);
+        mpParentThread->DeleteFiber(this);
     }
     else
     {
@@ -141,7 +205,7 @@ void ForthThread::Destroy()
 
 #ifdef CHECK_GAURD_AREAS
 bool
-ForthThread::CheckGaurdAreas( void )
+ForthFiber::CheckGaurdAreas( void )
 {
     long checkVal = 0x03020100;
     bool retVal = false;
@@ -169,7 +233,7 @@ ForthThread::CheckGaurdAreas( void )
 }
 #endif
 
-void ForthThread::InitTables(ForthThread* pSourceThread)
+void ForthFiber::InitTables(ForthFiber* pSourceThread)
 {
 	ForthCoreState& sourceCore = pSourceThread->mCore;
 	mCore.optypeAction = sourceCore.optypeAction;
@@ -182,7 +246,7 @@ void ForthThread::InitTables(ForthThread* pSourceThread)
 }
 
 void
-ForthThread::Reset( void )
+ForthFiber::Reset( void )
 {
     mCore.SP = mCore.ST;
     mCore.RP = mCore.RT;
@@ -207,13 +271,13 @@ ForthThread::Reset( void )
 }
 
 void
-ForthThread::ResetIP( void )
+ForthFiber::ResetIP( void )
 {
 	mCore.IP = &(mOps[0]);
 	//mCore.IP = nullptr;
 }
 
-void ForthThread::Run()
+void ForthFiber::Run()
 {
     eForthResult exitStatus;
 
@@ -242,37 +306,46 @@ void ForthThread::Run()
     }
 }
 
-void ForthThread::Join(ForthThread* pJoiningThread)
+void ForthFiber::Join(ForthFiber* pJoiningFiber)
 {
     //printf("Join: thread %x is waiting for %x to exit\n", pJoiningThread, this);
     if (mRunState != kFTRSExited)
     {
-        ForthObject& joiner = pJoiningThread->GetThreadObject();
+        ForthObject& joiner = pJoiningFiber->GetFiberObject();
         SAFE_KEEP(joiner);
-        pJoiningThread->Block();
-        pJoiningThread->mpNextJoiner = mpJoinHead;
-        mpJoinHead = pJoiningThread;
+        pJoiningFiber->Block();
+        pJoiningFiber->mpNextJoiner = mpJoinHead;
+        mpJoinHead = pJoiningFiber;
     }
 }
 
-void ForthThread::WakeAllJoiningThreads()
+void ForthFiber::WakeAllJoiningFibers()
 {
-    ForthThread* pThread = mpJoinHead;
-    //printf("WakeAllJoiningThreads: thread %x is exiting\n", this);
-    while (pThread != nullptr)
+    ForthFiber* pFiber = mpJoinHead;
+    //printf("WakeAllJoiningFibers: thread %x is exiting\n", this);
+    while (pFiber != nullptr)
     {
-        ForthThread* pNextThread = pThread->mpNextJoiner;
-        //printf("WakeAllJoiningThreads: waking thread %x\n", pThread);
-        pThread->mpNextJoiner = nullptr;
-        pThread->Wake();
-        ForthObject& joiner = pThread->GetThreadObject();
-        SAFE_RELEASE(&mCore, joiner);
-        pThread = pNextThread;
+        ForthFiber* pNextFiber = pFiber->mpNextJoiner;
+        //printf("WakeAllJoiningFibers: waking thread %x\n", pFiber);
+        pFiber->mpNextJoiner = nullptr;
+        pFiber->Wake();
+        ForthObject& joiner = pFiber->GetFiberObject();
+        //SAFE_RELEASE(&mCore, joiner);
+		if (joiner != nullptr)
+		{
+			joiner->refCount -= 1;
+			if (joiner->refCount == 0)
+			{
+				((ForthEngine*)(mCore.pEngine))->DeleteObject(&mCore, joiner);
+			}
+		}
+		TRACK_RELEASE;
+        pFiber = pNextFiber;
     }
     mpJoinHead = nullptr;
 }
 
-ForthShowContext* ForthThread::GetShowContext()
+ForthShowContext* ForthFiber::GetShowContext()
 {
 	if (mpShowContext == NULL)
 	{
@@ -281,13 +354,13 @@ ForthShowContext* ForthThread::GetShowContext()
 	return mpShowContext;
 }
 
-void ForthThread::SetRunState(eForthThreadRunState newState)
+void ForthFiber::SetRunState(eForthFiberRunState newState)
 {
 	// TODO!
 	mRunState = newState;
 }
 
-void ForthThread::Sleep(ulong sleepMilliSeconds)
+void ForthFiber::Sleep(ulong sleepMilliSeconds)
 {
 	ulong now = mpEngine->GetElapsedTime();
 #ifdef WIN32
@@ -298,53 +371,73 @@ void ForthThread::Sleep(ulong sleepMilliSeconds)
 	mRunState = kFTRSSleeping;
 }
 
-void ForthThread::Block()
+void ForthFiber::Block()
 {
 	mRunState = kFTRSBlocked;
 }
 
-void ForthThread::Wake()
+void ForthFiber::Wake()
 {
 	mRunState = kFTRSReady;
 	mWakeupTime = 0;
 }
 
-void ForthThread::Stop()
+void ForthFiber::Stop()
 {
 	mRunState = kFTRSStopped;
 }
 
-void ForthThread::Exit()
+void ForthFiber::Exit()
 {
 	mRunState = kFTRSExited;
-    WakeAllJoiningThreads();
+    WakeAllJoiningFibers();
+}
+
+const char* ForthFiber::GetName() const
+{
+    return mName.c_str();
+}
+
+void ForthFiber::SetName(const char* newName)
+{
+    mName.assign(newName);
+}
+
+void ForthFiber::FreeObjects()
+{
+	if (mObject != nullptr)
+	{
+		FREE_OBJECT(mObject);
+	}
+	mObject = nullptr;
 }
 
 
 //////////////////////////////////////////////////////////////////////
 ////
 ///
-//                     ForthAsyncThread
+//                     ForthThread
 // 
 
-ForthAsyncThread::ForthAsyncThread(ForthEngine *pEngine, int paramStackLongs, int returnStackLongs)
+ForthThread::ForthThread(ForthEngine *pEngine, int paramStackLongs, int returnStackLongs)
 	: mHandle(0)
 #ifdef WIN32
 	, mThreadId(0)
 #endif
 	, mpNext(NULL)
-	, mActiveThreadIndex(0)
+	, mActiveFiberIndex(0)
 	, mRunState(kFTRSStopped)
+    , mObject(nullptr)
 {
-	ForthThread* pPrimaryThread = new ForthThread(pEngine, this, 0, paramStackLongs, returnStackLongs);
-	pPrimaryThread->SetRunState(kFTRSReady);
-	mSoftThreads.push_back(pPrimaryThread);
+	ForthFiber* pPrimaryFiber = new ForthFiber(pEngine, this, 0, paramStackLongs, returnStackLongs);
+    pPrimaryFiber->SetRunState(kFTRSReady);
+	mFibers.push_back(pPrimaryFiber);
 #ifdef WIN32
     // default security attributes, manual reset event, initially nonsignaled, unnamed event
     mExitSignal = CreateEvent(nullptr, TRUE, FALSE, nullptr);
     if (mExitSignal == NULL)
     {
-        printf("ForthAsyncThread constructor - CreateEvent error: %d\n", GetLastError());
+        printf("ForthThread constructor - CreateEvent error: %d\n", GetLastError());
     }
 #else
     pthread_mutex_init(&mExitMutex, nullptr);
@@ -352,7 +445,7 @@ ForthAsyncThread::ForthAsyncThread(ForthEngine *pEngine, int paramStackLongs, in
 #endif
 }
 
-ForthAsyncThread::~ForthAsyncThread()
+ForthThread::~ForthThread()
 {
 #ifdef WIN32
 	if (mHandle != 0)
@@ -365,30 +458,45 @@ ForthAsyncThread::~ForthAsyncThread()
     pthread_cond_destroy(&mExitSignal);
 #endif
 
+	FreeObjects();
 
-    for (ForthThread* pThread : mSoftThreads)
+    for (ForthFiber* pFiber : mFibers)
 	{
-		if (pThread != nullptr)
+		if (pFiber != nullptr)
 		{
-			delete pThread;
+			delete pFiber;
 		}
-	}
-	oAsyncThreadStruct* pThreadStruct = (oAsyncThreadStruct *)mObject;
-	if (pThreadStruct->pThread != NULL)
-	{
-		FREE_OBJECT(pThreadStruct);
 	}
 }
 
+void ForthThread::FreeObjects()
+{
+    for (ForthFiber* pFiber : mFibers)
+	{
+		if (pFiber != nullptr)
+		{
+			pFiber->FreeObjects();
+		}
+	}
+	mFibers.clear();
+
+	oThreadStruct* pThreadStruct = (oThreadStruct*)mObject;
+	if (pThreadStruct != nullptr && pThreadStruct->pThread != nullptr)
+	{
+		FREE_OBJECT(pThreadStruct);
+	}
+	mObject = nullptr;
+}
+
 #ifdef WIN32
-unsigned __stdcall ForthAsyncThread::RunLoop(void *pUserData)
+unsigned __stdcall ForthThread::RunLoop(void *pUserData)
 #else
-void* ForthAsyncThread::RunLoop(void *pUserData)
+void* ForthThread::RunLoop(void *pUserData)
 #endif
 {
-    ForthAsyncThread* pParentThread = (ForthAsyncThread*)pUserData;
-	ForthThread* pActiveThread = pParentThread->GetActiveThread();
-	ForthEngine* pEngine = pActiveThread->GetEngine();
+    ForthThread* pParentThread = (ForthThread*)pUserData;
+	ForthFiber* pActiveFiber = pParentThread->GetActiveFiber();
+	ForthEngine* pEngine = pActiveFiber->GetEngine();
     //printf("Starting thread %x\n", pParentThread);
 
     pParentThread->mRunState = kFTRSReady;
@@ -397,7 +505,7 @@ void* ForthAsyncThread::RunLoop(void *pUserData)
 	while (keepRunning)
 	{
 		bool checkForAllDone = false;
-		ForthCoreState* pCore = pActiveThread->GetCore();
+		ForthCoreState* pCore = pActiveFiber->GetCore();
 #ifdef ASM_INNER_INTERPRETER
 		if (pEngine->GetFastMode())
 		{
@@ -434,21 +542,21 @@ void* ForthAsyncThread::RunLoop(void *pUserData)
 			// - deal with all threads stopped
 			ulong now = pEngine->GetElapsedTime();
 
-			ForthThread* pNextThread = pParentThread->GetNextReadyThread();
-			if (pNextThread != nullptr)
+			ForthFiber* pNextFiber = pParentThread->GetNextReadyFiber();
+			if (pNextFiber != nullptr)
 			{
-				pActiveThread = pNextThread;
+				pActiveFiber = pNextFiber;
 			}
 			else
 			{
-				pNextThread = pParentThread->GetNextSleepingThread();
-				if (pNextThread != nullptr)
+				pNextFiber = pParentThread->GetNextSleepingFiber();
+				if (pNextFiber != nullptr)
 				{
-					ulong wakeupTime = pNextThread->GetWakeupTime();
+					ulong wakeupTime = pNextFiber->GetWakeupTime();
 					if (now >= wakeupTime)
 					{
-						pNextThread->Wake();
-						pActiveThread = pNextThread;
+						pNextFiber->Wake();
+						pActiveFiber = pNextFiber;
 					}
 					else
 					{
@@ -460,12 +568,12 @@ void* ForthAsyncThread::RunLoop(void *pUserData)
 #else
 						usleep(sleepMilliseconds * 1000);
 #endif
-						pActiveThread = pNextThread;
+						pActiveFiber = pNextFiber;
 					}
 				}
 				else
 				{
-					// there are no ready or sleeping soft threads, should we exit this asyncThread?
+					// there are no ready or sleeping fibers, should we exit this thread?
 					checkForAllDone = true;
 				}
 			}
@@ -473,9 +581,9 @@ void* ForthAsyncThread::RunLoop(void *pUserData)
 		if (checkForAllDone)
 		{
 			keepRunning = false;
-			for (ForthThread* pThread : pParentThread->mSoftThreads)
+			for (ForthFiber* pFiber : pParentThread->mFibers)
 			{
-				if (pThread->GetRunState() != kFTRSExited)
+				if (pFiber->GetRunState() != kFTRSExited)
 				{
 					keepRunning = true;
 					break;
@@ -489,7 +597,7 @@ void* ForthAsyncThread::RunLoop(void *pUserData)
 	pParentThread->mRunState = kFTRSExited;
     if (!SetEvent(pParentThread->mExitSignal))
     {
-        printf("ForthAsyncThread::RunLoop SetEvent failed (%d)\n", GetLastError());
+        printf("ForthThread::RunLoop SetEvent failed (%d)\n", GetLastError());
     }
 
     return 0;
@@ -503,18 +611,18 @@ void* ForthAsyncThread::RunLoop(void *pUserData)
 #endif
 }
 
-void ForthAsyncThread::InnerLoop()
+void ForthThread::InnerLoop()
 {
-    ForthThread* pMainThread = mSoftThreads[0];
-    ForthThread* pActiveThread = pMainThread;
-    ForthEngine* pEngine = pActiveThread->GetEngine();
-    pMainThread->SetRunState(kFTRSReady);
+    ForthFiber* pMainFiber = mFibers[0];
+    ForthFiber* pActiveFiber = pMainFiber;
+    ForthEngine* pEngine = pActiveFiber->GetEngine();
+    pMainFiber->SetRunState(kFTRSReady);
 
     eForthResult exitStatus = kResultOk;
     bool keepRunning = true;
     while (keepRunning)
     {
-        ForthCoreState* pCore = pActiveThread->GetCore();
+        ForthCoreState* pCore = pActiveFiber->GetCore();
 #ifdef ASM_INNER_INTERPRETER
         if (pEngine->GetFastMode())
         {
@@ -526,10 +634,10 @@ void ForthAsyncThread::InnerLoop()
             exitStatus = InnerInterpreter(pCore);
         }
 
-        bool switchActiveThread = false;
-        if ((exitStatus == kResultYield) || (pActiveThread->GetRunState() == kFTRSExited))
+        bool switchActiveFiber = false;
+        if ((exitStatus == kResultYield) || (pActiveFiber->GetRunState() == kFTRSExited))
         {
-            switchActiveThread = true;
+            switchActiveFiber = true;
             pCore->state = kResultOk;
             /*
             static char* runStateNames[] = {
@@ -537,18 +645,18 @@ void ForthAsyncThread::InnerLoop()
                 "Ready",			// ready to continue running
                 "Sleeping",		// sleeping until wakeup time is reached
                 "Blocked",		// blocked on a soft lock
-                "Exited"		// done running - executed exitThread
+                "Exited"		// done running - executed exitFiber
             };
-            for (int i = 0; i < mSoftThreads.size(); ++i)
+            for (int i = 0; i < mFibers.size(); ++i)
             {
-                ForthThread* pThread = mSoftThreads[i];
-                printf("Thread %d 0x%x   runState %s   coreState %d\n", i, (int)pThread,
-                    runStateNames[pThread->GetRunState()], pThread->GetCore()->state);
+                ForthFiber* pFiber = mFibers[i];
+                printf("Fiber %d 0x%x   runState %s   coreState %d\n", i, (int)pFiber,
+                    runStateNames[pFiber->GetRunState()], pFiber->GetCore()->state);
             }
             */
         }
 
-        if (switchActiveThread)
+        if (switchActiveFiber)
         {
             // TODO!
             // - switch to next runnable thread
@@ -556,25 +664,25 @@ void ForthAsyncThread::InnerLoop()
             // - deal with all threads stopped
             ulong now = pEngine->GetElapsedTime();
 
-            ForthThread* pNextThread = GetNextReadyThread();
-            if (pNextThread != nullptr)
+            ForthFiber* pNextFiber = GetNextReadyFiber();
+            if (pNextFiber != nullptr)
             {
-                //printf("Switching from thread 0x%x to ready thread 0x%x\n", pActiveThread, pNextThread);
-                pActiveThread = pNextThread;
-                SetActiveThread(pActiveThread);
+                //printf("Switching from thread 0x%x to ready thread 0x%x\n", pActiveFiber, pNextFiber);
+                pActiveFiber = pNextFiber;
+                SetActiveFiber(pActiveFiber);
             }
             else
             {
-                pNextThread = GetNextSleepingThread();
-                if (pNextThread != nullptr)
+                pNextFiber = GetNextSleepingFiber();
+                if (pNextFiber != nullptr)
                 {
-                    ulong wakeupTime = pNextThread->GetWakeupTime();
+                    ulong wakeupTime = pNextFiber->GetWakeupTime();
                     if (now >= wakeupTime)
                     {
-                        //printf("Switching from thread 0x%x to waking thread 0x%x\n", pActiveThread, pNextThread);
-                        pNextThread->Wake();
-                        pActiveThread = pNextThread;
-                        SetActiveThread(pActiveThread);
+                        //printf("Switching from thread 0x%x to waking thread 0x%x\n", pActiveFiber, pNextFiber);
+                        pNextFiber->Wake();
+                        pActiveFiber = pNextFiber;
+                        SetActiveFiber(pActiveFiber);
                     }
                     else
                     {
@@ -586,18 +694,18 @@ void ForthAsyncThread::InnerLoop()
 #else
                         usleep(sleepMilliseconds * 1000);
 #endif
-                        pActiveThread = pNextThread;
-                        SetActiveThread(pActiveThread);
+                        pActiveFiber = pNextFiber;
+                        SetActiveFiber(pActiveFiber);
                     }
                 }
             }
-        }  // end if switchActiveThread
+        }  // end if switchActiveFiber
 
-        eForthResult mainThreadState = (eForthResult) pMainThread->GetCore()->state;
+        eForthResult mainFiberState = (eForthResult) pMainFiber->GetCore()->state;
         keepRunning = false;
-        if ((exitStatus != kResultDone) && (pMainThread->GetRunState() != kFTRSExited))
+        if ((exitStatus != kResultDone) && (pMainFiber->GetRunState() != kFTRSExited))
         {
-            switch (pMainThread->GetCore()->state)
+            switch (pMainFiber->GetCore()->state)
             {
             case kResultOk:
             case kResultYield:
@@ -610,92 +718,92 @@ void ForthAsyncThread::InnerLoop()
     }
 }
 
-ForthThread* ForthAsyncThread::GetThread(int threadIndex)
+ForthFiber* ForthThread::GetFiber(int threadIndex)
 {
-	if (threadIndex < (int)mSoftThreads.size())
+	if (threadIndex < (int)mFibers.size())
 	{
-		return mSoftThreads[threadIndex];
+		return mFibers[threadIndex];
 	}
 	return nullptr;
 }
 
-ForthThread* ForthAsyncThread::GetActiveThread()
+ForthFiber* ForthThread::GetActiveFiber()
 {
-	if (mActiveThreadIndex < (int)mSoftThreads.size())
+	if (mActiveFiberIndex < (int)mFibers.size())
 	{
-		return mSoftThreads[mActiveThreadIndex];
+		return mFibers[mActiveFiberIndex];
 	}
 	return nullptr;
 }
 
 
-void ForthAsyncThread::SetActiveThread(ForthThread *pThread)
+void ForthThread::SetActiveFiber(ForthFiber *pFiber)
 {
-    // TODO: verify that active thread is actually a child of this async thread
-    int threadIndex = pThread->GetThreadIndex();
-    // ASSERT(threadIndex < (int)mSoftThreads.size() && mSoftThreads[threadIndex] == pThread);
-    mActiveThreadIndex = pThread->GetThreadIndex();
+    // TODO: verify that active fiber is actually a child of this thread
+    int fiberIndex = pFiber->GetIndex();
+    // ASSERT(fiberIndex < (int)mFibers.size() && mFibers[fiberIndex] == pFiber);
+    mActiveFiberIndex = fiberIndex;
 }
 
-void ForthAsyncThread::Reset(void)
+void ForthThread::Reset(void)
 { 
-	for (ForthThread* pThread : mSoftThreads)
+	for (ForthFiber* pFiber : mFibers)
 	{
-		if (pThread != nullptr)
+		if (pFiber != nullptr)
 		{
-			pThread->Reset();
+			pFiber->Reset();
 		}
 	}
 }
 
-ForthThread* ForthAsyncThread::GetNextReadyThread()
+ForthFiber* ForthThread::GetNextReadyFiber()
 {
-	int originalThreadIndex = mActiveThreadIndex;
+	int originalFiberIndex = mActiveFiberIndex;
 
 	do	
 	{
-		mActiveThreadIndex++;
-		if (mActiveThreadIndex >= (int)mSoftThreads.size())
+		mActiveFiberIndex++;
+		if (mActiveFiberIndex >= (int)mFibers.size())
 		{
-			mActiveThreadIndex = 0;
+			mActiveFiberIndex = 0;
 		}
-		ForthThread* pNextThread = mSoftThreads[mActiveThreadIndex];
-		if (pNextThread->GetRunState() == kFTRSReady)
+		ForthFiber* pNextFiber = mFibers[mActiveFiberIndex];
+		if (pNextFiber->GetRunState() == kFTRSReady)
 		{
-			return pNextThread;
+			return pNextFiber;
 		}
-	} while (originalThreadIndex != mActiveThreadIndex);
+	} while (originalFiberIndex != mActiveFiberIndex);
 
 	return nullptr;
 }
 
-ForthThread* ForthAsyncThread::GetNextSleepingThread()
+ForthFiber* ForthThread::GetNextSleepingFiber()
 {
-	ForthThread* pThreadToWake = nullptr;
-	int originalThreadIndex = mActiveThreadIndex;
+	ForthFiber* pFiberToWake = nullptr;
+	int originalFiberIndex = mActiveFiberIndex;
 	ulong minWakeupTime = (ulong)(~0);
 	do
 	{
-        mActiveThreadIndex++;
-        if (mActiveThreadIndex >= (int)mSoftThreads.size())
+        mActiveFiberIndex++;
+        if (mActiveFiberIndex >= (int)mFibers.size())
 		{
-			mActiveThreadIndex = 0;
+			mActiveFiberIndex = 0;
 		}
-		ForthThread* pNextThread = mSoftThreads[mActiveThreadIndex];
-		if (pNextThread->GetRunState() == kFTRSSleeping)
+		ForthFiber* pNextFiber = mFibers[mActiveFiberIndex];
+		if (pNextFiber->GetRunState() == kFTRSSleeping)
 		{
-			ulong wakeupTime = pNextThread->GetWakeupTime();
+			ulong wakeupTime = pNextFiber->GetWakeupTime();
 			if (wakeupTime < minWakeupTime)
 			{
 				minWakeupTime = wakeupTime;
-				pThreadToWake = pNextThread;
+				pFiberToWake = pNextFiber;
 			}
 		}
-	} while (originalThreadIndex != mActiveThreadIndex);
-	return pThreadToWake;
+	} while (originalFiberIndex != mActiveFiberIndex);
+	return pFiberToWake;
 }
 
-long ForthAsyncThread::Start()
+long ForthThread::Start()
 {
 #ifdef WIN32
 	// securityAttribPtr, stackSize, threadCodeAddr, threadUserData, flags, pThreadIdReturn
@@ -703,7 +811,7 @@ long ForthAsyncThread::Start()
 	{
 		::CloseHandle(mHandle);
 	}
-	mHandle = (HANDLE)_beginthreadex(NULL, 0, ForthAsyncThread::RunLoop, this, 0, (unsigned *)&mThreadId);
+	mHandle = (HANDLE)_beginthreadex(NULL, 0, ForthThread::RunLoop, this, 0, (unsigned *)&mThreadId);
 #else
 	// securityAttribPtr, stackSize, threadCodeAddr, threadUserData, flags, pThreadIdReturn
 	if (mHandle != 0)
@@ -711,13 +819,13 @@ long ForthAsyncThread::Start()
 		// TODO
 		//::CloseHandle( mHandle );
 	}
-	mHandle = pthread_create(&mThread, NULL, ForthAsyncThread::RunLoop, this);
+	mHandle = pthread_create(&mThread, NULL, ForthThread::RunLoop, this);
 
 #endif
 	return (long)mHandle;
 }
 
-void ForthAsyncThread::Exit()
+void ForthThread::Exit()
 {
 	// TBD: make sure this isn't the main thread
 	if (mpNext != NULL)
@@ -727,7 +835,7 @@ void ForthAsyncThread::Exit()
         // signal all threads waiting for us to exit
         if (!SetEvent(mExitSignal))
         {
-            printf("ForthAsyncThread::Exit SetEvent error: %d\n", GetLastError());
+            printf("ForthThread::Exit SetEvent error: %d\n", GetLastError());
         }
         _endthreadex(0);
 #else
@@ -740,13 +848,13 @@ void ForthAsyncThread::Exit()
     }
 }
 
-void ForthAsyncThread::Join()
+void ForthThread::Join()
 {
 #ifdef WIN32
     DWORD waitResult = WaitForSingleObject(mExitSignal, INFINITE);
     if (waitResult != WAIT_OBJECT_0)
     {
-        printf("ForthAsyncThread::Join WaitForSingleObject failed (%d)\n", GetLastError());
+        printf("ForthThread::Join WaitForSingleObject failed (%d)\n", GetLastError());
     }
 #else
     pthread_mutex_lock(&mExitMutex);
@@ -758,203 +866,71 @@ void ForthAsyncThread::Join()
 #endif
 }
 
-ForthThread* ForthAsyncThread::CreateThread(ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
+ForthFiber* ForthThread::CreateFiber(ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
 {
-	ForthThread* pThread = new ForthThread(pEngine, this, (int)mSoftThreads.size(), paramStackLongs, returnStackLongs);
-	pThread->SetOp(threadOp);
-	pThread->SetRunState(kFTRSStopped);
-	ForthThread* pPrimaryThread = GetThread(0);
-	pThread->InitTables(pPrimaryThread);
-	mSoftThreads.push_back(pThread);
+	ForthFiber* pFiber = new ForthFiber(pEngine, this, (int)mFibers.size(), paramStackLongs, returnStackLongs);
+	pFiber->SetOp(threadOp);
+	pFiber->SetRunState(kFTRSStopped);
+	ForthFiber* pPrimaryFiber = GetFiber(0);
+	pFiber->InitTables(pPrimaryFiber);
+	mFibers.push_back(pFiber);
 
-	return pThread;
+	return pFiber;
 }
 
-void ForthAsyncThread::DeleteThread(ForthThread* pInThread)
+void ForthThread::DeleteFiber(ForthFiber* pInFiber)
 {
 	// TODO: do something when erasing last thread?  what about thread 0?
-	int lastIndex = mSoftThreads.size() - 1;
+	int lastIndex = mFibers.size() - 1;
 	for (int i = 0; i <= lastIndex; ++i)
 	{
-		ForthThread* pThread = mSoftThreads[i];
-		if (pThread == pInThread)
+		ForthFiber* pFiber = mFibers[i];
+		if (pFiber == pInFiber)
 		{
-			delete pThread;
-			mSoftThreads.erase(mSoftThreads.begin() + i);
+			delete pFiber;
+			mFibers.erase(mFibers.begin() + i);
             break;
         }
 	}
-	if (mActiveThreadIndex == lastIndex)
+	if (mActiveFiberIndex == lastIndex)
 	{
-		mActiveThreadIndex = 0;
+		mActiveFiberIndex = 0;
 	}
 }
+
+
+const char* ForthThread::GetName() const
+{
+    return mName.c_str();
+}
+
+void ForthThread::SetName(const char* newName)
+{
+    mName.assign(newName);
+}
+
 
 namespace OThread
 {
 	//////////////////////////////////////////////////////////////////////
 	///
-	//                 oAsyncThread
-	//
-
-	static ForthClassVocabulary* gpAsyncThreadVocabulary;
-	static ForthClassVocabulary* gpThreadVocabulary;
-
-	void CreateAsyncThreadObject(ForthObject& outAsyncThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
-	{
-		MALLOCATE_OBJECT(oAsyncThreadStruct, pThreadStruct, gpAsyncThreadVocabulary);
-        pThreadStruct->pMethods = gpAsyncThreadVocabulary->GetMethods();
-        pThreadStruct->refCount = 1;
-		ForthAsyncThread* pAsyncThread = pEngine->CreateAsyncThread(threadOp, paramStackLongs, returnStackLongs);
-		pThreadStruct->pThread = pAsyncThread;
-		pAsyncThread->Reset();
-		outAsyncThread = (ForthObject) pThreadStruct;
-		pAsyncThread->SetAsyncThreadObject(outAsyncThread);
-		OThread::FixupThread(pAsyncThread->GetThread(0));
-	}
-
-	FORTHOP(oAsyncThreadNew)
-	{
-		GET_ENGINE->SetError(kForthErrorIllegalOperation, " cannot explicitly create an AsyncThread object");
-	}
-
-	FORTHOP(oAsyncThreadDeleteMethod)
-	{
-		GET_THIS(oAsyncThreadStruct, pThreadStruct);
-		if (pThreadStruct->pThread != NULL)
-		{
-			GET_ENGINE->DestroyAsyncThread(pThreadStruct->pThread);
-		}
-		METHOD_RETURN;
-	}
-
-	FORTHOP(oAsyncThreadStartMethod)
-	{
-		GET_THIS(oAsyncThreadStruct, pThreadStruct);
-		ForthAsyncThread* pAsyncThread = pThreadStruct->pThread;
-		ForthThread* pThread = pAsyncThread->GetThread(0);
-		pThread->Reset();
-		long result = pAsyncThread->Start();
-		SPUSH(result);
-		METHOD_RETURN;
-	}
-
-	FORTHOP(oAsyncThreadStartWithArgsMethod)
-	{
-		GET_THIS(oAsyncThreadStruct, pThreadStruct);
-		ForthAsyncThread* pAsyncThread = pThreadStruct->pThread;
-		ForthThread* pThread = pAsyncThread->GetThread(0);
-		pThread->Reset();
-		ForthCoreState* pDstCore = pThread->GetCore();
-		int numArgs = SPOP;
-		if (numArgs > 0)
-		{
-			pDstCore->SP -= numArgs;
-#if defined(FORTH64)
-            memcpy(pDstCore->SP, pCore->SP, numArgs << 3);
-#else
-            memcpy(pDstCore->SP, pCore->SP, numArgs << 2);
-#endif
-			pCore->SP += numArgs;
-		}
-		long result = pAsyncThread->Start();
-		SPUSH(result);
-		METHOD_RETURN;
-	}
-
-    FORTHOP(oAsyncThreadJoinMethod)
-    {
-        GET_THIS(oAsyncThreadStruct, pThreadStruct);
-        ForthAsyncThread* pAsyncThread = pThreadStruct->pThread;
-        pAsyncThread->Join();
-        METHOD_RETURN;
-    }
-
-    FORTHOP(oAsyncThreadResetMethod)
-	{
-		GET_THIS(oAsyncThreadStruct, pThreadStruct);
-		pThreadStruct->pThread->Reset();
-		METHOD_RETURN;
-	}
-
-	FORTHOP(oAsyncThreadCreateThreadMethod)
-	{
-		GET_THIS(oAsyncThreadStruct, pThreadStruct);
-		ForthEngine* pEngine = GET_ENGINE;
-		ForthObject thread;
-
-		int returnStackLongs = (int)SPOP;
-		int paramStackLongs = (int)SPOP;
-        forthop threadOp = (forthop)SPOP;
-        OThread::CreateThreadObject(thread, pThreadStruct->pThread, pEngine, threadOp, paramStackLongs, returnStackLongs);
-
-		PUSH_OBJECT(thread);
-		METHOD_RETURN;
-	}
-
-	FORTHOP(oAsyncThreadGetRunStateMethod)
-	{
-		GET_THIS(oAsyncThreadStruct, pThreadStruct);
-		SPUSH((long)(pThreadStruct->pThread->GetRunState()));
-		METHOD_RETURN;
-	}
-
-	baseMethodEntry oAsyncThreadMembers[] =
-	{
-		METHOD("__newOp", oAsyncThreadNew),
-		METHOD("delete", oAsyncThreadDeleteMethod),
-		METHOD_RET("start", oAsyncThreadStartMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("startWithArgs", oAsyncThreadStartWithArgsMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD("join", oAsyncThreadJoinMethod),
-        METHOD("reset", oAsyncThreadResetMethod),
-		METHOD_RET("createThread", oAsyncThreadCreateThreadMethod, RETURNS_OBJECT(kBCIThread)),
-		METHOD_RET("getRunState", oAsyncThreadGetRunStateMethod, RETURNS_NATIVE(kBaseTypeInt)),
-
-		MEMBER_VAR("id", NATIVE_TYPE_TO_CODE(0, kBaseTypeCell)),
-		MEMBER_VAR("__thread", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
-
-		// following must be last in table
-		END_MEMBERS
-	};
-	
-
-	//////////////////////////////////////////////////////////////////////
-	///
 	//                 oThread
 	//
 
-	void CreateThreadObject(ForthObject& outThread, ForthAsyncThread *pParentAsyncThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
+	static ForthClassVocabulary* gpThreadVocabulary;
+	static ForthClassVocabulary* gpFiberVocabulary;
+
+	void CreateThreadObject(ForthObject& outThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
 	{
 		MALLOCATE_OBJECT(oThreadStruct, pThreadStruct, gpThreadVocabulary);
         pThreadStruct->pMethods = gpThreadVocabulary->GetMethods();
         pThreadStruct->refCount = 1;
-		pThreadStruct->pThread = pParentAsyncThread->CreateThread(pEngine, threadOp, paramStackLongs, returnStackLongs);
-		pThreadStruct->pThread->Reset();
-
-        outThread = (ForthObject)pThreadStruct;
-        pThreadStruct->pThread->SetThreadObject(outThread);
-	}
-
-	void FixupThread(ForthThread* pThread)
-	{
-		MALLOCATE_OBJECT(oThreadStruct, pThreadStruct, gpThreadVocabulary);
-		ForthObject& primaryThread = pThread->GetThreadObject();
-        pThreadStruct->pMethods = gpThreadVocabulary->GetMethods();
-        pThreadStruct->refCount = 1;
+		ForthThread* pThread = pEngine->CreateThread(threadOp, paramStackLongs, returnStackLongs);
 		pThreadStruct->pThread = pThread;
-		primaryThread = (ForthObject)pThreadStruct;
-	}
-
-	void FixupAsyncThread(ForthAsyncThread* pAsyncThread)
-	{
-		MALLOCATE_OBJECT(oAsyncThreadStruct, pAsyncThreadStruct, gpAsyncThreadVocabulary);
-        pAsyncThreadStruct->pMethods = gpAsyncThreadVocabulary->GetMethods();
-        pAsyncThreadStruct->refCount = 1;
-		pAsyncThreadStruct->pThread = pAsyncThread;
-		ForthObject& primaryAsyncThread = pAsyncThread->GetAsyncThreadObject();
-        primaryAsyncThread = (ForthObject)pAsyncThreadStruct;
-
-        OThread::FixupThread(pAsyncThread->GetThread(0));
+		pThread->Reset();
+		outThread = (ForthObject) pThreadStruct;
+		pThread->SetThreadObject(outThread);
+		OThread::FixupFiber(pThread->GetFiber(0));
 	}
 
 	FORTHOP(oThreadNew)
@@ -967,15 +943,19 @@ namespace OThread
 		GET_THIS(oThreadStruct, pThreadStruct);
 		if (pThreadStruct->pThread != NULL)
 		{
-            pThreadStruct->pThread->Destroy();
-        }
+			GET_ENGINE->DestroyThread(pThreadStruct->pThread);
+		}
 		METHOD_RETURN;
 	}
 
 	FORTHOP(oThreadStartMethod)
 	{
 		GET_THIS(oThreadStruct, pThreadStruct);
-		pThreadStruct->pThread->SetRunState(kFTRSReady);
+		ForthThread* pThread = pThreadStruct->pThread;
+		ForthFiber* pFiber = pThread->GetFiber(0);
+		pFiber->Reset();
+		long result = pThread->Start();
+		SPUSH(result);
 		METHOD_RETURN;
 	}
 
@@ -983,7 +963,9 @@ namespace OThread
 	{
 		GET_THIS(oThreadStruct, pThreadStruct);
 		ForthThread* pThread = pThreadStruct->pThread;
-		ForthCoreState* pDstCore = pThread->GetCore();
+		ForthFiber* pFiber = pThread->GetFiber(0);
+		pFiber->Reset();
+		ForthCoreState* pDstCore = pFiber->GetCore();
 		int numArgs = SPOP;
 		if (numArgs > 0)
 		{
@@ -995,71 +977,38 @@ namespace OThread
 #endif
 			pCore->SP += numArgs;
 		}
-		pThread->SetRunState(kFTRSReady);
-        SPUSH(-1);
-		METHOD_RETURN;
-	}
-
-	FORTHOP(oThreadStopMethod)
-	{
-		GET_THIS(oThreadStruct, pThreadStruct);
-		pThreadStruct->pThread->SetRunState(kFTRSStopped);
+		long result = pThread->Start();
+		SPUSH(result);
 		METHOD_RETURN;
 	}
 
     FORTHOP(oThreadJoinMethod)
     {
         GET_THIS(oThreadStruct, pThreadStruct);
-        ForthThread* pJoiner = pThreadStruct->pThread->GetParent()->GetActiveThread();
-        pThreadStruct->pThread->Join(pJoiner);
-        SET_STATE(kResultYield);
+        ForthThread* pThread = pThreadStruct->pThread;
+        pThread->Join();
         METHOD_RETURN;
     }
 
-    FORTHOP(oThreadSleepMethod)
+    FORTHOP(oThreadResetMethod)
 	{
 		GET_THIS(oThreadStruct, pThreadStruct);
-        SET_STATE(kResultYield);
-        ulong sleepMilliseconds = SPOP;
-		pThreadStruct->pThread->Sleep(sleepMilliseconds);
+		pThreadStruct->pThread->Reset();
 		METHOD_RETURN;
 	}
 
-    FORTHOP(oThreadWakeMethod)
-    {
-        GET_THIS(oThreadStruct, pThreadStruct);
-        SET_STATE(kResultYield);
-        pThreadStruct->pThread->Wake();
-        METHOD_RETURN;
-    }
-
-    FORTHOP(oThreadPushMethod)
+	FORTHOP(oThreadCreateFiberMethod)
 	{
 		GET_THIS(oThreadStruct, pThreadStruct);
-		pThreadStruct->pThread->Push(SPOP);
-		METHOD_RETURN;
-	}
+		ForthEngine* pEngine = GET_ENGINE;
+		ForthObject thread;
 
-	FORTHOP(oThreadPopMethod)
-	{
-		GET_THIS(oThreadStruct, pThreadStruct);
-		long val = pThreadStruct->pThread->Pop();
-		SPUSH(val);
-		METHOD_RETURN;
-	}
+		int returnStackLongs = (int)SPOP;
+		int paramStackLongs = (int)SPOP;
+        forthop fiberOp = (forthop)SPOP;
+        OThread::CreateFiberObject(thread, pThreadStruct->pThread, pEngine, fiberOp, paramStackLongs, returnStackLongs);
 
-	FORTHOP(oThreadRPushMethod)
-	{
-		GET_THIS(oThreadStruct, pThreadStruct);
-		pThreadStruct->pThread->RPush(SPOP);
-		METHOD_RETURN;
-	}
-
-	FORTHOP(oThreadRPopMethod)
-	{
-		GET_THIS(oThreadStruct, pThreadStruct);
-		long val = pThreadStruct->pThread->RPop();
-		SPUSH(val);
+		PUSH_OBJECT(thread);
 		METHOD_RETURN;
 	}
 
@@ -1070,73 +1019,278 @@ namespace OThread
 		METHOD_RETURN;
 	}
 
-	FORTHOP(oThreadStepMethod)
+    FORTHOP(oThreadGetNameMethod)
+    {
+        GET_THIS(oThreadStruct, pThreadStruct);
+        SPUSH((cell)(pThreadStruct->pThread->GetName()));
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oThreadSetNameMethod)
+    {
+        GET_THIS(oThreadStruct, pThreadStruct);
+        const char* name = (const char*)(SPOP);
+        pThreadStruct->pThread->SetName(name);
+        METHOD_RETURN;
+    }
+
+	baseMethodEntry oThreadMembers[] =
 	{
-		GET_THIS(oThreadStruct, pThreadStruct);
-		ForthThread* pThread = pThreadStruct->pThread;
-		ForthCoreState* pThreadCore = pThread->GetCore();
-		forthop op = *(pThreadCore->IP)++;
+		METHOD("__newOp", oThreadNew),
+		METHOD("delete", oThreadDeleteMethod),
+		METHOD_RET("start", oThreadStartMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("startWithArgs", oThreadStartWithArgsMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD("join", oThreadJoinMethod),
+        METHOD("reset", oThreadResetMethod),
+		METHOD_RET("createFiber", oThreadCreateFiberMethod, RETURNS_OBJECT(kBCIFiber)),
+		METHOD_RET("getRunState", oThreadGetRunStateMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("getName", oThreadGetNameMethod, RETURNS_NATIVE(kBaseTypeByte | kDTIsPtr)),
+        METHOD("setName", oThreadSetNameMethod),
+
+		MEMBER_VAR("id", NATIVE_TYPE_TO_CODE(0, kBaseTypeCell)),
+		MEMBER_VAR("__thread", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+
+		// following must be last in table
+		END_MEMBERS
+	};
+	
+
+	//////////////////////////////////////////////////////////////////////
+	///
+	//                 oFiber
+	//
+
+	void CreateFiberObject(ForthObject& outFiber, ForthThread *pParentThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
+	{
+		MALLOCATE_OBJECT(oFiberStruct, pFiberStruct, gpFiberVocabulary);
+        pFiberStruct->pMethods = gpFiberVocabulary->GetMethods();
+        pFiberStruct->refCount = 1;
+		pFiberStruct->pFiber = pParentThread->CreateFiber(pEngine, threadOp, paramStackLongs, returnStackLongs);
+		pFiberStruct->pFiber->Reset();
+
+        outFiber = (ForthObject)pFiberStruct;
+        pFiberStruct->pFiber->SetFiberObject(outFiber);
+	}
+
+	void FixupFiber(ForthFiber* pFiber)
+	{
+		MALLOCATE_OBJECT(oFiberStruct, pFiberStruct, gpFiberVocabulary);
+		ForthObject& primaryFiber = pFiber->GetFiberObject();
+        pFiberStruct->pMethods = gpFiberVocabulary->GetMethods();
+        pFiberStruct->refCount = 1;
+		pFiberStruct->pFiber = pFiber;
+		primaryFiber = (ForthObject)pFiberStruct;
+	}
+
+	void FixupThread(ForthThread* pThread)
+	{
+		MALLOCATE_OBJECT(oThreadStruct, pThreadStruct, gpThreadVocabulary);
+        pThreadStruct->pMethods = gpThreadVocabulary->GetMethods();
+        pThreadStruct->refCount = 1;
+		pThreadStruct->pThread = pThread;
+		ForthObject& primaryThread = pThread->GetThreadObject();
+        primaryThread = (ForthObject)pThreadStruct;
+
+        OThread::FixupFiber(pThread->GetFiber(0));
+	}
+
+	FORTHOP(oFiberNew)
+	{
+		GET_ENGINE->SetError(kForthErrorIllegalOperation, " cannot explicitly create a Fiber object");
+	}
+
+	FORTHOP(oFiberDeleteMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+		if (pFiberStruct->pFiber != NULL)
+		{
+            pFiberStruct->pFiber->Destroy();
+        }
+		METHOD_RETURN;
+	}
+
+	FORTHOP(oFiberStartMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+		pFiberStruct->pFiber->SetRunState(kFTRSReady);
+		METHOD_RETURN;
+	}
+
+	FORTHOP(oFiberStartWithArgsMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+		ForthFiber* pFiber = pFiberStruct->pFiber;
+		ForthCoreState* pDstCore = pFiber->GetCore();
+		int numArgs = SPOP;
+		if (numArgs > 0)
+		{
+			pDstCore->SP -= numArgs;
+#if defined(FORTH64)
+            memcpy(pDstCore->SP, pCore->SP, numArgs << 3);
+#else
+            memcpy(pDstCore->SP, pCore->SP, numArgs << 2);
+#endif
+			pCore->SP += numArgs;
+		}
+		pFiber->SetRunState(kFTRSReady);
+        SPUSH(-1);
+		METHOD_RETURN;
+	}
+
+	FORTHOP(oFiberStopMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+		pFiberStruct->pFiber->SetRunState(kFTRSStopped);
+		METHOD_RETURN;
+	}
+
+    FORTHOP(oFiberJoinMethod)
+    {
+        GET_THIS(oFiberStruct, pFiberStruct);
+        ForthFiber* pJoiner = pFiberStruct->pFiber->GetParent()->GetActiveFiber();
+        pFiberStruct->pFiber->Join(pJoiner);
+        SET_STATE(kResultYield);
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oFiberSleepMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+        SET_STATE(kResultYield);
+        ulong sleepMilliseconds = SPOP;
+		pFiberStruct->pFiber->Sleep(sleepMilliseconds);
+		METHOD_RETURN;
+	}
+
+    FORTHOP(oFiberWakeMethod)
+    {
+        GET_THIS(oFiberStruct, pFiberStruct);
+        SET_STATE(kResultYield);
+        pFiberStruct->pFiber->Wake();
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oFiberPushMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+		pFiberStruct->pFiber->Push(SPOP);
+		METHOD_RETURN;
+	}
+
+	FORTHOP(oFiberPopMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+		long val = pFiberStruct->pFiber->Pop();
+		SPUSH(val);
+		METHOD_RETURN;
+	}
+
+	FORTHOP(oFiberRPushMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+		pFiberStruct->pFiber->RPush(SPOP);
+		METHOD_RETURN;
+	}
+
+	FORTHOP(oFiberRPopMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+		long val = pFiberStruct->pFiber->RPop();
+		SPUSH(val);
+		METHOD_RETURN;
+	}
+
+	FORTHOP(oFiberGetRunStateMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+		SPUSH((long)(pFiberStruct->pFiber->GetRunState()));
+		METHOD_RETURN;
+	}
+
+	FORTHOP(oFiberStepMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+		ForthFiber* pFiber = pFiberStruct->pFiber;
+		ForthCoreState* pFiberCore = pFiber->GetCore();
+		forthop op = *(pFiberCore->IP)++;
 		long result;
 #ifdef ASM_INNER_INTERPRETER
         ForthEngine *pEngine = GET_ENGINE;
 		if (pEngine->GetFastMode())
 		{
-			result = (long)InterpretOneOpFast(pThreadCore, op);
+			result = (long)InterpretOneOpFast(pFiberCore, op);
 		}
 		else
 #endif
 		{
-			result = (long)InterpretOneOp(pThreadCore, op);
+			result = (long)InterpretOneOp(pFiberCore, op);
 		}
 		if (result == kResultDone)
 		{
-			pThread->ResetIP();
+			pFiber->ResetIP();
 		}
 		SPUSH(result);
 		METHOD_RETURN;
 	}
 
-	FORTHOP(oThreadResetMethod)
+	FORTHOP(oFiberResetMethod)
 	{
-		GET_THIS(oThreadStruct, pThreadStruct);
-		pThreadStruct->pThread->Reset();
+		GET_THIS(oFiberStruct, pFiberStruct);
+		pFiberStruct->pFiber->Reset();
 		METHOD_RETURN;
 	}
 
-	FORTHOP(oThreadResetIPMethod)
+	FORTHOP(oFiberResetIPMethod)
 	{
-		GET_THIS(oThreadStruct, pThreadStruct);
-		pThreadStruct->pThread->ResetIP();
+		GET_THIS(oFiberStruct, pFiberStruct);
+		pFiberStruct->pFiber->ResetIP();
 		METHOD_RETURN;
 	}
 
-    FORTHOP(oThreadGetCoreMethod)
+    FORTHOP(oFiberGetCoreMethod)
     {
-        GET_THIS(oThreadStruct, pThreadStruct);
-        SPUSH((long)(pThreadStruct->pThread->GetCore()));
+        GET_THIS(oFiberStruct, pFiberStruct);
+        SPUSH((long)(pFiberStruct->pFiber->GetCore()));
         METHOD_RETURN;
     }
 
-    baseMethodEntry oThreadMembers[] =
+    FORTHOP(oFiberGetNameMethod)
+    {
+        GET_THIS(oFiberStruct, pFiberStruct);
+        SPUSH((cell)(pFiberStruct->pFiber->GetName()));
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oFiberSetNameMethod)
+    {
+        GET_THIS(oFiberStruct, pFiberStruct);
+        const char* name = (const char*)(SPOP);
+        pFiberStruct->pFiber->SetName(name);
+        METHOD_RETURN;
+    }
+
+    baseMethodEntry oFiberMembers[] =
 	{
-		METHOD("__newOp", oThreadNew),
-		METHOD("delete", oThreadDeleteMethod),
-		METHOD("start", oThreadStartMethod),
-        METHOD_RET("startWithArgs", oThreadStartWithArgsMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD("stop", oThreadStopMethod),
-        METHOD("join", oThreadJoinMethod),
-        METHOD("sleep", oThreadSleepMethod),
-        METHOD("wake", oThreadWakeMethod),
-        METHOD("push", oThreadPushMethod),
-		METHOD_RET("pop", oThreadPopMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD("rpush", oThreadRPushMethod),
-		METHOD_RET("rpop", oThreadRPopMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("getRunState", oThreadGetRunStateMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("step", oThreadStepMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD("reset", oThreadResetMethod),
-		METHOD("resetIP", oThreadResetIPMethod),
-        METHOD("getCore", oThreadGetCoreMethod),
-		//METHOD_RET("getParent", oThreadGetParentMethod, RETURNS_NATIVE(kBaseType)),
+		METHOD("__newOp", oFiberNew),
+		METHOD("delete", oFiberDeleteMethod),
+		METHOD("start", oFiberStartMethod),
+        METHOD_RET("startWithArgs", oFiberStartWithArgsMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD("stop", oFiberStopMethod),
+        METHOD("join", oFiberJoinMethod),
+        METHOD("sleep", oFiberSleepMethod),
+        METHOD("wake", oFiberWakeMethod),
+        METHOD("push", oFiberPushMethod),
+		METHOD_RET("pop", oFiberPopMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD("rpush", oFiberRPushMethod),
+		METHOD_RET("rpop", oFiberRPopMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("getRunState", oFiberGetRunStateMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("step", oFiberStepMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD("reset", oFiberResetMethod),
+		METHOD("resetIP", oFiberResetIPMethod),
+        METHOD("getCore", oFiberGetCoreMethod),
+        METHOD_RET("getName", oFiberGetNameMethod, RETURNS_NATIVE(kBaseTypeByte | kDTIsPtr)),
+        METHOD("setName", oFiberSetNameMethod),
+        //METHOD_RET("getParent", oFiberGetParentMethod, RETURNS_NATIVE(kBaseType)),
 
 		MEMBER_VAR("id", NATIVE_TYPE_TO_CODE(0, kBaseTypeCell)),
 		MEMBER_VAR("__thread", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
@@ -1148,8 +1302,8 @@ namespace OThread
 
 	void AddClasses(ForthEngine* pEngine)
 	{
+		gpFiberVocabulary = pEngine->AddBuiltinClass("Fiber", kBCIFiber, kBCIObject, oFiberMembers);
 		gpThreadVocabulary = pEngine->AddBuiltinClass("Thread", kBCIThread, kBCIObject, oThreadMembers);
-		gpAsyncThreadVocabulary = pEngine->AddBuiltinClass("AsyncThread", kBCIAsyncThread, kBCIObject, oAsyncThreadMembers);
 	}
 
 } // namespace OThread
@@ -1214,7 +1368,6 @@ namespace OLock
 #endif
 			pLockStruct->pLock = NULL;
 		}
-		FREE_OBJECT(pLockStruct);
 		METHOD_RETURN;
 	}
 
@@ -1284,8 +1437,8 @@ namespace OLock
 #else
 		pthread_mutex_t* pLock;
 #endif
-		ForthThread* pLockHolder;
-		std::deque<ForthThread*> *pBlockedThreads;
+		ForthFiber* pLockHolder;
+		std::deque<ForthFiber*> *pBlockedFibers;
 	};
 
 	FORTHOP(oLockNew)
@@ -1309,7 +1462,7 @@ namespace OLock
 		pthread_mutexattr_destroy(&mutexAttr);
 #endif
 		pLockStruct->pLockHolder = nullptr;
-		pLockStruct->pBlockedThreads = new std::deque<ForthThread*>;
+		pLockStruct->pBlockedFibers = new std::deque<ForthFiber*>;
 		pLockStruct->lockDepth = 0;
 
 		PUSH_OBJECT(pLockStruct);
@@ -1326,8 +1479,7 @@ namespace OLock
 		pthread_mutex_destroy(pLockStruct->pLock);
 #endif
         delete pLockStruct->pLock;
-        delete pLockStruct->pBlockedThreads;
-		FREE_OBJECT(pLockStruct);
+        delete pLockStruct->pBlockedFibers;
 		METHOD_RETURN;
 	}
 
@@ -1340,7 +1492,7 @@ namespace OLock
 		pthread_mutex_lock(pLockStruct->pLock);
 #endif
 
-		ForthThread* pThread = (ForthThread*)(pCore->pThread);
+		ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
 		if (pLockStruct->pLockHolder == nullptr)
 		{
 			if (pLockStruct->lockDepth != 0)
@@ -1349,21 +1501,21 @@ namespace OLock
 			}
 			else
 			{
-				pLockStruct->pLockHolder = pThread;
+				pLockStruct->pLockHolder = pFiber;
 				pLockStruct->lockDepth++;
 			}
 		}
 		else
 		{
-			if (pLockStruct->pLockHolder == pThread)
+			if (pLockStruct->pLockHolder == pFiber)
 			{
 				pLockStruct->lockDepth++;
 			}
 			else
 			{
-				pThread->Block();
+				pFiber->Block();
 				SET_STATE(kResultYield);
-				pLockStruct->pBlockedThreads->push_back(pThread);
+				pLockStruct->pBlockedFibers->push_back(pFiber);
 			}
 		}
 
@@ -1385,7 +1537,7 @@ namespace OLock
 #endif
 
 		int result = (int)false;
-		ForthThread* pThread = (ForthThread*)(pCore->pThread);
+		ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
 		if (pLockStruct->pLockHolder == nullptr)
 		{
 			if (pLockStruct->lockDepth != 0)
@@ -1394,14 +1546,14 @@ namespace OLock
 			}
 			else
 			{
-				pLockStruct->pLockHolder = pThread;
+				pLockStruct->pLockHolder = pFiber;
 				pLockStruct->lockDepth++;
 				result = true;
 			}
 		}
 		else
 		{
-			if (pLockStruct->pLockHolder == pThread)
+			if (pLockStruct->pLockHolder == pFiber)
 			{
 				pLockStruct->lockDepth++;
 				result = true;
@@ -1432,7 +1584,7 @@ namespace OLock
 		}
 		else
 		{
-			if (pLockStruct->pLockHolder != (ForthThread*)(pCore->pThread))
+			if (pLockStruct->pLockHolder != (ForthFiber*)(pCore->pFiber))
 			{
 				GET_ENGINE->SetError(kForthErrorIllegalOperation, " OLock.ungrab called by thread which does not have lock");
 			}
@@ -1447,17 +1599,17 @@ namespace OLock
 					pLockStruct->lockDepth--;
 					if (pLockStruct->lockDepth == 0)
 					{
-						if (pLockStruct->pBlockedThreads->size() == 0)
+						if (pLockStruct->pBlockedFibers->size() == 0)
 						{
 							pLockStruct->pLockHolder = nullptr;
 						}
 						else
 						{
-							ForthThread* pThread = pLockStruct->pBlockedThreads->front();
-							pLockStruct->pBlockedThreads->pop_front();
-							pLockStruct->pLockHolder = pThread;
+							ForthFiber* pFiber = pLockStruct->pBlockedFibers->front();
+							pLockStruct->pBlockedFibers->pop_front();
+							pLockStruct->pLockHolder = pFiber;
 							pLockStruct->lockDepth++;
-							pThread->Wake();
+							pFiber->Wake();
 							SET_STATE(kResultYield);
 						}
 					}
@@ -1508,7 +1660,7 @@ namespace OLock
 #else
         pthread_mutex_t* pLock;
 #endif
-        std::deque<ForthThread*> *pBlockedThreads;
+        std::deque<ForthFiber*> *pBlockedThreads;
     };
 
     FORTHOP(oSemaphoreNew)
@@ -1531,7 +1683,7 @@ namespace OLock
 
         pthread_mutexattr_destroy(&mutexAttr);
 #endif
-        pSemaphoreStruct->pBlockedThreads = new std::deque<ForthThread*>;
+        pSemaphoreStruct->pBlockedThreads = new std::deque<ForthFiber*>;
         pSemaphoreStruct->count = 0;
 
         PUSH_OBJECT(pSemaphoreStruct);
@@ -1549,9 +1701,8 @@ namespace OLock
 #endif
         delete pSemaphoreStruct->pLock;
         delete pSemaphoreStruct->pBlockedThreads;
-        FREE_OBJECT(pSemaphoreStruct);
-        METHOD_RETURN;
-    }
+		METHOD_RETURN;
+	}
 
     FORTHOP(oSemaphoreInitMethod)
     {
@@ -1587,10 +1738,10 @@ namespace OLock
         }
         else
         {
-            ForthThread* pThread = (ForthThread*)(pCore->pThread);
-            pThread->Block();
+            ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
+            pFiber->Block();
             SET_STATE(kResultYield);
-            pSemaphoreStruct->pBlockedThreads->push_back(pThread);
+            pSemaphoreStruct->pBlockedThreads->push_back(pFiber);
         }
 
 #ifdef WIN32
@@ -1615,9 +1766,9 @@ namespace OLock
         {
             if (pSemaphoreStruct->pBlockedThreads->size() > 0)
             {
-                ForthThread* pThread = pSemaphoreStruct->pBlockedThreads->front();
+                ForthFiber* pFiber = pSemaphoreStruct->pBlockedThreads->front();
                 pSemaphoreStruct->pBlockedThreads->pop_front();
-                pThread->Wake();
+                pFiber->Wake();
                 SET_STATE(kResultYield);
                 --(pSemaphoreStruct->count);
             }
@@ -1702,9 +1853,8 @@ namespace OLock
             sem_close(pSemaphoreStruct->pSemaphore);
         }
 #endif
-        FREE_OBJECT(pSemaphoreStruct);
-        METHOD_RETURN;
-    }
+		METHOD_RETURN;
+	}
 
     FORTHOP(oAsyncSemaphoreInitMethod)
     {

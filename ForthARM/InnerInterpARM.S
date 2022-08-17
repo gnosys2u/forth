@@ -158,7 +158,7 @@ fileGetString	=		44
 filePutString	=		48
 
 	.global	abortBop, dropBop, nipBop, doDoesBop, litBop, litBop, dlitBop, doVariableBop, doConstantBop, doDConstantBop, doneBop
-	.global	doByteBop, doShortBop, doIntBop, doFloatBop, refBop, fetchBop, intoBop, addToBop, subtractFromBop, doExitBop
+	.global	doByteBop, doShortBop, doIntBop, doFloatBop, refVaractionBop, fetchVaractionBop, intoVaractionBop, addToVaractionBop, subtractFromVaractionBop, doExitBop
 	.global	doExitLBop, doExitMBop, doExitMLBop, doVocabBop, doByteArrayBop, doShortArrayBop, doIntArrayBop, doFloatArrayBop
 	.global	plusBop, ifetchBop, doStructBop, doStructArrayBop, doDoBop, doLoopBop, doLoopNBop, dfetchBop
 	.global	thisBop, unsuperBop, executeBop, callBop, gotoBop, iBop, jBop, unloopBop, leaveBop, hereBop, dpBop
@@ -170,15 +170,16 @@ filePutString	=		48
 	.global equalsBop, notEqualsBop, greaterThanBop, greaterEqualsBop, lessThanBop, lessEqualsBop
 	.global equals0Bop, notEquals0Bop, greaterThan0Bop, greaterEquals0Bop, lessThan0Bop, lessEquals0Bop
 	.global rpushBop, rpopBop, rdropBop, rpBop, r0Bop, dupBop, checkDupBop, swapBop, overBop
-	.global rotBop, tuckBop, pickBop, spBop, s0Bop, fpBop, ddupBop, dswapBop, ddropBop, doverBop, drotBop,
-	.global storeBop, cstoreBop, cfetchBop, scfetchBop, c2iBop, wstoreBop, wfetchBop, swfetchBop, w2iBop, dstoreBop
+	.global rotBop, tuckBop, pickBop, spBop, s0Bop, fpBop, ddupBop, dswapBop, ddropBop, doverBop, drotBop
+	.global istoreBop, bstoreBop, ubfetchBop, bfetchBop, c2iBop, sstoreBop, sfetchBop, swfetchBop, w2iBop, dstoreBop
+	.global lstoreBop, lfetchBop, lstoreNextBop, lfetchNextBop, odropBop
 	.global	moveBop, memcmpBop, fillBop, setVarActionBop, getVarActionBop, strcpyBop, strncpyBop, strlenBop, strcatBop, strncatBop
 	.global	strchrBop, strrchrBop, strcmpBop, strncmpBop, stricmpBop, strstrBop, strtokBop, initStringBop, strFixupBop
 	.global doUByteBop, doUByteArrayBop, doUShortBop, doUShortArrayBop
 	.global dsinBop, dasinBop, dcosBop, dacosBop, dtanBop, datanBop, datan2Bop, dexpBop, dlnBop, dlog10Bop, dpowBop
 	.global dsqrtBop, dceilBop, dfloorBop, dabsBop, dldexpBop, dfrexpBop, dmodfBop, dfmodBop, i2fBop, i2dBop, f2iBop, f2dBop, d2iBop, d2fBop
-	.global ipBop, startTupleBop, endTupleBop, rpeekBop, minBop, maxBop, storeNextBop, fetchNextBop, cstoreNextBop, cfetchNextBop
-	.global wstoreNextBop, wfetchNextBop, dstoreNextBop, dfetchNextBop
+	.global ipBop, startTupleBop, endTupleBop, rpeekBop, minBop, maxBop, istoreNextBop, ifetchNextBop, bstoreNextBop, bfetchNextBop
+	.global sstoreNextBop, sfetchNextBop, dstoreNextBop, dfetchNextBop
 	.global fEqualsBop, fNotEqualsBop, fGreaterThanBop, fGreaterEqualsBop, fLessThanBop, fLessEqualsBop
 	.global fEquals0Bop, fNotEquals0Bop, fGreaterThan0Bop, fGreaterEquals0Bop, fLessThan0Bop, fLessEquals0Bop
 	.global dEqualsBop, dNotEqualsBop, dGreaterThanBop, dGreaterEqualsBop, dLessThanBop, dLessEqualsBop
@@ -195,7 +196,7 @@ filePutString	=		48
 	.global fsinBop, fasinBop, fcosBop, facosBop, ftanBop, fatanBop, fatan2Bop, fexpBop, flnBop, flog10Bop
 	.global fpowBop, fsqrtBop, fceilBop, ffloorBop, fabsBop
 	.global fcmpBop, dcmpBop, fldexpBop, ffrexpBop, fmodfBop, ffmodBop
-	.global icmpBop, uicmpBop, oclearBop, lplusBop, lminusBop, ltimesBop, mtimesBop, umtimesBop
+	.global icmpBop, uicmpBop, oclearVaractionBop, lplusBop, lminusBop, ltimesBop, mtimesBop, umtimesBop
     .global lcmpBop, ulcmpBop
     
 	.global fprintfSub, fscanfSub, snprintfSub, sscanfSub, oStringFormatSub, setTraceBop
@@ -1972,6 +1973,31 @@ localObjectStore:
 	ldr	r1, [r3, r1, lsl #2]
 	bx	r1
 	
+@@@@@@@@@@@@@@@@@  drop  @@@@@@@@@@@@@@@@@
+
+odropBop:
+	ldmia	rsp!, {r2}
+	orrs	r2, r2
+	beq	.odrop2					@ if obj is null, don't decrement refcount
+	ldr	r1, [r2, #4]			@ check refcount
+	orrs	r1, r1
+	beq		.odrop3
+.odrop2:
+	bx	lr
+	
+.odrop3:
+	@ obj refcount was 0, invoke obj.delete method
+	@ push pCore->this on rstack
+	ldr	r0, [rcore, #tp]
+	stmdb	rrp!, {r0}
+	@ set this to obj to delete
+	str	r2, [rcore, #tp]
+
+	ldr r3, [r2]                @ r3 is oldObj methods table ptr
+	ldr	r0, [r3]				@ r0 is method 0 (delete) opcode
+	ldr	r1, [rcore, #inner_execute]
+	bx	r1
+	
 localObjectClear:
 	@ TOS is new object, r0 points to destination/old object
     eor r2, r2
@@ -2498,42 +2524,42 @@ doObjectArrayBop:
 	
 @@@@@@@@@@@@@@@@@  addressOf  @@@@@@@@@@@@@@@@@
 
-refBop:
+refVaractionBop:
 	mov	r0,	#kVarRef
 	str	r0, [rcore, #varmode]
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  fetch  @@@@@@@@@@@@@@@@@
 
-fetchBop:
+fetchVaractionBop:
 	mov	r0, #kVarFetch
 	str	r0, [rcore, #varmode]
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  ->  @@@@@@@@@@@@@@@@@
 
-intoBop:
+intoVaractionBop:
 	mov	r0, #kVarStore
 	str	r0, [rcore, #varmode]
 	bx	lr
 
 @@@@@@@@@@@@@@@@@ ->+   @@@@@@@@@@@@@@@@@
 
-addToBop:
+addToVaractionBop:
 	mov	r0, #kVarPlusStore
 	str	r0, [rcore, #varmode]
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  ->-  @@@@@@@@@@@@@@@@@
 
-subtractFromBop:
+subtractFromVaractionBop:
 	mov	r0, #kVarMinusStore
 	str	r0, [rcore, #varmode]
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  oclear  @@@@@@@@@@@@@@@@@
 
-oclearBop:
+oclearVaractionBop:
 	mov	r0, #kVarObjectClear
 	str	r0, [rcore, #varmode]
 	bx	lr
@@ -2651,14 +2677,14 @@ ifetchBop:
 	str	r1, [rsp]
 	bx	lr
 
-storeNextBop:
+istoreNextBop:
 	ldmia	rsp!, {r0, r1}	@ r1 = value, r0 = ptr to dest ptr
 	ldr	r2, [r0]			@ r2 = dest ptr
 	stmia	r2!, {r1}		@ store value and advance dest ptr
 	str	r2, [r0]			@ update stored dest ptr
 	bx	lr
 
-fetchNextBop:
+ifetchNextBop:
 	ldr	r1, [rsp]			@ r1 - ptr to src ptr
 	ldr	r2, [r1]			@ r2 = src ptr
 	ldmia	r2!, {r0}		@ r0 = fetched value
@@ -2666,6 +2692,33 @@ fetchNextBop:
 	str	r0, [rsp]
 	bx	lr
 	
+@@@@@@@@@@@@@@@@@  l@  @@@@@@@@@@@@@@@@@
+
+lfetchBop:
+	ldmia	rsp!, {r0}
+	ldrd	r2, [r0]
+	mov	r1, r3
+	stmdb	rsp!, {r1,r2}			@ push long on TOS
+	bx	lr
+
+lstoreNextBop:
+	ldmia	rsp!, {r0, r1}	@ r1 = value, r0 = ptr to dest ptr
+	ldr	r2, [r0]			@ r2 = dest ptr
+	stmia	r2!, {r1}		@ store value and advance dest ptr
+	str	r2, [r0]			@ update stored dest ptr
+	bx	lr
+
+lfetchNextBop:
+	ldmia	rsp!, {r0}		@ r0 - ptr to src ptr
+	ldr	r1, [r0]			@ r1 = src ptr
+	ldmia	r1!, {r2,r3}		@ r2/r3 = fetched value
+	str	r1, [r0]			@ update stored src ptr
+	mov	r1, r3
+	stmdb	rsp!, {r1,r2}			@ push long on TOS
+	bx	lr
+	
+
+
 		
 @@@@@@@@@@@@@@@@@  _doStruct  @@@@@@@@@@@@@@@@@
 
@@ -5120,28 +5173,36 @@ drotBop:
 
 @@@@@@@@@@@@@@@@@  !  @@@@@@@@@@@@@@@@@
 
-storeBop:
+istoreBop:
 	ldmia	rsp!, {r0, r1}	@ r0 = int ptr, r1 = value
 	str	r1, [r0]
 	bx	lr
 
-@@@@@@@@@@@@@@@@@  c!  @@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@  l!  @@@@@@@@@@@@@@@@@
 
-cstoreBop:
+lstoreBop:
+	ldmia	rsp!, {r0,r1,r2}	@ r0 = long ptr
+	mov	r3, r1
+	strd	r2, [r0]				@ store long
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  b!  @@@@@@@@@@@@@@@@@
+
+bstoreBop:
 	ldmia	rsp!, {r0, r1}	@ r0 = byte ptr, r1 = value
 	strb	r1, [r0]
 	bx	lr
 
-@@@@@@@@@@@@@@@@@  c@  @@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@  ub@  @@@@@@@@@@@@@@@@@
 
-cfetchBop:
+ubfetchBop:
 	ldr	r0, [rsp]
 	eor	r1, r1
 	ldrb	r1, [r0]
 	str	r1, [rsp]
 	bx	lr
 
-cstoreNextBop:
+bstoreNextBop:
 	ldmia	rsp!, {r0, r1}	@ r1 = value, r0 = ptr to dest ptr
 	ldr	r2, [r0]			@ r2 = dest ptr
 	strb	r1, [r2]
@@ -5149,18 +5210,18 @@ cstoreNextBop:
 	str	r2, [r0]			@ update stored dest ptr
 	bx	lr
 
-cfetchNextBop:
+bfetchNextBop:
 	ldr	r1, [rsp]			@ r1 - ptr to src ptr
 	ldr	r2, [r1]			@ r2 = src ptr
-	ldrb	r0, [r2]
+	ldrsb	r0, [r2]
 	add	r2, #1
 	str	r2, [r1]			@ update stored src ptr
 	str	r0, [rsp]
 	bx	lr
 	
-@@@@@@@@@@@@@@@@@  sc@  @@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@  b@  @@@@@@@@@@@@@@@@@
 
-scfetchBop:
+bfetchBop:
 	ldr	r0, [rsp]
 	eor	r1, r1
 	ldrsb	r1, [r0]
@@ -5176,21 +5237,21 @@ c2iBop:
 
 @@@@@@@@@@@@@@@@@  w!  @@@@@@@@@@@@@@@@@
 
-wstoreBop:
+sstoreBop:
 	ldmia	rsp!, {r0, r1}	@ r0 = short ptr, r1 = value
 	strh	r1, [r0]
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  w@  @@@@@@@@@@@@@@@@@
 
-wfetchBop:
+sfetchBop:
 	ldr	r0, [rsp]
 	eor	r1, r1
 	ldrh	r1, [r0]
 	str	r1, [rsp]
 	bx	lr
 
-wstoreNextBop:
+sstoreNextBop:
 	ldmia	rsp!, {r0, r1}	@ r1 = value, r0 = ptr to dest ptr
 	ldr	r2, [r0]			@ r2 = dest ptr
 	strh	r1, [r2]
@@ -5198,7 +5259,7 @@ wstoreNextBop:
 	str	r2, [r0]			@ update stored dest ptr
 	bx	lr
 
-wfetchNextBop:
+sfetchNextBop:
 	ldr	r1, [rsp]			@ r1 - ptr to src ptr
 	ldr	r2, [r1]			@ r2 = src ptr
 	ldrh	r0, [r2]
@@ -5888,7 +5949,335 @@ sscanfSub2:
 	pop	{r0-r3, rcore, rsp, rrp, lr}
 	bx	lr
 
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@                                                    @
+@ these ops used to be in extops_arm, but it seems   @
+@ that Raspbian doesn't allow execution of code in   @
+@ the data segment.                                  @
+@                                                    @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	
+@@@@@@@@@@@@@@@@@  abs  @@@@@@@@@@@@@@@@@
+
+absBop:
+	ldr	r0, [rsp]
+	orrs	r0, r0
+	bxge	lr
+
+	neg	r0, r0
+	str	r0, [rsp]
+	bx	lr
+  
+@@@@@@@@@@@@@@@@@  +!  @@@@@@@@@@@@@@@@@
+
+plusStoreBop:
+	ldmia	rsp!, {r0, r1}	// r0 is ptr to dst ptr, r1 is amount to add
+	ldr	r2, [r0]
+	add	r1, r2
+	str	r1, [r0]
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  roll  @@@@@@@@@@@@@@@@@
+
+rollBop:
+	@ TOS is number of entries to roll (1 means swap, 2 means rot)
+	ldmia	rsp!, {r0}
+	orrs    r0, r0
+	bxeq	lr			@ early exit if #entries == 0
+	blt	.rollneg
+	
+	@ positive roll
+	add	r2, rsp, r0, lsl #2
+	ldr	r3, [r2]			@ r3 = value to move to TOS
+	
+.roll1:
+	ldmdb	r2!, {r1}
+	str	r1, [r2, #4]
+	subs	r0, r1, #1
+	bne	.roll1
+	str	r3, [rsp]
+	bx	lr
+	
+.rollneg:
+	@ negative roll
+	neg	r0, r0
+	mov	r2, rsp
+	ldr	r3, [r2]		@ r3 = value to move to bottom
+.roll2:
+	ldr	r1, [r2, #4]
+	stmia	r2!, {r1}
+	subs	r0, r0, #1
+	bne	.roll2
+	str	r3, [r2]
+	
+.rollx:
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  2dup  @@@@@@@@@@@@@@@@@
+  
+twoDupBop:
+	ldmia	rsp, {r0, r1}
+	stmdb	rsp!, {r0, r1}
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  2swap  @@@@@@@@@@@@@@@@@
+
+twoSwapBop:
+	ldmia	rsp, {r0, r1, r2}
+	str	r2, [rsp]
+	ldr	r2, [rsp, #12]
+	str	r2, [rsp, #4]
+	str	r0, [rsp, #8]
+	str	r1, [rsp, #12]
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  2drop  @@@@@@@@@@@@@@@@@
+
+twoDropBop:
+	add	rsp, #8
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  ndrop  @@@@@@@@@@@@@@@@@
+
+ndropBop:
+	ldmia	rsp!, {r0}
+	add	rsp, rsp, r0, lsl #2
+	bx	lr
+  
+@@@@@@@@@@@@@@@@@  ndup  @@@@@@@@@@@@@@@@@
+
+ndupBop:
+	@ TOS is number of entries to dup
+	ldmia	rsp!, {r0}
+	orrs	r0, r0
+	bxeq	lr			@ early exit if #entries == 0
+	add	r2, rsp, r0, lsl #2
+.ndup1:
+	sub	r2, r2, #4
+	ldr	r1, [r2]
+	stmdb	rsp!, {r1}
+	subs	r0, r0, #1
+	bne	.ndup1
+	bx	lr
+	
+@@@@@@@@@@@@@@@@@  2over  @@@@@@@@@@@@@@@@@
+
+twoOverBop:
+	ldr	r0, [rsp, #8]
+	ldr	r1, [rsp, #12]
+	stmdb	rsp!, {r0, r1}
+	bx	lr
+  
+@@@@@@@@@@@@@@@@@  2rot  @@@@@@@@@@@@@@@@@
+
+twoRotBop:
+	@ 5 -> 1 4 -> 0 3 -> 5 2 -> 4 1 -> 3 0 -> 2
+	ldr	r0, [rsp, #20]
+	ldr	r1, [rsp, #12]
+	str	r1, [rsp, #20]
+	ldr	r1, [rsp, #4]
+	str	r1, [rsp, #12]
+	str	r0, [rsp, #4]
+	ldr	r0, [rsp, #16]
+	ldr	r1, [rsp, #8]
+	str	r1, [rsp, #16]
+	ldr	r1, [rsp]
+	str	r1, [rsp, #8]
+	str	r0, [rsp]
+	bx	lr
+  
+@@@@@@@@@@@@@@@@@  -2rot  @@@@@@@@@@@@@@@@@
+
+twoReverseRotBop:
+	@ 5 -> 3 4 -> 2 3 -> 1 2 -> 0 1 -> 5 0 -> 4
+	ldr	r0, [rsp, #20]
+	ldr	r1, [rsp, #4]
+	str	r1, [rsp, #20]
+	ldr	r1, [rsp, #12]
+	str	r1, [rsp, #4]
+	str	r0, [rsp, #12]
+	ldr	r0, [rsp, #16]
+	ldr	r1, [rsp]
+	str	r1, [rsp, #16]
+	ldr	r1, [rsp, #8]
+	str	r1, [rsp]
+	str	r0, [rsp, #8]
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  2nip  @@@@@@@@@@@@@@@@@
+
+twoNipBop:
+	ldmia	rsp!, {r0, r1}
+	add	rsp, rsp, #16
+	stmdb	rsp!, {r0, r1}
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  2tuck  @@@@@@@@@@@@@@@@@
+
+twoTuckBop:
+	ldmia	rsp!, {r0-r3}
+	sub	rsp, rsp, #8
+	stmdb	rsp!, {r0-r3}
+	str	r0, [rsp, #16]
+	str	r1, [rsp, #20]
+	bx	lr
+  
+@@@@@@@@@@@@@@@@@  2pick  @@@@@@@@@@@@@@@@@
+
+twoPickBop:
+	ldmia	rsp!, {r0}
+	add	r2, rsp, r0, lsl #3
+	ldmia	r2, {r0, r1}
+	stmdb	rsp!, {r0, r1}
+	bx	lr
+  
+@@@@@@@@@@@@@@@@@  2roll  @@@@@@@@@@@@@@@@@
+
+twoRollBop:
+	@ TOS is number of entries to roll (1 means swap, 2 means rot)
+	ldmia	rsp!, {r3}
+	orrs	r3, r3
+	bxeq	lr					@ early exit if #entries == 0
+	stmdb	sp!, {rip, rfp}	@ we will use rip,rfp as temps
+
+	ble	.twoRollNeg
+
+	@ positive roll
+	@ save 2 longs at sp+(n * 8)
+	@ shift (2 * n) longs at sp+8 up by 2 longs
+	@ stuff 2 saved longs at sp
+	add	r2, rsp, r3, lsl #3
+	ldmia	r2, {rip, rfp}		@ rip,rfp = value to move to TOS
+
+.twoRoll1:
+	ldr	r0, [r2, #-8]
+	ldr	r1, [r2, #-4]
+	stmia	r2, {r0, r1}
+	sub	r2, r2, #8
+	subs	r3, r3, #1
+	bne	.twoRoll1
+	stmia	rsp, {rip, rfp}
+	b	.twoRollX
+
+.twoRollNeg:	
+	@ negative roll
+	@ save 2 longs at sp
+	@ shift (2 * n) longs at sp+8 down by 2 longs
+	@ stuff 2 saved longs at sp+(n * 8)
+	
+	neg	r3, r3			@ make roll count positive
+
+    ldmia	rsp, {rip, rfp}		@ rip,rfp = value to move to bottom
+	mov	r2, rsp
+.twoRoll2:
+	ldr	r0, [r2, #8]
+	ldr	r1, [r2, #12]
+	stmia	r2, {r0, r1}
+	add	r2, r2, #8
+	subs	r3, r3, #1
+	bne	.twoRoll2
+	stmia	r2, {rip, rfp}
+
+.twoRollX:
+	ldmia	sp!, {rip, rfp}
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  lnegate  @@@@@@@@@@@@@@@@@
+
+lnegateBop:
+	ldmia	rsp, {r0, r1}
+	eor	r2, r2
+	subs	r1, r2, r1
+	sbc	r0, r2, r0
+	stmia	rsp, {r0, r1}
+	bx	lr
+  
+@@@@@@@@@@@@@@@@@  labs  @@@@@@@@@@@@@@@@@
+
+labsBop:
+	ldrd	r0, [rsp]		@ r0 is hiword   r1 is lowword
+	orrs	r0, r0
+	bxge	lr				@ bail if not negative
+	eor	r2, r2
+	subs	r1, r2, r1
+	sbc	r0, r2, r0
+	strd	r0, [rsp]
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  tailRecurse  @@@@@@@@@@@@@@@@@
+
+@ this requires that caller not have extra junk on return stack
+tailRecurseBop:
+	@ tail recurse by popping the rstack and then moving the IP back one instruction
+	ldmia	rsp!, {r0}
+	sub	r0, #4
+	mov	rip, r0
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  2>r  @@@@@@@@@@@@@@@@@
+
+twoRPushBop:
+	ldmia	rsp!, {r0, r1}
+	stmdb	rrp!, {r0, r1}
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  2r>  @@@@@@@@@@@@@@@@@
+
+twoRPopBop:
+	ldmia	rrp!, {r0, r1}
+	stmdb	rsp!, {r0, r1}
+	bx	lr
+  
+@@@@@@@@@@@@@@@@@  2r@  @@@@@@@@@@@@@@@@@
+
+twoRAtBop:
+	ldmia	rrp, {r0, r1}
+	stmdb	rsp!, {r0, r1}
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  compareMemory  @@@@@@@@@@@@@@@@@
+
+compareMemoryBop:
+	@ returns null if numBytes memory blocks at block1 and block2 are the same
+	@ else returns ptr to first non-matching byte in block1
+	ldmia	rsp!, {r0, r1, r2}
+	@ r2: numBytes
+	@ r1: block2
+	@ r0: block1
+	orrs	r2, r2
+	bne	.compMem1
+
+	@ block with size 0 always counts as a match
+	stmdb	rsp!, {r2}
+	bx	lr
+	
+.compMem1:
+	stmdb	sp!, {r4, r5}
+	@ r5 will count up from 0 to r2-1
+	eor	r5, r5
+.compMem2:
+	ldrb	r3, [r0, r5]
+	ldrb	r4, [r1, r5]
+	cmp	r3, r4
+	beq	.compMem3
+
+	@ bytes didn't match
+	add	r0, r5
+	stmdb	rsp!, {r0}
+	ldmia	sp!, {r4, r5}
+	bx	lr
+
+.compMem3:
+	@ advance comparison offset, see if all bytes checked
+	add	r5, r5, #1
+	cmp	r5, r2
+	bne	.compMem2
+
+	@ all bytes matched, push a null and exit
+	eor	r0, r0
+	stmdb	rsp!, {r0}
+	ldmia	sp!, {r4, r5}
+	bx	lr
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @                                                    @

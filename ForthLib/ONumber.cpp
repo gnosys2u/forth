@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include <stdio.h>
 #include <string.h>
 #include <map>
@@ -47,7 +47,7 @@ namespace ONumber
     {
         char buff[32];
         GET_THIS(oIntStruct, pInt);
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         pShowContext->BeginElement("value");
         sprintf(buff, "%d", pInt->val);
         pShowContext->EndElement(buff);
@@ -171,7 +171,7 @@ namespace ONumber
 	{
 		char buff[32];
 		GET_THIS(oLongStruct, pLong);
-		ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         pShowContext->BeginElement("value");
 		sprintf(buff, "%lld", pLong->val);
 		pShowContext->EndElement(buff);
@@ -256,7 +256,7 @@ namespace ONumber
         char buff[32];
         GET_THIS(oFloatStruct, pFloat);
         ForthEngine *pEngine = ForthEngine::GetInstance();
-        ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         pShowContext->BeginElement("value");
         sprintf(buff, "%f", pFloat->val);
         pShowContext->EndElement(buff);
@@ -337,7 +337,7 @@ namespace ONumber
 		char buff[128];
 		GET_THIS(oDoubleStruct, pDouble);
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		ForthShowContext* pShowContext = static_cast<ForthThread*>(pCore->pThread)->GetShowContext();
+        GET_SHOW_CONTEXT;
         pShowContext->BeginElement("value");
         sprintf(buff, "%f", pDouble->val);
         pShowContext->EndElement(buff);

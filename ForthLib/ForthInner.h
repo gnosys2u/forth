@@ -54,8 +54,13 @@ struct ForthFileInterface
 	void				(*rewindDir)( void* pDir );
 };
 
+#define NUM_CORE_SCRATCH_CELLS 8
+
 struct ForthCoreState
 {
+    ForthCoreState(int paramStackLongs, int returnStackLongs);
+    void InitializeFromEngine(void* pEngine);
+
     optypeActionRoutine  *optypeAction;
 
     ucell               numBuiltinOps;
@@ -64,8 +69,7 @@ struct ForthCoreState
     ucell               numOps;
     ucell               maxOps;     // current size of table at pUserOps
 
-    //ForthEngine         *pEngine;
-    void*               pEngine;
+    void*               pEngine;        // ForthEngine*
 
     forthop*            IP;            // interpreter pointer
 
@@ -93,7 +97,7 @@ struct ForthCoreState
 
     ucell               RLen;           // size of return stack in longwords
 
-    void                *pThread;		// actually a ForthAsyncThread
+    void                *pFiber;		// actually a ForthFiber
 
     ForthMemorySection* pDictionary;
     ForthFileInterface* pFileFuncs;
@@ -108,7 +112,7 @@ struct ForthCoreState
     long                traceFlags;
 
     ForthExceptionFrame* pExceptionFrame;  // points to current exception handler frame in rstack
-    ucell               scratch[4];
+    ucell               scratch[NUM_CORE_SCRATCH_CELLS];
 };
 
 
@@ -199,7 +203,6 @@ inline forthop GetCurrentOp( ForthCoreState *pCore )
 #define SET_STATE( A )                  (pCore->state = (A))
 
 #define GET_ENGINE                      ((ForthEngine *) (pCore->pEngine))
-//#define GET_ENGINE                      (ForthEngine::GetInstance())
 
 #define GET_VAR_OPERATION               (pCore->varMode)
 #define SET_VAR_OPERATION( A )          (pCore->varMode = (A))
@@ -217,6 +220,7 @@ inline forthop GetCurrentOp( ForthCoreState *pCore )
 #define CONSOLE_CHAR_OUT( CH )          (ForthConsoleCharOut( pCore, CH ))
 #define CONSOLE_BYTES_OUT( BUFF, N )    (ForthConsoleBytesOut( pCore, BUFF, N ))
 #define CONSOLE_STRING_OUT( BUFF )      (ForthConsoleStringOut( pCore, BUFF ))
+#define ERROR_STRING_OUT( BUFF )        (ForthErrorStringOut( pCore, BUFF ))
 
 #define GET_BASE_REF                    (&pCore->base)
 

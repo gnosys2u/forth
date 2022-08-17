@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include "ForthInput.h"
 #include "ForthEngine.h"
 #include "ForthBlockFileManager.h"

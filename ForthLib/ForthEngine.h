@@ -19,6 +19,7 @@
 #include "ForthStructs.h"
 
 class ForthThread;
+class ForthFiber;
 class ForthShell;
 class ForthExtension;
 class ForthOpcodeCompiler;
@@ -169,6 +170,8 @@ public:
 	eForthResult        ExecuteOps(ForthCoreState* pCore, forthop* pOps);
 
 	eForthResult		FullyExecuteMethod(ForthCoreState* pCore, ForthObject& obj, int methodNum);
+    eForthResult        DeleteObject(ForthCoreState* pCore, ForthObject& obj);
+    void                ReleaseObject(ForthCoreState* pCore, ForthObject& inObject);
 
     // add an op to the operator dispatch table. returns the assigned opcode (without type field)
     forthop         AddOp( const void *pOp );
@@ -187,8 +190,10 @@ public:
 
     // create a thread which will be managed by the engine - the engine destructor will delete all threads
     //  which were created with CreateThread 
-    ForthAsyncThread * CreateAsyncThread(forthop threadLoopOp = OP_DONE, int paramStackSize = DEFAULT_PSTACK_SIZE, int returnStackSize = DEFAULT_RSTACK_SIZE );
-	void               DestroyAsyncThread(ForthAsyncThread *pThread);
+    ForthThread *   CreateThread(forthop fiberOp = OP_DONE, int paramStackSize = DEFAULT_PSTACK_SIZE, int returnStackSize = DEFAULT_RSTACK_SIZE );
+	void            DestroyThread(ForthThread *pThread);
+
+    void InitCoreState(ForthCoreState& core);
 
     // return true IFF the last compiled opcode was an integer literal
     bool            GetLastConstant( long& constantValue );
@@ -273,11 +278,12 @@ public:
     inline void             SetDefinitionVocabulary( ForthVocabulary* pVocab )  { mpDefinitionVocab = pVocab; };
     inline ForthLocalVocabulary  *GetLocalVocabulary( void )   { return mpLocalVocab; };
 	void					ShowSearchInfo();
+    void                    ShowMemoryInfo();
     inline ForthShell       *GetShell( void ) { return mpShell; };
 	inline void				SetShell( ForthShell *pShell ) { mpShell = pShell; };
     inline ForthVocabulary  *GetForthVocabulary(void) { return mpForthVocab; };
     inline ForthVocabulary  *GetLiteralsVocabulary(void) { return mpLiteralsVocab; };
-    inline ForthThread      *GetMainThread( void )  { return mpMainThread->GetThread(0); };
+    inline ForthFiber       *GetMainFiber( void )  { return mpMainThread->GetFiber(0); };
 
     inline cell             *GetCompileStatePtr( void ) { return &mCompileState; };
     inline void             SetCompileState( cell v ) { mCompileState = v; };
@@ -321,11 +327,12 @@ public:
 
 	void					SetDefaultConsoleOut( ForthObject& newOutStream );
     void					SetConsoleOut(ForthCoreState* pCore, ForthObject& newOutStream);
-    void					SetAuxOut(ForthCoreState* pCore, ForthObject& newOutStream);
-    void					PushConsoleOut( ForthCoreState* pCore );
-	void					PushDefaultConsoleOut( ForthCoreState* pCore );
-    void                    PushAuxOut(ForthCoreState* pCore);
-	void					ResetConsoleOut( ForthCoreState* pCore );
+    void					SetErrorOut(ForthCoreState* pCore, ForthObject& newOutStream);
+    void*					GetErrorOut(ForthCoreState* pCore);
+    void					PushConsoleOut(ForthCoreState* pCore);
+    void					PushErrorOut(ForthCoreState* pCore);
+    void					PushDefaultConsoleOut( ForthCoreState* pCore );
+	void					ResetConsoleOut( ForthCoreState& core );
 
     // return milliseconds since engine was created
     unsigned long           GetElapsedTime( void );
@@ -410,8 +417,8 @@ protected:
 
     cell        mCompileState;          // true iff compiling
 
-	ForthAsyncThread * mpThreads;
-	ForthAsyncThread * mpMainThread;
+	ForthThread * mpThreads;
+	ForthThread * mpMainThread;
     ForthShell  *   mpShell;
     long *          mpEngineScratch;
     char *          mpLastToken;
@@ -434,7 +441,7 @@ protected:
     cell            mNextEnum;
 
 	ForthObject		mDefaultConsoleOutStream;
-    ForthObject     mAuxOutStream;
+    ForthObject     mErrorOutStream;
 
 	std::vector<ForthLabel> mLabels;
 

@@ -7,22 +7,8 @@ autoforget PHILOSOPHERS
 5 -> int defaultNumPhilosophers
 true -> bool useForks
 
-true -> bool usePrintLocks
-AsyncLock printLock
-: p[
-  if(usePrintLocks)
-    printLock.grab
-  endif
-;
-
-: ]p
-  if(usePrintLocks)
-    printLock.ungrab
-  endif
-;
-
 class: Philosopher
-  Thread eatingThread
+  Fiber eatingFiber
   Lock firstFork
   Lock secondFork
   int id
@@ -30,14 +16,14 @@ class: Philosopher
   int timesHungry
   
   m: delete
-    oclear eatingThread
+    oclear eatingFiber
     oclear firstFork
     oclear secondFork
   ;m
 
   m: isHungry
     //timesFed helpingsToEat <
-    eatingThread.getRunState kFTRSExited <>
+    eatingFiber.getRunState kFTRSExited <>
   ;m
   
   m: run
@@ -51,25 +37,25 @@ class: Philosopher
       1 ->+ timesFed
       d[ "philosopher " %s id %d " ate " %s timesFed %d " time, going to sleep\n" %s ]d
 
-      sleepThread(eatingTime)
+      sleepFiber(eatingTime)
       
       d[ "philosopher " %s id %d " ungrabbing first fork(" %s firstFork.id %d ")\n" %s ]d
       firstFork.ungrab
       d[ "philosopher " %s id %d " ungrabbing second fork(" %s secondFork.id %d ")\n" %s ]d
       secondFork.ungrab
       
-      sleepThread(digestionTime)
+      sleepFiber(digestionTime)
       
     repeat
     "philosopher " %s id %d " done\n" %s
-    exitThread
+    exitFiber
   ;m
 
   m: init
     -> secondFork
     -> firstFork
     -> id
-    -> eatingThread
+    -> eatingFiber
   ;m
   
 ;class
@@ -113,15 +99,15 @@ class: Philosopher
       0 -> firstFork
     endif
     philosophers.get(i) ->o Philosopher phil
-    phil.init(createThread(lit philosopherLoop 1000 1000) i forks.get(firstFork) forks.get(secondFork))
-   //"philosopher " %s i %d %bl phil.eatingThread.__thread %x %nl
+    phil.init(createFiber(lit philosopherLoop 1000 1000) i forks.get(firstFork) forks.get(secondFork))
+   //"philosopher " %s i %d %bl phil.eatingFiber.__Fiber %x %nl
     
-    phil.eatingThread.startWithArgs(r[ phil ]r) drop
+    phil.eatingFiber.startWithArgs(r[ phil ]r) drop
   loop
   
   do(numPhilosophers 0)
     philosophers.get(i) ->o phil
-    phil.eatingThread.join
+    phil.eatingFiber.join
   loop
   
   "all philosophers stuffed!\n" %s
@@ -137,7 +123,7 @@ class: Philosopher
   
 
 class: AsyncPhilosopher
-  AsyncThread eatingThread
+  Thread eatingThread
   AsyncLock firstFork
   AsyncLock secondFork
   int id
@@ -179,7 +165,7 @@ class: AsyncPhilosopher
       
     repeat
     p[ "philosopher " %s id %d " done\n" %s ]p
-    exitAsyncThread
+    exitThread
   ;m
 
   m: init
@@ -233,7 +219,7 @@ class: AsyncPhilosopher
       0 -> firstFork
     endif
     asyncPhilosophers.get(i) ->o phil
-    phil.init(createAsyncThread(lit asyncPhilosopherLoop 1000 1000) i asyncForks.get(firstFork) asyncForks.get(secondFork))
+    phil.init(createThread(lit asyncPhilosopherLoop 1000 1000) i asyncForks.get(firstFork) asyncForks.get(secondFork))
     //p[ "philosopher " %s i %d %bl phil.eatingThread.__thread %x %nl ]p
   loop
   

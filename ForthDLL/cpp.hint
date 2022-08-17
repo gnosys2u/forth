@@ -1,0 +1,2 @@
+#define FORTHDLL_API __declspec(dllexport)
+#define FORTHDLL_API __declspec(dllimport)

@@ -103,7 +103,7 @@
   new_motion_word("reser" RESERVOIR) 
   new_motion_word("main" OFFICE)  new_motion_word("offic" OFFICE) 
   new_motion_word("fork" FORK) 
-   new_object_word("key" KEYS)  new_object_word("keys" KEYS) 
+  new_object_word("key" KEYS)  new_object_word("keys" KEYS) 
   new_object_word("lamp" LAMP)  new_object_word("lante" LAMP) 
   new_object_word("headl" LAMP) 
   new_object_word("grate" GRATE) 

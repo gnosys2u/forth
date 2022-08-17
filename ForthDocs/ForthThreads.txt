@@ -9,6 +9,9 @@ threading at first, then going to preemptive threading where thread switching
 can only happen on forthop exits, IE whenever execution returns to the inner
 interpreter.
 
+---
+In October 2020, I renamed ForthThread to ForthFiber and ForthAsyncThread to
+ForthThread, just to make my life more confusing.
 ------------------------------------------------------------------------------
 What is the relationship of the outer interpreter and the inner interpreter
 when threading is added?

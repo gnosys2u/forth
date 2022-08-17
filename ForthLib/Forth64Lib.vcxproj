@@ -108,15 +108,15 @@
   <ItemGroup>
     <CustomBuild Include="InnerInterpAmd64.asm">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Debug\%(Filename).obj $(USE_ASM_INTERP) -dWIN32 -dASM_INNER_INTERPRETER</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Debug\%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Debug\%(Filename).obj $(USE_ASM_INTERP) -dWIN32 -dASM_INNER_INTERPRETER</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Debug\%(Filename).obj -dWIN32</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)x64\Debug\%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">$(ProjectDir)x64\Debug\%(Filename).obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">false</ExcludedFromBuild>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Assembling %(Filename)</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">Assembling %(Filename)</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Release\%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Release\%(Filename).obj -dWIN32</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">$(ProjectDir)x64\Release\%(Filename).obj;%(Outputs)</Outputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">false</ExcludedFromBuild>
@@ -128,16 +128,16 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Debug\%(Filename).obj $(USE_ASM_INTERP) -dWIN32 -dASM_INNER_INTERPRETER</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Debug\%(Filename).obj $(USE_ASM_INTERP) -dWIN32 -dASM_INNER_INTERPRETER</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Debug\%(Filename).obj $(USE_ASM_INTERP) -dWIN32 -dASM_INNER_INTERPRETER</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Debug\%(Filename).obj $(USE_ASM_INTERP) -dWIN32 -dASM_INNER_INTERPRETER</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Assembling %(Filename)</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)x64\Debug\%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">$(ProjectDir)x64\Debug\%(Filename).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Release\%(Filename).obj</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Release\%(Filename).obj</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)x64\Release\%(Filename).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">E:\Apps\NASM\nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Release\%(Filename).obj</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win64 "%(FullPath)" -o $(ProjectDir)x64\Release\%(Filename).obj</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">$(ProjectDir)x64\Release\%(Filename).obj;%(Outputs)</Outputs>
     </CustomBuild>

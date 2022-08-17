@@ -145,7 +145,7 @@ typedef enum {
 
 #define ulong  unsigned long
 #define ForthEngine void
-#define ForthThreadState void
+#define ForthFiberState void
 
 // there is an action routine with this signature for each forthOpType
 // user can add new optypes with ForthEngine::AddOpType
@@ -167,7 +167,7 @@ struct ForthCoreState
     ForthEngine         *pEngine;
 
     // *** beginning of stuff which is per thread ***
-    ForthThreadState    *pThread;       // pointer to current thread state
+    ForthFiberState     *pThread;       // pointer to current thread state
 
     long                *IPtr;          // interpreter pointer
 

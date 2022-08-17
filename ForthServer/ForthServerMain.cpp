@@ -1,7 +1,7 @@
 // ForthServer.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
+#include "pch.h"
 #include <string.h>
 #include <winsock2.h>
 #include "..\ForthLib\ForthShell.h"

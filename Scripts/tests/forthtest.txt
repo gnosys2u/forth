@@ -102,7 +102,11 @@ test[ testGlobalVars1 checkResult( "0 5 10 15 20 25 30 " ) ]
   -100000 -> gvi gvi . 230000 -> gvi gvi . 3000 ->- gvi gvi .
   -100000 -> gvui gvui . 230000 -> gvui gvui . 3000 ->- gvui gvui .
 ;
+#if FORTH64
+test[ testGlobalVars2 checkResult( "-5 7 4 251 7 4 -1100 100 -1000 64436 100 64536 -100000 230000 227000 4294867296 230000 227000 " ) ]
+#else
 test[ testGlobalVars2 checkResult( "-5 7 4 251 7 4 -1100 100 -1000 64436 100 64536 -100000 230000 227000 -100000 230000 227000 " ) ]
+#endif
 
 : testLocalVars1
   int aa
@@ -121,7 +125,11 @@ test[ testLocalVars1 checkResult( "0 5 10 15 20 25 30 " ) ]
   -100000 -> lvi lvi . 230000 -> lvi lvi . 3000 ->- lvi lvi .
   -100000 -> lvui lvui . 230000 -> lvui lvui . 3000 ->- lvui lvui .
 ;
+#if FORTH64
+test[ testLocalVars2 checkResult( "-5 7 4 251 7 4 -1100 100 -1000 64436 100 64536 -100000 230000 227000 4294867296 230000 227000 " ) ]
+#else
 test[ testLocalVars2 checkResult( "-5 7 4 251 7 4 -1100 100 -1000 64436 100 64536 -100000 230000 227000 -100000 230000 227000 " ) ]
+#endif
 
 : testGlobalVars3
   startTest
@@ -466,13 +474,35 @@ test[ 0xDEADBEEF 123456789 2= ]	// check for stack underflow or extra items
 
 ///////////////////////////////////////////////////////////
 
+// test fprintf snprintf
+64 arrayOf byte testBytes
+test[ fprintf(stdout "This line %s %c%c printed %d times\n" "should" 98 101 3 4) 36 =]
+test[ snprintf(0 ref testBytes 64 "This %s %s %c%c printed %d times\n"  "line" "should" 98 101 3 5) 36 =]
+0 ref testBytes %s
+"This line should be printed 3 times\n" %s
+
+// test sscanf
+cell a   cell b   cell c
+test[ sscanf("1 b 10 " "%d %c %x " ref a ref b ref c 3) 3 =  c 16 =  b 98 =  a 1 =]
+
+// test fscanf
+ptrTo int tfile
+test[ fopen("__test.txt" "w" ) -> tfile   tfile 0<>]
+test[ fputs("1 b 10 " tfile ) 0=]
+test[ fclose(tfile) 0=]
+test[ fopen("__test.txt" "r" ) -> tfile   tfile 0<>]
+test[ fscanf(tfile "%d %c %x " ref a ref b ref c 3) 3 =  c 16 =  b 98 =  a 1 =]
+test[ fclose(tfile) 0=]
+test[ remove("__test.txt") 0=]
+
+
+///////////////////////////////////////////////////////////
+
 //%nl %nl "Hit ENTER to exit" %s
 //stdin fgetc
 : finalCheck
   if( testFailed not )
-    pushAuxOut
-    "All tests succeeded\n" %s
-    popConsoleOut odrop
+    "forthtest - all tests succeeded\n" %s
   endif
 ;
 finalCheck

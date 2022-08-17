@@ -1,0 +1,43 @@
+#.PHONY:	all clean depends
+
+CC = g++
+GAS = as
+CDEBUG = -g
+DEFINES = -DLINUX -DFORTH64
+CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -std=c++11 -m64
+#WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wsign-compare -Wunused-but-set-variable
+WARNING_FLAGS = -Wno-format -Wno-reorder -Wno-unused-variable
+CPPFLAGS = $(CFLAGS) -I ../ForthLib
+
+LDFLAGS = $(CFLAGS) -no-pie
+LD_LIBRARIES = -L ../ForthLib -lforth -lm -lc -lstdc++ -ldl -lpthread -lreadline
+OBJDIR = obj
+
+#DEPDIR = dep
+#DEPS := $(patsubst %.cpp,$(DEPDIR)/%.d,$(SRCS))
+
+$(OBJDIR)/ForthMain.o:	ForthMain.cpp
+	echo "* " $*
+	echo "< " $<
+	echo "@ " $@
+	$(CC) $(CPPFLAGS) -o $(OBJDIR)/ForthMain.o ForthMain.cpp
+
+forth:	$(OBJDIR)/ForthMain.o
+	$(CC) $(OBJDIR)/ForthMain.o $(DEFINES) -o forth -I ../ForthLib $(LD_LIBRARIES) -no-pie
+	cp forth ../Sandbox
+
+logger: ForthLogger.cpp
+	$(CC) ForthLogger.cpp -o logger
+
+#-include $(DEPS)
+
+#$(DEPDIR)/%.d: %.cpp
+#	$(CC) -M $(CPPFLAGS) -o $(DEPDIR)/$*.d $<
+	
+clean:
+	make -C ../ForthLib -f Makefile.ubu64 clean
+	-rm -f $(OBJDIR)/*.o
+	-rm ./forth
+#	-rm $(DEPDIR)/*.d
+
+all:	forth ../ForthLib/libforth.a

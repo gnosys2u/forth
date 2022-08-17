@@ -114,7 +114,7 @@ class: RandomIntGenerator
   
   m: shuffle
     -> Array a
-    a.count dup -> cell ii
+    a.count -> cell ii
   
     begin
       mod(generate ii) -> cell jj

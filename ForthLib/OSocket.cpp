@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include <stdio.h>
 #include <string.h>
 #include <map>
@@ -78,7 +78,6 @@ namespace OSocket
             close(pSocket->fd);
 #endif
         }
-        FREE_OBJECT(pSocket);
         METHOD_RETURN;
     }
 

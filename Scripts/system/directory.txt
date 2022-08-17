@@ -4,7 +4,7 @@ autoforget Directory
 class: Directory extends Object
 
   cell dirHandle
-  ptrTo dirent pEntry
+  dirent entry
   cell position
   String path
 
@@ -41,10 +41,9 @@ class: Directory extends Object
   // ... false                             if no entries left
   m: nextEntry
     if(dirHandle)
-      readdir(dirHandle) -> pEntry
-      if(pEntry)
-        pEntry.d_name(0 ref)
-        and(pEntry.d_type DIRENT_IS_DIR) 0<>
+      if(readdir(dirHandle entry))
+        entry.d_name(0 ref)
+        and(entry.d_type DIRENT_IS_DIR) 0<>
         true
       else
         false

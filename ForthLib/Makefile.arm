@@ -45,6 +45,7 @@ LIBCPPSRCS = \
 	ForthObjectReader.cpp \
 	ForthMemoryManager.cpp \
 	OArray.cpp \
+	ODeque.cpp \
 	OList.cpp \
 	OMap.cpp \
 	ONumber.cpp \

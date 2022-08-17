@@ -1,7 +1,7 @@
 // ForthMidiMain.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
+#include "pch.h"
 #include "ForthMidiMain.h"
 #include "ForthShell.h"
 #include "ForthEngine.h"
@@ -134,6 +134,41 @@ CWinApp theApp;
 
 using namespace std;
 
+
+static HANDLE hLoggingPipe = INVALID_HANDLE_VALUE;
+
+void OutputToLogger(const char* pBuffer)
+{
+    //OutputDebugString(buffer);
+
+    DWORD dwWritten;
+    int bufferLen = 1 + strlen(pBuffer);
+
+    if (hLoggingPipe == INVALID_HANDLE_VALUE)
+    {
+        hLoggingPipe = CreateFile(TEXT("\\\\.\\pipe\\ForthLogPipe"),
+            GENERIC_READ | GENERIC_WRITE,
+            0,
+            NULL,
+            OPEN_EXISTING,
+            0,
+            NULL);
+    }
+    if (hLoggingPipe != INVALID_HANDLE_VALUE)
+    {
+        WriteFile(hLoggingPipe,
+            pBuffer,
+            bufferLen,   // = length of string + terminating '\0' !!!
+            &dwWritten,
+            NULL);
+
+        //CloseHandle(hPipe);
+    }
+
+    return;
+}
+
+
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
 	int nRetCode = 0;
@@ -165,9 +200,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
         }
 #else
         ForthMidiExtension* pMidiExtension = new ForthMidiExtension;
-        pShell = new ForthShell( NULL, pMidiExtension );
-        pShell->SetCommandLine( argc - 1, (const char **) (argv + 1));
-        pShell->SetEnvironmentVars( (const char **) envp );
+        pShell = new ForthShell( argc, (const char **)(argv), (const char **)envp,
+            nullptr, pMidiExtension);
+#if 0
         if ( argc > 1 )
         {
 
@@ -184,6 +219,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
             }
         }
         else
+#endif
         {
 
             //

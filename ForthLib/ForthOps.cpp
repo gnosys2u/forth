@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 #include <math.h>
 
 #ifdef ARM9
@@ -43,6 +43,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 
 extern int kbhit(void);
 extern int getch(void);
@@ -82,6 +83,9 @@ extern GFORTHOP( ubyteVarActionBop );
 extern GFORTHOP( shortVarActionBop );
 extern GFORTHOP( ushortVarActionBop );
 extern GFORTHOP( intVarActionBop );
+#ifdef FORTH64
+extern GFORTHOP(uintVarActionBop);
+#endif
 extern GFORTHOP( longVarActionBop );
 extern GFORTHOP( floatVarActionBop );
 extern GFORTHOP( doubleVarActionBop );
@@ -543,6 +547,7 @@ FORTHOP(doOp)
     pEngine->CompileBuiltinOpcode( OP_ABORT );
     pEngine->CompileInt( 0 );
     pEngine->StartLoopContinuations();
+    pEngine->ClearPeephole();
 }
 
 // has precedence!
@@ -559,6 +564,7 @@ FORTHOP(checkDoOp)
     pEngine->CompileBuiltinOpcode( OP_ABORT );
     pEngine->CompileInt( 0 );
     pEngine->StartLoopContinuations();
+    pEngine->ClearPeephole();
 }
 
 // has precedence!
@@ -580,6 +586,7 @@ FORTHOP(loopOp)
     // fill in the branch to after loop opcode
     *pDoOp = COMPILED_OP( kOpBranch, (GET_DP - pDoOp) - 1 );
     pEngine->EndLoopContinuations(kShellTagDo);
+    pEngine->ClearPeephole();
 }
 
 // has precedence!
@@ -601,6 +608,7 @@ FORTHOP(loopNOp)
     // fill in the branch to after loop opcode
     *pDoOp = COMPILED_OP( kOpBranch, (GET_DP - pDoOp) - 1 );
     pEngine->EndLoopContinuations(kShellTagDo);
+    pEngine->ClearPeephole();
 }
 
 // if - has precedence
@@ -616,6 +624,7 @@ FORTHOP( ifOp )
     pShellStack->PushAddress(branchAddr);
     // flag that this is the "if" branch
     pShellStack->PushTag(kShellTagIf);
+    pEngine->ClearPeephole();
 }
 
 // ]if - has precedence
@@ -631,6 +640,7 @@ FORTHOP(elifOp)
     pShellStack->PushAddress(branchAddr);
     // flag that this is the "if" branch
     pShellStack->PushTag(kShellTagElif);
+    pEngine->ClearPeephole();
 }
 
 // orif - has precedence
@@ -646,6 +656,7 @@ FORTHOP(orifOp)
     pShellStack->PushAddress(branchAddr);
     // flag that this is an "orif" clause
     pShellStack->PushTag(kShellTagOrIf);
+    pEngine->ClearPeephole();
 }
 
 // andif - has precedence
@@ -661,6 +672,7 @@ FORTHOP(andifOp)
     pShellStack->PushAddress(branchAddr);
     // flag that this is an "andif" clause
     pShellStack->PushTag(kShellTagAndIf);
+    pEngine->ClearPeephole();
 }
 
 
@@ -820,6 +832,7 @@ FORTHOP( beginOp )
     pShellStack->PushAddress(GET_DP);
     pShellStack->PushTag( kShellTagBegin );
     pEngine->StartLoopContinuations();
+    pEngine->ClearPeephole();
 }
 
 
@@ -861,6 +874,7 @@ FORTHOP( whileOp )
     pShellStack->PushTag(kShellTagWhile);
     pShellStack->PushAddress(oldAddress);
     pShellStack->PushTag(kShellTagBegin);
+    pEngine->ClearPeephole();
 }
 
 
@@ -882,10 +896,12 @@ FORTHOP( repeatOp )
         return;
     }
     // fill in the branch taken when "while" fails
-    forthop*pBranch =  (forthop*) pShellStack->Pop();
+    forthop* pBranch =  (forthop*) pShellStack->Pop();
     //*pBranch = COMPILED_OP((branchTag == kShellTagBranchZ) ? kOpBranchZ : kOpBranch, (GET_DP - pBranch));
     pEngine->PatchOpcode(kOpBranchZ, (GET_DP - pBranch), pBranch);
+    forthop* branchAddress = GET_DP;
     pEngine->CompileOpcode(kOpBranch, (pBeginAddress - GET_DP) - 1);
+    //printf("repeat compiled branch 0x%x @ %p\n", *branchAddress, branchAddress);
     pEngine->EndLoopContinuations(kShellTagBegin);
     pEngine->ClearPeephole();
 }
@@ -917,6 +933,7 @@ FORTHOP( caseOp )
    pShellStack->Push( 0 );
    pShellStack->PushTag( kShellTagCase );
    pEngine->StartLoopContinuations();
+   pEngine->ClearPeephole();
 }
 
 
@@ -948,6 +965,7 @@ FORTHOP( ofifOp )
     pEngine->CompileBuiltinOpcode( OP_ABORT );
 	// if the ofif test succeeded, we need to dispose of the switch input value
     pEngine->CompileBuiltinOpcode( OP_DROP );
+    pEngine->ClearPeephole();
 }
 
 
@@ -1000,6 +1018,7 @@ FORTHOP( endofOp )
     // save address for endcase
     pShellStack->PushAddress(pDP);
     pShellStack->PushTag( kShellTagCase );
+    pEngine->ClearPeephole();
 }
 
 
@@ -1302,6 +1321,7 @@ FORTHOP(tryOp)
     pShellStack->PushTag(kShellTagTry);
     pEngine->CompileInt(0);
     pEngine->CompileInt(0);
+    pEngine->ClearPeephole();
 }
 
 FORTHOP(exceptOp)
@@ -1320,6 +1340,7 @@ FORTHOP(exceptOp)
     *pHandlerOffsets = GET_DP - pHandlerOffsets;
     pShellStack->PushAddress(pHandlerOffsets);
     pShellStack->PushTag(kShellTagExcept);
+    pEngine->ClearPeephole();
 }
 
 FORTHOP(doFinallyOp)
@@ -1356,6 +1377,7 @@ FORTHOP(finallyOp)
     forthop* pBranch = pHandlerOffsets +(pHandlerOffsets[0] - 1);
     *pBranch = COMPILED_OP(kOpBranch, (dp - pBranch) - 1);
     pShellStack->PushTag(kShellTagFinally);
+    pEngine->ClearPeephole();
 }
 
 FORTHOP(endtryOp)
@@ -1384,6 +1406,7 @@ FORTHOP(endtryOp)
         *pBranch = COMPILED_OP(kOpBranch, (dp - pBranch) - 1);
     }
     pEngine->CompileBuiltinOpcode(OP_DO_ENDTRY);
+    pEngine->ClearPeephole();
 }
 
 FORTHOP(doEndtryOp)
@@ -1441,6 +1464,7 @@ FORTHOP(buildsOp)
     gpSavedDP = GET_DP;
     // compile dummy word at DP, will be filled in by does
     pEngine->CompileInt( 0 );
+    pEngine->ClearPeephole();
 }
 
 // does
@@ -1489,12 +1513,14 @@ FORTHOP( doesOp )
 FORTHOP( endBuildsOp )
 {
     // finish current symbol definition (of op defined by builds)
-    GET_ENGINE->GetDefinitionVocabulary()->UnSmudgeNewestSymbol();
+    ForthEngine* pEngine = GET_ENGINE;
+    pEngine->GetDefinitionVocabulary()->UnSmudgeNewestSymbol();
     
     // fetch opcode at pIP, compile it into dummy word remembered by builds
     *gpSavedDP = *GET_IP;
     // we are done defining, bail out
     SET_IP( (forthop* ) (RPOP) );
+    pEngine->ClearPeephole();
 }
 
 // exit has precedence
@@ -1505,7 +1531,8 @@ FORTHOP( exitOp )
     long flags = pEngine->GetFlags();
 
 	bool isMethodDef = ((flags & kEngineFlagIsMethod) != 0);
-	if ( pEngine->HasLocalVariables() )
+    pEngine->ClearPeephole();
+    if ( pEngine->HasLocalVariables() )
 	{
 		pEngine->CompileBuiltinOpcode( isMethodDef ? OP_DO_EXIT_ML : OP_DO_EXIT_L );
 	}
@@ -1513,6 +1540,7 @@ FORTHOP( exitOp )
 	{
 		pEngine->CompileBuiltinOpcode( isMethodDef ? OP_DO_EXIT_M : OP_DO_EXIT );
 	}
+    pEngine->ClearPeephole();
 }
 
 // semi has precedence
@@ -1568,6 +1596,7 @@ FORTHOP( colonNoNameOp )
     pEngine->SetFlag( kEngineFlagNoNameDefinition );
 
 	pEngine->GetShell()->StartDefinition("", "coln");
+    pEngine->ClearPeephole();
 }
 
 
@@ -1616,6 +1645,7 @@ FORTHOP( funcOp )
     //pEngine->ClearFlag( kEngineFlagNoNameDefinition);
 
 	pEngine->GetShell()->StartDefinition("", "func");
+    pEngine->ClearPeephole();
 }
 
 // ;func has precedence
@@ -1648,6 +1678,7 @@ FORTHOP( endfuncOp )
 			pEngine->SetCompileState(0);
 		}
 	}
+    pEngine->ClearPeephole();
 }
 
 FORTHOP( codeOp )
@@ -1658,6 +1689,7 @@ FORTHOP( codeOp )
     pEntry[1] = BASE_TYPE_TO_CODE( kBaseTypeUserDefinition );
     forthop newestOp = *pEntry;
     *pEntry = COMPILED_OP( kOpNative, FORTH_OP_VALUE( newestOp ) );
+    pEngine->ClearPeephole();
 }
 
 FORTHOP( createOp )
@@ -1669,6 +1701,7 @@ FORTHOP( createOp )
     // remember current DP (for does)
     gpSavedDP = GET_DP;
     pEngine->CompileBuiltinOpcode( OP_DO_VAR );
+    pEngine->ClearPeephole();
 }
 
 FORTHOP( forthVocabOp )
@@ -2115,7 +2148,14 @@ FORTHOP( methodOp )
     pEngine->StartOpDefinition(pMethodName, true, kOpUserDef, pDefinitionVocab);
     // switch to compile mode
     pEngine->SetCompileState( 1 );
-    pEngine->SetFlag( kEngineFlagIsMethod );
+    /*
+    if (strcmp(pMethodName, "delete") != 0)     // delete is really a forthop, not a method
+    {
+        pEngine->SetFlag(kEngineFlagIsMethod);
+    }
+    */
+    pEngine->SetFlag(kEngineFlagIsMethod);
+
     if ( pVocab )
     {
         forthop* pEntry = pVocab->GetNewestEntry();
@@ -2123,7 +2163,7 @@ FORTHOP( methodOp )
         {
             methodIndex = pVocab->AddMethod( pMethodName, methodIndex, pEntry[0] );
             pEntry[0] = methodIndex;
-            pEntry[1] |= kDTIsMethod;
+            pEntry[1] |= (kDTIsMethod | kBaseTypeVoid);
         }
 		else
 		{
@@ -2168,10 +2208,14 @@ FORTHOP( returnsOp )
             pToken = pEngine->GetNextSimpleToken();
             pEntry[1] |= kDTIsPtr;
         }
+
+        // wipe the bottom 6 bits of type - this is probaby set to 15 (void)
+        pEntry[1] &= ~STORAGE_DESCRIPTOR_TYPE_MASK;
+
         forthBaseType baseType = pManager->GetBaseTypeFromName( pToken );
         if ( baseType != kBaseTypeUnknown )
         {
-            pEntry[1] |= NATIVE_TYPE_TO_CODE( 0, baseType );
+            pEntry[1] |= NATIVE_TYPE_TO_CODE(0, baseType);
         }
         else
         {
@@ -2616,7 +2660,7 @@ FORTHOP( allocObjectOp )
     if (pMethods)
     {
         long nBytes = pClassVocab->GetSize();
-        ForthObject newObject = (ForthObject) __MALLOC( nBytes );
+        ForthObject newObject = (ForthObject) __ALLOCATE_BYTES( nBytes );
 		memset(newObject, 0, nBytes );
         newObject->pMethods = pMethods;
         SPUSH( (cell)newObject);
@@ -3511,7 +3555,7 @@ FORTHOP( printLongHexOp )
 #if defined(WINDOWS_BUILD)
     SNPRINTF( buff, sizeof(buff), "%I64x", val );
 #else
-    SNPRINTF( buff, sizeof(buff), "%llx", val.s64 );
+    SNPRINTF( buff, sizeof(buff), "%llx", val );
 #endif
 #ifdef TRACE_PRINTS
     SPEW_PRINTS( "printed %s\n", buff );
@@ -3833,15 +3877,15 @@ FORTHOP(addTempStringOp)
 #endif
 
 #ifdef PRINTF_SUBS_IN_ASM
-extern long fprintfSub( ForthCoreState* pCore );
-extern long snprintfSub(ForthCoreState* pCore);
-extern long fscanfSub(ForthCoreState* pCore);
-extern long sscanfSub( ForthCoreState* pCore );
+extern void fprintfSub( ForthCoreState* pCore );
+extern void snprintfSub(ForthCoreState* pCore);
+extern void fscanfSub(ForthCoreState* pCore);
+extern void sscanfSub( ForthCoreState* pCore );
 #else
 
-long fprintfSub( ForthCoreState* pCore )
+void fprintfSub( ForthCoreState* pCore )
 {
-    int a[8];
+    cell a[8];
     // TODO: assert if numArgs > 8
     long numArgs = SPOP;
     for ( int i = numArgs - 1; i >= 0; --i )
@@ -3850,12 +3894,13 @@ long fprintfSub( ForthCoreState* pCore )
     }
     const char* fmt = (const char *) SPOP;
     FILE* outfile = (FILE *) SPOP;
-    return fprintf( outfile, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    cell result = fprintf( outfile, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    SPUSH(result);
 }
 
-long snprintfSub( ForthCoreState* pCore )
+void snprintfSub( ForthCoreState* pCore )
 {
-    int a[8];
+    cell a[8];
     // TODO: assert if numArgs > 8
     long numArgs = SPOP;
     for ( int i = numArgs - 1; i >= 0; --i )
@@ -3865,10 +3910,17 @@ long snprintfSub( ForthCoreState* pCore )
     const char* fmt = (const char *) SPOP;
     size_t maxLen = (size_t) SPOP;
     char* outbuff = (char *) SPOP;
-	return SNPRINTF(outbuff, maxLen, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
+
+#if defined(WINDOWS_BUILD)
+    HRESULT hres = StringCchPrintf(outbuff, maxLen, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
+    cell result = (hres == S_OK) ? strlen(outbuff) : -1;
+#else
+    cell result = snprintf(outbuff, maxLen, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
+#endif
+    SPUSH(result);
 }
 
-long fscanfSub( ForthCoreState* pCore )
+void fscanfSub( ForthCoreState* pCore )
 {
     void* a[8];
     // TODO: assert if numArgs > 8
@@ -3879,21 +3931,23 @@ long fscanfSub( ForthCoreState* pCore )
     }
     const char* fmt = (const char *) SPOP;
     FILE* infile = (FILE *) SPOP;
-    return fscanf( infile, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    cell result = fscanf( infile, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    SPUSH(result);
 }
 
-long sscanfSub( ForthCoreState* pCore )
+void sscanfSub( ForthCoreState* pCore )
 {
     void* a[8];
     // TODO: assert if numArgs > 8
-    long numArgs = SPOP;
+    cell numArgs = SPOP;
     for ( int i = numArgs - 1; i >= 0; --i )
     {
         a[i] = (void *) SPOP;
     }
     const char* fmt = (const char *) SPOP;
     char* inbuff = (char *) SPOP;
-    return sscanf( inbuff, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    cell result = sscanf( inbuff, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7] );
+    SPUSH(result);
 }
 
 cell oStringFormatSub(ForthCoreState* pCore, char* pBuffer, int bufferSize)
@@ -3937,6 +3991,17 @@ cell oStringFormatSub(ForthCoreState* pCore, char* pBuffer, int bufferSize)
         result = (int)(SNPRINTF(pBuffer, bufferSize, fmt, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]));
         break;
     }
+#ifdef WINDOWS_BUILD
+    if (result == S_OK)
+    {
+        result = ::strnlen(pBuffer, bufferSize);
+    }
+    else
+    {
+        result = -1;
+    }
+#endif
+
     return result;
 }
 
@@ -4105,27 +4170,27 @@ FORTHOP( setConsoleOutOp )
 	pEngine->SetConsoleOut( pCore, conoutObject );
 }
 
-FORTHOP(getAuxOutOp)
+FORTHOP(getErrorOutOp)
 {
-    ForthEngine *pEngine = GET_ENGINE;
+    ForthEngine* pEngine = GET_ENGINE;
 
-    pEngine->PushAuxOut(pCore);
+    pEngine->PushErrorOut(pCore);
 }
 
-FORTHOP(setAuxOutOp)
+FORTHOP(setErrorOutOp)
 {
-    ForthEngine *pEngine = GET_ENGINE;
+    ForthEngine* pEngine = GET_ENGINE;
 
     ForthObject conoutObject;
     POP_OBJECT(conoutObject);
-    pEngine->SetAuxOut(pCore, conoutObject);
+    pEngine->SetErrorOut(pCore, conoutObject);
 }
 
 FORTHOP( resetConsoleOutOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
 
-	pEngine->ResetConsoleOut( pCore );
+	pEngine->ResetConsoleOut( *pCore );
 }
 
 FORTHOP(toupperOp)
@@ -5767,73 +5832,38 @@ FORTHOP( thruOp )
 //  threads
 ///////////////////////////////////////////
 
-FORTHOP( createAsyncThreadOp )
+FORTHOP( createThreadOp )
 {
 	ForthObject asyncThread;
 	int returnStackLongs = (int)(SPOP);
 	int paramStackLongs = (int)(SPOP);
 	long threadOp = SPOP;
 	ForthEngine* pEngine = GET_ENGINE;
-	OThread::CreateAsyncThreadObject(asyncThread, pEngine, threadOp, paramStackLongs, returnStackLongs);
+	OThread::CreateThreadObject(asyncThread, pEngine, threadOp, paramStackLongs, returnStackLongs);
 
 	PUSH_OBJECT(asyncThread);
 }
 
-FORTHOP(createThreadOp)
+FORTHOP(createFiberOp)
 {
 	ForthEngine* pEngine = GET_ENGINE;
-	ForthObject thread;
+	ForthObject fiber;
 
-	ForthThread* pThread = (ForthThread*)(pCore->pThread);
-	ForthAsyncThread* pAsyncThread = pThread->GetParent();
+	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
+	ForthThread* pThread = pFiber->GetParent();
 	int returnStackLongs = (int)(SPOP);
 	int paramStackLongs = (int)(SPOP);
 	long threadOp = SPOP;
-	OThread::CreateThreadObject(thread, pAsyncThread, pEngine, threadOp, paramStackLongs, returnStackLongs);
+	OThread::CreateFiberObject(fiber, pThread, pEngine, threadOp, paramStackLongs, returnStackLongs);
 
-	PUSH_OBJECT(thread);
+	PUSH_OBJECT(fiber);
 }
 
-#if 0
-FORTHOP( threadGetStateOp )
+FORTHOP( exitThreadOp )
 {
-    ForthThread* pThread = (ForthThread*)(SPOP);
-	SPUSH( (cell) (pThread->GetCore()) );
-}
-
-FORTHOP( stepThreadOp )
-{
-    ForthThread* pThread = (ForthThread*)(SPOP);
-	ForthCoreState* pThreadCore = pThread->GetCore();
-	forthop op = *(pThreadCore->IP)++;
-    long result;
-    ForthEngine *pEngine = GET_ENGINE;
-#ifdef ASM_INNER_INTERPRETER
-	if ( pEngine->GetFastMode() )
-	{
-		result = (long) InterpretOneOpFast( pCore, op );
-	}
-	else
-#endif
-	{
-		result = (long) InterpretOneOp( pCore, op );
-	}
-    SPUSH( result );
-}
-
-FORTHOP( startThreadOp )
-{
-	ForthAsyncThread* pThread = (ForthAsyncThread*)(SPOP);
-    long result = pThread->Start();
-    SPUSH( result );
-}
-#endif
-
-FORTHOP( exitAsyncThreadOp )
-{
-	ForthThread* pThread = (ForthThread*)(pCore->pThread);
-	ForthAsyncThread* pAsyncThread = pThread->GetParent();
-	pAsyncThread->Exit();
+	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
+	ForthThread* pThread = pFiber->GetParent();
+	pThread->Exit();
 }
 
 FORTHOP(yieldOp)
@@ -5841,38 +5871,38 @@ FORTHOP(yieldOp)
 	SET_STATE(kResultYield);
 }
 
-FORTHOP(stopThreadOp)
+FORTHOP(stopFiberOp)
 {
 	SET_STATE(kResultYield);
-	ForthThread* pThread = (ForthThread*)(pCore->pThread);
-	pThread->Stop();
+	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
+	pFiber->Stop();
 }
 
-FORTHOP(sleepThreadOp)
+FORTHOP(sleepFiberOp)
 {
 	SET_STATE(kResultYield);
-	ForthThread* pThread = (ForthThread*)(pCore->pThread);
+	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
 	ulong sleepMilliseconds = (ulong)(SPOP);
-	pThread->Sleep(sleepMilliseconds);
+	pFiber->Sleep(sleepMilliseconds);
 }
 
-FORTHOP(exitThreadOp)
+FORTHOP(exitFiberOp)
 {
 	SET_STATE(kResultYield);
-	ForthThread* pThread = (ForthThread*)(pCore->pThread);
-	pThread->Exit();
+	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
+	pFiber->Exit();
+}
+
+FORTHOP(getCurrentFiberOp)
+{
+	PUSH_OBJECT(((ForthFiber *)(pCore->pFiber))->GetFiberObject());
 }
 
 FORTHOP(getCurrentThreadOp)
 {
-	PUSH_OBJECT(((ForthThread *)(pCore->pThread))->GetThreadObject());
-}
-
-FORTHOP(getCurrentAsyncThreadOp)
-{
-	ForthThread* pThread = (ForthThread*)(pCore->pThread);
-	ForthAsyncThread* pAsyncThread = pThread->GetParent();
-	PUSH_OBJECT(pAsyncThread->GetAsyncThreadObject());
+	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
+	ForthThread* pThread = pFiber->GetParent();
+	PUSH_OBJECT(pThread->GetThreadObject());
 }
 
 #ifdef WIN32
@@ -6166,6 +6196,23 @@ FORTHOP(clearConsoleOp)
 }
 
 
+FORTHOP(getConsoleSizesOp)
+{
+    NEEDS(0);
+#ifdef WIN32
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    SPUSH((consoleInfo.srWindow.Right - consoleInfo.srWindow.Left) + 1);
+    SPUSH((consoleInfo.srWindow.Bottom - consoleInfo.srWindow.Top) + 1);
+#else
+    struct winsize ws;
+    ioctl(0, TIOCGWINSZ, &ws);
+    SPUSH(ws.ws_col);
+    SPUSH(ws.ws_row);
+#endif
+}
+
 
 ///////////////////////////////////////////
 //  Network support
@@ -6212,6 +6259,12 @@ FORTHOP(resetProfileOp)
 {
     ForthEngine *pEngine = GET_ENGINE;
     pEngine->ResetExecutionProfile();
+}
+
+FORTHOP(showMemoryOp)
+{
+    ForthEngine* pEngine = GET_ENGINE;
+    pEngine->ShowMemoryInfo();
 }
 
 FORTHOP(readOp)
@@ -8998,43 +9051,49 @@ FORTHOP(scHandleAlreadyShownOp)
 
 FORTHOP(scBeginIndentOp)
 {
-	((ForthThread *)(pCore->pThread))->GetShowContext()->BeginIndent();
+    GET_SHOW_CONTEXT;
+    pShowContext->BeginIndent();
 }
 
 FORTHOP(scEndIndentOp)
 {
-	((ForthThread *)(pCore->pThread))->GetShowContext()->EndIndent();
+    GET_SHOW_CONTEXT;
+    pShowContext->EndIndent();
 }
 
 FORTHOP(scShowHeaderOp)
 {
-	ForthShowContext* pShowContext = ((ForthThread *)(pCore->pThread))->GetShowContext();
+    GET_SHOW_CONTEXT;
     ForthClassObject* pClassObject = GET_CLASS_OBJECT(GET_TP);
     pShowContext->ShowHeader(pCore, pClassObject->pVocab->GetName(), GET_TP);
 }
 
 FORTHOP(scShowIndentOp)
 {
-	const char* pStr = (const char *)(SPOP);
-	((ForthThread *)(pCore->pThread))->GetShowContext()->ShowIndent(pStr);
+    GET_SHOW_CONTEXT;
+    const char* pStr = (const char *)(SPOP);
+    pShowContext->ShowIndent(pStr);
 }
 
 FORTHOP(scBeginFirstElementOp)
 {
-	const char* pStr = (const char *)(SPOP);
-	((ForthThread *)(pCore->pThread))->GetShowContext()->BeginFirstElement(pStr);
+    GET_SHOW_CONTEXT;
+    const char* pStr = (const char *)(SPOP);
+    pShowContext->BeginFirstElement(pStr);
 }
 
 FORTHOP(scBeginNextElementOp)
 {
-	const char* pStr = (const char *)(SPOP);
-	((ForthThread *)(pCore->pThread))->GetShowContext()->BeginNextElement(pStr);
+    GET_SHOW_CONTEXT;
+    const char* pStr = (const char *)(SPOP);
+    pShowContext->BeginNextElement(pStr);
 }
 
 FORTHOP(scEndElementOp)
 {
-	const char* pStr = (const char *)(SPOP);
-	((ForthThread *)(pCore->pThread))->GetShowContext()->EndElement(pStr);
+    GET_SHOW_CONTEXT;
+    const char* pStr = (const char *)(SPOP);
+    pShowContext->EndElement(pStr);
 }
 
 FORTHOP(scShowObjectOp)
@@ -9046,25 +9105,29 @@ FORTHOP(scShowObjectOp)
 
 FORTHOP(scSetShowIDOp)
 {
-	int show = SPOP;
-	((ForthThread *)(pCore->pThread))->GetShowContext()->SetShowIDElement(show != 0);
+    GET_SHOW_CONTEXT;
+    int show = SPOP;
+    pShowContext->SetShowIDElement(show != 0);
 }
 
 FORTHOP(scGetShowIDOp)
 {
-	bool show = ((ForthThread *)(pCore->pThread))->GetShowContext()->GetShowIDElement();
+    GET_SHOW_CONTEXT;
+    bool show = pShowContext->GetShowIDElement();
 	SPUSH(show ? -1 : 0);
 }
 
 FORTHOP(scSetShowRefCountOp)
 {
-	int show = SPOP;
-	((ForthThread *)(pCore->pThread))->GetShowContext()->SetShowRefCount(show != 0);
+    GET_SHOW_CONTEXT;
+    int show = SPOP;
+    pShowContext->SetShowRefCount(show != 0);
 }
 
 FORTHOP(scGetShowRefCountOp)
 {
-	bool show = ((ForthThread *)(pCore->pThread))->GetShowContext()->GetShowRefCount();
+    GET_SHOW_CONTEXT;
+    bool show = pShowContext->GetShowRefCount();
 	SPUSH(show ? -1 : 0);
 }
 
@@ -9076,7 +9139,7 @@ extern GFORTHOP( doUByteBop );
 extern GFORTHOP( doShortBop );
 extern GFORTHOP( doUShortBop );
 extern GFORTHOP( doIntBop );
-extern GFORTHOP( doIntBop );
+extern GFORTHOP( doUIntBop );
 extern GFORTHOP( doFloatBop );
 extern GFORTHOP( doDoubleBop );
 extern GFORTHOP( doStringBop );
@@ -9088,7 +9151,7 @@ extern GFORTHOP( doUByteArrayBop );
 extern GFORTHOP( doShortArrayBop );
 extern GFORTHOP( doUShortArrayBop );
 extern GFORTHOP( doIntArrayBop );
-extern GFORTHOP( doIntArrayBop );
+extern GFORTHOP( doUIntArrayBop );
 extern GFORTHOP( doFloatArrayBop );
 extern GFORTHOP( doDoubleArrayBop );
 extern GFORTHOP( doStringArrayBop );
@@ -9104,18 +9167,18 @@ typedef struct {
 } baseDictionaryCompiledEntry;
 
 // helper macro for built-in op entries in baseDictionary
-#define OP_DEF( func, funcName )  { funcName, kOpCCode, func }
-#define OP_COMPILED_DEF( func, funcName, index )  { funcName, kOpCCode, func, index }
+#define OP_DEF( func, funcName )  { funcName, kOpCCode, (void *)func }
+#define OP_COMPILED_DEF( func, funcName, index )  { funcName, kOpCCode, (void *)func, index }
 
 // helper macro for ops which have precedence (execute at compile time)
-#define PRECOP_DEF( func, funcName )  { funcName, kOpCCodeImmediate,func }
-#define PRECOP_COMPILED_DEF( func, funcName, index )  { funcName, kOpCCodeImmediate, func, index }
+#define PRECOP_DEF( func, funcName )  { funcName, kOpCCodeImmediate, (void *)func }
+#define PRECOP_COMPILED_DEF( func, funcName, index )  { funcName, kOpCCodeImmediate, (void *)func, index }
 
 #ifdef ASM_INNER_INTERPRETER
 
 // helper macro for built-in op entries in baseDictionary
-#define NATIVE_DEF( func, funcName )  { funcName, kOpNative, func }
-#define NATIVE_COMPILED_DEF( func, funcName, index ) { funcName, kOpNative, func, index }
+#define NATIVE_DEF( func, funcName )  { funcName, kOpNative, (void *)func }
+#define NATIVE_COMPILED_DEF( func, funcName, index ) { funcName, kOpNative, (void *)func, index }
 
 #define OPREF extern GFORTHOP
 
@@ -9218,6 +9281,9 @@ OPREF( moveBop );           OPREF( fillBop );           OPREF( setVarActionBop )
 OPREF(memcmpBop);
 OPREF( getVarActionBop );   OPREF( byteVarActionBop );  OPREF( ubyteVarActionBop );
 OPREF( shortVarActionBop ); OPREF( ushortVarActionBop ); OPREF( intVarActionBop );
+#ifdef FORTH64
+OPREF(uintVarActionBop);
+#endif
 OPREF( longVarActionBop );  OPREF( floatVarActionBop ); OPREF( doubleVarActionBop );
 OPREF( stringVarActionBop ); OPREF( opVarActionBop );   OPREF( objectVarActionBop );
 OPREF( strcpyBop );         OPREF( strncpyBop );        OPREF( strlenBop );
@@ -9273,7 +9339,11 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     NATIVE_COMPILED_DEF(    doShortBop,              "_doShort",		OP_DO_SHORT ),
 	NATIVE_COMPILED_DEF(    doUShortBop,             "_doUShort",		OP_DO_USHORT ),
     NATIVE_COMPILED_DEF(    doIntBop,                "_doInt",			OP_DO_INT ),
-    NATIVE_COMPILED_DEF(    doIntBop,                "_doUInt",			OP_DO_UINT ),
+#if defined(FORTH64)
+    NATIVE_COMPILED_DEF(    doUIntBop,               "_doUInt",			OP_DO_UINT),
+#else
+    NATIVE_COMPILED_DEF(    doIntBop,                "_doUInt",			OP_DO_UINT),
+#endif
     NATIVE_COMPILED_DEF(    doLongBop,               "_doLong",			OP_DO_LONG ),
     NATIVE_COMPILED_DEF(    doLongBop,               "_doULong",		OP_DO_ULONG ),
     NATIVE_COMPILED_DEF(    doFloatBop,              "_doFloat",		OP_DO_FLOAT ),
@@ -9339,6 +9409,7 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     OP_COMPILED_DEF(        raiseOp,                "raise",            OP_RAISE),
     NATIVE_COMPILED_DEF(    unsuperBop,              "_unsuper",        OP_UNSUPER),
     NATIVE_COMPILED_DEF(    rdropBop,                "rdrop",           OP_RDROP),
+    NATIVE_COMPILED_DEF(    noopBop,                "noop",             OP_NOOP),
 
     // following must be last in table
     OP_COMPILED_DEF(		NULL,                   NULL,					-1 )
@@ -9359,7 +9430,6 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(    hereBop,                 "here" ),
     NATIVE_DEF(    dpBop,                   "dp" ),
     NATIVE_DEF(    fetchVaractionBop,       "fetch" ),
-    NATIVE_DEF(    noopBop,                 "noop" ),
     NATIVE_DEF(    odropBop,                "odrop"),
 
 	// object varActions
@@ -9602,6 +9672,11 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(    shortVarActionBop,       "shortVarAction" ),
     NATIVE_DEF(    ushortVarActionBop,      "ushortVarAction" ),
     NATIVE_DEF(    intVarActionBop,         "intVarAction" ),
+#ifdef FORTH64
+    NATIVE_DEF(     uintVarActionBop,       "uintVarAction"),
+#else
+    NATIVE_DEF(     intVarActionBop,        "uintVarAction"),
+#endif
     NATIVE_DEF(    longVarActionBop,        "longVarAction" ),
     NATIVE_DEF(    floatVarActionBop,       "floatVarAction" ),
     NATIVE_DEF(    doubleVarActionBop,      "doubleVarAction" ),
@@ -9955,8 +10030,8 @@ baseDictionaryEntry baseDictionary[] =
 	OP_DEF(    getDefaultConsoleOutOp, "getDefaultConsoleOut" ),
 	OP_DEF(    setConsoleOutOp,        "setConsoleOut" ),
 	OP_DEF(    resetConsoleOutOp,      "resetConsoleOut" ),
-    OP_DEF(    getAuxOutOp,            "getAuxOut"),
-    OP_DEF(    setAuxOutOp,            "setAuxOut"),
+    OP_DEF(    getErrorOutOp,          "getErrorOut"),
+    OP_DEF(    setErrorOutOp,          "setErrorOut"),
         
     OP_DEF(    toupperOp,              "toupper" ),
     OP_DEF(    toupperOp,              "toupper" ),
@@ -10080,6 +10155,7 @@ baseDictionaryEntry baseDictionary[] =
 	OP_DEF(		bkptOp,				    "bkpt"),
     OP_DEF(     dumpProfileOp,          "dumpProfile"),
     OP_DEF(     resetProfileOp,         "resetProfile"),
+    OP_DEF(     showMemoryOp,           "showMemory"),
 
     ///////////////////////////////////////////
     //  conditional compilation
@@ -10106,20 +10182,15 @@ baseDictionaryEntry baseDictionary[] =
     ///////////////////////////////////////////
     //  threads
     ///////////////////////////////////////////
-	OP_DEF( createAsyncThreadOp,        "createAsyncThread" ),
-    OP_DEF( createThreadOp,             "createThread" ),
-	/*
-    OP_DEF( threadGetStateOp,           "threadGetState" ),
-    OP_DEF( stepThreadOp,               "stepThread" ),
-    OP_DEF( startThreadOp,              "startThread" ),
-	*/
-    OP_DEF( exitAsyncThreadOp,          "exitAsyncThread" ),
+	OP_DEF( createThreadOp,             "createThread" ),
+    OP_DEF( createFiberOp,              "createFiber" ),
+    OP_DEF( exitThreadOp,               "exitThread" ),
     OP_DEF( yieldOp,					"yield" ),
-    OP_DEF( stopThreadOp,				"stopThread" ),
-    OP_DEF( sleepThreadOp,				"sleepThread" ),
-    OP_DEF( exitThreadOp,				"exitThread" ),
+    OP_DEF( stopFiberOp,				"stopFiber" ),
+    OP_DEF( sleepFiberOp,				"sleepFiber" ),
+    OP_DEF( exitFiberOp,				"exitFiber" ),
+	OP_DEF( getCurrentFiberOp,          "getCurrentFiber"),
 	OP_DEF( getCurrentThreadOp,         "getCurrentThread"),
-	OP_DEF( getCurrentAsyncThreadOp,    "getCurrentAsyncThread"),
 
     ///////////////////////////////////////////
     //  exception handling
@@ -10165,6 +10236,7 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF( getConsoleColorOp,          "getConsoleColor" ),
     OP_DEF( setConsoleColorOp,          "setConsoleColor" ),
     OP_DEF( clearConsoleOp,             "clearConsole" ),
+    OP_DEF( getConsoleSizesOp,          "getConsoleSizes" ),
 
 	NATIVE_DEF( archARMBop,				"ARCH_ARM" ),
 	NATIVE_DEF( archX86Bop,				"ARCH_X86" ),

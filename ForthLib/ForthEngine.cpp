@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "StdAfx.h"
+#include "pch.h"
 
 #if defined(LINUX) || defined(MACOSX)
 #include <ctype.h>
@@ -54,7 +54,7 @@ void defaultTraceOutRoutine(void *pData, const char* pFormat, va_list argList)
 	{
 #if defined(LINUX) || defined(MACOSX)
 		vsnprintf(buffer, sizeof(buffer), pFormat, argList);
-#elif defined(_WIN64)
+#elif defined(_WIN64) || defined(WIN32)
         StringCchVPrintfA(buffer, sizeof(buffer), pFormat, argList);
 #else
 		wvnsprintf(buffer, sizeof(buffer), pFormat, argList);
@@ -66,7 +66,7 @@ void defaultTraceOutRoutine(void *pData, const char* pFormat, va_list argList)
     {
 #if defined(LINUX) || defined(MACOSX)
         vsnprintf(buffer, sizeof(buffer), pFormat, argList);
-#elif defined(_WIN64)
+#elif defined(_WIN64) || defined(WIN32)
         StringCchVPrintfA(buffer, sizeof(buffer), pFormat, argList);
 #else
         wvnsprintf(buffer, sizeof(buffer), pFormat, argList);
@@ -79,7 +79,7 @@ void defaultTraceOutRoutine(void *pData, const char* pFormat, va_list argList)
 	{
 #if defined(LINUX) || defined(MACOSX)
 		vsnprintf(buffer, sizeof(buffer), pFormat, argList);
-#elif defined(_WIN64)
+#elif defined(_WIN64) || defined(WIN32)
         StringCchVPrintfA(buffer, sizeof(buffer), pFormat, argList);
 #else
 		wvnsprintf(buffer, sizeof(buffer), pFormat, argList);
@@ -328,15 +328,13 @@ ForthEngine::ForthEngine()
 , mContinueCount(0)
 , mpNewestEnum(nullptr)
 , mDefaultConsoleOutStream(nullptr)
-, mAuxOutStream(nullptr)
+, mErrorOutStream(nullptr)
 {
     // scratch area for temporary definitions
     ASSERT( mpInstance == NULL );
     mpInstance = this;
     mpEngineScratch = new long[70];
     mpErrorString = new char[ ERROR_STRING_MAX + 1 ];
-
-    initMemoryAllocation();
 
     // remember creation time for elapsed time method
 #ifdef WIN32
@@ -372,6 +370,15 @@ ForthEngine::~ForthEngine()
     {
         mpTypesManager->ShutdownBuiltinClasses(this);
         delete mpTypesManager;
+    }
+
+    // delete all thread and fiber objects
+    ForthThread* pThread = mpThreads;
+    while (pThread != NULL)
+    {
+        ForthThread* pNextThread = pThread->mpNext;
+        pThread->FreeObjects();
+        pThread = pNextThread;
     }
 
     if (mDictionary.pBase)
@@ -421,10 +428,10 @@ ForthEngine::~ForthEngine()
     }
 
     // delete all threads;
-	ForthAsyncThread *pThread = mpThreads;
+	pThread = mpThreads;
 	while (pThread != NULL)
     {
-		ForthAsyncThread *pNextThread = pThread->mpNext;
+		ForthThread *pNextThread = pThread->mpNext;
 		delete pThread;
 		pThread = pNextThread;
     }
@@ -435,7 +442,7 @@ ForthEngine::~ForthEngine()
 
     delete mBlockFileManager;
 
-	mpInstance = NULL;
+    mpInstance = NULL;
 }
 
 ForthEngine*
@@ -490,8 +497,10 @@ ForthEngine::Initialize( ForthShell*        pShell,
     mpStringBufferA = new char[mStringBufferASize];
     mpTempBuffer = new char[MAX_STRING_SIZE];
 
-    mpMainThread = CreateAsyncThread( 0, MAIN_THREAD_PSTACK_LONGS, MAIN_THREAD_RSTACK_LONGS );
-	mpCore = mpMainThread->GetThread(0)->GetCore();
+    mpMainThread = CreateThread( 0, MAIN_THREAD_PSTACK_LONGS, MAIN_THREAD_RSTACK_LONGS );
+    mpMainThread->SetName("MainThread");
+    mpMainThread->GetFiber(0)->SetName("MainFiber");
+	mpCore = mpMainThread->GetFiber(0)->GetCore();
 	mpCore->optypeAction = (optypeActionRoutine *) __MALLOC(sizeof(optypeActionRoutine) * 256);
     mpCore->numBuiltinOps = 0;
     mpCore->numOps = 0;
@@ -519,16 +528,17 @@ ForthEngine::Initialize( ForthShell*        pShell,
     }
 
 	// the primary thread objects can't be inited until builtin classes are initialized
-	OThread::FixupAsyncThread(mpMainThread);
+	OThread::FixupThread(mpMainThread);
 
-    if ( pExtension != NULL )
+    GetForthConsoleOutStream(mpCore, mDefaultConsoleOutStream);
+    GetForthErrorOutStream(mpCore, mErrorOutStream);
+    ResetConsoleOut( *mpCore );
+
+    if (pExtension != NULL)
     {
         mpExtension = pExtension;
-        mpExtension->Initialize( this );
+        mpExtension->Initialize(this);
     }
-
-	GetForthConsoleOutStream( mpCore, mDefaultConsoleOutStream );
-    ResetConsoleOut( mpCore );
 
     Reset();
 }
@@ -921,46 +931,76 @@ ForthEngine::ShowSearchInfo()
 	ForthConsoleCharOut(mpCore, '\n');
 }
 
-ForthAsyncThread *
-ForthEngine::CreateAsyncThread(forthop threadOp, int paramStackSize, int returnStackSize )
+void ForthEngine::ShowMemoryInfo()
 {
-	ForthAsyncThread *pAsyncThread = new ForthAsyncThread(this, paramStackSize, returnStackSize);
-	ForthThread *pNewThread = pAsyncThread->GetThread(0);
-	pNewThread->SetOp(threadOp);
+    std::vector<ForthMemoryStats *> memoryStats;
+    int numStorageBlocks;
+    int totalStorage;
+    int unusedStorage;
+    s_memoryManager->getStats(memoryStats, numStorageBlocks, totalStorage, unusedStorage);
+    char buffer[256];
+    for (ForthMemoryStats* stats : memoryStats)
+    {
+        if (stats->getNumAllocations() > 0)
+        {
+            snprintf(buffer, sizeof(buffer), "%s allocs:%lld frees:%lld maxInUse:%lld currentUsed:%lld maxUsed:%lld\n",
+                stats->getName().c_str(), stats->getNumAllocations(), stats->getNumDeallocations(),
+                stats->getMaxActiveAllocations(), stats->getBytesInUse(), stats->getMaxBytesInUse());
+            ForthConsoleStringOut(mpCore, buffer);
+        }
+    }
+    snprintf(buffer, sizeof(buffer), "%d storage blocks, total %d bytes, %d bytes unused\n",
+        numStorageBlocks, totalStorage, unusedStorage);
+    ForthConsoleStringOut(mpCore, buffer);
+}
 
-    pNewThread->mCore.pEngine = this;
-    pNewThread->mCore.pDictionary = &mDictionary;
-    pNewThread->mCore.pFileFuncs = mpShell->GetFileInterface();
+ForthThread *
+ForthEngine::CreateThread(forthop fiberOp, int paramStackSize, int returnStackSize )
+{
+	ForthThread *pThread = new ForthThread(this, paramStackSize, returnStackSize);
+	ForthFiber *pNewThread = pThread->GetFiber(0);
+	pNewThread->SetOp(fiberOp);
 
-    if ( mpCore != NULL )
+    InitCoreState(pNewThread->mCore);
+
+	pThread->mpNext = mpThreads;
+	mpThreads = pThread;
+
+	return pThread;
+}
+
+
+void ForthEngine::InitCoreState(ForthCoreState& core)
+{
+   core.pEngine = this;
+   core.pDictionary = &mDictionary;
+   core.pFileFuncs = mpShell->GetFileInterface();
+
+    if (mpCore != NULL)
     {
         // fill in optype & opcode action tables from engine thread
-        pNewThread->mCore.optypeAction = mpCore->optypeAction;
-        pNewThread->mCore.numBuiltinOps = mpCore->numBuiltinOps;
-        pNewThread->mCore.numOps = mpCore->numOps;
-        pNewThread->mCore.maxOps = mpCore->maxOps;
-        pNewThread->mCore.ops = mpCore->ops;
-        pNewThread->mCore.innerLoop = mpCore->innerLoop;
-        pNewThread->mCore.innerExecute = mpCore->innerExecute;
+       core.optypeAction = mpCore->optypeAction;
+       core.numBuiltinOps = mpCore->numBuiltinOps;
+       core.numOps = mpCore->numOps;
+       core.maxOps = mpCore->maxOps;
+       core.ops = mpCore->ops;
+       core.innerLoop = mpCore->innerLoop;
+       core.innerExecute = mpCore->innerExecute;
+       core.innerExecute = mpCore->innerExecute;
     }
-
-	pAsyncThread->mpNext = mpThreads;
-	mpThreads = pAsyncThread;
-
-	return pAsyncThread;
 }
 
 
 void
-ForthEngine::DestroyAsyncThread(ForthAsyncThread *pThread)
+ForthEngine::DestroyThread(ForthThread *pThread)
 {
-	ForthAsyncThread *pNext, *pCurrent;
+	ForthThread *pNext, *pCurrent;
 
     if ( mpThreads == pThread )
     {
 
         // special case - thread is head of list
-		mpThreads = (ForthAsyncThread *)(mpThreads->mpNext);
+		mpThreads = (ForthThread *)(mpThreads->mpNext);
         delete pThread;
 
     }
@@ -971,7 +1011,7 @@ ForthEngine::DestroyAsyncThread(ForthAsyncThread *pThread)
         pCurrent = mpThreads;
         while ( pCurrent != NULL )
         {
-			pNext = (ForthAsyncThread *)(pCurrent->mpNext);
+			pNext = (ForthThread *)(pCurrent->mpNext);
             if ( pThread == pNext )
             {
                 pCurrent->mpNext = pNext->mpNext;
@@ -1527,17 +1567,19 @@ ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
             case kOpLocalObject:        case kOpLocalObjectArray:
             case kOpLocalUByte:         case kOpLocalUByteArray:
             case kOpLocalUShort:        case kOpLocalUShortArray:
-            case kOpMemberByte:          case kOpMemberByteArray:
-            case kOpMemberShort:         case kOpMemberShortArray:
-            case kOpMemberInt:           case kOpMemberIntArray:
-            case kOpMemberFloat:         case kOpMemberFloatArray:
-            case kOpMemberDouble:        case kOpMemberDoubleArray:
-            case kOpMemberString:        case kOpMemberStringArray:
-            case kOpMemberOp:            case kOpMemberOpArray:
-            case kOpMemberLong:          case kOpMemberLongArray:
-            case kOpMemberObject:        case kOpMemberObjectArray:
-            case kOpMemberUByte:         case kOpMemberUByteArray:
-            case kOpMemberUShort:        case kOpMemberUShortArray:
+            case kOpLocalUInt:          case kOpLocalUIntArray:
+            case kOpMemberByte:         case kOpMemberByteArray:
+            case kOpMemberShort:        case kOpMemberShortArray:
+            case kOpMemberInt:          case kOpMemberIntArray:
+            case kOpMemberFloat:        case kOpMemberFloatArray:
+            case kOpMemberDouble:       case kOpMemberDoubleArray:
+            case kOpMemberString:       case kOpMemberStringArray:
+            case kOpMemberOp:           case kOpMemberOpArray:
+            case kOpMemberLong:         case kOpMemberLongArray:
+            case kOpMemberObject:       case kOpMemberObjectArray:
+            case kOpMemberUByte:        case kOpMemberUByteArray:
+            case kOpMemberUShort:       case kOpMemberUShortArray:
+            case kOpMemberUInt:         case kOpMemberUIntArray:
             case kOpFieldByte:          case kOpFieldByteArray:
             case kOpFieldShort:         case kOpFieldShortArray:
             case kOpFieldInt:           case kOpFieldIntArray:
@@ -1549,6 +1591,7 @@ ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
             case kOpFieldObject:        case kOpFieldObjectArray:
             case kOpFieldUByte:         case kOpFieldUByteArray:
             case kOpFieldUShort:        case kOpFieldUShortArray:
+            case kOpFieldUInt:          case kOpFieldUIntArray:
             {
                 if ((opVal & 0xE00000) != 0)
                 {
@@ -2324,7 +2367,7 @@ void ForthEngine::CompileCell(cell v)
     SPEW_COMPILATION("Compiling cell 0x%p @ 0x%p\n", v, mDictionary.pCurrent);
     *((cell*)mDictionary.pCurrent) = v; mDictionary.pCurrent += CELL_LONGS;
 }
-#endif#endif
+#endif
 
 // patch an opcode - fill in the branch destination offset
 void ForthEngine::PatchOpcode(forthOpType opType, forthop opVal, forthop* pOpcode)
@@ -2351,6 +2394,11 @@ ForthEngine::CompileBuiltinOpcode(forthop op )
 	{
 		CompileOpcode( gCompiledOps[op] );
 	}
+
+    if (op == OP_ABORT)
+    {
+        ClearPeephole();
+    }
 }
 
 void
@@ -2563,6 +2611,90 @@ ForthEngine::FullyExecuteMethod(ForthCoreState* pCore, ForthObject& obj, int met
 	return exitStatus;
 }
 
+// TODO: find a better way to do this
+extern forthop gObjectDeleteOpcode;
+
+//#define DEBUG_DELETE_OBJECT 1
+#ifdef DEBUG_DELETE_OBJECT
+static int deleteDepth = 0;
+#endif
+eForthResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
+{
+    ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
+    int objSize = pClassObject->pVocab->GetSize();
+    eForthResult exitStatus = kResultOk;
+    forthop opScratch[2];
+    opScratch[1] = gCompiledOps[OP_DONE];
+
+#ifdef DEBUG_DELETE_OBJECT
+    printf("*** DELETING %s @%p size %d  depth:%d  rdepth:%d\n", pClassObject->pVocab->GetName(), obj, objSize,
+        deleteDepth, GET_RDEPTH/8);
+    deleteDepth++;
+#endif
+    forthop* savedMethods = obj->pMethods;
+    while (exitStatus == kResultOk)
+    {
+        forthop opCode = obj->pMethods[kMethodDelete];
+
+        if (opCode != gObjectDeleteOpcode)
+        {
+#ifdef DEBUG_DELETE_OBJECT
+            printf("executing %s.delete op 0x%x\n", pClassObject->pVocab->GetName(), opCode);
+#endif
+
+            void* oldRP = GET_RP;
+            RPUSH(((cell)GET_TP));
+            SET_THIS(obj);
+
+            opScratch[0] = opCode;
+            eForthResult exitStatus = ExecuteOps(pCore, &(opScratch[0]));
+
+            if (exitStatus == kResultYield)
+            {
+                SetError(kForthErrorIllegalOperation, " yield not allowed in delete!");
+            }
+        }
+        else
+        {
+#ifdef DEBUG_DELETE_OBJECT
+            printf("skipping %s op 0x%x\n", pClassObject->pVocab->GetName(), opCode);
+#endif
+        }
+
+        ForthClassVocabulary* parentVocabulary = pClassObject->pVocab->ParentClass();
+        pClassObject = parentVocabulary ? parentVocabulary->GetClassObject() : nullptr;
+        if (pClassObject != nullptr)
+        {
+            obj->pMethods = parentVocabulary->GetMethods();
+        }
+        else
+        {
+            break;
+        }
+    }
+    obj->pMethods = savedMethods;
+
+    // now free the storage for the object instance
+    __DEALLOCATE_BYTES(obj, objSize);
+
+    //deleteDepth--;
+    return exitStatus;
+}
+
+void ForthEngine::ReleaseObject(ForthCoreState* pCore, ForthObject& inObject)
+{
+    oOutStreamStruct* pObjData = reinterpret_cast<oOutStreamStruct*>(inObject);
+    if (pObjData->refCount > 1)
+    {
+        --pObjData->refCount;
+    }
+    else
+    {
+        DeleteObject(pCore, inObject);
+        inObject = nullptr;
+    }
+}
+
 
 void
 ForthEngine::AddErrorText( const char *pString )
@@ -2578,6 +2710,7 @@ ForthEngine::SetError( eForthError e, const char *pString )
     {
 	    strcat( mpErrorString, pString );
     }
+
     if ( e == kForthErrorNone )
     {
         // previous error state is being cleared
@@ -2662,23 +2795,23 @@ void ForthEngine::SetDefaultConsoleOut( ForthObject& newOutStream )
 {
 	SPEW_SHELL("SetDefaultConsoleOut pCore=%p  pMethods=%p  pData=%p\n", mpCore, newOutStream->pMethods, newOutStream);
     OBJECT_ASSIGN(mpCore, mDefaultConsoleOutStream, newOutStream);
-    mDefaultConsoleOutStream = newOutStream;
-    OBJECT_ASSIGN(mpCore, mAuxOutStream, newOutStream);
-    mAuxOutStream = newOutStream;
 }
 
 void ForthEngine::SetConsoleOut(ForthCoreState* pCore, ForthObject& newOutStream)
 {
     SPEW_SHELL("SetConsoleOut pCore=%p  pMethods=%p  pData=%p\n", pCore, newOutStream->pMethods, newOutStream);
     OBJECT_ASSIGN(pCore, pCore->consoleOutStream, newOutStream);
-    pCore->consoleOutStream = newOutStream;
 }
 
-void ForthEngine::SetAuxOut(ForthCoreState* pCore, ForthObject& newOutStream)
+void ForthEngine::SetErrorOut(ForthCoreState* pCore, ForthObject& newOutStream)
 {
-    SPEW_SHELL("SetAuxOut pCore=%p  pMethods=%p  pData=%p\n", pCore, newOutStream->pMethods, newOutStream);
-    OBJECT_ASSIGN(pCore, mAuxOutStream, newOutStream);
-    mAuxOutStream = newOutStream;
+    SPEW_SHELL("SetErrorOut pCore=%p  pMethods=%p  pData=%p\n", pCore, newOutStream->pMethods, newOutStream);
+    OBJECT_ASSIGN(pCore, mErrorOutStream, newOutStream);
+}
+
+void* ForthEngine::GetErrorOut(ForthCoreState* pCore)
+{
+    return mErrorOutStream;
 }
 
 void ForthEngine::PushConsoleOut( ForthCoreState* pCore )
@@ -2691,24 +2824,19 @@ void ForthEngine::PushDefaultConsoleOut( ForthCoreState* pCore )
 	PUSH_OBJECT( mDefaultConsoleOutStream );
 }
 
-void ForthEngine::PushAuxOut(ForthCoreState* pCore)
+void ForthEngine::PushErrorOut(ForthCoreState* pCore)
 {
-    PUSH_OBJECT(mAuxOutStream);
+    PUSH_OBJECT(mErrorOutStream);
 }
 
-void ForthEngine::ResetConsoleOut( ForthCoreState* pCore )
+void ForthEngine::ResetConsoleOut( ForthCoreState& core )
 {
 	// TODO: there is a dilemma here - either we just replace the current output stream
 	//  without doing a release, and possibly leak a stream object, or we do a release
 	//  and risk a crash, since ResetConsoleOut is called when an error is detected,
 	//  so the object we are releasing may already be deleted or otherwise corrupted.
-	CLEAR_OBJECT(pCore->consoleOutStream);
-
-    OBJECT_ASSIGN(pCore, pCore->consoleOutStream, mDefaultConsoleOutStream);
-    pCore->consoleOutStream = mDefaultConsoleOutStream;
-
-    OBJECT_ASSIGN(pCore, mAuxOutStream, mDefaultConsoleOutStream);
-    mAuxOutStream = mDefaultConsoleOutStream;
+    CLEAR_OBJECT(core.consoleOutStream);
+    OBJECT_ASSIGN(&core, core.consoleOutStream, mDefaultConsoleOutStream);
 }
 
 

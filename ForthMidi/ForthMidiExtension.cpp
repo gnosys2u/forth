@@ -4,7 +4,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
+#include "pch.h"
 #include "ForthEngine.h"
 #include "ForthMidiExtension.h"
 #include <vector>
@@ -211,7 +211,8 @@ ForthMidiExtension *ForthMidiExtension::mpInstance = NULL;
 
 ForthMidiExtension::ForthMidiExtension()
 :   mbEnabled( false )
-,   mpThread( NULL )
+,   mpThread(nullptr)
+,   mpFiber(nullptr)
 {
     mpInstance = this;
 }
@@ -225,11 +226,15 @@ ForthMidiExtension::~ForthMidiExtension()
 
 void ForthMidiExtension::Initialize( ForthEngine* pEngine )
 {
-    if ( mpThread != NULL )
+    if (mpThread != NULL )
     {
         delete mpThread;
     }
-	mpThread = ForthEngine::GetInstance()->CreateThread();
+    mpThread = ForthEngine::GetInstance()->CreateThread();
+    mpThread->SetName("MidiThread");
+    mpFiber = mpThread->GetFiber(0);
+    mpFiber->SetName("MidiThread");
+
     ForthExtension::Initialize( pEngine );
     pEngine->AddBuiltinOps( midiDictionary );
 }
@@ -239,7 +244,7 @@ void ForthMidiExtension::Reset()
 {
     mInputDevices.resize( 0 );
     mOutputDevices.resize( 0 );
-    mpThread->Reset();
+    mpFiber->Reset();
     mbEnabled = false;
 }
 
@@ -248,10 +253,10 @@ void ForthMidiExtension::Shutdown()
 {
     mbEnabled = false;
 #if 0
-	if ( mpThread != NULL )
+	if (mpThread != NULL )
 	{
-		ForthEngine::GetInstance()->DestroyThread( mpThread );
-		mpThread = NULL;
+		ForthEngine::GetInstance()->DestroyThread(mpThread);
+        mpThread = NULL;
 	}
 #endif
 }
@@ -360,16 +365,16 @@ void ForthMidiExtension::HandleMidiIn( UINT wMsg, DWORD_PTR dwInstance, DWORD_PT
         InDeviceInfo* midiIn = &(mInputDevices[dwInstance]);
         if ( midiIn->mCbOp != 0 )
         {
-			mpThread->Reset();
-			mpThread->SetOp( midiIn->mCbOp );
-			mpThread->Push( wMsg );
-            mpThread->Push( (long) (midiIn->mCbOpData) );
-			mpThread->Push( dwParam1 );
-			mpThread->Push( dwParam2 );
-			mpThread->Run();
-			long* pStack = mpThread->GetCoreState()->SP;
+			mpFiber->Reset();
+			mpFiber->SetOp( midiIn->mCbOp );
+			mpFiber->Push( wMsg );
+            mpFiber->Push( (long) (midiIn->mCbOpData) );
+			mpFiber->Push( dwParam1 );
+			mpFiber->Push( dwParam2 );
+			mpFiber->Run();
+			cell* pStack = mpFiber->GetCore()->SP;
 			TRACE( "MIDI:" );
-			while ( pStack < mpThread->GetCoreState()->ST )
+			while ( pStack < mpFiber->GetCore()->ST )
 			{
 				TRACE( " %x", *pStack );
 				pStack++;
@@ -471,13 +476,13 @@ void ForthMidiExtension::HandleMidiOut( UINT wMsg, DWORD_PTR dwInstance, DWORD_P
         OutDeviceInfo* midiOut = &(mOutputDevices[dwInstance]);
         if ( midiOut->mCbOp != 0 )
         {
-			mpThread->Reset();
-			mpThread->SetOp( midiOut->mCbOp );
-			mpThread->Push( wMsg );
-            mpThread->Push( (long) (midiOut->mCbOpData) );
-			mpThread->Push( dwParam1 );
-			mpThread->Push( dwParam2 );
-			mpThread->Run();
+			mpFiber->Reset();
+			mpFiber->SetOp( midiOut->mCbOp );
+			mpFiber->Push( wMsg );
+            mpFiber->Push( (long) (midiOut->mCbOpData) );
+			mpFiber->Push( dwParam1 );
+			mpFiber->Push( dwParam2 );
+			mpFiber->Run();
         }
         else
         {

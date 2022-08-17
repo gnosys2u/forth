@@ -11,16 +11,16 @@
 #define RPUSH_THIS  RPUSH_OBJECT( GET_TP )
 #define SET_THIS( _object) SET_TP( (_object) )
 
-#define METHOD( NAME, VALUE  )          { NAME, VALUE, NATIVE_TYPE_TO_CODE( kDTIsMethod, kBaseTypeVoid ) }
-#define METHOD_RET( NAME, VAL, RVAL )   { NAME,  VAL, RVAL }
-#define MEMBER_VAR( NAME, TYPE )        { NAME, 0, (ucell) TYPE }
+#define METHOD( NAME, VALUE  )          { NAME, (void *)VALUE, NATIVE_TYPE_TO_CODE( kDTIsMethod, kBaseTypeVoid ) }
+#define METHOD_RET( NAME, VAL, RVAL )   { NAME,  (void *)VAL, RVAL }
+#define MEMBER_VAR( NAME, TYPE )        { NAME, (void *)0, (ucell) TYPE }
 #define MEMBER_ARRAY( NAME, TYPE, NUM ) { NAME, NUM, (ucell) (TYPE | kDTIsArray) }
-#define CLASS_OP( NAME, VALUE )         { NAME, VALUE, NATIVE_TYPE_TO_CODE(0, kBaseTypeUserDefinition) }
-#define CLASS_PRECOP( NAME, VALUE )     { NAME, VALUE, NATIVE_TYPE_TO_CODE(kDTIsFunky, kBaseTypeUserDefinition) }
+#define CLASS_OP( NAME, VALUE )         { NAME, (void *)VALUE, NATIVE_TYPE_TO_CODE(0, kBaseTypeUserDefinition) }
+#define CLASS_PRECOP( NAME, VALUE )     { NAME, (void *)VALUE, NATIVE_TYPE_TO_CODE(kDTIsFunky, kBaseTypeUserDefinition) }
 
 #define END_MEMBERS { nullptr, 0, 0 }
 
-#define FULLY_EXECUTE_METHOD( _pCore, _obj, _methodNum ) ForthEngine::GetInstance()->FullyExecuteMethod( _pCore, _obj, _methodNum )
+#define FULLY_EXECUTE_METHOD( _pCore, _obj, _methodNum ) ((ForthEngine *) (_pCore->pEngine))->FullyExecuteMethod( _pCore, _obj, _methodNum )
 
 #define PUSH_OBJECT( _obj )             SPUSH((cell)(_obj))
 #define POP_OBJECT( _obj )              _obj = (ForthObject)(SPOP)
@@ -30,7 +30,7 @@
 #define SAFE_RELEASE( _pCore, _obj ) \
 	if ( _obj != nullptr ) { \
 		_obj->refCount -= 1; \
-		if ( _obj->refCount == 0 ) { FULLY_EXECUTE_METHOD( (_pCore), (_obj), kMethodDelete ); } \
+		if ( _obj->refCount == 0 ) { ((ForthEngine *) (_pCore->pEngine))->DeleteObject( _pCore, _obj ); } \
 	} TRACK_RELEASE
 
 #define SAFE_KEEP( _obj )       if ( _obj != nullptr ) { _obj->refCount += 1; } TRACK_KEEP
@@ -41,7 +41,9 @@
 #define CLEAR_OBJECT( _obj )             (_obj) = nullptr
 
 #define OBJECT_ASSIGN( _pCore, _dstObj, _srcObj ) \
-    if ( (_dstObj) != (_srcObj) ) { SAFE_KEEP( (_srcObj) ); SAFE_RELEASE( (_pCore), (_dstObj) ); }
+    if ( (_dstObj) != (_srcObj) ) { SAFE_KEEP( (_srcObj) ); SAFE_RELEASE( (_pCore), (_dstObj) ); _dstObj = _srcObj; }
+
+#define GET_SHOW_CONTEXT ForthShowContext* pShowContext = static_cast<ForthFiber*>(pCore->pFiber)->GetShowContext();
 
 enum
 {
@@ -91,12 +93,11 @@ extern long gStatReleases;
 
 #define MALLOCATE( _type, _ptr ) _type* _ptr = (_type *) __MALLOC( sizeof(_type) );
 
-#define MALLOCATE_OBJECT( _type, _ptr, _vocab )   _type* _ptr = (_type *) __MALLOC( _vocab->GetSize() );  TRACK_NEW
-#define FREE_OBJECT( _obj )  __FREE( _obj );  TRACK_DELETE
-#define MALLOCATE_LINK( _type, _ptr )  MALLOCATE( _type, _ptr );  TRACK_LINK_NEW
-#define FREE_LINK( _link )  __FREE( _link );  TRACK_LINK_DELETE
+#define MALLOCATE_OBJECT( _type, _ptr, _vocab )   _type* _ptr = (_type *) __ALLOCATE_BYTES( _vocab->GetSize() );  TRACK_NEW
+#define FREE_OBJECT( _obj )  __DEALLOCATE_OBJECT( _obj );  TRACK_DELETE
+#define MALLOCATE_LINK( _type, _ptr )  _type* _ptr = (_type *) __ALLOCATE_BYTES(sizeof(oListElement));  TRACK_LINK_NEW
+#define FREE_LINK( _link )  __DEALLOCATE_BYTES( _link, sizeof(oListElement) );  TRACK_LINK_DELETE
 #define MALLOCATE_ITER( _type, _ptr, _vocab )  MALLOCATE_OBJECT( _type, _ptr, _vocab );  TRACK_ITER_NEW
-#define FREE_ITER( _link )  FREE_OBJECT( _link );  TRACK_ITER_DELETE
 
 // UNDELETABLE_OBJECT_REFCOUNT is used for objects like the system object or vocabularies which
 //   you don't want to be mistakenly deleted due to refcount mistakes
