@@ -127,6 +127,12 @@ CallDLL4:
 ; inner interpreter entry point for ops defined in assembler
 ;
     entry NativeAction
+%ifdef LINUX
+	push rcx
+	push rdx
+	mov	rcx, rdi
+	mov rdx, rsi
+%endif
 	; rcx - pCore
 	; rdx - opVal
 
@@ -135,6 +141,10 @@ CallDLL4:
     jle .nativeAction1
 	mov	rax, kForthErrorBadOpcode
 	mov	[rcx + FCore.state], rax
+%ifdef LINUX
+	pop	rdx
+	pop	rcx
+%endif
     ret
 
 .nativeAction1:
@@ -168,6 +178,10 @@ nativeActionExit:
 	pop	rrp
 	pop rpsp
 	pop rcore
+%ifdef LINUX
+	pop	rdx
+	pop	rcx
+%endif
 	ret
 
 ;_TEXT	ENDS

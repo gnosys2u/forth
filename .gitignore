@@ -132,4 +132,6 @@ ForthDLLxxx
 ForthDLLMainxxx
 ForthDLL/DbgAsm/ForthDLL.vcxproj.FileListAbsolute.txt
 ForthDLL/RelAsm/ForthDLL.vcxproj.FileListAbsolute.txt
+forth
+logger
 

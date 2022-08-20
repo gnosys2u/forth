@@ -7,7 +7,11 @@
 
 
 #include <sys/types.h>
+#if defined(LINUX)
+#include <time.h>
+#else
 #include <sys/timeb.h>
+#endif
 #include <map>
 #include <string>
 
@@ -485,6 +489,8 @@ protected:
 #else
     struct _timeb    mStartTime;
 #endif
+#elif defined(LINUX)
+    struct timespec mStartTime;
 #else
     struct timeb    mStartTime;
 #endif

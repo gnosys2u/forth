@@ -100,7 +100,7 @@ void ForthForgettable::ForgetPropagate( void* pForgetLimit, forthop op )
     while ( pNext != NULL )
     {
         pTmp = pNext->mpNext;
-        if ( (uint32_t) pNext->mpOpAddress > (uint32_t) pForgetLimit )
+        if ( (ucell) pNext->mpOpAddress > (ucell) pForgetLimit )
         {
             delete pNext;
         }

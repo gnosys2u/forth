@@ -343,6 +343,8 @@ ForthEngine::ForthEngine()
 #else
     _ftime( &mStartTime );
 #endif
+#elif defined(LINUX)
+    clock_gettime(CLOCK_REALTIME, &mStartTime);
 #else
     ftime( &mStartTime );
 #endif
@@ -473,7 +475,7 @@ ForthEngine::Initialize( ForthShell*        pShell,
 	void* dictionaryAddress = NULL;
 	// we need to allocate memory that is immune to Data Execution Prevention
 	mDictionary.pBase = (forthop *) VirtualAlloc( dictionaryAddress, dictionarySize, (MEM_COMMIT | MEM_RESERVE), PAGE_EXECUTE_READWRITE );
-#elif MACOSX
+#elif defined(MACOSX) || defined(LINUX)
     mDictionary.pBase = (forthop *) mmap(NULL, dictionarySize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
 #else
 	 mDictionary.pBase = (forthop *) __MALLOC( dictionarySize );
@@ -2899,6 +2901,12 @@ ForthEngine::GetElapsedTime( void )
     int32_t milliseconds = now.millitm - mStartTime.millitm;
 	millisecondsElapsed = (uint32_t) ((seconds * 1000) + milliseconds);
 #endif
+#elif defined(LINUX)
+	struct timespec now;
+	clock_gettime(CLOCK_REALTIME, &now);
+    int32_t seconds = now.tv_sec - mStartTime.tv_sec;
+    int32_t milliseconds = (now.tv_nsec - mStartTime.tv_nsec) / 1000000;
+	millisecondsElapsed = (uint32_t) ((seconds * 1000) + milliseconds);
 #else
 	struct timeb now;
     ftime( &now );

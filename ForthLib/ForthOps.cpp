@@ -4319,7 +4319,7 @@ FORTHOP( errnoOp)
 FORTHOP( strerrorOp)
 {
 	int32_t errVal = SPOP;
-    SPUSH( reinterpret_cast<int32_t>(strerror(errVal)) );
+    SPUSH( reinterpret_cast<cell>(strerror(errVal)) );
 }
 
 FORTHOP( shellRunOp )
@@ -4889,7 +4889,8 @@ FORTHOP( getInOffsetPointerOp )
 FORTHOP( fillInBufferOp )
 {
     ForthInputStack* pInput = GET_ENGINE->GetShell()->GetInput();
-    SPUSH( (cell) (pInput->GetLine( (char *) (SPOP) )) );
+    char* pBuffer = (char *) (SPOP);
+    SPUSH( (cell) (pInput->GetLine(pBuffer)) );
 }
 
 FORTHOP( keyOp )
@@ -5771,13 +5772,15 @@ FORTHOP( blkOp )
 FORTHOP( blockOp )
 {
     ForthBlockFileManager*  pBlockManager = GET_ENGINE->GetBlockFileManager();
-    SPUSH( (cell)(pBlockManager->GetBlock(SPOP, true)) );
+    char* pBlock = pBlockManager->GetBlock(SPOP, true);
+    SPUSH( (cell)(pBlock) );
 }
 
 FORTHOP( bufferOp )
 {
     ForthBlockFileManager*  pBlockManager = GET_ENGINE->GetBlockFileManager();
-    SPUSH( (cell)(pBlockManager->GetBlock(SPOP, false)) );
+    char* pBlock = pBlockManager->GetBlock(SPOP, false);
+    SPUSH( (cell)(pBlock) );
 }
 
 FORTHOP( emptyBuffersOp )

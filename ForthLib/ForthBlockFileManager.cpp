@@ -9,7 +9,7 @@
 #include "ForthEngine.h"
 
 // TODO:
-// \
+//
 // blk
 // block
 // buffer
@@ -374,14 +374,16 @@ namespace OBlockFile
     FORTHOP(oBlockFileBlockMethod)
     {
         GET_THIS(oBlockFileStruct, pBlockFile);
-        SPUSH((cell)(pBlockFile->pManager->GetBlock((uint32_t)SPOP, true)));
+        char* pBlock = pBlockFile->pManager->GetBlock((uint32_t)SPOP, true);
+        SPUSH((cell)(pBlock));
         METHOD_RETURN;
     }
 
     FORTHOP(oBlockFileBufferMethod)
     {
         GET_THIS(oBlockFileStruct, pBlockFile);
-        SPUSH((cell)(pBlockFile->pManager->GetBlock((uint32_t)SPOP, false)));
+        char* pBlock = pBlockFile->pManager->GetBlock((uint32_t)SPOP, false);
+        SPUSH((cell)(pBlock));
         METHOD_RETURN;
     }
 

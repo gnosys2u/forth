@@ -2164,7 +2164,7 @@ ForthShellStack::ShowStack()
         sprintf(buff, "%16p   ", tag);
         ForthEngine::GetInstance()->ConsoleOut(buff);
         // TODO!
-        int32_t tagChars = reinterpret_cast<int32_t>(tag);
+        int32_t tagChars = static_cast<int32_t>(reinterpret_cast<intptr_t>(tag));
         for (int i = 0; i < 4; ++i)
         {
             char ch = (char)(tagChars & 0x7f);

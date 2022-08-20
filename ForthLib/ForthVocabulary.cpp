@@ -301,7 +301,6 @@ ForthVocabulary::ForgetSymbol( const char *pSymName )
 {
     int j, symLen, symbolsLeft;
     forthop *pEntry, *pTmp, *pNewBottom;
-    forthOpType opType;
     bool done;
     int32_t tmpSym[SYM_MAX_LONGS];
     ForthParseInfo parseInfo( tmpSym, SYM_MAX_LONGS );
@@ -321,8 +320,6 @@ ForthVocabulary::ForgetSymbol( const char *pSymName )
     done = false;
     while ( !done && (symbolsLeft > 0) )
     {
-
-        opType = GetEntryType( pEntry );
 		uint32_t opIndex = FORTH_OP_VALUE( *pEntry );
 		if ( opIndex < mpEngine->GetCoreState()->numBuiltinOps )
         {
@@ -377,15 +374,13 @@ void
 ForthVocabulary::ForgetOp( forthop op )
 {
     int symbolsLeft;
-    forthop *pEntry, *pNewBottom;
+    forthop *pEntry;
     forthOpType opType;
     forthop opVal;
 
     // go through the vocabulary looking for symbols which are greater than op#
     pEntry = mpStorageBottom;
 
-    // new bottom of vocabulary after forget
-    pNewBottom = NULL;
     // how many symbols are left after forget
     symbolsLeft = mNumSymbols;
 	uint32_t opIndex;

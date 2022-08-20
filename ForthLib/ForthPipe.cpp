@@ -50,6 +50,7 @@ namespace
         "Limit"
     };
 
+#ifdef PIPE_SPEW
     const char* MessageName(int msgType)
     {
         if ((msgType >= kClientMsgDisplayText) && (msgType < kClientMsgLimit))
@@ -63,6 +64,7 @@ namespace
         }
         return "WTF!!!????";
     }
+#endif
 
     bool socketsNotStarted = true;
 }

@@ -359,7 +359,7 @@ void ForthObjectReader::processElement(const std::string& name)
                 mContext.objIndex = (int) mObjects.size();
 
                 int32_t initOpcode = mContext.pVocab->GetInitOpcode();
-                SPUSH((int32_t)mContext.pVocab);
+                SPUSH((cell)mContext.pVocab);
                 mpEngine->FullyExecuteOp(pCore, (static_cast<ForthClassVocabulary *>(mContext.pVocab))->GetClassObject()->newOp);
                 if (initOpcode != 0)
                 {

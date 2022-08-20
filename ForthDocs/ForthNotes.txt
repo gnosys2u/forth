@@ -166,9 +166,21 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 19 2022
+
+I've got the non-assembler Linux64 build largely working - it can now run user ops
+defined in assembler, which had caused a crash in tree_examples, since it
+includes numberio which includes extops.  There is still a crash in rctest in
+oIntMapIterNextMethod, the parent map pointer is null.
+
+I fixed all the warnings when building Linux64 debug.  I had hoped there
+would be an int-used-for-pointer error somewhere in there, but there wasn't,
+except one in OSocket, which isn't what caused the IntMapIter crash.
+I should try to get all the warnings out of the Windows builds as well.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 16 2022
 
-I tried to get the Linux 64-bit build working, I got it to compile but it crashes
+I tried to get the Linux64 build working, I got it to compile but it crashes
 during startup in InitAsmTables.  I didn't know that Linux/MacOs uses a completely
 different calling convention from Windows for Amd64.  Ugh, this will be ugly and
 painful to deal with.
@@ -177,8 +189,8 @@ I decided to try to just get the non-assembler build working on Linux, and ran
 into an even bigger problem - on 64-bit Linux long is 64-bits!  I need to switch
 over to types like int32_t to fix this.
 
-I changed ulong to uint32_t, long to int32_t, unsingned int uint32_t.  I left plain
-int alone.
+I changed ulong to uint32_t, long to int32_t, unsingned int to uint32_t.
+I left plain int alone.
 
 Problem cases:
 printNumInCurrentBase in ForthOps.cpp - div takes a long

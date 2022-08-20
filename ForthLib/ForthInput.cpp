@@ -572,7 +572,7 @@ ForthFileInputStream::SetInputState( cell* pState)
         // TODO: report restore-input error - wrong number of parameters
         return false;
     }
-    if ( pState[1] != (int32_t)this )
+    if ( pState[1] != (cell)this )
     {
         // TODO: report restore-input error - input object mismatch
         return false;
@@ -685,7 +685,7 @@ ForthConsoleInputStream::SetInputState(cell* pState)
         // TODO: report restore-input error - wrong number of parameters
         return false;
     }
-    if ( pState[1] != (int32_t)this )
+    if ( pState[1] != (cell)this )
     {
         // TODO: report restore-input error - input object mismatch
         return false;
@@ -822,7 +822,7 @@ ForthBufferInputStream::SetInputState(cell* pState)
         // TODO: report restore-input error - wrong number of parameters
         return false;
     }
-    if ( pState[1] != (int32_t)this )
+    if ( pState[1] != (cell)this )
     {
         // TODO: report restore-input error - input object mismatch
         return false;
@@ -940,7 +940,7 @@ ForthBlockInputStream::SetInputState(cell* pState)
         // TODO: report restore-input error - wrong number of parameters
         return false;
     }
-    if ( pState[1] != (int32_t)this )
+    if ( pState[1] != (cell)this )
     {
         // TODO: report restore-input error - input object mismatch
         return false;
@@ -1039,8 +1039,10 @@ ForthExpressionInputStream::~ForthExpressionInputStream()
 char* topStr = NULL;
 char* nextStr = NULL;
 
-//#define LOG_EXPRESSION(STR) SPEW_SHELL("ForthExpressionInputStream::%s L:{%s} R:{%s}  (%s)(%s)\n",\
-//	STR, mpLeftBase, mpRightBase, mpStackCursor, (mpStackCursor + strlen(mpStackCursor) + 1))
+#if 0
+#define LOG_EXPRESSION(STR) SPEW_SHELL("ForthExpressionInputStream::%s L:{%s} R:{%s}  (%s)(%s)\n",\
+	STR, mpLeftBase, mpRightBase, mpStackCursor, (mpStackCursor + strlen(mpStackCursor) + 1))
+#endif
 #define LOG_EXPRESSION(STR)
 
 bool

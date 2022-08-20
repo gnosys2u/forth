@@ -1,3 +1,4 @@
+#####################################################################################
 # you will need to install nasm (the netwide assembler) if you don't already have it with:
 # sudo apt-get install nasm
 
@@ -6,20 +7,29 @@
 
 #.PHONY:	all clean depends
 
+MAINOBJ = ForthLinux/obj
+MAINSRC = ForthLinux
+LIBSRC = ForthLib
+LIBOBJ = ForthLib/obj
+
 CC = g++
 ASM = /usr/bin/nasm
+#GAS = as
 CDEBUG = -g
-# DEFINES = -DRASPI -DLINUX -DASM_INNER_INTERPRETER
+
 #DEFINES = -DLINUX -DASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -DFORTH64 -DINCLUDE_TRACE
 DEFINES = -DLINUX -DNOASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -DFORTH64 -DINCLUDE_TRACE
-#CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -fno-leading-underscore
-CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -std=c++11 -m64
-WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wno-sign-compare -Wno-conversion-null -Wno-pointer-arith
-CPPFLAGS = $(CFLAGS)
 
-ASMFLAGS = -d ASM_INNER_INTERPRETER -d LINUX -felf64
+CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -std=c++11 -m64
+# CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -std=c++11 -m64
+
+WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wno-sign-compare -Wno-conversion-null -Wno-pointer-arith
+CPPFLAGS = $(CFLAGS) -I ForthLib
+
+ASMFLAGS = -d ASM_INNER_INTERPRETER -d LINUX -felf64 -i $(LIBSRC)
 
 LDFLAGS = $(CFLAGS) -no-pie
+LD_LIBRARIES = -L ForthLib -lforth -lm -lc -lstdc++ -ldl -lpthread -lreadline
 
 SRCS = \
 	ForthShell.cpp \
@@ -58,16 +68,15 @@ SRCS = \
 ASMSRCS = InnerInterpAmd64.asm \
 	AsmCore64.asm
 
-OBJDIR = obj
-ASMOBJS := $(patsubst %.asm,$(OBJDIR)/%.o,$(ASMSRCS))
-OBJS := $(patsubst %.cpp,$(OBJDIR)/%.o,$(SRCS)) $(ASMOBJS)
+ASMOBJS := $(patsubst %.asm,$(LIBOBJ)/%.o,$(ASMSRCS))
+OBJS := $(patsubst %.cpp,$(LIBOBJ)/%.o,$(SRCS)) $(ASMOBJS)
 DEPDIR = dep
 DEPS := $(patsubst %.cpp,$(DEPDIR)/%.d,$(SRCS))
 # XDEFS is used to pass in defines from the make command line
 LIBS := -lm -lstdc++ -ldl -lpthread -no-pie
 
-libforth.a:	$(OBJS)
-	ar rcs libforth.a $(OBJS)
+$(LIBSRC)/libforth.a:	$(OBJS)
+	ar rcs $(LIBSRC)/libforth.a $(OBJS)
 	
 -include $(DEPS)
 
@@ -80,23 +89,39 @@ stuff:
 #	echo "at " $@ "   less" $< "   star" $* "   pat" $(patsubst %.cpp,%.d,$@)
 	
 $(DEPDIR)/%.d: %.cpp
-	$(CC) -M $(CPPFLAGS) -o $(DEPDIR)/$*.d $<
+	$(CC) -M $(CPPFLAGS) -o $(DEPDIR)/$*.d $(LIBSRC)/$*.cpp
 	
 #%.d: ../%.cpp
 #	$(CC) -M $(CPPFLAGS) -o $*.d $<
 	
 #	echo "DEP at=" $@ "   less=" $< "   star=" $*
 
-$(OBJDIR)/%.o: %.cpp
-	$(CC) $(CFLAGS) -o $(OBJDIR)/$*.o $<
+$(LIBOBJ)/%.o: $(LIBSRC)/%.cpp
+	$(CC) $(CFLAGS) -o $(LIBOBJ)/$*.o $(LIBSRC)/$*.cpp
     
-$(OBJDIR)/%.o: %.asm
-	$(ASM) $(ASMFLAGS) -o $(OBJDIR)/$*.o $<
-    
-all:	libforth.a
+$(LIBOBJ)/%.o: $(LIBSRC)/%.asm
+	$(ASM) $(ASMFLAGS) -o $(LIBOBJ)/$*.o $(LIBSRC)/$*.asm
+
+$(MAINOBJ)/ForthMain.o:	$(MAINSRC)/ForthMain.cpp
+	echo "* " $*
+	echo "< " $<
+	echo "@ " $@
+	$(CC) $(CPPFLAGS) -o $(MAINOBJ)/ForthMain.o $(MAINSRC)/ForthMain.cpp
+
+forth:	$(MAINOBJ)/ForthMain.o $(LIBSRC)/libforth.a
+	$(CC) $(MAINOBJ)/ForthMain.o $(DEFINES) -o forth -I ForthLib $(LD_LIBRARIES) -no-pie
+	cp forth Sandbox
+
+logger: $(MAINSRC)/ForthLogger.cpp
+	$(CC) $(MAINSRC)/ForthLogger.cpp -o logger
 
 clean:
-	-rm $(OBJDIR)/*.o
+	-rm $(MAINOBJ)/*.o
 	-rm $(DEPDIR)/*.d
-	-rm libforth.a
+	-rm $(LIBOBJ)/*.o
+	-rm $(LIBSRC)/libforth.a
+	-rm ./forth
+    
+#all:	forth $(LIBSRC)/libforth.a
+all:	forth
 

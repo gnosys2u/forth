@@ -1198,12 +1198,6 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
                     baseType = kBaseTypeOp;
                 }
 
-                int elementsPerLine = 0;
-                if (baseType == kBaseTypeStruct || baseType == kBaseTypeObject)
-                {
-                    elementsPerLine = 1;
-                }
-
                 while (numElements > 0)
                 {
                     if (isArray)

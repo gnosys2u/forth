@@ -26,6 +26,10 @@ extern "C"
 // NativeAction is used to execute user ops which are defined in assembler
 extern void NativeAction( ForthCoreState *pCore, forthop opVal );
 
+void NativeActionOuter( ForthCoreState *pCore, forthop opVal )
+{
+	NativeAction(pCore, opVal);
+}
 //////////////////////////////////////////////////////////////////////
 ////
 ///
@@ -2411,9 +2415,9 @@ OPTYPE_ACTION( ReservedOptypeAction )
     SET_ERROR( kForthErrorBadOpcodeType );
 }
 
+#if 0
 OPTYPE_ACTION( MethodAction )
 {
-#if 0
     // token is object method invocation
     forthop op = GET_CURRENT_OP;
     forthOpType opType = FORTH_OP_TYPE( op );
@@ -2460,8 +2464,8 @@ OPTYPE_ACTION( MethodAction )
     {
         SET_ERROR( kForthErrorBadOpcode );
     }
-#endif
 }
+#endif
 
 // NOTE: there is no opcode assigned to this op
 FORTHOP( BadOpcodeOp )
@@ -2472,8 +2476,8 @@ FORTHOP( BadOpcodeOp )
 optypeActionRoutine builtinOptypeAction[] =
 {
     // 00 - 09
-    NativeAction,
-    NativeAction,           // immediate
+    NativeActionOuter,
+    NativeActionOuter,           // immediate
     UserDefAction,
     UserDefAction,          // immediate
     CCodeAction,

@@ -182,7 +182,7 @@ entry extOpType
 	mov	rax, r8
 	shr	rax, 24							; rax is 8-bit optype
 	mov	rcx, [rcore + FCore.optypeAction]
-	mov	rax, [rcx + rax*4]				; rax is C routine to dispatch to
+	mov	rax, [rcx + rax*8]				; rax is C routine to dispatch to
 	and	r8, 00FFFFFFh
     mov rcx, rcore  ; 1st param to C routine
     mov rdx, r8     ; 2nd param to C routine

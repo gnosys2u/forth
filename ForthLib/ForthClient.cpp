@@ -5,8 +5,10 @@
 //////////////////////////////////////////////////////////////////////
 #include "pch.h"
 
+#if defined(WINDOWS_BUILD)
 #pragma comment(lib, "wininet.lib")
 #pragma comment(lib, "Ws2_32.lib")
+#endif
 
 #include <stdio.h>
 #if defined(WIN64)

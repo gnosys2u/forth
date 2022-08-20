@@ -1250,7 +1250,7 @@ namespace OThread
     FORTHOP(oFiberGetCoreMethod)
     {
         GET_THIS(oFiberStruct, pFiberStruct);
-        SPUSH((int32_t)(pFiberStruct->pFiber->GetCore()));
+        SPUSH((cell)(pFiberStruct->pFiber->GetCore()));
         METHOD_RETURN;
     }
 

@@ -120,7 +120,7 @@ namespace OSocket
         GET_THIS(oSocketStruct, pSocket);
 
         socklen_t addrLen = (socklen_t)SPOP;
-        int addr = (int)SPOP;
+        cell addr = SPOP;
         cell result = (cell)bind(pSocket->fd, (const struct sockaddr *)addr, addrLen);
 #ifdef WIN32
         if (result < 0)
