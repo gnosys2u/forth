@@ -81,11 +81,11 @@ struct ForthCoreState
     
     ForthObject         TP;             // this pointer
 
-    ucell               varMode;        // operation to perform on variables
+    VarOperation        varMode;        // operation to perform on variables
 
-    ucell               state;          // inner loop state - ok/done/error
+    OpResult            state;          // inner loop state - ok/done/error
 
-    ucell               error;
+    ForthError          error;
 
     cell*               SB;            // param stack base
     cell*               ST;            // empty parameter stack pointer
@@ -125,7 +125,7 @@ extern OpResult InterpretOneOpFast( ForthCoreState *pCore, forthop op );
 #endif
 
 void InitDispatchTables( ForthCoreState* pCore );
-void CoreSetError( ForthCoreState *pCore, eForthError error, bool isFatal );
+void CoreSetError( ForthCoreState *pCore, ForthError error, bool isFatal );
 void _doIntVarop(ForthCoreState* pCore, int* pVar);
 void SpewMethodName(ForthObject obj, forthop opVal);
 
@@ -199,14 +199,14 @@ inline forthop GetCurrentOp( ForthCoreState *pCore )
 #define GET_SDEPTH                      (pCore->ST - pCore->SP)
 #define GET_RDEPTH                      (pCore->RT - pCore->RP)
 
-#define GET_STATE                       (OpResult)(pCore->state)
-#define SET_STATE( A )                  (pCore->state = (ucell)(A))
+#define GET_STATE                       (pCore->state)
+#define SET_STATE( A )                  (pCore->state = (A))
 
 #define GET_ENGINE                      ((ForthEngine *) (pCore->pEngine))
 
-#define GET_VAR_OPERATION               (VarOperation)(pCore->varMode)
-#define SET_VAR_OPERATION( A )          (pCore->varMode = static_cast<ucell>(A))
-#define CLEAR_VAR_OPERATION             (pCore->varMode = static_cast<ucell>(VarOperation::kVarDefaultOp))
+#define GET_VAR_OPERATION               (pCore->varMode)
+#define SET_VAR_OPERATION( A )          (pCore->varMode = (A))
+#define CLEAR_VAR_OPERATION             (pCore->varMode = VarOperation::kVarDefaultOp)
 
 #define GET_NUM_OPS		                (pCore->numOps)
 

@@ -63,7 +63,7 @@ void ForthShowContext::EndIndent()
     // TODO: reporting an error here causes a hang if output is redirected
     else
     {
-        mpEngine->SetError(kForthErrorIllegalOperation, "ShowContext with negative indent");
+        mpEngine->SetError(ForthError::kIllegalOperation, "ShowContext with negative indent");
     }
     */
 }

@@ -18,6 +18,7 @@ ForthParseInfo::ForthParseInfo(int32_t *pBuffer, int numLongs)
 	, mMaxChars((numLongs << 2) - 2)
 	, mFlags(0)
 	, mNumLongs(0)
+	, mNumChars(0)
 {
 	ASSERT(numLongs > 0);
 

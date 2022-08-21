@@ -27,8 +27,8 @@ protected:
 	bool IsLast();
 	void HandlePreceedingVarop();
 	
-	int32_t mTOSTypeCode;
-	int32_t mTypeCode;
+	uint32_t mTOSTypeCode;
+	uint32_t mTypeCode;
 
 	ForthParseInfo* mpParseInfo;
     ForthStructVocabulary* mpStructVocab;

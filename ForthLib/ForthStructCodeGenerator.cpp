@@ -41,8 +41,8 @@ ForthStructCodeGenerator::ForthStructCodeGenerator( ForthTypesManager* pTypeMana
     , mpNextToken(nullptr)
     , mCompileVarop( 0 )
     , mOffset( 0 )
-    , mTypeCode( BASE_TYPE_TO_CODE(kBaseTypeVoid) )
-    , mTOSTypeCode( BASE_TYPE_TO_CODE(kBaseTypeVoid) )
+    , mTypeCode((uint32_t)BASE_TYPE_TO_CODE(BaseType::kVoid))
+    , mTOSTypeCode((uint32_t)BASE_TYPE_TO_CODE(BaseType::kVoid))
     , mUsesSuper(false)
 {
 	mBufferBytes = 512;
@@ -156,8 +156,8 @@ bool ForthStructCodeGenerator::HandleFirst()
 
     HandlePreceedingVarop();
     
-	mTypeCode = BASE_TYPE_TO_CODE(kBaseTypeVoid);
-	mTOSTypeCode = BASE_TYPE_TO_CODE(kBaseTypeVoid);
+	mTypeCode = (uint32_t)BASE_TYPE_TO_CODE(BaseType::kVoid);
+	mTOSTypeCode = (uint32_t)BASE_TYPE_TO_CODE(BaseType::kVoid);
 
     // see if first token is local or global struct
     forthop* pEntry = NULL;
@@ -294,8 +294,8 @@ bool ForthStructCodeGenerator::HandleFirst()
 
     bool isPtr = CODE_IS_PTR( mTypeCode );
     bool isArray = CODE_IS_ARRAY( mTypeCode );
-    int32_t baseType = CODE_TO_BASE_TYPE( mTypeCode );
-    bool isObject = (baseType == kBaseTypeObject);
+    BaseType baseType = CODE_TO_BASE_TYPE( mTypeCode );
+    bool isObject = (baseType == BaseType::kObject);
     bool isMethod = CODE_IS_METHOD( mTypeCode );
     //int32_t compileVarop = 0;
 
@@ -305,21 +305,12 @@ bool ForthStructCodeGenerator::HandleFirst()
 		if ( isMember )
 		{
 			// first symbol is either a member variable or method
-			switch ( baseType )
+			if (baseType != BaseType::kObject && baseType != BaseType::kStruct)
 			{
-				case kBaseTypeObject:
-					break;
-
-				case kBaseTypeStruct:
-					break;
-
-				default:
-				{
-					// ERROR! must return object or struct
-					sprintf( mErrorMsg, "Method %s return value is not an object or struct", mpToken );
-					pEngine->SetError( kForthErrorStruct, mErrorMsg );
-					return false;
-				}
+				// ERROR! must return object or struct
+				sprintf( mErrorMsg, "Method %s return value is not an object or struct", mpToken );
+				pEngine->SetError( ForthError::kStruct, mErrorMsg );
+				return false;
 			}
 
 			if ( isMethod )
@@ -330,7 +321,7 @@ bool ForthStructCodeGenerator::HandleFirst()
                 ForthTypeInfo* pStruct = mpTypeManager->GetTypeInfo(typeIndex);
 				if ( pStruct == NULL )
 				{
-					pEngine->SetError( kForthErrorStruct, "Method return type not found by type manager" );
+					pEngine->SetError( ForthError::kStruct, "Method return type not found by type manager" );
 					return false;
 				}
 			}
@@ -516,8 +507,8 @@ bool ForthStructCodeGenerator::HandleMiddle()
     bool isNative = CODE_IS_NATIVE( mTypeCode );
     bool isPtr = CODE_IS_PTR( mTypeCode );
     bool isArray = CODE_IS_ARRAY( mTypeCode );
-    int32_t baseType = CODE_TO_BASE_TYPE( mTypeCode );
-    bool isObject = (baseType == kBaseTypeObject);
+    BaseType baseType = CODE_TO_BASE_TYPE( mTypeCode );
+    bool isObject = (baseType == BaseType::kObject);
     bool isMethod = CODE_IS_METHOD( mTypeCode );
     int32_t opType;
     mOffset += pEntry[0];
@@ -541,20 +532,16 @@ bool ForthStructCodeGenerator::HandleMiddle()
         SPEW_STRUCTS( " opcode 0x%x\n", COMPILED_OP( opType, mOffset ) );
         *mpDst++ = COMPILED_OP( opType, mOffset );
         mOffset = 0;
-        switch (baseType)
+        if (baseType == BaseType::kObject || baseType == BaseType::kStruct)
         {
-            case kBaseTypeObject:
-            case kBaseTypeStruct:
-                bSetStructVocab = true;
-                break;
-
-            default:
-            {
-                // ERROR! method must return object or struct
-                sprintf( mErrorMsg, "Method %s return value is not an object or struct", mpToken );
-                pEngine->SetError( kForthErrorStruct, mErrorMsg );
-                return false;
-            }
+            bSetStructVocab = true;
+        }
+        else
+        {
+            // ERROR! method must return object or struct
+            sprintf( mErrorMsg, "Method %s return value is not an object or struct", mpToken );
+            pEngine->SetError( ForthError::kStruct, mErrorMsg );
+            return false;
         }
     }
     else
@@ -566,7 +553,7 @@ bool ForthStructCodeGenerator::HandleMiddle()
         {
             // ERROR! a native field must be a final accessor
             sprintf( mErrorMsg, "Native %s used for non-final accessor", mpToken );
-            pEngine->SetError( kForthErrorStruct, mErrorMsg );
+            pEngine->SetError( ForthError::kStruct, mErrorMsg );
             return false;
         }
         // struct: do nothing (offset already added in)
@@ -614,7 +601,8 @@ bool ForthStructCodeGenerator::HandleMiddle()
             SPEW_STRUCTS( " ifetchOp 0x%x", gCompiledOps[OP_IFETCH] );
             *mpDst++ = gCompiledOps[OP_IFETCH];
         }
-        if (baseType == kBaseTypeStruct)
+
+        if (baseType == BaseType::kStruct)
         {
             bSetStructVocab = true;
         }
@@ -718,10 +706,10 @@ bool ForthStructCodeGenerator::HandleLast()
     bool isNative = CODE_IS_NATIVE(mTypeCode);
     bool isPtr = CODE_IS_PTR(mTypeCode);
     bool isArray = CODE_IS_ARRAY(mTypeCode);
-    int32_t baseType = CODE_TO_BASE_TYPE(mTypeCode);
-    bool isObject = (baseType == kBaseTypeObject);
+    BaseType baseType = CODE_TO_BASE_TYPE(mTypeCode);
+    bool isObject = (baseType == BaseType::kObject);
     bool isMethod = CODE_IS_METHOD(mTypeCode);
-    int32_t opType;
+    uint32_t opType;
     mOffset += pEntry[0];
     SPEW_STRUCTS(" offset %d", mOffset);
 
@@ -757,7 +745,7 @@ bool ForthStructCodeGenerator::HandleLast()
     {
         if ( isNative || isObject )
         {
-            opType = ((isArray) ? kOpFieldByteArray : kOpFieldByte) + CODE_TO_BASE_TYPE( mTypeCode );
+            opType = (uint32_t)((isArray) ? kOpFieldByteArray : kOpFieldByte) + (uint32_t)CODE_TO_BASE_TYPE( mTypeCode );
         }
         else
         {

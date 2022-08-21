@@ -376,7 +376,7 @@ namespace OString
         if (newLen < 0)
         {
             ForthEngine *pEngine = ForthEngine::GetInstance();
-            pEngine->SetError(kForthErrorBadParameter, " String.keepLeft negative length");
+            pEngine->SetError(ForthError::kBadParameter, " String.keepLeft negative length");
             newLen = 0;
         }
         else if (newLen > str->curLen)
@@ -397,7 +397,7 @@ namespace OString
         if (newLen < 0)
         {
             ForthEngine *pEngine = ForthEngine::GetInstance();
-            pEngine->SetError(kForthErrorBadParameter, " String.keepRight negative length");
+            pEngine->SetError(ForthError::kBadParameter, " String.keepRight negative length");
             newLen = 0;
         }
         else if (newLen < str->curLen)
@@ -423,11 +423,11 @@ namespace OString
         ForthEngine *pEngine = ForthEngine::GetInstance();
         if (firstChar < 0)
         {
-            pEngine->SetError(kForthErrorBadParameter, " String.keepMiddle negative first character");
+            pEngine->SetError(ForthError::kBadParameter, " String.keepMiddle negative first character");
         }
         else if (newLen < 0)
         {
-            pEngine->SetError(kForthErrorBadParameter, " String.keepMiddle negative length");
+            pEngine->SetError(ForthError::kBadParameter, " String.keepMiddle negative length");
         }
         else
         {
@@ -469,7 +469,7 @@ namespace OString
         if (newLen < 0)
         {
             ForthEngine *pEngine = ForthEngine::GetInstance();
-            pEngine->SetError(kForthErrorBadParameter, " String.leftBytes negative length");
+            pEngine->SetError(ForthError::kBadParameter, " String.leftBytes negative length");
             newLen = 0;
         }
         else if (newLen > str->curLen)
@@ -490,7 +490,7 @@ namespace OString
         if (newLen < 0)
         {
             ForthEngine *pEngine = ForthEngine::GetInstance();
-            pEngine->SetError(kForthErrorBadParameter, " String.rightBytes negative length");
+            pEngine->SetError(ForthError::kBadParameter, " String.rightBytes negative length");
             newLen = 0;
         }
         else if (newLen >= str->curLen)
@@ -517,12 +517,12 @@ namespace OString
         if (firstChar < 0)
         {
             newLen = 0;
-            pEngine->SetError(kForthErrorBadParameter, " String.middleBytes negative first character");
+            pEngine->SetError(ForthError::kBadParameter, " String.middleBytes negative first character");
         }
         else if (newLen < 0)
         {
             newLen = 0;
-            pEngine->SetError(kForthErrorBadParameter, " String.middleBytes negative length");
+            pEngine->SetError(ForthError::kBadParameter, " String.middleBytes negative length");
         }
         else
         {
@@ -886,7 +886,7 @@ namespace OString
         METHOD(     "__newOp",              oStringNew ),
         METHOD(     "delete",               oStringDeleteMethod ),
         METHOD(     "showInner",			oStringShowInnerMethod ),
-        METHOD_RET( "compare",              oStringCompareMethod, RETURNS_NATIVE(kBaseTypeInt) ),
+        METHOD_RET( "compare",              oStringCompareMethod, RETURNS_NATIVE(BaseType::kInt) ),
 
         METHOD(     "size",                 oStringSizeMethod ),
         METHOD(     "length",               oStringLengthMethod ),
@@ -929,8 +929,8 @@ namespace OString
         METHOD(		"toUpper",				oStringToUpperMethod ),
 		METHOD(     "replaceChar",          oStringReplaceCharMethod),
 		
-        MEMBER_VAR( "__hash",				NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell) ),
-        MEMBER_VAR( "__str",				NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell) ),
+        MEMBER_VAR( "__hash",				NATIVE_TYPE_TO_CODE(0, BaseType::kUCell) ),
+        MEMBER_VAR( "__str",				NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell) ),
 
         // following must be last in table
         END_MEMBERS
@@ -1253,17 +1253,17 @@ namespace OString
 		METHOD_RET("tailIter", oStringMapTailIterMethod, RETURNS_OBJECT(kBCIMapIter)),
 		METHOD_RET("find", oStringMapFindMethod, RETURNS_OBJECT(kBCIMapIter)),
 		//METHOD_RET( "clone",                oStringMapCloneMethod, RETURNS_OBJECT(kBCIMap) ),
-		METHOD_RET("count", oStringMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("count", oStringMapCountMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("clear", oStringMapClearMethod),
 
         METHOD_RET("grab", oStringMapGrabMethod, RETURNS_OBJECT(kBCIContainedType)),
 		METHOD("set", oStringMapSetMethod),
         METHOD("load", oStringMapLoadMethod),
-        METHOD_RET("findValue", oStringMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oStringMapFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oStringMapRemoveMethod),
 		METHOD("unref", oStringMapUnrefMethod),
 
-        MEMBER_VAR( "__elements",       NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeInt) ),
+        MEMBER_VAR( "__elements",       NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kInt) ),
 
 		// following must be last in table
 		END_MEMBERS
@@ -1278,7 +1278,7 @@ namespace OString
 	FORTHOP(oStringMapIterNew)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot explicitly create a oStringMapIter object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a oStringMapIter object");
 	}
 
 	FORTHOP(oStringMapIterDeleteMethod)
@@ -1439,19 +1439,19 @@ namespace OString
 		METHOD("seekPrev", oStringMapIterSeekPrevMethod),
 		METHOD("seekHead", oStringMapIterSeekHeadMethod),
 		METHOD("seekTail", oStringMapIterSeekTailMethod),
-        METHOD_RET("atHead", oStringMapIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oStringMapIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oStringMapIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oStringMapIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oStringMapIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oStringMapIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oStringMapIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oStringMapIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oStringMapIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oStringMapIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oStringMapIterRemoveMethod),
-		METHOD_RET("findNext", oStringMapIterFindNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("findNext", oStringMapIterFindNextMethod, RETURNS_NATIVE(BaseType::kInt)),
 		//METHOD_RET( "clone",                oStringMapIterCloneMethod, RETURNS_OBJECT(kBCIMapIter) ),
 
-		METHOD_RET("currentPair", oStringMapIterCurrentPairMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("currentPair", oStringMapIterCurrentPairMethod, RETURNS_NATIVE(BaseType::kInt)),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIStringMap)),
-        MEMBER_VAR( "__cursor",			NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeInt) ),
+        MEMBER_VAR( "__cursor",			NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kInt) ),
         
 		// following must be last in table
 		END_MEMBERS
@@ -1467,7 +1467,7 @@ namespace OString
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, "stringCharOut destination string null");
+            GET_ENGINE->SetError(ForthError::kBadParameter, "stringCharOut destination string null");
         }
 	}
 
@@ -1480,7 +1480,7 @@ namespace OString
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, "stringBlockOut destination string null");
+            GET_ENGINE->SetError(ForthError::kBadParameter, "stringBlockOut destination string null");
         }
 	}
 
@@ -1494,7 +1494,7 @@ namespace OString
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, "stringStringOut destination string null");
+            GET_ENGINE->SetError(ForthError::kBadParameter, "stringStringOut destination string null");
         }
 	}
 
@@ -1512,7 +1512,7 @@ namespace OString
             }
             else
             {
-                ForthEngine::GetInstance()->SetError(kForthErrorBadParameter, "customStringReader destination string null");
+                ForthEngine::GetInstance()->SetError(ForthError::kBadParameter, "customStringReader destination string null");
                 return false;
             }
         }
@@ -1536,7 +1536,7 @@ namespace OString
             oStringMapStruct *dstMap = (oStringMapStruct *)(reader->getCustomReaderContext().pData);
             if (dstMap == nullptr)
             {
-                ForthEngine::GetInstance()->SetError(kForthErrorBadParameter, "customStringMapReader destination map null");
+                ForthEngine::GetInstance()->SetError(ForthError::kBadParameter, "customStringMapReader destination map null");
                 return false;
             }
             reader->getRequiredChar('{');

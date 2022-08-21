@@ -89,7 +89,7 @@ void _doByteVarop( ForthCoreState* pCore, signed char* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( kForthErrorBadVarOperation );
+            pEngine->SetError( ForthError::kBadVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -148,7 +148,7 @@ static void _doUByteVarop( ForthCoreState* pCore, unsigned char* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( kForthErrorBadVarOperation );
+            pEngine->SetError( ForthError::kBadVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -177,7 +177,7 @@ GFORTHOP( ubyteVarActionBop )
 }
 #endif
 
-#define SET_OPVAL uint32_t varMode = opVal >> 21; 	if (varMode != 0) { pCore->varMode = varMode; opVal &= 0x1FFFFF; }
+#define SET_OPVAL VarOperation varMode = (VarOperation)(opVal >> 21); 	if (varMode != VarOperation::kVarDefaultOp) { pCore->varMode = varMode; opVal &= 0x1FFFFF; }
 
 OPTYPE_ACTION( LocalByteAction )
 {
@@ -365,7 +365,7 @@ static void _doShortVarop( ForthCoreState* pCore, short* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( kForthErrorBadVarOperation );
+            pEngine->SetError( ForthError::kBadVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -424,7 +424,7 @@ static void _doUShortVarop( ForthCoreState* pCore, unsigned short* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( kForthErrorBadVarOperation );
+            pEngine->SetError( ForthError::kBadVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -641,7 +641,7 @@ void _doIntVarop( ForthCoreState* pCore, int* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( kForthErrorBadVarOperation );
+            pEngine->SetError( ForthError::kBadVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -707,7 +707,7 @@ static void _doUIntVarop(ForthCoreState* pCore, uint32_t* pVar)
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError(kForthErrorBadVarOperation);
+            pEngine->SetError(ForthError::kBadVarOperation);
         }
         CLEAR_VAR_OPERATION;
     }
@@ -925,7 +925,7 @@ static void _doFloatVarop( ForthCoreState* pCore, float* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( kForthErrorBadVarOperation );
+            pEngine->SetError( ForthError::kBadVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -1073,7 +1073,7 @@ static void _doDoubleVarop( ForthCoreState* pCore, double* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( kForthErrorBadVarOperation );
+            pEngine->SetError( ForthError::kBadVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -1247,7 +1247,7 @@ static void _doStringVarop( ForthCoreState* pCore, char* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( kForthErrorBadVarOperation );
+            pEngine->SetError( ForthError::kBadVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -1386,7 +1386,7 @@ static void _doOpVarop( ForthCoreState* pCore, int32_t* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( kForthErrorBadVarOperation );
+            pEngine->SetError( ForthError::kBadVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -1544,7 +1544,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 				}
 				else
 				{
-					pEngine->SetError(kForthErrorBadReferenceCount);
+					pEngine->SetError(ForthError::kBadReferenceCount);
 				}
 			}
 		}
@@ -1563,7 +1563,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 
 	default:
 		// report GET_VAR_OPERATION out of range
-		pEngine->SetError( kForthErrorBadVarOperation );
+		pEngine->SetError( ForthError::kBadVarOperation );
 		break;
 	}
 }
@@ -1739,7 +1739,7 @@ void longVarAction( ForthCoreState* pCore, int64_t* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( kForthErrorBadVarOperation );
+            pEngine->SetError( ForthError::kBadVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -1856,7 +1856,7 @@ OPTYPE_ACTION( CCodeAction )
     }
     else
     {
-        SET_ERROR( kForthErrorBadOpcode );
+        SET_ERROR( ForthError::kBadOpcode );
     }
 }
 
@@ -1871,7 +1871,7 @@ OPTYPE_ACTION( UserDefAction )
     }
     else
     {
-        SET_ERROR( kForthErrorBadOpcode );
+        SET_ERROR( ForthError::kBadOpcode );
     }
 }
 
@@ -1887,7 +1887,7 @@ OPTYPE_ACTION( RelativeDefAction )
     }
     else
     {
-        SET_ERROR( kForthErrorBadOpcode );
+        SET_ERROR( ForthError::kBadOpcode );
     }
 }
 
@@ -1902,7 +1902,7 @@ OPTYPE_ACTION(RelativeDataAction)
     }
     else
     {
-        SET_ERROR(kForthErrorBadOpcode);
+        SET_ERROR(ForthError::kBadOpcode);
     }
 }
 
@@ -2105,7 +2105,7 @@ OPTYPE_ACTION( DLLEntryPointAction )
     }
     else
     {
-        SET_ERROR( kForthErrorBadOpcode );
+        SET_ERROR( ForthError::kBadOpcode );
     }
 #endif
 }
@@ -2189,7 +2189,7 @@ OPTYPE_ACTION(MethodWithSuperAction)
     if (opVal == kMethodDelete)
     {
         // super.delete is illegal - system does this for you
-        SET_ERROR(kForthErrorIllegalMethod);
+        SET_ERROR(ForthError::kIllegalMethod);
         return;
     }
 
@@ -2225,7 +2225,7 @@ OPTYPE_ACTION( MethodWithTOSAction )
     POP_OBJECT(obj);
     if (obj == nullptr || obj->pMethods == nullptr)
     {
-        SET_ERROR(kForthErrorBadObject);
+        SET_ERROR(ForthError::kBadObject);
         return;
     }
 
@@ -2266,7 +2266,7 @@ OPTYPE_ACTION( NumVaropOpComboAction )
     SPUSH( num );
 
 	// set varop to bits 11:12 + 2
-	SET_VAR_OPERATION( ((opVal >> 11) & 3) + 2 );
+	SET_VAR_OPERATION((VarOperation)(((opVal >> 11) & 3) + 2));
 
 	// execute op in bits 13:23
 	forthop op = COMPILED_OP(NATIVE_OPTYPE, (opVal >> 13));
@@ -2319,7 +2319,7 @@ OPTYPE_ACTION( VaropOpComboAction )
 	// VAROP OP combo - bits 0:1 are varop-2, bits 2:23 are opcode
 
 	// set varop to bits 0:1 + 2
-	SET_VAR_OPERATION( (opVal & 3) + 2 );
+	SET_VAR_OPERATION((VarOperation)((opVal & 3) + 2));
 
 	// execute op in bits 2:23
     forthop op = COMPILED_OP(NATIVE_OPTYPE, (opVal >> 2) );
@@ -2407,12 +2407,12 @@ OPTYPE_ACTION( MemberRefOpComboAction )
 
 OPTYPE_ACTION( IllegalOptypeAction )
 {
-    SET_ERROR( kForthErrorBadOpcodeType );
+    SET_ERROR( ForthError::kBadOpcodeType );
 }
 
 OPTYPE_ACTION( ReservedOptypeAction )
 {
-    SET_ERROR( kForthErrorBadOpcodeType );
+    SET_ERROR( ForthError::kBadOpcodeType );
 }
 
 #if 0
@@ -2437,7 +2437,7 @@ OPTYPE_ACTION( MethodAction )
         }
         else
         {
-            SET_ERROR( kForthErrorBadOpcode );
+            SET_ERROR( ForthError::kBadOpcode );
         }
     }
     if ( pObj != NULL )
@@ -2457,12 +2457,12 @@ OPTYPE_ACTION( MethodAction )
         else
         {
             // bad class magic number, or bad method number
-            SET_ERROR( kForthErrorBadOpcode );
+            SET_ERROR( ForthError::kBadOpcode );
         }
     }
     else
     {
-        SET_ERROR( kForthErrorBadOpcode );
+        SET_ERROR( ForthError::kBadOpcode );
     }
 }
 #endif
@@ -2470,7 +2470,7 @@ OPTYPE_ACTION( MethodAction )
 // NOTE: there is no opcode assigned to this op
 FORTHOP( BadOpcodeOp )
 {
-    SET_ERROR( kForthErrorBadOpcode );
+    SET_ERROR( ForthError::kBadOpcode );
 }
 
 optypeActionRoutine builtinOptypeAction[] =
@@ -2646,10 +2646,10 @@ void InitDispatchTables( ForthCoreState* pCore )
     }
 }
 
-void CoreSetError( ForthCoreState *pCore, eForthError error, bool isFatal )
+void CoreSetError( ForthCoreState *pCore, ForthError error, bool isFatal )
 {
     pCore->error =  error;
-    pCore->state = (ucell)((isFatal) ? OpResult::kResultFatalError : OpResult::kResultError);
+    pCore->state = (isFatal) ? OpResult::kFatalError : OpResult::kError;
 }
 
 //############################################################################
@@ -2663,7 +2663,7 @@ void CoreSetError( ForthCoreState *pCore, eForthError error, bool isFatal )
 
 OpResult InnerInterpreter( ForthCoreState *pCore )
 {
-    SET_STATE( OpResult::kResultOk );
+    SET_STATE( OpResult::kOk );
 
 	bool bContinueLooping = true;
 	while (bContinueLooping)
@@ -2674,7 +2674,7 @@ OpResult InnerInterpreter( ForthCoreState *pCore )
 		if (traceFlags & kLogInnerInterpreter)
 		{
 			OpResult result = GET_STATE;
-			while (result == OpResult::kResultOk)
+			while (result == OpResult::kOk)
 			{
 				// fetch op at IP, advance IP
                 forthop* pIP = GET_IP;
@@ -2684,7 +2684,7 @@ OpResult InnerInterpreter( ForthCoreState *pCore )
 				SET_IP(pIP);
 				DISPATCH_FORTH_OP(pCore, op);
 				result = GET_STATE;
-				if (result != OpResult::kResultDone)
+				if (result != OpResult::kDone)
 				{
 					if (traceFlags & kLogStack)
 					{
@@ -2698,7 +2698,7 @@ OpResult InnerInterpreter( ForthCoreState *pCore )
 		else
 #endif
 		{
-			while (GET_STATE == OpResult::kResultOk)
+			while (GET_STATE == OpResult::kOk)
 			{
                 forthop* pIP = GET_IP;
 				forthop op = *pIP++;
@@ -2716,7 +2716,7 @@ OpResult InnerInterpreter( ForthCoreState *pCore )
 
 OpResult InterpretOneOp( ForthCoreState *pCore, forthop op )
 {
-    SET_STATE( OpResult::kResultOk );
+    SET_STATE( OpResult::kOk );
 
 #ifdef TRACE_INNER_INTERPRETER
 	ForthEngine* pEngine = GET_ENGINE;
@@ -2755,14 +2755,14 @@ OpResult InnerInterpreter( ForthCoreState *pCore )
     forthop op;
     numBuiltinOps = pCore->numBuiltinOps;
 
-    SET_STATE( OpResult::kResultOk );
+    SET_STATE( OpResult::kOk );
 
 #ifdef TRACE_INNER_INTERPRETER
 	ForthEngine* pEngine = GET_ENGINE;
 	int traceFlags = pEngine->GetTraceFlags();
 	if ( traceFlags & kLogInnerInterpreter )
 	{
-		while ( GET_STATE == OpResult::kResultOk )
+		while ( GET_STATE == OpResult::kOk )
 		{
 			// fetch op at IP, advance IP
 			pIP = GET_IP;
@@ -2782,7 +2782,7 @@ OpResult InnerInterpreter( ForthCoreState *pCore )
 	else
 #endif
 	{
-		while ( GET_STATE == OpResult::kResultOk )
+		while ( GET_STATE == OpResult::kOk )
 		{
 			// fetch op at IP, advance IP
 			pIP = GET_IP;

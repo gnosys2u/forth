@@ -37,7 +37,7 @@ private:
     ucell    AssignBuffer( ucell blockNum, bool readContents );
     void            UpdateLRU();
     bool            SaveBuffer( ucell bufferNum );
-    void            ReportError( eForthError errorCode, const char* pErrorMessage );
+    void            ReportError( ForthError errorCode, const char* pErrorMessage );
 
     char*           mpBlockFilename;
     ucell    mNumBlocksInFile;

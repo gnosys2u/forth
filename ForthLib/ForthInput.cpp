@@ -926,7 +926,7 @@ bool ForthBlockInputStream::ReadBlock()
     FILE * pInFile = mpManager->OpenBlockFile(false);
     if ( pInFile == NULL )
     {
-        pEngine->SetError( kForthErrorIO, "BlockInputStream - failed to open block file" );
+        pEngine->SetError( ForthError::kIO, "BlockInputStream - failed to open block file" );
         success = false;
     }
     else
@@ -935,7 +935,7 @@ bool ForthBlockInputStream::ReadBlock()
         int numRead = fread( mpBufferBase, BYTES_PER_BLOCK, 1, pInFile );
         if ( numRead != 1 )
         {
-            pEngine->SetError( kForthErrorIO, "BlockInputStream - failed to read block file" );
+            pEngine->SetError( ForthError::kIO, "BlockInputStream - failed to read block file" );
             success = false;
         }
         fclose( pInFile );

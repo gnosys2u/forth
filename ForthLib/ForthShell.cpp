@@ -378,7 +378,7 @@ ForthShell::RunOneStream(ForthInputStream *pInStream)
 	const char *pBuffer;
 	int retVal = 0;
 	bool bQuit = false;
-	OpResult result = OpResult::kResultOk;
+	OpResult result = OpResult::kOk;
 
 	ForthInputStream* pOldInput = mpInput->InputStream();
 	mpInput->PushInputStream(pInStream);
@@ -400,25 +400,25 @@ ForthShell::RunOneStream(ForthInputStream *pInStream)
 			switch (result)
 			{
 
-			case OpResult::kResultOk:
+			case OpResult::kOk:
 				break;
 
-			case OpResult::kResultShutdown:			// what should shutdown do on non-client/server?
-			case OpResult::kResultExitShell:
+			case OpResult::kShutdown:			// what should shutdown do on non-client/server?
+			case OpResult::kExitShell:
 				// users has typed "bye", exit the shell
 				bQuit = true;
 				retVal = 0;
 				break;
 
-			case OpResult::kResultError:
-			case OpResult::kResultException:
+			case OpResult::kError:
+			case OpResult::kException:
 				// an error has occured, empty input stream stack
 				// TODO
 				bQuit = true;
 				retVal = 0;
 				break;
 
-			case OpResult::kResultFatalError:
+			case OpResult::kFatalError:
 			default:
 				// a fatal error has occured, exit the shell
 				bQuit = true;
@@ -442,7 +442,7 @@ ForthShell::Run( ForthInputStream *pInStream )
     const char *pBuffer;
     int retVal = 0;
     bool bQuit = false;
-    OpResult result = OpResult::kResultOk;
+    OpResult result = OpResult::kOk;
     bool bInteractiveMode = pInStream->IsInteractive();
 
     mpInput->PushInputStream( pInStream );
@@ -485,18 +485,18 @@ ForthShell::Run( ForthInputStream *pInStream )
             switch( result )
             {
 
-            case OpResult::kResultOk:
+            case OpResult::kOk:
                 break;
 
-            case OpResult::kResultShutdown:			// what should shutdown do on non-client/server?
-            case OpResult::kResultExitShell:
+            case OpResult::kShutdown:			// what should shutdown do on non-client/server?
+            case OpResult::kExitShell:
                 // users has typed "bye", exit the shell
                 bQuit = true;
                 retVal = 0;
                 break;
 
-            case OpResult::kResultError:
-            case OpResult::kResultException:
+            case OpResult::kError:
+            case OpResult::kException:
                 // an error has occured, empty input stream stack
                 // TODO
                 if ( !bInteractiveMode )
@@ -510,7 +510,7 @@ ForthShell::Run( ForthInputStream *pInStream )
                 retVal = 0;
                 break;
 
-            case OpResult::kResultFatalError:
+            case OpResult::kFatalError:
             default:
                 // a fatal error has occured, exit the shell
                 bQuit = true;
@@ -564,7 +564,7 @@ char* ForthShell::AddToInputLine(const char* pBuffer)
 // ProcessLine is the layer between Run and InterpretLine that implements pound directives
 OpResult ForthShell::ProcessLine( const char *pSrcLine )
 {
-    OpResult result = OpResult::kResultOk;
+    OpResult result = OpResult::kOk;
 
     mInContinuationLine = false;
     const char* pLineBuff = mpInput->GetBufferBasePointer();
@@ -606,7 +606,7 @@ OpResult ForthShell::ProcessLine( const char *pSrcLine )
 					if (marker != kShellTagPoundIf)
 					{
 						// error - unexpected else
-						mpEngine->SetError(kForthErrorBadPreprocessorDirective, "unexpected #endif");
+						mpEngine->SetError(ForthError::kBadPreprocessorDirective, "unexpected #endif");
 					}
 					mFlags &= ~SHELL_FLAG_SKIP_SECTION;
                 }
@@ -617,9 +617,9 @@ OpResult ForthShell::ProcessLine( const char *pSrcLine )
 
             }
         }
-        if (mpEngine->GetError() != kForthErrorNone)
+        if (mpEngine->GetError() != ForthError::kNone)
         {
-            result = OpResult::kResultError;
+            result = OpResult::kError;
         }
     }
     else
@@ -627,7 +627,7 @@ OpResult ForthShell::ProcessLine( const char *pSrcLine )
         // we are currently not skipping input lines
         result = InterpretLine();
 
-        if ( result == OpResult::kResultOk )
+        if ( result == OpResult::kOk )
         {
             // process pound directive if needed
             if ( (mFlags & SHELL_FLAG_START_IF) != 0 )
@@ -652,7 +652,7 @@ OpResult ForthShell::ProcessLine( const char *pSrcLine )
                 }
                 else
                 {
-                    mpEngine->SetError( kForthErrorBadPreprocessorDirective, "#if expression left empty stack" );
+                    mpEngine->SetError( ForthError::kBadPreprocessorDirective, "#if expression left empty stack" );
                 }
                 mFlags &= ~SHELL_FLAG_START_IF;
             }
@@ -667,7 +667,7 @@ static bool gbCatchExceptions = false;
 //
 OpResult ForthShell::InterpretLine( const char *pSrcLine )
 {
-    OpResult  result = OpResult::kResultOk;
+    OpResult  result = OpResult::kOk;
     bool bLineEmpty;
     ForthParseInfo parseInfo( mTokenBuffer, sizeof(mTokenBuffer) >> 2 );
 
@@ -682,19 +682,19 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
 	}
 	SPEW_SHELL( "\n*** InterpretLine {%s}\n", pLineBuff );
     bLineEmpty = false;
-    mpEngine->SetError( kForthErrorNone );
-    while ( !bLineEmpty && (result == OpResult::kResultOk) )
+    mpEngine->SetError( ForthError::kNone );
+    while ( !bLineEmpty && (result == OpResult::kOk) )
 	{
         bLineEmpty = ParseToken( &parseInfo );
-        if (mpEngine->GetError() != kForthErrorNone)
+        if (mpEngine->GetError() != ForthError::kNone)
         {
-            result = OpResult::kResultError;
+            result = OpResult::kError;
         }
         ForthInputStream* pInput = mpInput->InputStream();
         SPEW_SHELL("input %s:%s[%d] buffer 0x%x readoffset %d write %d\n", pInput->GetType(), pInput->GetName(),
             pInput->GetLineNumber(), pInput->GetBufferPointer(), pInput->GetReadOffset(), pInput->GetWriteOffset() );
 
-        if (!bLineEmpty && (result == OpResult::kResultOk))
+        if (!bLineEmpty && (result == OpResult::kOk))
 		{
 
 
@@ -708,8 +708,8 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
 				}
 				catch(...)
 				{
-					result = OpResult::kResultException;
-					mpEngine->SetError( kForthErrorIllegalOperation );
+					result = OpResult::kException;
+					mpEngine->SetError( ForthError::kIllegalOperation );
                     mInContinuationLine = false;
 				}
 			}
@@ -722,18 +722,18 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
             result = mpEngine->ProcessToken( &parseInfo );
             CHECK_STACKS( mpEngine->GetMainFiber() );
 #endif
-            if ( result == OpResult::kResultOk )
+            if ( result == OpResult::kOk )
 			{
                 result = mpEngine->CheckStacks();
             }
         }
-        if (result != OpResult::kResultOk)
+        if (result != OpResult::kOk)
         {
-            bool exitingShell = (result == OpResult::kResultExitShell) || (result == OpResult::kResultShutdown);
+            bool exitingShell = (result == OpResult::kExitShell) || (result == OpResult::kShutdown);
             if (!exitingShell)
             {
                 ReportError();
-                if (mpEngine->GetError() == kForthErrorUnknownSymbol)
+                if (mpEngine->GetError() == ForthError::kUnknownSymbol)
                 {
                     ForthConsoleCharOut(mpEngine->GetCoreState(), '\n');
                     mpEngine->ShowSearchInfo();
@@ -745,7 +745,7 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
             {
                 // if the initial input stream was a file, any error
                 //   must be treated as a fatal error
-                result = OpResult::kResultFatalError;
+                result = OpResult::kFatalError;
             }
         }
     }
@@ -1022,7 +1022,7 @@ ForthShell::ParseToken( ForthParseInfo *pInfo )
                 GetTagString(tag, pTagString);
                 sprintf(mErrorString,  "top of shell stack is <%s>, was expecting <string>", pTagString);
                 free(pTagString);
-                mpEngine->SetError( kForthErrorBadSyntax, mErrorString );
+                mpEngine->SetError( ForthError::kBadSyntax, mErrorString );
             }
         }
         return false;
@@ -1628,7 +1628,7 @@ ForthShell::CheckSyntaxError(const char *pString, eShellTag tag, int32_t desired
         free(pExpected);
         free(pActual);
 		mpStack->PushTag(tag);
-		mpEngine->SetError(kForthErrorBadSyntax, mErrorString);
+		mpEngine->SetError(ForthError::kBadSyntax, mErrorString);
 		return false;
 	}
 	return true;
@@ -1671,7 +1671,7 @@ ForthShell::CheckDefinitionEnd(const char* pDisplayName, const char* pFourCharCo
 		mpStack->PushString(definedSymbol);
 		mpStack->Push(defineType);
 		mpStack->Push(defineTag);
-		mpEngine->SetError(kForthErrorBadSyntax, mErrorString);
+		mpEngine->SetError(ForthError::kBadSyntax, mErrorString);
 	}
 	return false;
 }
@@ -1843,7 +1843,7 @@ void ForthShell::PoundElse()
     else
     {
         // error - unexpected else
-        mpEngine->SetError( kForthErrorBadPreprocessorDirective, "unexpected #else" );
+        mpEngine->SetError( ForthError::kBadPreprocessorDirective, "unexpected #else" );
     }
 }
 
@@ -1854,7 +1854,7 @@ void ForthShell::PoundEndif()
     if ( marker != kShellTagPoundIf )
     {
         // error - unexpected endif
-        mpEngine->SetError( kForthErrorBadPreprocessorDirective, "unexpected #endif" );
+        mpEngine->SetError( ForthError::kBadPreprocessorDirective, "unexpected #endif" );
     }
 }
 
@@ -1965,7 +1965,7 @@ ForthShellStack::PushTag(eShellTag tag)
     }
     else
     {
-        ForthEngine::GetInstance()->SetError(kForthErrorShellStackOverflow);
+        ForthEngine::GetInstance()->SetError(ForthError::kShellStackOverflow);
     }
 }
 
@@ -1979,7 +1979,7 @@ ForthShellStack::Push(cell val)
     }
     else
     {
-        ForthEngine::GetInstance()->SetError(kForthErrorShellStackOverflow);
+        ForthEngine::GetInstance()->SetError(ForthError::kShellStackOverflow);
     }
 }
 
@@ -1993,7 +1993,7 @@ ForthShellStack::PushAddress(forthop* addr)
     }
     else
     {
-        ForthEngine::GetInstance()->SetError(kForthErrorShellStackOverflow);
+        ForthEngine::GetInstance()->SetError(ForthError::kShellStackOverflow);
     }
 }
 
@@ -2024,7 +2024,7 @@ forthop* ForthShellStack::PopAddress( void )
 {
     if (mSSP == mSST)
     {
-        ForthEngine::GetInstance()->SetError( kForthErrorShellStackUnderflow );
+        ForthEngine::GetInstance()->SetError( ForthError::kShellStackUnderflow );
         return (forthop*)kShellTagNothing;
     }
     forthop* pOp = *mSSP++;
@@ -2050,7 +2050,7 @@ cell ForthShellStack::Pop(void)
 {
     if (mSSP == mSST)
     {
-        ForthEngine::GetInstance()->SetError(kForthErrorShellStackUnderflow);
+        ForthEngine::GetInstance()->SetError(ForthError::kShellStackUnderflow);
         return kShellTagNothing;
     }
     cell val = (cell)*mSSP++;
@@ -2119,7 +2119,7 @@ ForthShellStack::PushString( const char *pString )
 	}
 	else
 	{
-        ForthEngine::GetInstance()->SetError( kForthErrorShellStackOverflow );
+        ForthEngine::GetInstance()->SetError( ForthError::kShellStackOverflow );
 	}
 }
 
@@ -2131,7 +2131,7 @@ ForthShellStack::PopString(char *pString, int maxLen)
     {
         *pString = '\0';
         SPEW_SHELL( "Failed to pop string\n" );
-        ForthEngine::GetInstance()->SetError( kForthErrorShellStackUnderflow );
+        ForthEngine::GetInstance()->SetError( ForthError::kShellStackUnderflow );
         return false;
     }
     mSSP++;

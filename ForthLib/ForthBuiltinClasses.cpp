@@ -79,7 +79,7 @@ void unrefObject(ForthObject& fobj)
 	{
 		if (fobj->refCount == 0)
 		{
-			pEngine->SetError(kForthErrorBadReferenceCount, " unref with refcount already zero");
+			pEngine->SetError(ForthError::kBadReferenceCount, " unref with refcount already zero");
 		}
 		else
 		{
@@ -224,11 +224,11 @@ namespace
 		METHOD("show", objectShowMethod),
         METHOD("showInner", objectShowInnerMethod),
         METHOD_RET("getClass", objectClassMethod, RETURNS_OBJECT(kBCIClass)),
-		METHOD_RET("compare", objectCompareMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("compare", objectCompareMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("keep", objectKeepMethod),
 		METHOD("release", objectReleaseMethod),
-        MEMBER_VAR("__methods", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
-        MEMBER_VAR("__refCount", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+        MEMBER_VAR("__methods", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
+        MEMBER_VAR("__refCount", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
         // following must be last in table
 		END_MEMBERS
 	};
@@ -240,7 +240,7 @@ namespace
     //
     FORTHOP(oContainedTypeNew)
     {
-        GET_ENGINE->SetError(kForthErrorIllegalOperation, " cannot explicitly create a ContainedType object");
+        GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a ContainedType object");
     }
 
     baseMethodEntry containedTypeMembers[] =
@@ -306,7 +306,7 @@ namespace
 	FORTHOP(classDeleteMethod)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot delete a class object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot delete a class object");
 		METHOD_RETURN;
 	}
 
@@ -322,13 +322,13 @@ namespace
 		METHOD("delete", classDeleteMethod),
 		METHOD_RET("create", classCreateMethod, RETURNS_OBJECT(kBCIObject)),
 		METHOD_RET("getParent", classSuperMethod, RETURNS_OBJECT(kBCIClass)),
-		METHOD_RET("getName", classNameMethod, RETURNS_NATIVE(kDTIsPtr|kBaseTypeByte)),
+		METHOD_RET("getName", classNameMethod, RETURNS_NATIVE_PTR(BaseType::kByte)),
         METHOD_RET("getVocabulary", classVocabularyMethod, RETURNS_OBJECT(kBCIVocabulary)),
-        METHOD_RET("getTypeIndex", classGetTypeIndexMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("getTypeIndex", classGetTypeIndexMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("setNew", classSetNewMethod),
 
-		MEMBER_VAR("__vocab", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
-		MEMBER_VAR("newOp", NATIVE_TYPE_TO_CODE(0, kBaseTypeOp)),
+		MEMBER_VAR("__vocab", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
+		MEMBER_VAR("newOp", NATIVE_TYPE_TO_CODE(0, BaseType::kOp)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -348,11 +348,11 @@ namespace
 		METHOD("seekPrev", unimplementedMethodOp),
 		METHOD("seekHead", unimplementedMethodOp),
 		METHOD("seekTail", unimplementedMethodOp),
-        METHOD_RET("atHead", unimplementedMethodOp, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", unimplementedMethodOp, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", unimplementedMethodOp, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", unimplementedMethodOp, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", unimplementedMethodOp, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", unimplementedMethodOp, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", unimplementedMethodOp, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", unimplementedMethodOp, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", unimplementedMethodOp, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", unimplementedMethodOp, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", unimplementedMethodOp),
 		METHOD_RET("unref", unimplementedMethodOp, RETURNS_OBJECT(kBCIObject)),
         METHOD_RET("clone", unimplementedMethodOp, RETURNS_OBJECT(kBCIIter)),
@@ -374,7 +374,7 @@ namespace
 		METHOD_RET("tailIter", unimplementedMethodOp, RETURNS_OBJECT(kBCIIter)),
 		METHOD_RET("find", unimplementedMethodOp, RETURNS_OBJECT(kBCIIter)),
 		METHOD_RET("clone", unimplementedMethodOp, RETURNS_OBJECT(kBCIIterable)),
-		METHOD_RET("count", unimplementedMethodOp, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("count", unimplementedMethodOp, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("clear", unimplementedMethodOp),
 		// following must be last in table
 		END_MEMBERS

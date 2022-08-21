@@ -186,7 +186,7 @@ namespace ODeque
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, " pop of empty ODeque");
+            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty ODeque");
         }
         METHOD_RETURN;
     }
@@ -204,7 +204,7 @@ namespace ODeque
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, " pop of empty ODeque");
+            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty ODeque");
         }
         METHOD_RETURN;
     }
@@ -241,7 +241,7 @@ namespace ODeque
         METHOD("delete", oDequeDeleteMethod),
         METHOD("showInner", oDequeShowInnerMethod),
 
-        METHOD_RET("count", oDequeCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oDequeCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oDequeClearMethod),
 
         METHOD("pushHead", oDequePushHeadMethod),
@@ -251,7 +251,7 @@ namespace ODeque
         METHOD_RET("peekHead", oDequePeekHeadMethod, RETURNS_OBJECT(kBCIContainedType)),
         METHOD_RET("peekTail", oDequePeekTailMethod, RETURNS_OBJECT(kBCIContainedType)),
 
-        MEMBER_VAR("__queue", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+        MEMBER_VAR("__queue", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
         // following must be last in table
         END_MEMBERS
     };

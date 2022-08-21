@@ -598,7 +598,7 @@ ForthVocabulary::FindNextSymbolByValue(forthop val, forthop* pStartEntry, ucell 
 // process symbol entry
 OpResult ForthVocabulary::ProcessEntry( forthop* pEntry )
 {
-    OpResult exitStatus = OpResult::kResultOk;
+    OpResult exitStatus = OpResult::kOk;
     bool compileIt = false;
     if ( mpEngine->IsCompiling() )
     {
@@ -923,7 +923,7 @@ void* ForthDLLVocabulary::LoadDLL( void )
     mhDLL = LoadLibrary(pDLLSrc);
     if (mhDLL == 0)
     {
-        pEngine->SetError(kForthErrorFileOpen, "failed to open DLL ");
+        pEngine->SetError(ForthError::kFileOpen, "failed to open DLL ");
         pEngine->AddErrorText(pDLLSrc);
     }
     delete[] pDLLPath;
@@ -932,7 +932,7 @@ void* ForthDLLVocabulary::LoadDLL( void )
     mLibHandle = dlopen(pDLLSrc, RTLD_LAZY);
     if (mLibHandle == nullptr)
     {
-        pEngine->SetError(kForthErrorFileOpen, "failed to open DLL ");
+        pEngine->SetError(ForthError::kFileOpen, "failed to open DLL ");
         pEngine->AddErrorText(pDLLSrc);
     }
     delete[] pDLLPath;
@@ -973,7 +973,7 @@ forthop * ForthDLLVocabulary::AddEntry( const char *pFuncName, const char* pEntr
     }
     else
     {
-        mpEngine->SetError( kForthErrorUnknownSymbol, " unknown entry point" );
+        mpEngine->SetError( ForthError::kUnknownSymbol, " unknown entry point" );
     }
 	// void and 64-bit flags only apply to one vocabulary entry
 	mDLLFlags &= ~(DLL_ENTRY_FLAG_RETURN_VOID | DLL_ENTRY_FLAG_RETURN_64BIT);
@@ -1220,7 +1220,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyNew)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot explicitly create a Vocabulary object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a Vocabulary object");
 	}
 
 	FORTHOP(oVocabularyDeleteMethod)
@@ -1391,7 +1391,7 @@ namespace OVocabulary
 		METHOD("addSymbol", oVocabularyAddSymbolMethod),
         METHOD_RET("chainNext", oVocabularyChainNextMethod, RETURNS_NATIVE(kBCIInt)),
 
-		MEMBER_VAR("vocabulary", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("vocabulary", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -1406,7 +1406,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyIterNew)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot explicitly create a Vocabulary object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a Vocabulary object");
 	}
 
 	FORTHOP(oVocabularyIterDeleteMethod)
@@ -1534,8 +1534,8 @@ namespace OVocabulary
 		METHOD("removeEntry", oVocabularyIterRemoveEntryMethod),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIVocabulary)),
-		MEMBER_VAR("cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
-		//MEMBER_VAR("vocabulary", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
+		//MEMBER_VAR("vocabulary", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS

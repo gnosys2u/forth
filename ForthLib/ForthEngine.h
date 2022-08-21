@@ -81,7 +81,7 @@ struct ForthLabelReference
 	}
 
     forthop *branchIP;
-	int branchType;		//  kOpBranch, kOpBranchNZ or kOpBranchZ
+	cell branchType;		//  kOpBranch, kOpBranchNZ or kOpBranchZ
 };
 
 class ForthLabel
@@ -99,13 +99,13 @@ public:
 	{
 	}
 
-	void CompileBranch(forthop *inBranchIP, int inBranchType)
+	void CompileBranch(forthop *inBranchIP, cell inBranchType)
 	{
 		cell offset = (labelIP - inBranchIP) - 1;
 		*inBranchIP = COMPILED_OP(inBranchType, offset);
 	}
 
-	void AddReference(forthop *inBranchIP, int inBranchType)
+	void AddReference(forthop *inBranchIP, cell inBranchType)
 	{
 		if (labelIP == nullptr)
 		{
@@ -314,10 +314,10 @@ public:
     void                    SetNewestEnumInfo(ForthEnumInfo *pInfo) { mpNewestEnum = pInfo; };
     void                    GetErrorString( char *pBuffer, int bufferSize );
     OpResult            CheckStacks( void );
-    void                    SetError( eForthError e, const char *pString = NULL );
+    void                    SetError( ForthError e, const char *pString = NULL );
     void                    AddErrorText( const char *pString );
-    void                    SetFatalError( eForthError e, const char *pString = NULL );
-    inline eForthError      GetError( void ) { return (eForthError) (mpCore->error); };
+    void                    SetFatalError( ForthError e, const char *pString = NULL );
+    inline ForthError      GetError( void ) { return (ForthError) (mpCore->error); };
     // for some reason, inlining this makes it return bogus data in some cases - WTF?
 	//inline ForthCoreState*  GetCoreState( void ) { return mpCore; };
     ForthCoreState*			GetCoreState( void );

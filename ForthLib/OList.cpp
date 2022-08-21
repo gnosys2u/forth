@@ -550,12 +550,12 @@ namespace OList
 		METHOD_RET("tailIter", oListTailIterMethod, RETURNS_OBJECT(kBCIListIter)),
 		METHOD_RET("find", oListFindMethod, RETURNS_OBJECT(kBCIListIter)),
 		METHOD_RET("clone", oListCloneMethod, RETURNS_OBJECT(kBCIList)),
-		METHOD_RET("count", oListCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("count", oListCountMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("clear", oListClearMethod),
 
 		METHOD("load", oListLoadMethod),
 		METHOD_RET("toArray", oListToArrayMethod, RETURNS_OBJECT(kBCIArray)),
-		METHOD_RET("isEmpty", oListIsEmptyMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("isEmpty", oListIsEmptyMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD_RET("head", oListHeadMethod, RETURNS_OBJECT(kBCIContainedType)),
         METHOD_RET("tail", oListTailMethod, RETURNS_OBJECT(kBCIContainedType)),
 		METHOD("addHead", oListAddHeadMethod),
@@ -566,8 +566,8 @@ namespace OList
 		METHOD("unrefTail", oListUnrefTailMethod),
 		METHOD("remove", oListRemoveMethod),
 
-		MEMBER_VAR("__head", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
-		MEMBER_VAR("__tail", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("__head", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
+		MEMBER_VAR("__tail", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -582,7 +582,7 @@ namespace OList
 	FORTHOP(oListIterNew)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot explicitly create a ListIter object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a ListIter object");
 	}
 
 	FORTHOP(oListIterDeleteMethod)
@@ -910,22 +910,22 @@ namespace OList
 		METHOD("seekPrev", oListIterSeekPrevMethod),
 		METHOD("seekHead", oListIterSeekHeadMethod),
 		METHOD("seekTail", oListIterSeekTailMethod),
-        METHOD_RET("atHead", oListIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oListIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oListIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("prev", oListIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("current", oListIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oListIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oListIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oListIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("prev", oListIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("current", oListIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oListIterRemoveMethod),
 		METHOD("unref", oListIterUnrefMethod),
         //METHOD_RET( "clone",                oListIterCloneMethod, RETURNS_OBJECT(kBCIListIter) ),
 
-        METHOD_RET("findNext", oListIterFindNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findNext", oListIterFindNextMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("swapNext", oListIterSwapNextMethod),
 		METHOD("swapPrev", oListIterSwapPrevMethod),
 		METHOD("split", oListIterSplitMethod),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIList)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS

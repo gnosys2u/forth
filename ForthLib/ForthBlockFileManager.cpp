@@ -119,7 +119,7 @@ void ForthBlockFileManager::UpdateCurrentBuffer()
 {
     if ( mCurrentBuffer > mNumBuffers )
     {
-        ReportError( kForthErrorBadParameter, "UpdateCurrentBuffer - no current buffer" );
+        ReportError( ForthError::kBadParameter, "UpdateCurrentBuffer - no current buffer" );
         return;
     }
 
@@ -131,28 +131,28 @@ bool ForthBlockFileManager::SaveBuffer( ucell bufferNum )
     FILE* pBlockFile = OpenBlockFile( true );
     if ( pBlockFile == NULL )
     {
-        ReportError( kForthErrorIO, "SaveBuffer - failed to open block file" );
+        ReportError( ForthError::kIO, "SaveBuffer - failed to open block file" );
         return false;
     }
 
     if ( bufferNum > mNumBuffers )
     {
-        ReportError( kForthErrorBadParameter, "SaveBuffer - invalid buffer number" );
+        ReportError( ForthError::kBadParameter, "SaveBuffer - invalid buffer number" );
         return false;
     }
     
     if ( mAssignedBlocks[bufferNum] == INVALID_BLOCK_NUMBER )
     {
-        ReportError( kForthErrorBadParameter, "SaveBuffer - buffer wasn't assigned to a block" );
+        ReportError( ForthError::kBadParameter, "SaveBuffer - buffer wasn't assigned to a block" );
         return false;
     }
 
     SPEW_IO( "ForthBlockFileManager::AssignBuffer writing block %d from buffer %d\n", mAssignedBlocks[bufferNum], bufferNum );
-    fseek( pBlockFile, mBytesPerBlock * mAssignedBlocks[bufferNum], SEEK_SET );
+    fseek( pBlockFile, (long)(mBytesPerBlock * mAssignedBlocks[bufferNum]), SEEK_SET );
     size_t numWritten = fwrite( &(mpBlocks[mBytesPerBlock * bufferNum]), mBytesPerBlock, 1, pBlockFile );
     if ( numWritten != 1 )
     {
-        ReportError( kForthErrorIO, "SaveBuffer - failed to write block file" );
+        ReportError( ForthError::kIO, "SaveBuffer - failed to write block file" );
         return false;
     }
     fclose( pBlockFile );
@@ -164,10 +164,10 @@ bool ForthBlockFileManager::SaveBuffer( ucell bufferNum )
 ucell ForthBlockFileManager::AssignBuffer( ucell blockNum, bool readContents )
 {
     SPEW_IO( "ForthBlockFileManager::AssignBuffer to block %d\n", blockNum );
-    uint32_t availableBuffer = INVALID_BLOCK_NUMBER;
-    for ( uint32_t i = 0; i < mNumBuffers; ++i )
+    ucell availableBuffer = INVALID_BLOCK_NUMBER;
+    for (ucell i = 0; i < mNumBuffers; ++i )
     {
-        uint32_t bufferBlockNum = mAssignedBlocks[i];
+        ucell bufferBlockNum = mAssignedBlocks[i];
         if ( bufferBlockNum == blockNum )
         {
             return i;
@@ -201,7 +201,7 @@ ucell ForthBlockFileManager::AssignBuffer( ucell blockNum, bool readContents )
         FILE* pInFile = OpenBlockFile( false );
         if ( pInFile == NULL )
         {
-            ReportError( kForthErrorIO, "AssignBuffer - failed to open block file" );
+            ReportError( ForthError::kIO, "AssignBuffer - failed to open block file" );
         }
         else
         {
@@ -210,7 +210,7 @@ ucell ForthBlockFileManager::AssignBuffer( ucell blockNum, bool readContents )
             size_t numRead = fread( &(mpBlocks[mBytesPerBlock * availableBuffer]), mBytesPerBlock, 1, pInFile );
             if ( numRead != 1 )
             {
-                ReportError( kForthErrorIO, "AssignBuffer - failed to read block file" );
+                ReportError( ForthError::kIO, "AssignBuffer - failed to read block file" );
             }
             fclose( pInFile );
         }
@@ -285,7 +285,7 @@ ForthBlockFileManager::EmptyBuffers()
 }
 
 void
-ForthBlockFileManager::ReportError( eForthError errorCode, const char* pErrorMessage )
+ForthBlockFileManager::ReportError( ForthError errorCode, const char* pErrorMessage )
 {
     ForthEngine::GetInstance()->SetError( errorCode, pErrorMessage );
 }
@@ -413,7 +413,7 @@ namespace OBlockFile
         ForthEngine* pEngine = GET_ENGINE;
         if (lastBlock < firstBlock)
         {
-            pEngine->SetError(kForthErrorIO, "thru - last block less than first block");
+            pEngine->SetError(ForthError::kIO, "thru - last block less than first block");
         }
         else
         {
@@ -424,7 +424,7 @@ namespace OBlockFile
             }
             else
             {
-                pEngine->SetError(kForthErrorIO, "thru - last block beyond end of block file");
+                pEngine->SetError(ForthError::kIO, "thru - last block beyond end of block file");
             }
         }
         METHOD_RETURN;
@@ -449,9 +449,9 @@ namespace OBlockFile
         METHOD("__newOp", oBlockFileNew),
         METHOD("delete", oBlockFileDeleteMethod),
 
-        METHOD_RET("blk", oBlockFileBlkMethod, RETURNS_NATIVE(kBaseTypeInt | kDTIsPtr)),
-        METHOD_RET("block", oBlockFileBlockMethod, RETURNS_NATIVE(kBaseTypeByte | kDTIsPtr)),
-        METHOD_RET("buffer", oBlockFileBufferMethod, RETURNS_NATIVE(kBaseTypeByte | kDTIsPtr)),
+        METHOD_RET("blk", oBlockFileBlkMethod, RETURNS_NATIVE_PTR(BaseType::kInt)),
+        METHOD_RET("block", oBlockFileBlockMethod, RETURNS_NATIVE_PTR(BaseType::kByte)),
+        METHOD_RET("buffer", oBlockFileBufferMethod, RETURNS_NATIVE_PTR(BaseType::kByte)),
         METHOD("emptyBuffers", oBlockFileEmptyBuffersMethod),
         METHOD("flush", oBlockFileFlushMethod),
         METHOD("saveBuffers", oBlockFileSaveBuffersMethod),
@@ -461,7 +461,7 @@ namespace OBlockFile
         METHOD("bytesPerBlock", oBlockFileBytesPerBlockMethod),
         METHOD("numBuffers", oBlockFileNumBuffersMethod),
 
-        MEMBER_VAR("__manager", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+        MEMBER_VAR("__manager", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
         // following must be last in table
         END_MEMBERS

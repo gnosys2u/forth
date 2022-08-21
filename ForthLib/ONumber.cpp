@@ -128,16 +128,16 @@ namespace ONumber
 		METHOD("__newOp", oIntNew),
 
         METHOD("showInner", oIntShowInnerMethod),
-        METHOD_RET("compare", oIntCompareMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("compare", oIntCompareMethod, RETURNS_NATIVE(BaseType::kInt)),
        
-        METHOD_RET("get", oIntGetMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("get", oIntGetMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("set", oIntSetMethod),
-        METHOD_RET("getByte", oIntGetSignedByteMethod, RETURNS_NATIVE(kBaseTypeByte)),
-        METHOD_RET("getUByte", oIntGetUnsignedByteMethod, RETURNS_NATIVE(kBaseTypeUByte)),
-        METHOD_RET("getShort", oIntGetSignedShortMethod, RETURNS_NATIVE(kBaseTypeShort)),
-        METHOD_RET("getUShort", oIntGetUnsignedShortMethod, RETURNS_NATIVE(kBaseTypeUShort)),
+        METHOD_RET("getByte", oIntGetSignedByteMethod, RETURNS_NATIVE(BaseType::kByte)),
+        METHOD_RET("getUByte", oIntGetUnsignedByteMethod, RETURNS_NATIVE(BaseType::kUByte)),
+        METHOD_RET("getShort", oIntGetSignedShortMethod, RETURNS_NATIVE(BaseType::kShort)),
+        METHOD_RET("getUShort", oIntGetUnsignedShortMethod, RETURNS_NATIVE(BaseType::kUShort)),
 
-		MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, kBaseTypeInt)),
+		MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, BaseType::kInt)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -216,12 +216,12 @@ namespace ONumber
 		METHOD("__newOp", oLongNew),
 
 		METHOD("showInner", oLongShowInnerMethod),
-		METHOD_RET("compare", oLongCompareMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("compare", oLongCompareMethod, RETURNS_NATIVE(BaseType::kInt)),
 
-        METHOD_RET("get", oLongGetMethod, RETURNS_NATIVE(kBaseTypeLong)),
+        METHOD_RET("get", oLongGetMethod, RETURNS_NATIVE(BaseType::kLong)),
         METHOD("set", oLongSetMethod),
 
-        MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, kBaseTypeLong)),
+        MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, BaseType::kLong)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -297,12 +297,12 @@ namespace ONumber
 		METHOD("__newOp", oFloatNew),
 
         METHOD("showInner", oFloatShowInnerMethod),
-		METHOD_RET("compare", oFloatCompareMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("compare", oFloatCompareMethod, RETURNS_NATIVE(BaseType::kInt)),
 
-        METHOD_RET("get", oFloatGetMethod, RETURNS_NATIVE(kBaseTypeFloat)),
+        METHOD_RET("get", oFloatGetMethod, RETURNS_NATIVE(BaseType::kFloat)),
         METHOD("set", oFloatSetMethod),
 
-        MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, kBaseTypeFloat)),
+        MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, BaseType::kFloat)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -378,12 +378,12 @@ namespace ONumber
 		METHOD("__newOp", oDoubleNew),
 
         METHOD("showInner", oDoubleShowInnerMethod),
-		METHOD_RET("compare", oDoubleCompareMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("compare", oDoubleCompareMethod, RETURNS_NATIVE(BaseType::kInt)),
 
-        METHOD_RET("get", oDoubleGetMethod, RETURNS_NATIVE(kBaseTypeDouble)),
+        METHOD_RET("get", oDoubleGetMethod, RETURNS_NATIVE(BaseType::kDouble)),
         METHOD("set", oDoubleSetMethod),
 
-        MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, kBaseTypeDouble)),
+        MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, BaseType::kDouble)),
 
 		// following must be last in table
 		END_MEMBERS

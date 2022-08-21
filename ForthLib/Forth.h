@@ -229,70 +229,72 @@ enum class VarOperation:ucell {
 #define DEFAULT_INPUT_BUFFER_LEN   (16 * 1024)
 
 // these are the results of running the inner interpreter
-enum class OpResult:ucell {
-    kResultOk,          // no need to exit
-    kResultDone,        // exit because of "done" opcode
-    kResultExitShell,   // exit because of a "bye" opcode
-    kResultError,       // exit because of error
-    kResultFatalError,  // exit because of fatal error
-    kResultException,   // exit because of uncaught exception
-    kResultShutdown,    // exit because of a "shutdown" opcode
-	kResultYield,		// exit because of a stopThread/yield/sleepThread opcode
+enum class OpResult:ucell
+{
+    kOk,          // no need to exit
+    kDone,        // exit because of "done" opcode
+    kExitShell,   // exit because of a "bye" opcode
+    kError,       // exit because of error
+    kFatalError,  // exit because of fatal error
+    kException,   // exit because of uncaught exception
+    kShutdown,    // exit because of a "shutdown" opcode
+	kYield,		// exit because of a stopThread/yield/sleepThread opcode
 };
 
 // run state of ForthFibers
-typedef enum
+enum class FiberState:ucell
 {
-	kFTRSStopped,		// initial state, or after executing stop, needs another thread to Start it
-	kFTRSReady,			// ready to continue running
-	kFTRSSleeping,		// sleeping until wakeup time is reached
-	kFTRSBlocked,		// blocked on a soft lock
-	kFTRSExited,		// done running - executed exitThread
-} eForthFiberRunState;
+	kStopped,		// initial state, or after executing stop, needs another thread to Start it
+	kReady,			// ready to continue running
+	kSleeping,		// sleeping until wakeup time is reached
+	kBlocked,		// blocked on a soft lock
+	kExited,		// done running - executed exitThread
+};
 
-typedef enum {
-	kForthErrorNone,
-	kForthErrorBadOpcode,
-    kForthErrorBadOpcodeType,
-    kForthErrorBadParameter,
-    kForthErrorBadVarOperation,
-    kForthErrorParamStackUnderflow,
-    kForthErrorParamStackOverflow,
-    kForthErrorReturnStackUnderflow,
-    kForthErrorReturnStackOverflow,
-    kForthErrorUnknownSymbol,
-    kForthErrorFileOpen,
-    kForthErrorAbort,
-    kForthErrorForgetBuiltin,
-    kForthErrorBadMethod,
-    kForthErrorException,
-    kForthErrorMissingSize,
-    kForthErrorStruct,
-    kForthErrorUserDefined,
-    kForthErrorBadSyntax,
-    kForthErrorBadPreprocessorDirective,
-    kForthErrorUnimplementedMethod,
-    kForthErrorIllegalMethod,
-    kForthErrorShellStackUnderflow,
-    kForthErrorShellStackOverflow,
-	kForthErrorBadReferenceCount,
-	kForthErrorIO,
-	kForthErrorBadObject,
-    kForthErrorStringOverflow,
-	kForthErrorBadArrayIndex,
-    kForthErrorIllegalOperation,
-    kForthOSException,
+enum class ForthError:ucell
+{
+	kNone,
+	kBadOpcode,
+    kBadOpcodeType,
+    kBadParameter,
+    kBadVarOperation,
+    kParamStackUnderflow,
+    kParamStackOverflow,
+    kReturnStackUnderflow,
+    kReturnStackOverflow,
+    kUnknownSymbol,
+    kFileOpen,
+    kAbort,
+    kForgetBuiltin,
+    kBadMethod,
+    kException,
+    kMissingSize,
+    kStruct,
+    kUserDefined,
+    kBadSyntax,
+    kBadPreprocessorDirective,
+    kUnimplementedMethod,
+    kIllegalMethod,
+    kShellStackUnderflow,
+    kShellStackOverflow,
+	kBadReferenceCount,
+	kIO,
+	kBadObject,
+    kStringOverflow,
+	kBadArrayIndex,
+    kIllegalOperation,
+    kOSException,
 	// NOTE: if you add errors, make sure that you update ForthEngine::GetErrorString
     kForthNumErrors
-} eForthError;
+};
 
-typedef enum
+enum class ExceptionState:ucell
 {
-    kForthExceptionStateTry,
-    kForthExceptionStateExcept,
-    kForthExceptionStateFinally,
+    kTry,
+    kExcept,
+    kFinally,
     kForthNumExceptionStates
-} eForthExceptionState;
+};
 
 // exception handler IP offsets (compiled just after _doTry opcode)
 //  these are offsets from pHandlerOffsets
@@ -307,7 +309,7 @@ struct ForthExceptionFrame
     forthop*                pHandlerOffsets;
     cell*                   pSavedFP;
     cell                    exceptionNumber;
-    eForthExceptionState    exceptionState;
+    ExceptionState          exceptionState;
 };
 
 // how sign should be handled while printing integers
@@ -410,7 +412,7 @@ extern void ForthErrorStringOut(ForthCoreState* pCore, const char* pBuffer);
 class ForthThread;
 class ForthFiber;
 
-#define COMPILED_OP( OP_TYPE, VALUE ) (((OP_TYPE) << 24) | ((VALUE) & OPCODE_VALUE_MASK))
+#define COMPILED_OP( OP_TYPE, VALUE ) ((forthop)(((OP_TYPE) << 24) | ((VALUE) & OPCODE_VALUE_MASK)))
 // These are opcodes that built-in ops must compile directly
 // NOTE: the index field of these opcodes must agree with the
 //  order of builtin dictionary entries in the ForthOps.cpp file
@@ -710,47 +712,45 @@ enum
 // NOTE: the order of these have to match the order of forthOpType definitions above which
 //  are related to native types (kOpLocalByte, kOpMemberFloat, kOpLocalIntArray, ...)
 //  as well as the order of actual opcodes used to implement native types (, OP_DO_FLOAT, OP_DO_INT_ARRAY, ...)
-typedef enum
+enum class BaseType:ucell
 {
-    kBaseTypeByte,          // 0 - byte
-    kBaseTypeUByte,         // 1 - ubyte
-    kBaseTypeShort,         // 2 - short
-    kBaseTypeUShort,        // 3 - ushort
-    kBaseTypeInt,           // 4 - int
-    kBaseTypeUInt,          // 5 - uint
-    kBaseTypeLong,          // 6 - long
-    kBaseTypeULong,         // 7 - ulong
-    kBaseTypeFloat,         // 8 - float
-    kBaseTypeDouble,        // 9 - double
-    kBaseTypeString,        // 10 - string
-    kBaseTypeOp,            // 11 - op
-    kNumNativeTypes,
-    kBaseTypeObject = kNumNativeTypes,      // 12 - object
-    kBaseTypeStruct,                        // 13 - struct
-    kBaseTypeUserDefinition,                // 14 - user defined forthop
-    kBaseTypeVoid,							// 15 - void
-    kNumBaseTypes,
-    kBaseTypeUnknown = kNumBaseTypes,
+    kByte,              // 0 - byte
+    kUByte,             // 1 - ubyte
+    kShort,             // 2 - short
+    kUShort,            // 3 - ushort
+    kInt,               // 4 - int
+    kUInt,              // 5 - uint
+    kLong,              // 6 - long
+    kULong,             // 7 - ulong
+    kFloat,             // 8 - float
+    kDouble,            // 9 - double
+    kString,            // 10 - string
+    kOp,                // 11 - op
+    kObject,            // 12 - object
+    kStruct,            // 13 - struct
+    kUserDefinition,    // 14 - user defined forthop
+    kVoid,				// 15 - void
+    kUnknown,
+    kNumBaseTypes = kUnknown,
+    kNumNativeTypes = kObject,
 #ifdef FORTH64
-    kBaseTypeCell = kBaseTypeLong,
-    kBaseTypeUCell = kBaseTypeULong,
+    kCell = kLong,
+    kUCell = kULong,
 #else
-    kBaseTypeCell = kBaseTypeInt,
-    kBaseTypeUCell = kBaseTypeUInt,
+    kCell = kInt,
+    kUCell = kUInt,
 #endif
-} forthBaseType;
+};
 
-typedef enum
-{
-    // kDTIsPtr and kDTIsNative can be combined with anything
-    kDTIsPtr        = 16,
-    kDTIsArray      = 32,
-    kDTIsMethod     = 64,
-    kDTIsFunky      = 128       // use depends on context
-} storageDescriptor;
+// kDTIsPtr can be combined with anything
+#define kDTIsPtr        16
+#define kDTIsArray      32
+#define kDTIsMethod     64
+#define kDTIsFunky      128
+// kDTIsFunky meaning depends on context
 
 // this is the bottom 6-bits, baseType + ptr and array flags
-#define STORAGE_DESCRIPTOR_TYPE_MASK ((kNumBaseTypes - 1) | kDTIsPtr | kDTIsArray)
+#define STORAGE_DESCRIPTOR_TYPE_MASK (((cell)BaseType::kNumBaseTypes - 1) | kDTIsPtr | kDTIsArray)
 
 // user-defined structure fields have a 32-bit descriptor with the following format:
 // 3...0        base type
@@ -764,13 +764,14 @@ typedef enum
 //      object      classId
 
 // when kDTArray and kDTIsPtr are both set, it means the field is an array of pointers
-#define NATIVE_TYPE_TO_CODE( ARRAY_FLAG, NATIVE_TYPE )      ((ARRAY_FLAG) | (NATIVE_TYPE))
-#define STRING_TYPE_TO_CODE( ARRAY_FLAG, MAX_BYTES )        ((ARRAY_FLAG) | kBaseTypeString | ((MAX_BYTES) << 8))
-#define STRUCT_TYPE_TO_CODE( ARRAY_FLAG, STRUCT_INDEX )     ((ARRAY_FLAG) | kBaseTypeStruct | ((STRUCT_INDEX) << 8))
-#define OBJECT_TYPE_TO_CODE( ARRAY_FLAG, STRUCT_INDEX )     ((ARRAY_FLAG) | kBaseTypeObject | ((STRUCT_INDEX) << 8))
+#define NATIVE_TYPE_TO_CODE( ARRAY_FLAG, NATIVE_TYPE )      ((ARRAY_FLAG) | (ucell)(NATIVE_TYPE))
+#define STRING_TYPE_TO_CODE( ARRAY_FLAG, MAX_BYTES )        ((ARRAY_FLAG) | (ucell)BaseType::kString | ((MAX_BYTES) << 8))
+#define STRUCT_TYPE_TO_CODE( ARRAY_FLAG, STRUCT_INDEX )     ((ARRAY_FLAG) | (ucell)BaseType::kStruct | ((STRUCT_INDEX) << 8))
+#define OBJECT_TYPE_TO_CODE( ARRAY_FLAG, STRUCT_INDEX )     ((ARRAY_FLAG) | (ucell)BaseType::kObject | ((STRUCT_INDEX) << 8))
 #define CONTAINED_TYPE_TO_CODE( ARRAY_FLAG, CONTAINER_INDEX, CONTAINED_INDEX )  \
-   ((ARRAY_FLAG) | kBaseTypeObject | (((CONTAINED_INDEX) | ((CONTAINER_INDEX) << 16)) << 8))
+   ((ARRAY_FLAG) | BaseType::kObject | (((CONTAINED_INDEX) | ((CONTAINER_INDEX) << 16)) << 8))
 #define RETURNS_NATIVE(NATIVE_TYPE)                         NATIVE_TYPE_TO_CODE(kDTIsMethod, (NATIVE_TYPE))
+#define RETURNS_NATIVE_PTR(NATIVE_TYPE)                     NATIVE_TYPE_TO_CODE(kDTIsMethod, ((ucell)NATIVE_TYPE) | kDTIsPtr)
 #define RETURNS_OBJECT(OBJECT_TYPE)                         OBJECT_TYPE_TO_CODE(kDTIsMethod, (OBJECT_TYPE))
 
 #define VOCABENTRY_TO_FIELD_OFFSET( PTR_TO_ENTRY )          (*(PTR_TO_ENTRY))
@@ -782,15 +783,15 @@ typedef enum
 #define CODE_IS_SIMPLE( CODE )                              (((CODE) & (kDTIsArray | kDTIsPtr)) == 0)
 #define CODE_IS_ARRAY( CODE )                               (((CODE) & kDTIsArray) != 0)
 #define CODE_IS_PTR( CODE )                                 (((CODE) & kDTIsPtr) != 0)
-#define CODE_IS_NATIVE( CODE )                              (((CODE) & 0xF) < kNumNativeTypes)
+#define CODE_IS_NATIVE( CODE )                              ((BaseType)((CODE) & 0xF) < BaseType::kNumNativeTypes)
 #define CODE_IS_METHOD( CODE )                              (((CODE) & kDTIsMethod) != 0)
 #define CODE_IS_FUNKY( CODE )                               (((CODE) & kDTIsFunky) != 0)
-#define CODE_TO_BASE_TYPE( CODE )                           ((CODE) & 0x0F)
+#define CODE_TO_BASE_TYPE( CODE )                           (BaseType)((CODE) & 0x0F)
 #define CODE_TO_STRUCT_INDEX( CODE )                        ((CODE) >> 8)
 #define CODE_TO_CONTAINED_CLASS_INDEX( CODE )               (((CODE) >> 8) & 0xFFFF)
 #define CODE_TO_CONTAINER_CLASS_INDEX( CODE )               (((CODE) >> 24) & 0xFF)
 #define CODE_TO_STRING_BYTES( CODE )                        ((CODE) >> 8)
-#define CODE_IS_USER_DEFINITION( CODE )                     (((CODE) & 0x0F) == kBaseTypeUserDefinition)
+#define CODE_IS_USER_DEFINITION( CODE )                     ((BaseType)((CODE) & 0x0F) == BaseType::kUserDefinition)
 
 // bit fields for kOpDLLEntryPoint
 #define DLL_ENTRY_TO_CODE( INDEX, NUM_ARGS, FLAGS )    (((NUM_ARGS) << 19) | FLAGS | INDEX )

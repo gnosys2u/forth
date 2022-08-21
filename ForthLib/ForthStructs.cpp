@@ -25,31 +25,31 @@
 
 #define STRUCTS_EXPANSION_INCREMENT     16
 
-ForthNativeType gNativeTypeByte( "byte", 1, kBaseTypeByte );
+ForthNativeType gNativeTypeByte( "byte", 1, BaseType::kByte );
 
-ForthNativeType gNativeTypeUByte( "ubyte", 1, kBaseTypeUByte );
+ForthNativeType gNativeTypeUByte( "ubyte", 1, BaseType::kUByte );
 
-ForthNativeType gNativeTypeShort( "short", 2, kBaseTypeShort );
+ForthNativeType gNativeTypeShort( "short", 2, BaseType::kShort );
 
-ForthNativeType gNativeTypeUShort( "ushort", 2, kBaseTypeUShort );
+ForthNativeType gNativeTypeUShort( "ushort", 2, BaseType::kUShort );
 
-ForthNativeType gNativeTypeInt( "int", 4, kBaseTypeInt );
+ForthNativeType gNativeTypeInt( "int", 4, BaseType::kInt );
 
-ForthNativeType gNativeTypeUInt( "uint", 4, kBaseTypeUInt );
+ForthNativeType gNativeTypeUInt( "uint", 4, BaseType::kUInt );
 
-ForthNativeType gNativeTypeLong( "long", 8, kBaseTypeLong );
+ForthNativeType gNativeTypeLong( "long", 8, BaseType::kLong );
 
-ForthNativeType gNativeTypeULong( "ulong", 8, kBaseTypeULong );
+ForthNativeType gNativeTypeULong( "ulong", 8, BaseType::kULong );
 
-ForthNativeType gNativeTypeFloat( "float", 4, kBaseTypeFloat );
+ForthNativeType gNativeTypeFloat( "float", 4, BaseType::kFloat );
 
-ForthNativeType gNativeTypeDouble( "double", 8, kBaseTypeDouble );
+ForthNativeType gNativeTypeDouble( "double", 8, BaseType::kDouble );
 
-ForthNativeType gNativeTypeString( "string", 12, kBaseTypeString );
+ForthNativeType gNativeTypeString( "string", 12, BaseType::kString );
 
-ForthNativeType gNativeTypeOp( "op", 4, kBaseTypeOp );
+ForthNativeType gNativeTypeOp( "op", 4, BaseType::kOp );
 
-ForthNativeType gNativeTypeObject( "object", 8, kBaseTypeObject );
+ForthNativeType gNativeTypeObject( "object", 8, BaseType::kObject );
 
 ForthNativeType *gpNativeTypes[] =
 {
@@ -170,7 +170,7 @@ ForthTypesManager::DefineInitOpcode()
 		pEngine->SetDefinitionVocabulary(pVocab);
 
 		forthop* pEntry = pEngine->StartOpDefinition("_init", true, kOpUserDef);
-		pEntry[1] = BASE_TYPE_TO_CODE(kBaseTypeUserDefinition);
+		pEntry[1] = (forthop)BASE_TYPE_TO_CODE(BaseType::kUserDefinition);
 		int32_t structInitOp = *pEntry;
 		pVocab->SetInitOpcode(structInitOp);
 
@@ -396,7 +396,7 @@ ForthTypesManager::GetInstance( void )
 void
 ForthTypesManager::GetFieldInfo( int32_t fieldType, int32_t& fieldBytes, int32_t& alignment )
 {
-    int32_t subType = CODE_TO_BASE_TYPE(fieldType);
+    BaseType subType = CODE_TO_BASE_TYPE(fieldType);
     if ( CODE_IS_PTR( fieldType ) )
     {
         fieldBytes = sizeof(char *);
@@ -404,20 +404,20 @@ ForthTypesManager::GetFieldInfo( int32_t fieldType, int32_t& fieldBytes, int32_t
     }
     else if ( CODE_IS_NATIVE( fieldType ) )
     {
-        alignment = gpNativeTypes[subType]->GetAlignment();
-        if ( subType == kBaseTypeString )
+        alignment = gpNativeTypes[(ucell)subType]->GetAlignment();
+        if ( subType == BaseType::kString )
         {
             // add in for maxLen, curLen fields & terminating null byte
             fieldBytes = (12 + CODE_TO_STRING_BYTES( fieldType )) & ~(alignment - 1);
         }
         else
         {
-            fieldBytes = gpNativeTypes[subType]->GetSize();
+            fieldBytes = gpNativeTypes[(ucell)subType]->GetSize();
         }
     }
     else
     {
-        int32_t typeIndex = (subType == kBaseTypeObject) ? CODE_TO_CONTAINED_CLASS_INDEX(fieldType) : CODE_TO_STRUCT_INDEX(fieldType);
+        int32_t typeIndex = (subType == BaseType::kObject) ? CODE_TO_CONTAINED_CLASS_INDEX(fieldType) : CODE_TO_STRUCT_INDEX(fieldType);
         ForthTypeInfo* pInfo = GetTypeInfo(typeIndex);
         if ( pInfo )
         {
@@ -510,11 +510,11 @@ ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitSta
     {
         int32_t offset = *pEntry;
         int32_t typeCode = pEntry[1];
-        int32_t opType;
+        uint32_t opType;
         bool isNative = CODE_IS_NATIVE( typeCode );
         bool isPtr = CODE_IS_PTR( typeCode );
         bool isArray = CODE_IS_ARRAY( typeCode );
-        int32_t baseType = CODE_TO_BASE_TYPE( typeCode );
+        BaseType baseType = CODE_TO_BASE_TYPE( typeCode );
 
 		if ( CODE_IS_USER_DEFINITION( typeCode ) )
 		{
@@ -544,7 +544,7 @@ ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitSta
                 }
                 else
                 {
-                    if ( baseType == kBaseTypeStruct )
+                    if ( baseType == BaseType::kStruct )
                     {
                         if ( isArray )
                         {
@@ -559,7 +559,7 @@ ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitSta
                     }
                     else
                     {
-                        opType = ((isArray) ? kOpMemberByteArray : kOpMemberByte) + CODE_TO_BASE_TYPE( typeCode );
+                        opType = (uint32_t)((isArray) ? kOpMemberByteArray : kOpMemberByte) + (uint32_t)CODE_TO_BASE_TYPE( typeCode );
                     }
                 }
             }
@@ -588,7 +588,7 @@ ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitSta
 ForthNativeType*
 ForthTypesManager::GetNativeTypeFromName( const char* typeName )
 {
-    for ( int i = 0; i <= kBaseTypeObject; i++ )
+    for ( int i = 0; i <= (int)BaseType::kObject; i++ )
     {
         if ( strcmp( gpNativeTypes[i]->GetName(), typeName ) == 0 )
         {
@@ -599,18 +599,18 @@ ForthTypesManager::GetNativeTypeFromName( const char* typeName )
 }
 
 
-forthBaseType
+BaseType
 ForthTypesManager::GetBaseTypeFromName( const char* typeName )
 {
 	ForthNativeType* pNative = GetNativeTypeFromName( typeName );
-	return (pNative != NULL) ? pNative->GetBaseType() : kBaseTypeUnknown;
+	return (pNative != NULL) ? pNative->GetBaseType() : BaseType::kUnknown;
 }
 
 
 int32_t
 ForthTypesManager::GetBaseTypeSizeFromName( const char* typeName )
 {
-    for ( int i = 0; i <= kBaseTypeObject; i++ )
+    for ( int i = 0; i <= (int)BaseType::kObject; i++ )
     {
         if ( strcmp( gpNativeTypes[i]->GetName(), typeName ) == 0 )
         {
@@ -873,19 +873,19 @@ ForthStructVocabulary::AddField( const char* pName, int32_t fieldType, int numEl
 		ForthFieldInitInfo initInfo;
 
 		bool isArray = CODE_IS_ARRAY(fieldType);
-		forthBaseType baseType = (forthBaseType) CODE_TO_BASE_TYPE(fieldType);
+		BaseType baseType = (BaseType) CODE_TO_BASE_TYPE(fieldType);
 		initInfo.numElements = numElements;
 		initInfo.offset = mNumBytes;
 		initInfo.typeIndex = 0;
 		initInfo.len = 0;
 
-		if (baseType == kBaseTypeString)
+		if (baseType == BaseType::kString)
 		{
 			initInfo.len = CODE_TO_STRING_BYTES(fieldType);
 			initInfo.fieldType = (isArray) ? kFSITStringArray : kFSITString;
 			pManager->AddFieldInitInfo(initInfo);
 		}
-		else if (baseType == kBaseTypeStruct)
+		else if (baseType == BaseType::kStruct)
 		{
 			int typeIndex = CODE_TO_STRUCT_INDEX(fieldType);
 			ForthTypeInfo* structInfo = pManager->GetTypeInfo(typeIndex);
@@ -1025,10 +1025,10 @@ ForthStructVocabulary::TypecodeToString( int32_t typeCode, char* outBuff, size_t
     }
     if ( CODE_IS_NATIVE( typeCode ) )
     {
-        int baseType = CODE_TO_BASE_TYPE( typeCode );
-        sprintf( buff2, "%s", gpNativeTypes[baseType]->GetName() );
+        BaseType baseType = CODE_TO_BASE_TYPE( typeCode );
+        sprintf( buff2, "%s", gpNativeTypes[(ucell)baseType]->GetName() );
         strcat( buff, buff2 );
-        if ( baseType == kBaseTypeString )
+        if ( baseType == BaseType::kString )
         {
             sprintf( buff2, " strLen=%d", CODE_TO_STRING_BYTES( typeCode ) );
             strcat( buff, buff2 );
@@ -1036,66 +1036,60 @@ ForthStructVocabulary::TypecodeToString( int32_t typeCode, char* outBuff, size_t
     }
     else
     {
-        int32_t baseType = CODE_TO_BASE_TYPE( typeCode );
-        switch ( baseType )
+        BaseType baseType = CODE_TO_BASE_TYPE( typeCode );
+        if (baseType == BaseType::kObject)
         {
-        case kBaseTypeObject:
+            int32_t containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(typeCode);
+            ForthTypeInfo* pContainedInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containedTypeIndex);
+            if (pContainedInfo)
             {
-                int32_t containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(typeCode);
-                ForthTypeInfo* pContainedInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containedTypeIndex);
-                if (pContainedInfo)
+                int32_t containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(typeCode);
+                if (containerTypeIndex == kBCIInvalid)
                 {
-                    int32_t containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(typeCode);
-                    if (containerTypeIndex == kBCIInvalid)
+                    sprintf(buff2, "%s", pContainedInfo->pVocab->GetName());
+                }
+                else
+                {
+                    ForthTypeInfo* pContainerInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containerTypeIndex);
+                    if (pContainerInfo)
                     {
-                        sprintf(buff2, "%s", pContainedInfo->pVocab->GetName());
+                        sprintf(buff2, "%s of %s", pContainerInfo->pVocab->GetName(), pContainedInfo->pVocab->GetName());
                     }
                     else
                     {
-                        ForthTypeInfo* pContainerInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containerTypeIndex);
-                        if (pContainerInfo)
-                        {
-                            sprintf(buff2, "%s of %s", pContainerInfo->pVocab->GetName(), pContainedInfo->pVocab->GetName());
-                        }
-                        else
-                        {
-                            sprintf(buff2, "<UNKNOWN CONTAINER CLASS INDEX %d!>", containerTypeIndex);
-                        }
+                        sprintf(buff2, "<UNKNOWN CONTAINER CLASS INDEX %d!>", containerTypeIndex);
                     }
                 }
-                else
-                {
-                    sprintf(buff2, "<UNKNOWN CLASS INDEX %d!>", containedTypeIndex);
-                }
             }
-            break;
-
-        case kBaseTypeStruct:
+            else
             {
-                int32_t typeIndex = CODE_TO_STRUCT_INDEX( typeCode );
-                ForthTypeInfo* pInfo = ForthTypesManager::GetInstance()->GetTypeInfo( typeIndex );
-                if ( pInfo )
-                {
-                    sprintf( buff2, "%s", pInfo->pVocab->GetName() );
-                }
-                else
-                {
-                    sprintf( buff2, "<UNKNOWN STRUCT INDEX %d!>", typeIndex );
-                }
+                sprintf(buff2, "<UNKNOWN CLASS INDEX %d!>", containedTypeIndex);
             }
-            break;
-
-        case kBaseTypeUserDefinition:
-            strcpy( buff2, "user defined forthop" );
-            break;
-
-        case kBaseTypeVoid:
-            strcpy( buff2, "void" );
-            break;
-
-        default:
-            sprintf( buff2, "UNKNOWN BASE TYPE %d", baseType );
-            break;
+        }
+        else if (baseType == BaseType::kStruct)
+        {
+            int32_t typeIndex = CODE_TO_STRUCT_INDEX( typeCode );
+            ForthTypeInfo* pInfo = ForthTypesManager::GetInstance()->GetTypeInfo( typeIndex );
+            if ( pInfo )
+            {
+                sprintf( buff2, "%s", pInfo->pVocab->GetName() );
+            }
+            else
+            {
+                sprintf( buff2, "<UNKNOWN STRUCT INDEX %d!>", typeIndex );
+            }
+        }
+        else if (baseType == BaseType::kUserDefinition)
+        {
+            strcpy(buff2, "user defined forthop");
+        }
+        else if (baseType == BaseType::kVoid)
+        {
+            strcpy(buff2, "void");
+        }
+        else
+        {
+            sprintf(buff2, "UNKNOWN BASE TYPE %d", baseType);
         }
         strcat( buff, buff2 );
     }
@@ -1166,7 +1160,7 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
             // this relies on the fact that entries come up in reverse order of base offset
             int32_t numElements = (previousOffset - byteOffset) / elementSize;
             previousOffset = byteOffset;
-            int32_t baseType = CODE_TO_BASE_TYPE(typeCode);
+            BaseType baseType = CODE_TO_BASE_TYPE(typeCode);
             bool isNative = CODE_IS_NATIVE(typeCode);
             bool isPtr = CODE_IS_PTR(typeCode);
             bool isArray = CODE_IS_ARRAY(typeCode);
@@ -1174,7 +1168,7 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
             uint32_t uval;
 
             // skip displaying __refCount (at offset 0) if the showRefCount flag is false
-            if ((baseType != kBaseTypeUserDefinition) && (baseType != kBaseTypeVoid)
+            if ((baseType != BaseType::kUserDefinition) && (baseType != BaseType::kVoid)
                 && ((byteOffset != 0) || pShowContext->GetShowRefCount() || strcmp(buffer, "__refCount")))
             {
                 pVocab->GetEntryName(pEntry, buffer, sizeof(buffer));
@@ -1195,7 +1189,7 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
                 if (isPtr)
                 {
                     // hack to print all pointers in hex
-                    baseType = kBaseTypeOp;
+                    baseType = BaseType::kOp;
                 }
 
                 while (numElements > 0)
@@ -1207,62 +1201,62 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
 
                     switch (baseType)
                     {
-                    case kBaseTypeByte:
+                    case BaseType::kByte:
                         sval = *((const char*)(pStruct + byteOffset));
                         sprintf(buffer, "%d", sval);
                         break;
 
-                    case kBaseTypeUByte:
+                    case BaseType::kUByte:
                         uval = *((const unsigned char*)(pStruct + byteOffset));
                         sprintf(buffer, "%u", uval);
                         break;
 
-                    case kBaseTypeShort:
+                    case BaseType::kShort:
                         sval = *((const short*)(pStruct + byteOffset));
                         sprintf(buffer, "%d", sval);
                         break;
 
-                    case kBaseTypeUShort:
+                    case BaseType::kUShort:
                         uval = *((const unsigned short*)(pStruct + byteOffset));
                         sprintf(buffer, "%u", uval);
                         break;
 
-                    case kBaseTypeInt:
+                    case BaseType::kInt:
                         sval = *((const int*)(pStruct + byteOffset));
                         sprintf(buffer, "%d", sval);
                         break;
 
-                    case kBaseTypeUInt:
+                    case BaseType::kUInt:
                         uval = *((const uint32_t*)(pStruct + byteOffset));
                         sprintf(buffer, "%u", uval);
                         break;
 
-                    case kBaseTypeLong:
+                    case BaseType::kLong:
                         sprintf(buffer, "%lld", *((const int64_t*)(pStruct + byteOffset)));
                         break;
 
-                    case kBaseTypeULong:
+                    case BaseType::kULong:
                         sprintf(buffer, "%llu", *((const uint64_t*)(pStruct + byteOffset)));
                         break;
 
-                    case kBaseTypeFloat:
+                    case BaseType::kFloat:
                         sprintf(buffer, "%f", *((const float*)(pStruct + byteOffset)));
                         break;
 
-                    case kBaseTypeDouble:
+                    case BaseType::kDouble:
                         sprintf(buffer, "%f", *((const double*)(pStruct + byteOffset)));
                         break;
 
-                    case kBaseTypeString:
+                    case BaseType::kString:
                         pShowContext->ShowQuotedText(pStruct + byteOffset + 8);
                         break;
 
-                    case kBaseTypeOp:
+                    case BaseType::kOp:
                         uval = *((const uint32_t*)(pStruct + byteOffset));
                         sprintf(buffer, "0x%x", uval);
                         break;
 
-                    case kBaseTypeStruct:
+                    case BaseType::kStruct:
                     {
                         pShowContext->BeginNestedShow();
 
@@ -1274,7 +1268,7 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
                         break;
                     }
 
-                    case kBaseTypeObject:
+                    case BaseType::kObject:
                     {
                         //pShowContext->BeginNestedShow();
 
@@ -1288,8 +1282,8 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
 
                     default:
                         /*
-                        kBaseTypeUserDefinition,                // 14 - user defined forthop
-                        kBaseTypeVoid,							// 15 - void
+                        BaseType::kUserDefinition,                // 14 - user defined forthop
+                        BaseType::kVoid,							// 15 - void
                         */
                         break;
                     }
@@ -1414,13 +1408,13 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
             }
             else
             {
-                mpEngine->SetError(kForthErrorUnknownSymbol, "class define instance: bad contained class");
+                mpEngine->SetError(ForthError::kUnknownSymbol, "class define instance: bad contained class");
                 return;
             }
         }
         else
         {
-            mpEngine->SetError(kForthErrorUnknownSymbol, "class define instance: contained class not found");
+            mpEngine->SetError(ForthError::kUnknownSymbol, "class define instance: contained class not found");
             return;
         }
     }
@@ -1725,9 +1719,9 @@ ForthClassVocabulary::PrintEntry(forthop*   pEntry )
     char nameBuff[128];
     int32_t methodNum = *pEntry;
     int32_t typeCode = pEntry[1];
-    int32_t baseType = CODE_TO_BASE_TYPE(typeCode);
+    BaseType baseType = CODE_TO_BASE_TYPE(typeCode);
     
-    if (baseType == kBaseTypeUserDefinition)
+    if (baseType == BaseType::kUserDefinition)
     {
         ForthVocabulary::PrintEntry(pEntry);
         return;
@@ -1770,16 +1764,18 @@ ForthClassVocabulary::PrintEntry(forthop*   pEntry )
     {
         CONSOLE_STRING_OUT( "array of " );
     }
+
     if ( CODE_IS_PTR( typeCode ) )
     {
         CONSOLE_STRING_OUT( "pointer to " );
     }
+
     if ( CODE_IS_NATIVE( typeCode ) )
     {
-        int baseType = CODE_TO_BASE_TYPE( typeCode );
-        sprintf( buff, "%s ", gpNativeTypes[baseType]->GetName() );
+        BaseType baseType = CODE_TO_BASE_TYPE( typeCode );
+        sprintf( buff, "%s ", gpNativeTypes[(ucell)baseType]->GetName() );
         CONSOLE_STRING_OUT( buff );
-        if ( baseType == kBaseTypeString )
+        if ( baseType == BaseType::kString )
         {
             sprintf( buff, "strLen=%d, ", CODE_TO_STRING_BYTES( typeCode ) );
             CONSOLE_STRING_OUT( buff );
@@ -1787,66 +1783,60 @@ ForthClassVocabulary::PrintEntry(forthop*   pEntry )
     }
     else
     {
-        int32_t baseType = CODE_TO_BASE_TYPE( typeCode );
-        switch ( baseType )
+        BaseType baseType = CODE_TO_BASE_TYPE(typeCode);
+        if (baseType == BaseType::kObject)
         {
-        case kBaseTypeObject:
+            int32_t containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(typeCode);
+            ForthTypeInfo* pContainedInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containedTypeIndex);
+            if (pContainedInfo)
             {
-                int32_t containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(typeCode);
-                ForthTypeInfo* pContainedInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containedTypeIndex);
-                if (pContainedInfo)
+                int32_t containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(typeCode);
+                if (containerTypeIndex == kBCIInvalid)
                 {
-                    int32_t containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(typeCode);
-                    if (containerTypeIndex == kBCIInvalid)
+                    sprintf(buff, "%s", pContainedInfo->pVocab->GetName());
+                }
+                else
+                {
+                    ForthTypeInfo* pContainerInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containerTypeIndex);
+                    if (pContainerInfo)
                     {
-                        sprintf(buff, "%s", pContainedInfo->pVocab->GetName());
+                        sprintf(buff, "%s of %s", pContainerInfo->pVocab->GetName(), pContainedInfo->pVocab->GetName());
                     }
                     else
                     {
-                        ForthTypeInfo* pContainerInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containerTypeIndex);
-                        if (pContainerInfo)
-                        {
-                            sprintf(buff, "%s of %s", pContainerInfo->pVocab->GetName(), pContainedInfo->pVocab->GetName());
-                        }
-                        else
-                        {
-                            sprintf(buff, "<UNKNOWN CONTAINER CLASS INDEX %d!>", containerTypeIndex);
-                        }
+                        sprintf(buff, "<UNKNOWN CONTAINER CLASS INDEX %d!>", containerTypeIndex);
                     }
                 }
-                else
-                {
-                    sprintf(buff, "<UNKNOWN CLASS INDEX %d!>", containedTypeIndex);
-                }
             }
-            break;
-
-        case kBaseTypeStruct:
+            else
             {
-                int32_t typeIndex = CODE_TO_STRUCT_INDEX( typeCode );
-                ForthTypeInfo* pInfo = ForthTypesManager::GetInstance()->GetTypeInfo( typeIndex );
-                if ( pInfo )
-                {
-                    sprintf( buff, "%s ", pInfo->pVocab->GetName() );
-                }
-                else
-                {
-                    sprintf( buff, "<UNKNOWN STRUCT INDEX %d!> ", typeIndex );
-                }
+                sprintf(buff, "<UNKNOWN CLASS INDEX %d!>", containedTypeIndex);
             }
-            break;
-
-        case kBaseTypeUserDefinition:
-            strcpy( buff, "user defined forthop " );
-            break;
-
-        case kBaseTypeVoid:
-            strcpy( buff, "void " );
-            break;
-
-        default:
-            sprintf( buff, "UNKNOWN BASE TYPE %d ", baseType );
-            break;
+        }
+        else if (baseType == BaseType::kStruct)
+        {
+            int32_t typeIndex = CODE_TO_STRUCT_INDEX(typeCode);
+            ForthTypeInfo* pInfo = ForthTypesManager::GetInstance()->GetTypeInfo(typeIndex);
+            if (pInfo)
+            {
+                sprintf(buff, "%s ", pInfo->pVocab->GetName());
+            }
+            else
+            {
+                sprintf(buff, "<UNKNOWN STRUCT INDEX %d!> ", typeIndex);
+            }
+        }
+        else if (baseType == BaseType::kUserDefinition)
+        {
+            strcpy(buff, "user defined forthop ");
+        }
+        else if (baseType == BaseType::kVoid)
+        {
+            strcpy(buff, "void ");
+        }
+        else
+        {
+            sprintf(buff, "UNKNOWN BASE TYPE %d", baseType);
         }
         CONSOLE_STRING_OUT( buff );
     }
@@ -2053,7 +2043,7 @@ ForthInterface::GetMethodIndex( const char* pName )
 
 ForthNativeType::ForthNativeType( const char*       pName,
                                   int               numBytes,
-                                  forthBaseType   baseType )
+                                  BaseType   baseType )
 : mpName( pName )
 , mNumBytes( numBytes )
 , mBaseType( baseType )
@@ -2072,7 +2062,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
     char *pHere;
     int i;
     int32_t val = 0;
-    forthBaseType baseType = mBaseType;
+    BaseType baseType = mBaseType;
     ForthVocabulary *pVocab;
     forthop* pEntry;
     int32_t typeCode, len, varOffset, storageLen;
@@ -2080,7 +2070,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
     ForthCoreState *pCore = pEngine->GetCoreState();        // so we can SPOP maxbytes
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
 
-    bool isString = (baseType == kBaseTypeString);
+    bool isString = (baseType == BaseType::kString);
 
 	if (!isString && ((pEngine->GetFlags() & kEngineFlagInEnumDefinition) != 0))
 	{
@@ -2101,7 +2091,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
             // the symbol just before "string" should have been an integer constant
             if ( !pEngine->GetLastConstant( len ) )
             {
-                SET_ERROR( kForthErrorMissingSize );
+                SET_ERROR( ForthError::kMissingSize );
             }
         }
         else
@@ -2131,7 +2121,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
         // outside of a struct definition, any native variable or array defined with "ptrTo"
         //  is the same thing as an int variable or array, since native types have no fields
         pEngine->ClearFlag(kEngineFlagIsPointer);
-        baseType = kBaseTypeCell;
+        baseType = BaseType::kCell;
         nBytes = sizeof(char *);
         pInitialVal = &val;
         typeCode |= kDTIsPtr;
@@ -2178,7 +2168,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
             if ( numElements )
             {
                 // define global array
-                pEngine->CompileBuiltinOpcode( OP_DO_BYTE_ARRAY + CODE_TO_BASE_TYPE( baseType ) );
+                pEngine->CompileBuiltinOpcode(OP_DO_BYTE_ARRAY + (uint32_t)CODE_TO_BASE_TYPE((int)baseType));
                 pHere = (char *) (pEngine->GetDP());
                 pEngine->AllotLongs( ((nBytes * numElements) + 3) >> 2 );
                 for ( i = 0; i < numElements; i++ )
@@ -2190,7 +2180,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
             else
             {
                 // define global single variable
-                pEngine->CompileBuiltinOpcode( OP_DO_BYTE + CODE_TO_BASE_TYPE(baseType) );
+                pEngine->CompileBuiltinOpcode(OP_DO_BYTE + (uint32_t)CODE_TO_BASE_TYPE((int)baseType));
                 pHere = (char *) (pEngine->GetDP());
                 pEngine->AllotLongs( (nBytes  + 3) >> 2 );
                 if ( GET_VAR_OPERATION == VarOperation::kVarStore )
@@ -2203,7 +2193,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                         cell val = SPOP;
                         *((int64_t *)pHere) = val;
 #else
-                        if (baseType == kBaseTypeDouble)
+                        if (baseType == BaseType::kDouble)
                         {
                             *((int64_t *)pHere) = DPOP;
                         }

@@ -71,8 +71,8 @@ public:
 
 	ForthShowContext*	GetShowContext();
 
-	inline eForthFiberRunState GetRunState() { return mRunState; }
-	void				SetRunState(eForthFiberRunState newState);
+	inline FiberState GetRunState() { return mRunState; }
+	void				SetRunState(FiberState newState);
 	inline ForthThread* GetParent() { return mpParentThread; }
 	inline ForthEngine* GetEngine() { return mpEngine; }
 
@@ -99,7 +99,7 @@ protected:
     ForthCoreState      mCore;
     forthop             mOps[2];
     uint32_t				mWakeupTime;
-	eForthFiberRunState mRunState;
+	FiberState mRunState;
     ForthFiber*         mpJoinHead;
     ForthFiber*         mpNextJoiner;
     int                 mIndex;
@@ -123,7 +123,7 @@ public:
 
 	void				FreeObjects();
 
-	inline eForthFiberRunState GetRunState() { return mRunState; }
+	inline FiberState GetRunState() { return mRunState; }
 
     void                Join();
 
@@ -151,7 +151,7 @@ protected:
 	std::vector<ForthFiber*> mFibers;
 	ForthThread*   mpNext;
 	int					mActiveFiberIndex;
-	eForthFiberRunState mRunState;
+	FiberState mRunState;
     std::string         mName;
 #if defined(LINUX) || defined(MACOSX)
 	int                 mHandle;

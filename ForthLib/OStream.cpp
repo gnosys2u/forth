@@ -54,7 +54,7 @@ namespace OStream
             }
             else
             {
-                ForthEngine::GetInstance()->SetError(kForthErrorIO, " input stream has no char input routines");
+                ForthEngine::GetInstance()->SetError(ForthError::kIO, " input stream has no char input routines");
             }
         }
 
@@ -87,7 +87,7 @@ namespace OStream
             }
             else
             {
-                ForthEngine::GetInstance()->SetError(kForthErrorIO, " input stream has no bytes input routines");
+                ForthEngine::GetInstance()->SetError(ForthError::kIO, " input stream has no bytes input routines");
             }
         }
 
@@ -177,7 +177,7 @@ namespace OStream
             }
             else
             {
-                ForthEngine::GetInstance()->SetError(kForthErrorIO, " input stream has no string input routines");
+                ForthEngine::GetInstance()->SetError(ForthError::kIO, " input stream has no string input routines");
             }
         }
 
@@ -254,7 +254,7 @@ namespace OStream
             }
             else
             {
-                ForthEngine::GetInstance()->SetError(kForthErrorIO, " input stream has no string input routines");
+                ForthEngine::GetInstance()->SetError(ForthError::kIO, " input stream has no string input routines");
             }
         }
         return numWritten;
@@ -598,20 +598,20 @@ namespace OStream
     baseMethodEntry oInStreamMembers[] =
     {
         // getChar, getBytes, getLine and atEOF must be first 4 methods and in this order
-        METHOD_RET("getChar", oInStreamGetCharMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("getBytes", oInStreamGetBytesMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("getLine", oInStreamGetLineMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("getString", oInStreamGetStringMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("iterChar", oInStreamIterCharMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("iterBytes", oInStreamIterBytesMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("iterLine", oInStreamIterLineMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("iterString", oInStreamIterStringMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("getChar", oInStreamGetCharMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("getBytes", oInStreamGetBytesMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("getLine", oInStreamGetLineMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("getString", oInStreamGetStringMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("iterChar", oInStreamIterCharMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("iterBytes", oInStreamIterBytesMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("iterLine", oInStreamIterLineMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("iterString", oInStreamIterStringMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("setTrimEOL", oInStreamSetTrimEOLMethod),
-        METHOD_RET("atEOF", unimplementedMethodOp, RETURNS_NATIVE(kBaseTypeInt)),  // derived classes must define atEOF
+        METHOD_RET("atEOF", unimplementedMethodOp, RETURNS_NATIVE(BaseType::kInt)),  // derived classes must define atEOF
 
-        MEMBER_VAR("userData", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
-        MEMBER_VAR("trimEOL", NATIVE_TYPE_TO_CODE(0, kBaseTypeInt)),
-        MEMBER_VAR("__inFuncs", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+        MEMBER_VAR("userData", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
+        MEMBER_VAR("trimEOL", NATIVE_TYPE_TO_CODE(0, BaseType::kInt)),
+        MEMBER_VAR("__inFuncs", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
         // following must be last in table
         END_MEMBERS
@@ -999,20 +999,20 @@ namespace OStream
 		METHOD("__newOp", oFileInStreamNew),
         METHOD("delete", oFileInStreamDeleteMethod),
        
-        METHOD_RET("iterChar", oFileInStreamIterCharMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("iterBytes", oFileInStreamIterBytesMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("iterLine", oFileInStreamIterLineMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atEOF", oFileInStreamAtEOFMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("iterChar", oFileInStreamIterCharMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("iterBytes", oFileInStreamIterBytesMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("iterLine", oFileInStreamIterLineMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atEOF", oFileInStreamAtEOFMethod, RETURNS_NATIVE(BaseType::kInt)),
 
-        METHOD_RET("open", oFileInStreamOpenMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("open", oFileInStreamOpenMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("close", oFileInStreamCloseMethod),
 		METHOD("setFile", oFileInStreamSetFileMethod),
 		METHOD("getFile", oFileInStreamGetFileMethod),
-		METHOD_RET("getSize", oFileInStreamGetSizeMethod, RETURNS_NATIVE(kBaseTypeLong)),
-		METHOD_RET("tell", oFileInStreamTellMethod, RETURNS_NATIVE(kBaseTypeLong)),
+		METHOD_RET("getSize", oFileInStreamGetSizeMethod, RETURNS_NATIVE(BaseType::kLong)),
+		METHOD_RET("tell", oFileInStreamTellMethod, RETURNS_NATIVE(BaseType::kLong)),
 		METHOD("seek", oFileInStreamSeekMethod),
 
-		MEMBER_VAR("inFile", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("inFile", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -1055,7 +1055,7 @@ namespace OStream
 		METHOD("__newOp", oConsoleInStreamNew),
 		METHOD("delete", oConsoleInStreamDeleteMethod),
 
-        METHOD_RET("atEOF", oConsoleInStreamSetAtEOFMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atEOF", oConsoleInStreamSetAtEOFMethod, RETURNS_NATIVE(BaseType::kInt)),
 
         METHOD("setFile", illegalMethodOp),
 		// following must be last in table
@@ -1087,7 +1087,7 @@ namespace OStream
 		}
 		else
 		{
-			ForthEngine::GetInstance()->SetError(kForthErrorIO, " output stream has no output routines");
+			ForthEngine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
 		}
 	}
 
@@ -1097,7 +1097,7 @@ namespace OStream
 
 		if (pOutStream->pOutFuncs == NULL)
 		{
-			ForthEngine::GetInstance()->SetError(kForthErrorIO, " output stream has no output routines");
+			ForthEngine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
 		}
 		else
 		{
@@ -1132,7 +1132,7 @@ namespace OStream
 		}
 		else
 		{
-			ForthEngine::GetInstance()->SetError(kForthErrorIO, " output stream has no output routines");
+			ForthEngine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
 		}
 	}
 
@@ -1182,7 +1182,7 @@ namespace OStream
 			}
 			else
 			{
-				ForthEngine::GetInstance()->SetError(kForthErrorIO, " output stream has no output routines");
+				ForthEngine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
 			}
 		}
 	}
@@ -1276,9 +1276,9 @@ namespace OStream
 		METHOD("putLine", oOutStreamPutLineMethod),
         METHOD("printf", oOutStreamPrintfMethod),
 
-		MEMBER_VAR("userData", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
-		MEMBER_VAR("__outFuncs", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
-		MEMBER_VAR("__eolChars", NATIVE_TYPE_TO_CODE(0, kBaseTypeInt)),
+		MEMBER_VAR("userData", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
+		MEMBER_VAR("__outFuncs", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
+		MEMBER_VAR("__eolChars", NATIVE_TYPE_TO_CODE(0, BaseType::kInt)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -1455,15 +1455,15 @@ namespace OStream
 		METHOD("__newOp", oFileOutStreamNew),
 		METHOD("delete", oFileOutStreamDeleteMethod),
 
-		METHOD_RET("open", oFileOutStreamOpenMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("open", oFileOutStreamOpenMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("close", oFileOutStreamCloseMethod),
 		METHOD("setFile", oFileOutStreamSetFileMethod),
 		METHOD("getFile", oFileOutStreamGetFileMethod),
-		METHOD_RET("getSize", oFileOutStreamGetSizeMethod, RETURNS_NATIVE(kBaseTypeLong)),
-		METHOD_RET("tell", oFileOutStreamTellMethod, RETURNS_NATIVE(kBaseTypeLong)),
+		METHOD_RET("getSize", oFileOutStreamGetSizeMethod, RETURNS_NATIVE(BaseType::kLong)),
+		METHOD_RET("tell", oFileOutStreamTellMethod, RETURNS_NATIVE(BaseType::kLong)),
 		METHOD("seek", oFileOutStreamSeekMethod),
 
-		MEMBER_VAR("outFile", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("outFile", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 		// following must be last in table
 		END_MEMBERS
 	};
@@ -1653,9 +1653,9 @@ namespace OStream
 
 		METHOD("init", oFunctionOutStreamInitMethod),
 
-		MEMBER_VAR("__outChar", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
-		MEMBER_VAR("__outBytes", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
-		MEMBER_VAR("__outString", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("__outChar", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
+		MEMBER_VAR("__outBytes", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
+		MEMBER_VAR("__outString", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -2009,7 +2009,7 @@ void ForthConsoleCharOut(ForthCoreState* pCore, char ch)
         }
         else
         {
-            pEngine->SetError(kForthErrorException, " ForthConsoleCharOut outstream is null");
+            pEngine->SetError(ForthError::kException, " ForthConsoleCharOut outstream is null");
         }
 	}
 }
@@ -2032,7 +2032,7 @@ void ForthConsoleBytesOut(ForthCoreState* pCore, const char* pBuffer, int numCha
         }
         else
         {
-            pEngine->SetError(kForthErrorException, " ForthConsoleBytesOut outstream is null");
+            pEngine->SetError(ForthError::kException, " ForthConsoleBytesOut outstream is null");
         }
 	}
 }
@@ -2054,7 +2054,7 @@ void ForthConsoleStringOut(ForthCoreState* pCore, const char* pBuffer)
         }
         else
         {
-            pEngine->SetError(kForthErrorException, " ForthConsoleStringOut outstream is null");
+            pEngine->SetError(ForthError::kException, " ForthConsoleStringOut outstream is null");
         }
 	}
 }
@@ -2076,7 +2076,7 @@ void ForthErrorStringOut(ForthCoreState* pCore, const char* pBuffer)
         }
         else
         {
-            pEngine->SetError(kForthErrorException, " ForthErrorStringOut outstream is null");
+            pEngine->SetError(ForthError::kException, " ForthErrorStringOut outstream is null");
         }
     }
 }

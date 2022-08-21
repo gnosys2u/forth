@@ -29,7 +29,7 @@ static void ReportBadArrayIndex(const char* pWhere, int ix, int arraySize)
 #elif defined(LINUX) || defined(MACOSX)
     snprintf(buff, sizeof(buff), " in %s index:%d size:%d", pWhere, ix, arraySize);
 #endif
-	ForthEngine::GetInstance()->SetError(kForthErrorBadArrayIndex, buff);
+	ForthEngine::GetInstance()->SetError(ForthError::kBadArrayIndex, buff);
 }
 
 namespace OArray
@@ -410,7 +410,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, " pop of empty OArray");
+            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty OArray");
         }
         METHOD_RETURN;
     }
@@ -671,9 +671,9 @@ namespace OArray
 
         METHOD_RET("headIter", oArrayHeadIterMethod, RETURNS_OBJECT(kBCIArrayIter)),
         METHOD_RET("tailIter", oArrayTailIterMethod, RETURNS_OBJECT(kBCIArrayIter)),
-        METHOD_RET("find", oArrayFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("find", oArrayFindMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD_RET("clone", oArrayCloneMethod, RETURNS_OBJECT(kBCIArray)),
-        METHOD_RET("count", oArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oArrayCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oArrayClearMethod),
 
         METHOD_RET("get", oArrayGetMethod, RETURNS_OBJECT(kBCIContainedType)),
@@ -688,13 +688,13 @@ namespace OArray
         METHOD_RET("base", oArrayBaseMethod, OBJECT_TYPE_TO_CODE(kDTIsMethod | kDTIsPtr, kBCIObject)),
         METHOD("load", oArrayLoadMethod),
         METHOD("fromMemory", oArrayFromMemoryMethod),
-        METHOD_RET("findValue", oArrayFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oArrayFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("reverse", oArrayReverseMethod),
         METHOD("sort", oArraySortMethod),
         METHOD_RET("toList", oArrayToListMethod, RETURNS_OBJECT(kBCIList)),
         METHOD("unref", oArrayUnrefMethod),
        
-        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 		// following must be last in table
 		END_MEMBERS
 	};
@@ -706,7 +706,7 @@ namespace OArray
 
 	FORTHOP(oArrayIterNew)
 	{
-		GET_ENGINE->SetError(kForthErrorIllegalOperation, " cannot explicitly create an ArrayIter object");
+		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create an ArrayIter object");
 	}
 
 	FORTHOP(oArrayIterDeleteMethod)
@@ -962,22 +962,22 @@ namespace OArray
 		METHOD("seekPrev", oArrayIterSeekPrevMethod),
 		METHOD("seekHead", oArrayIterSeekHeadMethod),
         METHOD("seekTail", oArrayIterSeekTailMethod),
-        METHOD_RET("atHead", oArrayIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oArrayIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oArrayIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oArrayIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("current", oArrayIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oArrayIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oArrayIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oArrayIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oArrayIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("current", oArrayIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oArrayIterRemoveMethod),
 		METHOD("unref", oArrayIterUnrefMethod),
         METHOD_RET("clone", oArrayIterCloneMethod, RETURNS_OBJECT(kBCIArrayIter)),
 
         METHOD("seek", oArrayIterSeekMethod),
-        METHOD_RET("tell", oArrayIterTellMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("findNext", oArrayIterFindNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("tell", oArrayIterTellMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("findNext", oArrayIterFindNextMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("insert", oArrayIterInsertMethod),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIArray)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -1443,7 +1443,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, " pop of empty OBag");
+            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty OBag");
         }
         METHOD_RETURN;
     }
@@ -1644,14 +1644,14 @@ namespace OArray
 
         METHOD_RET("headIter", oBagHeadIterMethod, RETURNS_OBJECT(kBCIBagIter)),
         METHOD_RET("tailIter", oBagTailIterMethod, RETURNS_OBJECT(kBCIBagIter)),
-        METHOD_RET("find", oBagFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("find", oBagFindMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD_RET("clone", oBagCloneMethod, RETURNS_OBJECT(kBCIBag)),
-        METHOD_RET("count", oBagCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oBagCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oBagClearMethod),
 
-        METHOD_RET("get", oBagGetMethod, RETURNS_NATIVE(kBaseTypeLong)),
+        METHOD_RET("get", oBagGetMethod, RETURNS_NATIVE(BaseType::kLong)),
         METHOD_RET("geto", oBagGetObjectMethod, RETURNS_OBJECT(kBCIContainedType)),
-        METHOD_RET("gett", oBagGetTagMethod, RETURNS_NATIVE(kBaseTypeLong)),
+        METHOD_RET("gett", oBagGetTagMethod, RETURNS_NATIVE(BaseType::kLong)),
         METHOD("set", oBagSetMethod),
         METHOD_RET("ref", oBagRefMethod, OBJECT_TYPE_TO_CODE(kDTIsMethod | kDTIsPtr, kBCIObject)),
         METHOD("swap", oBagSwapMethod),
@@ -1663,13 +1663,13 @@ namespace OArray
         METHOD_RET("base", oBagBaseMethod, OBJECT_TYPE_TO_CODE(kDTIsMethod | kDTIsPtr, kBCIObject)),
         METHOD("load", oBagLoadMethod),
         METHOD("fromMemory", oBagFromMemoryMethod),
-        METHOD_RET("findValue", oBagFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("grab", oBagGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oBagFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("grab", oBagGrabMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("reverse", oBagReverseMethod),
         METHOD_RET("toLongMap", oBagToLongMapMethod, RETURNS_OBJECT(kBCILongMap)),
         METHOD("unref", oBagUnrefMethod),
 
-        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
         // following must be last in table
         END_MEMBERS
     };
@@ -1681,7 +1681,7 @@ namespace OArray
 
     FORTHOP(oBagIterNew)
     {
-        GET_ENGINE->SetError(kForthErrorIllegalOperation, " cannot explicitly create a BagIter object");
+        GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a BagIter object");
     }
 
     FORTHOP(oBagIterDeleteMethod)
@@ -1939,22 +1939,22 @@ namespace OArray
         METHOD("seekPrev", oBagIterSeekPrevMethod),
         METHOD("seekHead", oBagIterSeekHeadMethod),
         METHOD("seekTail", oBagIterSeekTailMethod),
-        METHOD_RET("atHead", oBagIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oBagIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oBagIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("prev", oBagIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("current", oBagIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oBagIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oBagIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oBagIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("prev", oBagIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("current", oBagIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oBagIterRemoveMethod),
         METHOD("unref", oBagIterUnrefMethod),
         METHOD_RET("clone", oBagIterCloneMethod, RETURNS_OBJECT(kBCIBagIter)),
 
         METHOD("seek", oBagIterSeekMethod),
-        METHOD_RET("tell", oArrayIterTellMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("findNext", oBagIterFindNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("tell", oArrayIterTellMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("findNext", oBagIterFindNextMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("insert", oBagIterInsertMethod),
 
         MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIBag)),
-        MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+        MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
         // following must be last in table
         END_MEMBERS
@@ -2307,7 +2307,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, " pop of empty oByteArray");
+            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty oByteArray");
         }
         METHOD_RETURN;
     }
@@ -2415,31 +2415,31 @@ namespace OArray
 
         METHOD_RET("headIter", oByteArrayHeadIterMethod, RETURNS_OBJECT(kBCIByteArrayIter)),
         METHOD_RET("tailIter", oByteArrayTailIterMethod, RETURNS_OBJECT(kBCIByteArrayIter)),
-        METHOD_RET("find", oByteArrayFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("find", oByteArrayFindMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD_RET("clone", oByteArrayCloneMethod, RETURNS_OBJECT(kBCIByteArray)),
-        METHOD_RET("count", oByteArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oByteArrayCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oByteArrayClearMethod),
         METHOD("fill", oByteArrayFillMethod),
 
-        METHOD_RET("get", oByteArrayGetMethod, RETURNS_NATIVE(kBaseTypeByte)),
+        METHOD_RET("get", oByteArrayGetMethod, RETURNS_NATIVE(BaseType::kByte)),
         METHOD("set", oByteArraySetMethod),
-        METHOD_RET("ref", oByteArrayRefMethod, RETURNS_NATIVE(kBaseTypeByte | kDTIsPtr)),
+        METHOD_RET("ref", oByteArrayRefMethod, RETURNS_NATIVE_PTR(BaseType::kByte)),
         METHOD("swap", oByteArraySwapMethod),
         METHOD("resize", oByteArrayResizeMethod),
         METHOD("insert", oByteArrayInsertMethod),
-        METHOD_RET("remove", oByteArrayRemoveMethod, RETURNS_NATIVE(kBaseTypeByte)),
+        METHOD_RET("remove", oByteArrayRemoveMethod, RETURNS_NATIVE(BaseType::kByte)),
         METHOD("push", oByteArrayPushMethod),
-        METHOD_RET("pop", oByteArrayPopMethod, RETURNS_NATIVE(kBaseTypeByte)),
-        METHOD_RET("base", oByteArrayBaseMethod, RETURNS_NATIVE(kBaseTypeByte | kDTIsPtr)),
+        METHOD_RET("pop", oByteArrayPopMethod, RETURNS_NATIVE(BaseType::kByte)),
+        METHOD_RET("base", oByteArrayBaseMethod, RETURNS_NATIVE_PTR(BaseType::kByte)),
         METHOD("load", oByteArrayLoadMethod),
         METHOD("fromMemory", oByteArrayFromMemoryMethod),
-        METHOD_RET("findValue", oByteArrayFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oByteArrayFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("reverse", oByteArrayReverseMethod),
         METHOD("sort", oByteArraySortMethod),
         METHOD("usort", oByteArrayUnsignedSortMethod),
 		METHOD("setFromString", oByteArrayFromStringMethod),
 
-		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -2453,7 +2453,7 @@ namespace OArray
 
 	FORTHOP(oByteArrayIterNew)
 	{
-		GET_ENGINE->SetError(kForthErrorIllegalOperation, " cannot explicitly create a ByteArrayIter object");
+		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a ByteArrayIter object");
 	}
 
 	FORTHOP(oByteArrayIterDeleteMethod)
@@ -2657,20 +2657,20 @@ namespace OArray
 		METHOD("seekPrev", oByteArrayIterSeekPrevMethod),
 		METHOD("seekHead", oByteArrayIterSeekHeadMethod),
 		METHOD("seekTail", oByteArrayIterSeekTailMethod),
-        METHOD_RET("atHead", oByteArrayIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oByteArrayIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oByteArrayIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oByteArrayIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oByteArrayIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oByteArrayIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oByteArrayIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oByteArrayIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oByteArrayIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oByteArrayIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oByteArrayIterRemoveMethod),
 		METHOD_RET("clone", oByteArrayIterCloneMethod, RETURNS_OBJECT(kBCIByteArrayIter)),
 
         METHOD("seek", oByteArrayIterSeekMethod),
-        METHOD_RET("tell", oByteArrayIterTellMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("findNext", oByteArrayIterFindNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("tell", oByteArrayIterTellMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("findNext", oByteArrayIterFindNextMethod, RETURNS_NATIVE(BaseType::kInt)),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIByteArray)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -3026,7 +3026,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, " pop of empty OShortArray");
+            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty OShortArray");
         }
         METHOD_RETURN;
     }
@@ -3125,30 +3125,30 @@ namespace OArray
 
         METHOD_RET("headIter", oShortArrayHeadIterMethod, RETURNS_OBJECT(kBCIShortArrayIter)),
         METHOD_RET("tailIter", oShortArrayTailIterMethod, RETURNS_OBJECT(kBCIShortArrayIter)),
-        METHOD_RET("find", oShortArrayFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("find", oShortArrayFindMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD_RET("clone", oShortArrayCloneMethod, RETURNS_OBJECT(kBCIShortArray)),
-        METHOD_RET("count", oShortArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oShortArrayCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oShortArrayClearMethod),
         METHOD("fill", oShortArrayFillMethod),
 
-        METHOD_RET("get", oShortArrayGetMethod, RETURNS_NATIVE(kBaseTypeShort)),
+        METHOD_RET("get", oShortArrayGetMethod, RETURNS_NATIVE(BaseType::kShort)),
         METHOD("set", oShortArraySetMethod),
-        METHOD_RET("ref", oShortArrayRefMethod, RETURNS_NATIVE(kBaseTypeShort | kDTIsPtr)),
+        METHOD_RET("ref", oShortArrayRefMethod, RETURNS_NATIVE_PTR(BaseType::kShort)),
         METHOD("swap", oShortArraySwapMethod),
         METHOD("resize", oShortArrayResizeMethod),
         METHOD("insert", oShortArrayInsertMethod),
-        METHOD_RET("remove", oShortArrayRemoveMethod, RETURNS_NATIVE(kBaseTypeShort)),
+        METHOD_RET("remove", oShortArrayRemoveMethod, RETURNS_NATIVE(BaseType::kShort)),
         METHOD("push", oShortArrayPushMethod),
-        METHOD_RET("pop", oShortArrayPopMethod, RETURNS_NATIVE(kBaseTypeShort)),
-        METHOD_RET("base", oShortArrayBaseMethod, RETURNS_NATIVE(kBaseTypeShort | kDTIsPtr)),
+        METHOD_RET("pop", oShortArrayPopMethod, RETURNS_NATIVE(BaseType::kShort)),
+        METHOD_RET("base", oShortArrayBaseMethod, RETURNS_NATIVE_PTR(BaseType::kShort)),
         METHOD("load", oShortArrayLoadMethod),
         METHOD("fromMemory", oShortArrayFromMemoryMethod),
-        METHOD_RET("findValue", oShortArrayFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oShortArrayFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("reverse", oShortArrayReverseMethod),
         METHOD("sort", oShortArraySortMethod),
         METHOD("usort", oShortArrayUnsignedSortMethod),
 
-        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
         // following must be last in table
 		END_MEMBERS
@@ -3163,7 +3163,7 @@ namespace OArray
 	FORTHOP(oShortArrayIterNew)
 	{
 		ForthEngine *pEngine = GET_ENGINE;
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot explicitly create a ShortArrayIter object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a ShortArrayIter object");
 	}
 
 	FORTHOP(oShortArrayIterDeleteMethod)
@@ -3366,20 +3366,20 @@ namespace OArray
 		METHOD("seekPrev", oShortArrayIterSeekPrevMethod),
 		METHOD("seekHead", oShortArrayIterSeekHeadMethod),
 		METHOD("seekTail", oShortArrayIterSeekTailMethod),
-        METHOD_RET("atHead", oShortArrayIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oShortArrayIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oShortArrayIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oShortArrayIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oShortArrayIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oShortArrayIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oShortArrayIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oShortArrayIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oShortArrayIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oShortArrayIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oShortArrayIterRemoveMethod),
         METHOD_RET("clone", oShortArrayIterCloneMethod, RETURNS_OBJECT(kBCIShortArrayIter)),
 
         METHOD("seek", oShortArrayIterSeekMethod),
-        METHOD_RET("tell", oShortArrayIterTellMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("findNext", oShortArrayIterFindNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("tell", oShortArrayIterTellMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("findNext", oShortArrayIterFindNextMethod, RETURNS_NATIVE(BaseType::kInt)),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIShortArray)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -3733,7 +3733,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, " pop of empty oIntArray");
+            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty oIntArray");
         }
         METHOD_RETURN;
     }
@@ -3832,30 +3832,30 @@ namespace OArray
 
         METHOD_RET("headIter", oIntArrayHeadIterMethod, RETURNS_OBJECT(kBCIIntArrayIter)),
         METHOD_RET("tailIter", oIntArrayTailIterMethod, RETURNS_OBJECT(kBCIIntArrayIter)),
-        METHOD_RET("find", oIntArrayFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("find", oIntArrayFindMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD_RET("clone", oIntArrayCloneMethod, RETURNS_OBJECT(kBCIIntArray)),
-        METHOD_RET("count", oIntArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oIntArrayCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oIntArrayClearMethod),
         METHOD("fill", oIntArrayFillMethod),
 
-        METHOD_RET("get", oIntArrayGetMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("get", oIntArrayGetMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("set", oIntArraySetMethod),
-        METHOD_RET("ref", oIntArrayRefMethod, RETURNS_NATIVE(kBaseTypeInt | kDTIsPtr)),
+        METHOD_RET("ref", oIntArrayRefMethod, RETURNS_NATIVE_PTR(BaseType::kInt)),
         METHOD("swap", oIntArraySwapMethod),
         METHOD("resize", oIntArrayResizeMethod),
         METHOD("insert", oIntArrayInsertMethod),
-        METHOD_RET("remove", oIntArrayRemoveMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("remove", oIntArrayRemoveMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("push", oIntArrayPushMethod),
-        METHOD_RET("pop", oIntArrayPopMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("base", oIntArrayBaseMethod, RETURNS_NATIVE(kBaseTypeInt | kDTIsPtr)),
+        METHOD_RET("pop", oIntArrayPopMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("base", oIntArrayBaseMethod, RETURNS_NATIVE_PTR(BaseType::kInt)),
         METHOD("load", oIntArrayLoadMethod),
         METHOD("fromMemory", oIntArrayFromMemoryMethod),
-        METHOD_RET("findValue", oIntArrayFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oIntArrayFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("reverse", oIntArrayReverseMethod),
         METHOD("sort", oIntArraySortMethod),
         METHOD("usort", oIntArrayUnsignedSortMethod),
 
-        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
         // following must be last in table
 		END_MEMBERS
@@ -3869,7 +3869,7 @@ namespace OArray
 
 	FORTHOP(oIntArrayIterNew)
 	{
-		GET_ENGINE->SetError(kForthErrorIllegalOperation, " cannot explicitly create an IntArrayIter object");
+		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create an IntArrayIter object");
 	}
 
 	FORTHOP(oIntArrayIterDeleteMethod)
@@ -4070,20 +4070,20 @@ namespace OArray
 		METHOD("seekPrev", oIntArrayIterSeekPrevMethod),
 		METHOD("seekHead", oIntArrayIterSeekHeadMethod),
 		METHOD("seekTail", oIntArrayIterSeekTailMethod),
-        METHOD_RET("atHead", oIntArrayIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oIntArrayIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oIntArrayIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oIntArrayIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oIntArrayIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oIntArrayIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oIntArrayIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oIntArrayIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oIntArrayIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oIntArrayIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oIntArrayIterRemoveMethod),
         METHOD_RET("clone", oIntArrayIterCloneMethod, RETURNS_OBJECT(kBCIIntArrayIter)),
 
         METHOD("seek", oIntArrayIterSeekMethod),
-        METHOD_RET("tell", oIntArrayIterTellMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("findNext", oIntArrayIterFindNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("tell", oIntArrayIterTellMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("findNext", oIntArrayIterFindNextMethod, RETURNS_NATIVE(BaseType::kInt)),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIIntArray)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -4166,29 +4166,29 @@ namespace OArray
 
         METHOD_RET("headIter", oIntArrayHeadIterMethod, RETURNS_OBJECT(kBCIIntArrayIter)),
         METHOD_RET("tailIter", oIntArrayTailIterMethod, RETURNS_OBJECT(kBCIIntArrayIter)),
-        METHOD_RET("find", oIntArrayFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("find", oIntArrayFindMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD_RET("clone", oIntArrayCloneMethod, RETURNS_OBJECT(kBCIIntArray)),
-        METHOD_RET("count", oIntArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oIntArrayCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oIntArrayClearMethod),
         METHOD("fill", oIntArrayFillMethod),
 
-        METHOD_RET("get", oIntArrayGetMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("get", oIntArrayGetMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("set", oIntArraySetMethod),
-        METHOD_RET("ref", oIntArrayRefMethod, RETURNS_NATIVE(kBaseTypeInt | kDTIsPtr)),
+        METHOD_RET("ref", oIntArrayRefMethod, RETURNS_NATIVE_PTR(BaseType::kInt)),
         METHOD("swap", oIntArraySwapMethod),
         METHOD("resize", oIntArrayResizeMethod),
         METHOD("insert", oIntArrayInsertMethod),
-        METHOD_RET("remove", oIntArrayRemoveMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("remove", oIntArrayRemoveMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("push", oIntArrayPushMethod),
-        METHOD_RET("pop", oIntArrayPopMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("base", oIntArrayBaseMethod, RETURNS_NATIVE(kBaseTypeInt | kDTIsPtr)),
+        METHOD_RET("pop", oIntArrayPopMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("base", oIntArrayBaseMethod, RETURNS_NATIVE_PTR(BaseType::kInt)),
         METHOD("load", oIntArrayLoadMethod),
         METHOD("fromMemory", oIntArrayFromMemoryMethod),
-        METHOD_RET("findValue", oIntArrayFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oIntArrayFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("reverse", oIntArrayReverseMethod),
         METHOD("sort", oFloatArraySortMethod),
 
-        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
         // following must be last in table
 		END_MEMBERS
@@ -4557,7 +4557,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, " pop of empty oLongArray");
+            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty oLongArray");
         }
         METHOD_RETURN;
     }
@@ -4658,30 +4658,30 @@ namespace OArray
 
         METHOD_RET("headIter", oLongArrayHeadIterMethod, RETURNS_OBJECT(kBCILongArrayIter)),
         METHOD_RET("tailIter", oLongArrayTailIterMethod, RETURNS_OBJECT(kBCILongArrayIter)),
-        METHOD_RET("find", oLongArrayFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("find", oLongArrayFindMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD_RET("clone", oLongArrayCloneMethod, RETURNS_OBJECT(kBCILongArray)),
-        METHOD_RET("count", oLongArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oLongArrayCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oLongArrayClearMethod),
         METHOD("fill", oLongArrayFillMethod),
 
-        METHOD_RET("get", oLongArrayGetMethod, RETURNS_NATIVE(kBaseTypeLong)),
+        METHOD_RET("get", oLongArrayGetMethod, RETURNS_NATIVE(BaseType::kLong)),
         METHOD("set", oLongArraySetMethod),
-        METHOD_RET("ref", oLongArrayRefMethod, RETURNS_NATIVE(kBaseTypeLong | kDTIsPtr)),
+        METHOD_RET("ref", oLongArrayRefMethod, RETURNS_NATIVE_PTR(BaseType::kLong)),
         METHOD("swap", oLongArraySwapMethod),
         METHOD("resize", oLongArrayResizeMethod),
         METHOD("insert", oLongArrayInsertMethod),
-        METHOD_RET("remove", oLongArrayRemoveMethod, RETURNS_NATIVE(kBaseTypeLong)),
+        METHOD_RET("remove", oLongArrayRemoveMethod, RETURNS_NATIVE(BaseType::kLong)),
         METHOD("push", oLongArrayPushMethod),
-        METHOD_RET("pop", oLongArrayPopMethod, RETURNS_NATIVE(kBaseTypeLong)),
-        METHOD_RET("base", oLongArrayBaseMethod, RETURNS_NATIVE(kBaseTypeLong | kDTIsPtr)),
+        METHOD_RET("pop", oLongArrayPopMethod, RETURNS_NATIVE(BaseType::kLong)),
+        METHOD_RET("base", oLongArrayBaseMethod, RETURNS_NATIVE_PTR(BaseType::kLong)),
         METHOD("load", oLongArrayLoadMethod),
         METHOD("fromMemory", oLongArrayFromMemoryMethod),
-        METHOD_RET("findValue", oLongArrayFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oLongArrayFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("reverse", oLongArrayReverseMethod),
         METHOD("sort", oLongArraySortMethod),
         METHOD("usort", oLongArrayUnsignedSortMethod),
 
-		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -4695,7 +4695,7 @@ namespace OArray
 
 	FORTHOP(oLongArrayIterNew)
 	{
-		GET_ENGINE->SetError(kForthErrorIllegalOperation, " cannot explicitly create a LongArrayIter object");
+		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a LongArrayIter object");
 	}
 
 	FORTHOP(oLongArrayIterDeleteMethod)
@@ -4904,20 +4904,20 @@ namespace OArray
 		METHOD("seekPrev", oLongArrayIterSeekPrevMethod),
 		METHOD("seekHead", oLongArrayIterSeekHeadMethod),
 		METHOD("seekTail", oLongArrayIterSeekTailMethod),
-        METHOD_RET("atHead", oLongArrayIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oLongArrayIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oLongArrayIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oLongArrayIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oLongArrayIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oLongArrayIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oLongArrayIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oLongArrayIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oLongArrayIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oLongArrayIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oLongArrayIterRemoveMethod),
         METHOD_RET("clone", oLongArrayIterCloneMethod, RETURNS_OBJECT(kBCILongArrayIter)),
 
         METHOD("seek", oLongArrayIterSeekMethod),
-        METHOD_RET("tell", oLongArrayIterTellMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("findNext", oLongArrayIterFindNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("tell", oLongArrayIterTellMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("findNext", oLongArrayIterFindNextMethod, RETURNS_NATIVE(BaseType::kInt)),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCILongArray)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -5172,7 +5172,7 @@ namespace OArray
 		}
 		else
 		{
-			GET_ENGINE->SetError(kForthErrorBadParameter, " pop of empty oDoubleArray");
+			GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty oDoubleArray");
 		}
 		METHOD_RETURN;
 	}
@@ -5230,29 +5230,29 @@ namespace OArray
 
         METHOD_RET("headIter", oDoubleArrayHeadIterMethod, RETURNS_OBJECT(kBCIDoubleArrayIter)),
         METHOD_RET("tailIter", oDoubleArrayTailIterMethod, RETURNS_OBJECT(kBCIDoubleArrayIter)),
-        METHOD_RET("find", oDoubleArrayFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("find", oDoubleArrayFindMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD_RET("clone", oLongArrayCloneMethod, RETURNS_OBJECT(kBCILongArray)),
-        METHOD_RET("count", oLongArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oLongArrayCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oLongArrayClearMethod),
         METHOD("fill", oLongArrayFillMethod),
 
-        METHOD_RET("get", oDoubleArrayGetMethod, RETURNS_NATIVE(kBaseTypeDouble)),
+        METHOD_RET("get", oDoubleArrayGetMethod, RETURNS_NATIVE(BaseType::kDouble)),
         METHOD("set", oDoubleArraySetMethod),
-        METHOD_RET("ref", oLongArrayRefMethod, RETURNS_NATIVE(kBaseTypeLong | kDTIsPtr)),
+        METHOD_RET("ref", oLongArrayRefMethod, RETURNS_NATIVE_PTR(BaseType::kLong)),
         METHOD("swap", oLongArraySwapMethod),
         METHOD("resize", oLongArrayResizeMethod),
         METHOD("insert", oDoubleArrayInsertMethod),
-        METHOD_RET("remove", oDoubleArrayRemoveMethod, RETURNS_NATIVE(kBaseTypeDouble)),
+        METHOD_RET("remove", oDoubleArrayRemoveMethod, RETURNS_NATIVE(BaseType::kDouble)),
         METHOD("push", oDoubleArrayPushMethod),
-        METHOD_RET("pop", oDoubleArrayPopMethod, RETURNS_NATIVE(kBaseTypeDouble)),
-        METHOD_RET("base", oLongArrayBaseMethod, RETURNS_NATIVE(kBaseTypeLong | kDTIsPtr)),
+        METHOD_RET("pop", oDoubleArrayPopMethod, RETURNS_NATIVE(BaseType::kDouble)),
+        METHOD_RET("base", oLongArrayBaseMethod, RETURNS_NATIVE_PTR(BaseType::kLong)),
         METHOD("load", oDoubleArrayLoadMethod),
         METHOD("fromMemory", oLongArrayFromMemoryMethod),
-        METHOD_RET("findValue", oDoubleArrayFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oDoubleArrayFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("reverse", oLongArrayReverseMethod),
         METHOD("sort", oDoubleArraySortMethod),
 
-        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
         // following must be last in table
 		END_MEMBERS
@@ -5397,7 +5397,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, "StructArray:show unknown struct type");
+            GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:show unknown struct type");
         }
         METHOD_RETURN;
     }
@@ -5457,7 +5457,7 @@ namespace OArray
             }
             else
             {
-                GET_ENGINE->SetError(kForthErrorBadParameter, "StructArray:get null destination pointer");
+                GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:get null destination pointer");
             }
         }
         else
@@ -5482,7 +5482,7 @@ namespace OArray
             }
             else
             {
-                GET_ENGINE->SetError(kForthErrorBadParameter, "StructArray:set null source pointer");
+                GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:set null source pointer");
             }
         }
         else
@@ -5575,7 +5575,7 @@ namespace OArray
             }
             else
             {
-                GET_ENGINE->SetError(kForthErrorBadParameter, "StructArray:insert null source pointer");
+                GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:insert null source pointer");
             }
         }
         else
@@ -5613,7 +5613,7 @@ namespace OArray
             }
             else
             {
-                GET_ENGINE->SetError(kForthErrorBadParameter, "StructArray:remove null destination pointer");
+                GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:remove null destination pointer");
             }
         }
         else
@@ -5638,7 +5638,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, "StructArray:push null source pointer");
+            GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:push null source pointer");
         }
         METHOD_RETURN;
     }
@@ -5660,7 +5660,7 @@ namespace OArray
             }
             else
             {
-                GET_ENGINE->SetError(kForthErrorBadParameter, "StructArray:pop null destination pointer");
+                GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:pop null destination pointer");
             }
             // TODO: why push anything here?  if needed, why not push pDst?
             char val = a.back();
@@ -5669,7 +5669,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, " pop of empty StructArray");
+            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty StructArray");
         }
         METHOD_RETURN;
     }
@@ -5693,7 +5693,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(kForthErrorBadParameter, "StructArray.setType unknown struct type");
+            GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray.setType unknown struct type");
         }
         METHOD_RETURN;
     }
@@ -5707,25 +5707,25 @@ namespace OArray
 
         METHOD_RET("headIter", oStructArrayHeadIterMethod, RETURNS_OBJECT(kBCIStructArrayIter)),
         METHOD_RET("tailIter", oStructArrayTailIterMethod, RETURNS_OBJECT(kBCIStructArrayIter)),
-        METHOD_RET("count", oStructArrayCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("count", oStructArrayCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oStructArrayClearMethod),
 
-        METHOD_RET("get", oStructArrayGetMethod, RETURNS_NATIVE(kBaseTypeByte)),
+        METHOD_RET("get", oStructArrayGetMethod, RETURNS_NATIVE(BaseType::kByte)),
         METHOD("set", oStructArraySetMethod),
-        METHOD_RET("ref", oStructArrayRefMethod, RETURNS_NATIVE(kBaseTypeByte | kDTIsPtr)),
+        METHOD_RET("ref", oStructArrayRefMethod, RETURNS_NATIVE_PTR(BaseType::kByte)),
         METHOD("swap", oStructArraySwapMethod),
         METHOD("resize", oStructArrayResizeMethod),
         METHOD("insert", oStructArrayInsertMethod),
-        METHOD_RET("remove", oStructArrayRemoveMethod, RETURNS_NATIVE(kBaseTypeByte)),
+        METHOD_RET("remove", oStructArrayRemoveMethod, RETURNS_NATIVE(BaseType::kByte)),
         METHOD("push", oStructArrayPushMethod),
-        METHOD_RET("pop", oStructArrayPopMethod, RETURNS_NATIVE(kBaseTypeByte)),
-        METHOD_RET("base", oStructArrayBaseMethod, RETURNS_NATIVE(kBaseTypeByte | kDTIsPtr)),
+        METHOD_RET("pop", oStructArrayPopMethod, RETURNS_NATIVE(BaseType::kByte)),
+        METHOD_RET("base", oStructArrayBaseMethod, RETURNS_NATIVE_PTR(BaseType::kByte)),
         METHOD("setType", oStructArraySetTypeMethod),
         
-        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
-        MEMBER_VAR("elementSize", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
-        MEMBER_VAR("numElements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
-        MEMBER_VAR("__vocab", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
+        MEMBER_VAR("elementSize", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
+        MEMBER_VAR("numElements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
+        MEMBER_VAR("__vocab", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
         // following must be last in table
         END_MEMBERS
@@ -5739,7 +5739,7 @@ namespace OArray
 
     FORTHOP(oStructArrayIterNew)
     {
-        GET_ENGINE->SetError(kForthErrorIllegalOperation, " cannot explicitly create a StructArrayIter object");
+        GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a StructArrayIter object");
     }
 
     FORTHOP(oStructArrayIterDeleteMethod)
@@ -5933,19 +5933,19 @@ namespace OArray
         METHOD("seekPrev", oStructArrayIterSeekPrevMethod),
         METHOD("seekHead", oStructArrayIterSeekHeadMethod),
         METHOD("seekTail", oStructArrayIterSeekTailMethod),
-        METHOD_RET("atHead", oStructArrayIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oStructArrayIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oStructArrayIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("prev", oStructArrayIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("current", oStructArrayIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oStructArrayIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oStructArrayIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oStructArrayIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("prev", oStructArrayIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("current", oStructArrayIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oStructArrayIterRemoveMethod),
         METHOD_RET("clone", oStructArrayIterCloneMethod, RETURNS_OBJECT(kBCIStructArrayIter)),
 
         METHOD("seek", oStructArrayIterSeekMethod),
-        METHOD_RET("tell", oStructArrayIterTellMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("tell", oStructArrayIterTellMethod, RETURNS_NATIVE(BaseType::kInt)),
 
         MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIStructArray)),
-        MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+        MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
         // following must be last in table
         END_MEMBERS
@@ -6085,7 +6085,7 @@ namespace OArray
 		METHOD_RET("tailIter", oPairTailIterMethod, RETURNS_OBJECT(kBCIPairIter)),
 		//METHOD_RET( "find",                 oPairFindMethodOp, RETURNS_OBJECT(kBCIPairIter) ),
 		//METHOD_RET( "clone",                oPairCloneMethodOp, RETURNS_OBJECT(kBCIPair) ),
-		//METHOD_RET( "count",                oPairCountMethodOp, RETURNS_NATIVE(kBaseTypeInt) ),
+		//METHOD_RET( "count",                oPairCountMethodOp, RETURNS_NATIVE(BaseType::kInt) ),
 		//METHOD(     "clear",                oPairClearMethod ),
 
         METHOD_RET("getA", oPairGetAMethod, RETURNS_OBJECT(kBCIContainedType)),
@@ -6108,7 +6108,7 @@ namespace OArray
 
 	FORTHOP(oPairIterNew)
 	{
-		GET_ENGINE->SetError(kForthErrorIllegalOperation, " cannot explicitly create a PairIter object");
+		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a PairIter object");
 	}
 
 	FORTHOP(oPairIterDeleteMethod)
@@ -6268,20 +6268,20 @@ namespace OArray
 		METHOD("seekPrev", oPairIterSeekPrevMethod),
 		METHOD("seekHead", oPairIterSeekHeadMethod),
 		METHOD("seekTail", oPairIterSeekTailMethod),
-        METHOD_RET("atHead", oPairIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oPairIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oPairIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oPairIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oPairIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oPairIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oPairIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oPairIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oPairIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oPairIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
 		//METHOD(     "remove",				oPairIterRemoveMethod ),
-		//METHOD_RET( "findNext",				oPairIterFindNextMethod, RETURNS_NATIVE(kBaseTypeInt) ),
+		//METHOD_RET( "findNext",				oPairIterFindNextMethod, RETURNS_NATIVE(BaseType::kInt) ),
 		//METHOD_RET( "clone",                oPairIterCloneMethod, RETURNS_OBJECT(kBCIPairIter) ),
 
         METHOD("seek", oPairIterSeekMethod),
-        METHOD_RET("tell", oPairIterTellMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("tell", oPairIterTellMethod, RETURNS_NATIVE(BaseType::kInt)),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIPair)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, kBaseTypeInt)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, BaseType::kInt)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -6442,7 +6442,7 @@ namespace OArray
 		METHOD_RET("tailIter", oTripleTailIterMethod, RETURNS_OBJECT(kBCITripleIter)),
 		//METHOD_RET( "find",                 oTripleFindMethod, RETURNS_OBJECT(kBCITripleIter) ),
 		//METHOD_RET( "clone",                oTripleCloneMethod, RETURNS_OBJECT(kBCITriple) ),
-		//METHOD_RET( "count",                oTripleCountMethod, RETURNS_NATIVE(kBaseTypeInt) ),
+		//METHOD_RET( "count",                oTripleCountMethod, RETURNS_NATIVE(BaseType::kInt) ),
 		//METHOD(     "clear",                oTripleClearMethod ),
 
         METHOD_RET("getA", oTripleGetAMethod, RETURNS_OBJECT(kBCIContainedType)),
@@ -6468,7 +6468,7 @@ namespace OArray
 
 	FORTHOP(oTripleIterNew)
 	{
-		GET_ENGINE->SetError(kForthErrorIllegalOperation, " cannot explicitly create a TripleIter object");
+		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a TripleIter object");
 	}
 
 	FORTHOP(oTripleIterDeleteMethod)
@@ -6645,18 +6645,18 @@ namespace OArray
 		METHOD("seekPrev", oTripleIterSeekPrevMethod),
 		METHOD("seekHead", oTripleIterSeekHeadMethod),
 		METHOD("seekTail", oTripleIterSeekTailMethod),
-		METHOD_RET("next", oTripleIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oTripleIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oTripleIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("next", oTripleIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oTripleIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oTripleIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
 		//METHOD(     "remove",				oTripleIterRemoveMethod ),
-		//METHOD_RET( "findNext",				oTripleIterFindNextMethod, RETURNS_NATIVE(kBaseTypeInt) ),
+		//METHOD_RET( "findNext",				oTripleIterFindNextMethod, RETURNS_NATIVE(BaseType::kInt) ),
 		//METHOD_RET( "clone",                oTripleIterCloneMethod, RETURNS_OBJECT(kBCITripleIter) ),
 
         METHOD("seek", oTripleIterSeekMethod),
         METHOD("tell", oTripleIterTellMethod),
        
         MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCITriple)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, kBaseTypeInt)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(0, BaseType::kInt)),
 
 		// following must be last in table
 		END_MEMBERS

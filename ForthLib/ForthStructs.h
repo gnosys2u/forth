@@ -139,9 +139,9 @@ public:
 
     ForthStructVocabulary*  GetNewestStruct( void );
     ForthClassVocabulary*   GetNewestClass( void );
-    forthBaseType           GetBaseTypeFromName( const char* typeName );
+    BaseType                GetBaseTypeFromName( const char* typeName );
     ForthNativeType*        GetNativeTypeFromName( const char* typeName );
-    int32_t                    GetBaseTypeSizeFromName( const char* typeName );
+    int32_t                 GetBaseTypeSizeFromName( const char* typeName );
     forthop*                GetClassMethods();
 
     virtual const char* GetTypeName();
@@ -266,23 +266,23 @@ protected:
 class ForthNativeType
 {
 public:
-    ForthNativeType( const char* pName, int numBytes, forthBaseType nativeType );
+    ForthNativeType( const char* pName, int numBytes, BaseType nativeType );
     virtual ~ForthNativeType();
     virtual void DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_t flags=0 );
 
-    inline int32_t GetGlobalOp( void ) { return mBaseType + gCompiledOps[OP_DO_BYTE]; };
-    inline int32_t GetGlobalArrayOp( void ) { return mBaseType + gCompiledOps[OP_DO_BYTE_ARRAY]; };
-    inline int32_t GetLocalOp( void ) { return mBaseType + kOpLocalByte; };
-    inline int32_t GetFieldOp( void ) { return mBaseType + kOpFieldByte; };
+    inline int32_t GetGlobalOp( void ) { return (int32_t)mBaseType + gCompiledOps[OP_DO_BYTE]; };
+    inline int32_t GetGlobalArrayOp( void ) { return (int32_t)mBaseType + gCompiledOps[OP_DO_BYTE_ARRAY]; };
+    inline int32_t GetLocalOp( void ) { return (int32_t)mBaseType + kOpLocalByte; };
+    inline int32_t GetFieldOp( void ) { return (int32_t)mBaseType + kOpFieldByte; };
     inline int32_t GetAlignment( void ) { return (mNumBytes > 4) ? 4 : mNumBytes; };
     inline int32_t GetSize( void ) { return mNumBytes; };
     inline const char* GetName( void ) { return mpName; };
-    inline forthBaseType GetBaseType( void ) { return mBaseType; };
+    inline BaseType GetBaseType( void ) { return mBaseType; };
 
 protected:
     const char*         mpName;
     int                 mNumBytes;
-    forthBaseType       mBaseType;
+    BaseType       mBaseType;
 };
 
 extern ForthNativeType gNativeTypeByte, gNativeTypeUByte, gNativeTypeShort, gNativeTypeUShort,

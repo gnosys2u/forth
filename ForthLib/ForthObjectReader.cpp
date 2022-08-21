@@ -416,13 +416,13 @@ void ForthObjectReader::processElement(const std::string& name)
                 }
                 int32_t typeCode = VOCABENTRY_TO_TYPECODE(pEntry);
                 int32_t byteOffset = VOCABENTRY_TO_FIELD_OFFSET(pEntry);
-                int32_t baseType = CODE_TO_BASE_TYPE(typeCode);
+                BaseType baseType = CODE_TO_BASE_TYPE(typeCode);
                 //bool isNative = CODE_IS_NATIVE(typeCode);
                 bool isPtr = CODE_IS_PTR(typeCode);
                 bool isArray = CODE_IS_ARRAY(typeCode);
                 if (isPtr)
                 {
-                    baseType = kBaseTypeCell;
+                    baseType = BaseType::kCell;
                     isArray = false;
                 }
                 float fval;
@@ -444,8 +444,8 @@ void ForthObjectReader::processElement(const std::string& name)
                     int bytesConsumed = 0;
                     switch (baseType)
                     {
-                    case kBaseTypeByte:
-                    case kBaseTypeUByte:
+                    case BaseType::kByte:
+                    case BaseType::kUByte:
                     {
                         getNumber(str);
                         if (roomLeft < 1)
@@ -461,8 +461,8 @@ void ForthObjectReader::processElement(const std::string& name)
                         break;
                     }
 
-                    case kBaseTypeShort:
-                    case kBaseTypeUShort:
+                    case BaseType::kShort:
+                    case BaseType::kUShort:
                     {
                         getNumber(str);
                         if (roomLeft < 2)
@@ -478,9 +478,9 @@ void ForthObjectReader::processElement(const std::string& name)
                         break;
                     }
 
-                    case kBaseTypeInt:
-                    case kBaseTypeUInt:
-                    case kBaseTypeOp:
+                    case BaseType::kInt:
+                    case BaseType::kUInt:
+                    case BaseType::kOp:
                     {
                         getNumber(str);
                         if (roomLeft < 4)
@@ -496,8 +496,8 @@ void ForthObjectReader::processElement(const std::string& name)
                         break;
                     }
 
-                    case kBaseTypeLong:          // 6 - long
-                    case kBaseTypeULong:         // 7 - ulong
+                    case BaseType::kLong:          // 6 - long
+                    case BaseType::kULong:         // 7 - ulong
                     {
                         getNumber(str);
                         if (roomLeft < 8)
@@ -513,7 +513,7 @@ void ForthObjectReader::processElement(const std::string& name)
                         break;
                     }
 
-                    case kBaseTypeFloat:
+                    case BaseType::kFloat:
                     {
                         getNumber(str);
                         if (roomLeft < 4)
@@ -529,7 +529,7 @@ void ForthObjectReader::processElement(const std::string& name)
                         break;
                     }
 
-                    case kBaseTypeDouble:
+                    case BaseType::kDouble:
                     {
                         getNumber(str);
                         if (roomLeft < 8)
@@ -545,7 +545,7 @@ void ForthObjectReader::processElement(const std::string& name)
                         break;
                     }
 
-                    case kBaseTypeString:
+                    case BaseType::kString:
                     {
                         getString(str);
                         int maxBytes = CODE_TO_STRING_BYTES(typeCode);
@@ -558,14 +558,14 @@ void ForthObjectReader::processElement(const std::string& name)
                         break;
                     }
 
-                    case kBaseTypeObject:
+                    case BaseType::kObject:
                     {
                         getObjectOrLink((ForthObject *) pDst);
                         bytesConsumed = 8;
                         break;
                     }
 
-                    case kBaseTypeStruct:
+                    case BaseType::kStruct:
                     {
                         int typeIndex = CODE_TO_STRUCT_INDEX(typeCode);
                         ForthTypeInfo* structInfo = ForthTypesManager::GetInstance()->GetTypeInfo(typeIndex);

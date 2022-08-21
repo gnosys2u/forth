@@ -713,7 +713,7 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
     const char *pBuffer;
     int retVal = 0;
     bool bQuit = false;
-    OpResult result = OpResult::kResultOk;
+    OpResult result = OpResult::kOk;
     bool bInteractiveMode = pStream->IsInteractive();
 
 	ForthCoreState* pCore = mpEngine->GetCoreState();
@@ -744,8 +744,8 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
             switch( result )
             {
 
-            case OpResult::kResultExitShell:
-            case OpResult::kResultShutdown:
+            case OpResult::kExitShell:
+            case OpResult::kShutdown:
                 // users has typed "bye", exit the shell
                 bQuit = true;
                 retVal = 0;
@@ -753,7 +753,7 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
                 mpMsgPipe->SendMessage();
                 break;
 
-            case OpResult::kResultError:
+            case OpResult::kError:
                 // an error has occured, empty input stream stack
                 // TODO
                 if ( !bInteractiveMode )
@@ -767,7 +767,7 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
                 retVal = 0;
                 break;
 
-            case OpResult::kResultFatalError:
+            case OpResult::kFatalError:
                 // a fatal error has occured, exit the shell
                 bQuit = true;
                 retVal = 1;
@@ -780,7 +780,7 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
         }
     }
 
-	if ( result == OpResult::kResultShutdown )
+	if ( result == OpResult::kShutdown )
 	{
 		exit( 0 );
 	}

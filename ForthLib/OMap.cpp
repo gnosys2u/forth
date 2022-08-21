@@ -427,18 +427,18 @@ namespace OMap
 
 		METHOD_RET("headIter", oMapHeadIterMethod, RETURNS_OBJECT(kBCIMapIter)),
 		METHOD_RET("tailIter", oMapTailIterMethod, RETURNS_OBJECT(kBCIMapIter)),
-		METHOD_RET("find", oMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("count", oMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("find", oMapFindMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("count", oMapCountMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("clear", oMapClearMethod),
 
-        METHOD_RET("grab", oMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("grab", oMapGrabMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("set", oMapSetMethod),
         METHOD("load", oMapLoadMethod),
-        METHOD_RET("findValue", oMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oMapFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oMapRemoveMethod),
 		METHOD("unref", oMapUnrefMethod),
 
-		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -453,7 +453,7 @@ namespace OMap
 	FORTHOP(oMapIterNew)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot explicitly create a MapIter object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a MapIter object");
 	}
 
 	FORTHOP(oMapIterDeleteMethod)
@@ -612,17 +612,17 @@ namespace OMap
 		METHOD("seekPrev", oMapIterSeekPrevMethod),
 		METHOD("seekHead", oMapIterSeekHeadMethod),
 		METHOD("seekTail", oMapIterSeekTailMethod),
-        METHOD_RET("atHead", oMapIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oMapIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oMapIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oMapIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oMapIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oMapIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oMapIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oMapIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oMapIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oMapIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oMapIterRemoveMethod),
 
-        METHOD_RET("currentPair", oMapIterCurrentPairMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("currentPair", oMapIterCurrentPairMethod, RETURNS_NATIVE(BaseType::kInt)),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIMap)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -979,18 +979,18 @@ namespace OMap
 
 		METHOD_RET("headIter", oIntMapHeadIterMethod, RETURNS_OBJECT(kBCIIntMapIter)),
 		METHOD_RET("tailIter", oIntMapTailIterMethod, RETURNS_OBJECT(kBCIIntMapIter)),
-		METHOD_RET("find", oIntMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("count", oIntMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("find", oIntMapFindMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("count", oIntMapCountMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("clear", oIntMapClearMethod),
 
-        METHOD_RET("grab", oIntMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("grab", oIntMapGrabMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("set", oIntMapSetMethod),
         METHOD("load", oIntMapLoadMethod),
-        METHOD_RET("findValue", oIntMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oIntMapFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oIntMapRemoveMethod),
 		METHOD("unref", oIntMapUnrefMethod),
 
-		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -1005,7 +1005,7 @@ namespace OMap
 	FORTHOP(oIntMapIterNew)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot explicitly create an IntMapIter object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create an IntMapIter object");
 	}
 
 	FORTHOP(oIntMapIterDeleteMethod)
@@ -1161,17 +1161,17 @@ namespace OMap
 		METHOD("seekPrev", oIntMapIterSeekPrevMethod),
 		METHOD("seekHead", oIntMapIterSeekHeadMethod),
 		METHOD("seekTail", oIntMapIterSeekTailMethod),
-        METHOD_RET("atHead", oIntMapIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oIntMapIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oIntMapIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oIntMapIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oIntMapIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oIntMapIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oIntMapIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oIntMapIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oIntMapIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oIntMapIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oIntMapIterRemoveMethod),
 
-        METHOD_RET("currentPair", oIntMapIterCurrentPairMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("currentPair", oIntMapIterCurrentPairMethod, RETURNS_NATIVE(BaseType::kInt)),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIIntMap)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -1487,18 +1487,18 @@ namespace OMap
 
 		METHOD_RET("headIter", oFloatMapHeadIterMethod, RETURNS_OBJECT(kBCIFloatMapIter)),
 		METHOD_RET("tailIter", oFloatMapTailIterMethod, RETURNS_OBJECT(kBCIFloatMapIter)),
-		METHOD_RET("find", oFloatMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("count", oIntMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("find", oFloatMapFindMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("count", oIntMapCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oIntMapClearMethod),
 
-        METHOD_RET("grab", oFloatMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("grab", oFloatMapGrabMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("set", oFloatMapSetMethod),
         METHOD("load", oFloatMapLoadMethod),
-        METHOD_RET("findValue", oFloatMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oFloatMapFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oFloatMapRemoveMethod),
 		METHOD("unref", oFloatMapUnrefMethod),
 
-		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -1852,18 +1852,18 @@ namespace OMap
 
 		METHOD_RET("headIter", oLongMapHeadIterMethod, RETURNS_OBJECT(kBCILongMapIter)),
 		METHOD_RET("tailIter", oLongMapTailIterMethod, RETURNS_OBJECT(kBCILongMapIter)),
-		METHOD_RET("find", oLongMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("count", oLongMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("find", oLongMapFindMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("count", oLongMapCountMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("clear", oLongMapClearMethod),
 
-        METHOD_RET("grab", oLongMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("grab", oLongMapGrabMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("set", oLongMapSetMethod),
         METHOD("load", oLongMapLoadMethod),
-        METHOD_RET("findValue", oLongMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oLongMapFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oLongMapRemoveMethod),
 		METHOD("unref", oLongMapUnrefMethod),
 
-		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -1878,7 +1878,7 @@ namespace OMap
 	FORTHOP(oLongMapIterNew)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot explicitly create a LongMapIter object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a LongMapIter object");
 	}
 
 	FORTHOP(oLongMapIterDeleteMethod)
@@ -2036,17 +2036,17 @@ namespace OMap
 		METHOD("seekPrev", oLongMapIterSeekPrevMethod),
 		METHOD("seekHead", oLongMapIterSeekHeadMethod),
 		METHOD("seekTail", oLongMapIterSeekTailMethod),
-        METHOD_RET("atHead", oLongMapIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oLongMapIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oLongMapIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oLongMapIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oLongMapIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oLongMapIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oLongMapIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oLongMapIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oLongMapIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oLongMapIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oLongMapIterRemoveMethod),
 
-        METHOD_RET("currentPair", oLongMapIterCurrentPairMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("currentPair", oLongMapIterCurrentPairMethod, RETURNS_NATIVE(BaseType::kInt)),
         
         MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCILongMap)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -2407,18 +2407,18 @@ namespace OMap
 
 		METHOD_RET("headIter", oDoubleMapHeadIterMethod, RETURNS_OBJECT(kBCIDoubleMapIter)),
 		METHOD_RET("tailIter", oDoubleMapTailIterMethod, RETURNS_OBJECT(kBCIDoubleMapIter)),
-		METHOD_RET("find", oDoubleMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("count", oDoubleMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("find", oDoubleMapFindMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("count", oDoubleMapCountMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("clear", oDoubleMapClearMethod),
 
-        METHOD_RET("grab", oDoubleMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("grab", oDoubleMapGrabMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("set", oDoubleMapSetMethod),
         METHOD("load", oDoubleMapLoadMethod),
-        METHOD_RET("findValue", oDoubleMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oDoubleMapFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oDoubleMapRemoveMethod),
 		METHOD("unref", oDoubleMapUnrefMethod),
 
-		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -2433,7 +2433,7 @@ namespace OMap
 	FORTHOP(oDoubleMapIterNew)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot explicitly create a DoubleMapIter object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a DoubleMapIter object");
 	}
 
 	FORTHOP(oDoubleMapIterDeleteMethod)
@@ -2590,15 +2590,15 @@ namespace OMap
 		METHOD("seekPrev", oDoubleMapIterSeekPrevMethod),
 		METHOD("seekHead", oDoubleMapIterSeekHeadMethod),
 		METHOD("seekTail", oDoubleMapIterSeekTailMethod),
-		METHOD_RET("next", oDoubleMapIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oDoubleMapIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oDoubleMapIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("next", oDoubleMapIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oDoubleMapIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oDoubleMapIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oDoubleMapIterRemoveMethod),
 
-        METHOD_RET("currentPair", oDoubleMapIterCurrentPairMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("currentPair", oDoubleMapIterCurrentPairMethod, RETURNS_NATIVE(BaseType::kInt)),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIDoubleMap)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -2886,17 +2886,17 @@ namespace OMap
 
 		METHOD_RET("headIter", oStringIntMapHeadIterMethod, RETURNS_OBJECT(kBCIStringIntMapIter)),
 		METHOD_RET("tailIter", oStringIntMapTailIterMethod, RETURNS_OBJECT(kBCIStringIntMapIter)),
-		METHOD_RET("find", oStringIntMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("count", oStringIntMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("find", oStringIntMapFindMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("count", oStringIntMapCountMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("clear", oStringIntMapClearMethod),
 
-		METHOD_RET("grab", oStringIntMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("grab", oStringIntMapGrabMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("set", oStringIntMapSetMethod),
         METHOD("load", oStringIntMapLoadMethod),
-        METHOD_RET("findValue", oStringIntMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oStringIntMapFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oStringIntMapRemoveMethod),
 
-		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -2911,7 +2911,7 @@ namespace OMap
 	FORTHOP(oStringIntMapIterNew)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot explicitly create a StringIntMapIter object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a StringIntMapIter object");
 	}
 
 	FORTHOP(oStringIntMapIterDeleteMethod)
@@ -3064,17 +3064,17 @@ namespace OMap
 		METHOD("seekPrev", oStringIntMapIterSeekPrevMethod),
 		METHOD("seekHead", oStringIntMapIterSeekHeadMethod),
 		METHOD("seekTail", oStringIntMapIterSeekTailMethod),
-        METHOD_RET("atHead", oStringIntMapIterAtHeadMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("atTail", oStringIntMapIterAtTailMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("next", oStringIntMapIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oStringIntMapIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oStringIntMapIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("atHead", oStringIntMapIterAtHeadMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("atTail", oStringIntMapIterAtTailMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("next", oStringIntMapIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oStringIntMapIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oStringIntMapIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oStringIntMapIterRemoveMethod),
 
-        METHOD_RET("currentPair", oStringIntMapIterCurrentPairMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("currentPair", oStringIntMapIterCurrentPairMethod, RETURNS_NATIVE(BaseType::kInt)),
         
         MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIStringIntMap)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -3162,17 +3162,17 @@ namespace OMap
 
         METHOD_RET("headIter", oStringIntMapHeadIterMethod, RETURNS_OBJECT(kBCIStringIntMapIter)),
         METHOD_RET("tailIter", oStringIntMapTailIterMethod, RETURNS_OBJECT(kBCIStringIntMapIter)),
-        METHOD_RET("find", oStringIntMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("count", oStringIntMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("find", oStringIntMapFindMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("count", oStringIntMapCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oStringIntMapClearMethod),
 
-        METHOD_RET("grab", oStringIntMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("grab", oStringIntMapGrabMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("set", oStringIntMapSetMethod),
         METHOD("load", oStringIntMapLoadMethod),
-        METHOD_RET("findValue", oStringIntMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oStringIntMapFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oStringIntMapRemoveMethod),
 
-        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
         // following must be last in table
         END_MEMBERS
@@ -3462,17 +3462,17 @@ namespace OMap
 		
 		METHOD_RET("headIter", oStringLongMapHeadIterMethod, RETURNS_OBJECT(kBCIStringLongMapIter)),
 		METHOD_RET("tailIter", oStringLongMapTailIterMethod, RETURNS_OBJECT(kBCIStringLongMapIter)),
-		METHOD_RET("find", oStringLongMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("count", oStringLongMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("find", oStringLongMapFindMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("count", oStringLongMapCountMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("clear", oStringLongMapClearMethod),
 
-		METHOD_RET("grab", oStringLongMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("grab", oStringLongMapGrabMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("set", oStringLongMapSetMethod),
         METHOD("load", oStringLongMapLoadMethod),
-        METHOD_RET("findValue", oStringLongMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oStringLongMapFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD("remove", oStringLongMapRemoveMethod),
 
-		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+		MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -3487,7 +3487,7 @@ namespace OMap
 	FORTHOP(oStringLongMapIterNew)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-		pEngine->SetError(kForthErrorIllegalOperation, " cannot explicitly create a StringLongMapIter object");
+		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a StringLongMapIter object");
 	}
 
 	FORTHOP(oStringLongMapIterDeleteMethod)
@@ -3627,14 +3627,14 @@ namespace OMap
 		METHOD("seekPrev", oStringLongMapIterSeekPrevMethod),
 		METHOD("seekHead", oStringLongMapIterSeekHeadMethod),
 		METHOD("seekTail", oStringLongMapIterSeekTailMethod),
-		METHOD_RET("next", oStringLongMapIterNextMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("prev", oStringLongMapIterPrevMethod, RETURNS_NATIVE(kBaseTypeInt)),
-		METHOD_RET("current", oStringLongMapIterCurrentMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("currentPair", oStringLongMapIterCurrentPairMethod, RETURNS_NATIVE(kBaseTypeInt)),
+		METHOD_RET("next", oStringLongMapIterNextMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("prev", oStringLongMapIterPrevMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("current", oStringLongMapIterCurrentMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("currentPair", oStringLongMapIterCurrentPairMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oStringLongMapIterRemoveMethod),
 
 		MEMBER_VAR("parent", OBJECT_TYPE_TO_CODE(0, kBCIStringLongMap)),
-		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, kBaseTypeUCell)),
+		MEMBER_VAR("__cursor", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -3723,17 +3723,17 @@ namespace OMap
 
         METHOD_RET("headIter", oStringLongMapHeadIterMethod, RETURNS_OBJECT(kBCIStringLongMapIter)),
         METHOD_RET("tailIter", oStringLongMapTailIterMethod, RETURNS_OBJECT(kBCIStringLongMapIter)),
-        METHOD_RET("find", oStringLongMapFindMethod, RETURNS_NATIVE(kBaseTypeInt)),
-        METHOD_RET("count", oStringLongMapCountMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("find", oStringLongMapFindMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("count", oStringLongMapCountMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("clear", oStringLongMapClearMethod),
 
-        METHOD_RET("grab", oStringLongMapGrabMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("grab", oStringLongMapGrabMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("set", oStringLongMapSetMethod),
         METHOD("load", oStringLongMapLoadMethod),
-        METHOD_RET("findValue", oStringLongMapFindValueMethod, RETURNS_NATIVE(kBaseTypeInt)),
+        METHOD_RET("findValue", oStringLongMapFindValueMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD("remove", oStringLongMapRemoveMethod),
 
-        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, kBaseTypeUCell)),
+        MEMBER_VAR("__elements", NATIVE_TYPE_TO_CODE(0, BaseType::kUCell)),
         // following must be last in table
 		END_MEMBERS
 	};
