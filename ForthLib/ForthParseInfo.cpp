@@ -56,7 +56,7 @@ ForthParseInfo::SetToken(const char *pSrc)
 #ifdef WIN32
         *pDst++ = min(symLen, 255);
 #else
-        *pDst++ = std::min(symLen, 255);
+        *pDst++ = std::min(symLen, (size_t)255);
 #endif
 
 		// make copy of symbol
@@ -74,7 +74,7 @@ ForthParseInfo::SetToken(const char *pSrc)
 #ifdef WIN32
 		*((char *)mpToken) = min(symLen, 255);
 #else
-		*((char *)mpToken) = std::min(symLen, 255);
+		*((char *)mpToken) = std::min(symLen, (size_t)255);
 #endif
 		pDst = ((char *)mpToken) + symLen + 2;
 	}
