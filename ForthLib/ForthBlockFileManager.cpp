@@ -48,8 +48,8 @@ ForthBlockFileManager::ForthBlockFileManager( const char* pBlockFilename , ucell
 	mpBlockFilename = (char *)__MALLOC(strlen(pBlockFilename) + 1);
     strcpy( mpBlockFilename, pBlockFilename );
 
-	mLRUBuffers = (uint32_t *)__MALLOC(sizeof(uint32_t) * numBuffers);
-	mAssignedBlocks = (uint32_t *)__MALLOC(sizeof(uint32_t) * numBuffers);
+	mLRUBuffers = (ucell *)__MALLOC(sizeof(ucell) * numBuffers);
+	mAssignedBlocks = (ucell *)__MALLOC(sizeof(ucell) * numBuffers);
 	mUpdatedBlocks = (bool *)__MALLOC(sizeof(bool) * numBuffers);
 
 	mpBlocks = (char *)__MALLOC(mBytesPerBlock * numBuffers);
@@ -68,8 +68,7 @@ ForthBlockFileManager::~ForthBlockFileManager()
     __FREE( mpBlocks );
 }
 
-uint32_t
-ForthBlockFileManager::GetNumBlocksInFile()
+ucell ForthBlockFileManager::GetNumBlocksInFile()
 {
     if ( mNumBlocksInFile == 0 )
     {
@@ -86,14 +85,12 @@ ForthBlockFileManager::GetNumBlocksInFile()
     return mNumBlocksInFile;
 }
 
-const char*
-ForthBlockFileManager::GetBlockFilename()
+const char* ForthBlockFileManager::GetBlockFilename()
 {
     return mpBlockFilename;
 }
 
-FILE*
-ForthBlockFileManager::OpenBlockFile( bool forWrite )
+FILE* ForthBlockFileManager::OpenBlockFile( bool forWrite )
 {
     FILE* pBlockFile = NULL;
     if ( forWrite )
@@ -111,16 +108,14 @@ ForthBlockFileManager::OpenBlockFile( bool forWrite )
     return pBlockFile;
 }
 
-char*
-ForthBlockFileManager::GetBlock( uint32_t blockNum, bool readContents )
+char* ForthBlockFileManager::GetBlock( ucell blockNum, bool readContents )
 {
     mCurrentBuffer = AssignBuffer( blockNum, readContents );
     UpdateLRU();
     return &(mpBlocks[mBytesPerBlock * mCurrentBuffer]);
 }
 
-void
-ForthBlockFileManager::UpdateCurrentBuffer()
+void ForthBlockFileManager::UpdateCurrentBuffer()
 {
     if ( mCurrentBuffer > mNumBuffers )
     {
@@ -131,8 +126,7 @@ ForthBlockFileManager::UpdateCurrentBuffer()
     mUpdatedBlocks[ mCurrentBuffer ] = true;
 }
 
-bool
-ForthBlockFileManager::SaveBuffer( uint32_t bufferNum )
+bool ForthBlockFileManager::SaveBuffer( ucell bufferNum )
 {
     FILE* pBlockFile = OpenBlockFile( true );
     if ( pBlockFile == NULL )
@@ -167,8 +161,7 @@ ForthBlockFileManager::SaveBuffer( uint32_t bufferNum )
     return true;
 }
 
-uint32_t
-ForthBlockFileManager::AssignBuffer( uint32_t blockNum, bool readContents )
+ucell ForthBlockFileManager::AssignBuffer( ucell blockNum, bool readContents )
 {
     SPEW_IO( "ForthBlockFileManager::AssignBuffer to block %d\n", blockNum );
     uint32_t availableBuffer = INVALID_BLOCK_NUMBER;
@@ -226,13 +219,12 @@ ForthBlockFileManager::AssignBuffer( uint32_t blockNum, bool readContents )
     return availableBuffer;
 }
 
-void
-ForthBlockFileManager::UpdateLRU()
+void ForthBlockFileManager::UpdateLRU()
 {
     SPEW_IO( "ForthBlockFileManager::UpdateLRU current=%d\n", mCurrentBuffer );
     if ( mCurrentBuffer < mNumBuffers )
     {
-        for ( uint32_t i = 0; i < mNumBuffers; ++i )
+        for ( ucell i = 0; i < mNumBuffers; ++i )
         {
             if ( mLRUBuffers[i] == mCurrentBuffer )
             {
@@ -259,7 +251,7 @@ void ForthBlockFileManager::SaveBuffers( bool unassignAfterSaving )
         return;
     }
 
-    for ( uint32_t i = 0; i < mNumBuffers; ++i )
+    for ( ucell i = 0; i < mNumBuffers; ++i )
     {
         if ( mUpdatedBlocks[i] )
         {
@@ -283,7 +275,7 @@ void
 ForthBlockFileManager::EmptyBuffers()
 {
     SPEW_IO( "ForthBlockFileManager::EmptyBuffers\n" );
-    for ( uint32_t i = 0; i < mNumBuffers; ++i )
+    for ( ucell i = 0; i < mNumBuffers; ++i )
     {
         mLRUBuffers[i] = i;
         mAssignedBlocks[i] = INVALID_BLOCK_NUMBER;
@@ -298,14 +290,12 @@ ForthBlockFileManager::ReportError( eForthError errorCode, const char* pErrorMes
     ForthEngine::GetInstance()->SetError( errorCode, pErrorMessage );
 }
 
-uint32_t
-ForthBlockFileManager::GetBytesPerBlock() const
+ucell ForthBlockFileManager::GetBytesPerBlock() const
 {
     return mBytesPerBlock;
 }
 
-uint32_t
-ForthBlockFileManager::GetNumBuffers() const
+ucell ForthBlockFileManager::GetNumBuffers() const
 {
     return mNumBuffers;
 }
@@ -374,7 +364,7 @@ namespace OBlockFile
     FORTHOP(oBlockFileBlockMethod)
     {
         GET_THIS(oBlockFileStruct, pBlockFile);
-        char* pBlock = pBlockFile->pManager->GetBlock((uint32_t)SPOP, true);
+        char* pBlock = pBlockFile->pManager->GetBlock((ucell)SPOP, true);
         SPUSH((cell)(pBlock));
         METHOD_RETURN;
     }
@@ -382,7 +372,7 @@ namespace OBlockFile
     FORTHOP(oBlockFileBufferMethod)
     {
         GET_THIS(oBlockFileStruct, pBlockFile);
-        char* pBlock = pBlockFile->pManager->GetBlock((uint32_t)SPOP, false);
+        char* pBlock = pBlockFile->pManager->GetBlock((ucell)SPOP, false);
         SPUSH((cell)(pBlock));
         METHOD_RETURN;
     }

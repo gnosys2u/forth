@@ -46,7 +46,7 @@ protected:
 	void			CreateForth();
     void            CreateDialogOps();
 	void			DestroyForth();
-    eForthResult	ProcessLine( char* pLine );
+    OpResult	ProcessLine( char* pLine );
     void            QueueInputLine(const char* pLine);
 	void			SetupTabbedPane( int tabNum, int tabID, LPSTR tabText );
 

@@ -113,7 +113,7 @@ public:
 	virtual ~ForthThread();
 
 	void                Reset(void);
-	int32_t                Start();
+	cell                Start();
 	void                Exit();
 	ForthFiber*		    GetNextReadyFiber();
 	ForthFiber*		    GetNextSleepingFiber();

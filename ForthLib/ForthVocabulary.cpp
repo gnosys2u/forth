@@ -596,10 +596,9 @@ ForthVocabulary::FindNextSymbolByValue(forthop val, forthop* pStartEntry, ucell 
 }
 
 // process symbol entry
-eForthResult
-ForthVocabulary::ProcessEntry( forthop* pEntry )
+OpResult ForthVocabulary::ProcessEntry( forthop* pEntry )
 {
-    eForthResult exitStatus = kResultOk;
+    OpResult exitStatus = OpResult::kResultOk;
     bool compileIt = false;
     if ( mpEngine->IsCompiling() )
     {

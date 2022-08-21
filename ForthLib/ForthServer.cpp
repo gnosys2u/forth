@@ -435,7 +435,7 @@ ForthServerInputStream::~ForthServerInputStream()
 {
 }
 
-int ForthServerInputStream::GetSourceID()
+cell ForthServerInputStream::GetSourceID()
 {
     // this is wrong, but will compile
     return mIsFile ? 1 : 0;
@@ -713,7 +713,7 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
     const char *pBuffer;
     int retVal = 0;
     bool bQuit = false;
-    eForthResult result = kResultOk;
+    OpResult result = OpResult::kResultOk;
     bool bInteractiveMode = pStream->IsInteractive();
 
 	ForthCoreState* pCore = mpEngine->GetCoreState();
@@ -744,8 +744,8 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
             switch( result )
             {
 
-            case kResultExitShell:
-            case kResultShutdown:
+            case OpResult::kResultExitShell:
+            case OpResult::kResultShutdown:
                 // users has typed "bye", exit the shell
                 bQuit = true;
                 retVal = 0;
@@ -753,7 +753,7 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
                 mpMsgPipe->SendMessage();
                 break;
 
-            case kResultError:
+            case OpResult::kResultError:
                 // an error has occured, empty input stream stack
                 // TODO
                 if ( !bInteractiveMode )
@@ -767,7 +767,7 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
                 retVal = 0;
                 break;
 
-            case kResultFatalError:
+            case OpResult::kResultFatalError:
                 // a fatal error has occured, exit the shell
                 bQuit = true;
                 retVal = 1;
@@ -780,7 +780,7 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
         }
     }
 
-	if ( result == kResultShutdown )
+	if ( result == OpResult::kResultShutdown )
 	{
 		exit( 0 );
 	}

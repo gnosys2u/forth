@@ -378,7 +378,7 @@ ForthShell::RunOneStream(ForthInputStream *pInStream)
 	const char *pBuffer;
 	int retVal = 0;
 	bool bQuit = false;
-	eForthResult result = kResultOk;
+	OpResult result = OpResult::kResultOk;
 
 	ForthInputStream* pOldInput = mpInput->InputStream();
 	mpInput->PushInputStream(pInStream);
@@ -400,25 +400,25 @@ ForthShell::RunOneStream(ForthInputStream *pInStream)
 			switch (result)
 			{
 
-			case kResultOk:
+			case OpResult::kResultOk:
 				break;
 
-			case kResultShutdown:			// what should shutdown do on non-client/server?
-			case kResultExitShell:
+			case OpResult::kResultShutdown:			// what should shutdown do on non-client/server?
+			case OpResult::kResultExitShell:
 				// users has typed "bye", exit the shell
 				bQuit = true;
 				retVal = 0;
 				break;
 
-			case kResultError:
-			case kResultException:
+			case OpResult::kResultError:
+			case OpResult::kResultException:
 				// an error has occured, empty input stream stack
 				// TODO
 				bQuit = true;
 				retVal = 0;
 				break;
 
-			case kResultFatalError:
+			case OpResult::kResultFatalError:
 			default:
 				// a fatal error has occured, exit the shell
 				bQuit = true;
@@ -442,7 +442,7 @@ ForthShell::Run( ForthInputStream *pInStream )
     const char *pBuffer;
     int retVal = 0;
     bool bQuit = false;
-    eForthResult result = kResultOk;
+    OpResult result = OpResult::kResultOk;
     bool bInteractiveMode = pInStream->IsInteractive();
 
     mpInput->PushInputStream( pInStream );
@@ -485,18 +485,18 @@ ForthShell::Run( ForthInputStream *pInStream )
             switch( result )
             {
 
-            case kResultOk:
+            case OpResult::kResultOk:
                 break;
 
-            case kResultShutdown:			// what should shutdown do on non-client/server?
-            case kResultExitShell:
+            case OpResult::kResultShutdown:			// what should shutdown do on non-client/server?
+            case OpResult::kResultExitShell:
                 // users has typed "bye", exit the shell
                 bQuit = true;
                 retVal = 0;
                 break;
 
-            case kResultError:
-            case kResultException:
+            case OpResult::kResultError:
+            case OpResult::kResultException:
                 // an error has occured, empty input stream stack
                 // TODO
                 if ( !bInteractiveMode )
@@ -510,7 +510,7 @@ ForthShell::Run( ForthInputStream *pInStream )
                 retVal = 0;
                 break;
 
-            case kResultFatalError:
+            case OpResult::kResultFatalError:
             default:
                 // a fatal error has occured, exit the shell
                 bQuit = true;
@@ -562,9 +562,9 @@ char* ForthShell::AddToInputLine(const char* pBuffer)
 }
 
 // ProcessLine is the layer between Run and InterpretLine that implements pound directives
-eForthResult ForthShell::ProcessLine( const char *pSrcLine )
+OpResult ForthShell::ProcessLine( const char *pSrcLine )
 {
-    eForthResult result = kResultOk;
+    OpResult result = OpResult::kResultOk;
 
     mInContinuationLine = false;
     const char* pLineBuff = mpInput->GetBufferBasePointer();
@@ -619,7 +619,7 @@ eForthResult ForthShell::ProcessLine( const char *pSrcLine )
         }
         if (mpEngine->GetError() != kForthErrorNone)
         {
-            result = kResultError;
+            result = OpResult::kResultError;
         }
     }
     else
@@ -627,7 +627,7 @@ eForthResult ForthShell::ProcessLine( const char *pSrcLine )
         // we are currently not skipping input lines
         result = InterpretLine();
 
-        if ( result == kResultOk )
+        if ( result == OpResult::kResultOk )
         {
             // process pound directive if needed
             if ( (mFlags & SHELL_FLAG_START_IF) != 0 )
@@ -665,10 +665,9 @@ static bool gbCatchExceptions = false;
 //
 // return true IFF the forth shell should exit
 //
-eForthResult
-ForthShell::InterpretLine( const char *pSrcLine )
+OpResult ForthShell::InterpretLine( const char *pSrcLine )
 {
-    eForthResult  result = kResultOk;
+    OpResult  result = OpResult::kResultOk;
     bool bLineEmpty;
     ForthParseInfo parseInfo( mTokenBuffer, sizeof(mTokenBuffer) >> 2 );
 
@@ -684,18 +683,18 @@ ForthShell::InterpretLine( const char *pSrcLine )
 	SPEW_SHELL( "\n*** InterpretLine {%s}\n", pLineBuff );
     bLineEmpty = false;
     mpEngine->SetError( kForthErrorNone );
-    while ( !bLineEmpty && (result == kResultOk) )
+    while ( !bLineEmpty && (result == OpResult::kResultOk) )
 	{
         bLineEmpty = ParseToken( &parseInfo );
         if (mpEngine->GetError() != kForthErrorNone)
         {
-            result = kResultError;
+            result = OpResult::kResultError;
         }
         ForthInputStream* pInput = mpInput->InputStream();
         SPEW_SHELL("input %s:%s[%d] buffer 0x%x readoffset %d write %d\n", pInput->GetType(), pInput->GetName(),
             pInput->GetLineNumber(), pInput->GetBufferPointer(), pInput->GetReadOffset(), pInput->GetWriteOffset() );
 
-        if (!bLineEmpty && (result == kResultOk))
+        if (!bLineEmpty && (result == OpResult::kResultOk))
 		{
 
 
@@ -709,7 +708,7 @@ ForthShell::InterpretLine( const char *pSrcLine )
 				}
 				catch(...)
 				{
-					result = kResultException;
+					result = OpResult::kResultException;
 					mpEngine->SetError( kForthErrorIllegalOperation );
                     mInContinuationLine = false;
 				}
@@ -723,14 +722,14 @@ ForthShell::InterpretLine( const char *pSrcLine )
             result = mpEngine->ProcessToken( &parseInfo );
             CHECK_STACKS( mpEngine->GetMainFiber() );
 #endif
-            if ( result == kResultOk )
+            if ( result == OpResult::kResultOk )
 			{
                 result = mpEngine->CheckStacks();
             }
         }
-        if (result != kResultOk)
+        if (result != OpResult::kResultOk)
         {
-            bool exitingShell = (result == kResultExitShell) || (result == kResultShutdown);
+            bool exitingShell = (result == OpResult::kResultExitShell) || (result == OpResult::kResultShutdown);
             if (!exitingShell)
             {
                 ReportError();
@@ -746,7 +745,7 @@ ForthShell::InterpretLine( const char *pSrcLine )
             {
                 // if the initial input stream was a file, any error
                 //   must be treated as a fatal error
-                result = kResultFatalError;
+                result = OpResult::kResultFatalError;
             }
         }
     }

@@ -5,7 +5,7 @@
 //////////////////////////////////////////////////////////////////////
 #include "pch.h"
 
-#if defined(WINDOWS_BUILD)
+#if defined(WIN32) || defined(_WIN64)
 #pragma comment(lib, "wininet.lib")
 #pragma comment(lib, "Ws2_32.lib")
 #endif

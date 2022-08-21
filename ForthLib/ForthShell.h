@@ -158,8 +158,8 @@ public:
 	void					StartDefinition(const char*pDefinedSymbol, const char* pFourCharCode);
 	bool					CheckDefinitionEnd( const char* pDisplayName, const char* pFourCharCode );
 
-    virtual eForthResult    InterpretLine( const char *pSrcLine = NULL );
-    virtual eForthResult    ProcessLine( const char *pSrcLine = NULL );
+    virtual OpResult    InterpretLine( const char *pSrcLine = NULL );
+    virtual OpResult    ProcessLine( const char *pSrcLine = NULL );
     virtual char            GetChar();
 
 	virtual FILE*			OpenInternalFile( const char* pFilename );

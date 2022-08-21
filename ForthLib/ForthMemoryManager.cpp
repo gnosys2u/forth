@@ -64,7 +64,7 @@ ForthMemoryStats::ForthMemoryStats(const char* name)
 {
 }
 
-void ForthMemoryStats::trackAllocation(int size)
+void ForthMemoryStats::trackAllocation(size_t size)
 {
     mNumAllocs++;
     uint64_t activeAllocs = mNumAllocs - mNumFrees;
@@ -80,7 +80,7 @@ void ForthMemoryStats::trackAllocation(int size)
     }
 }
 
-void ForthMemoryStats::trackDeallocation(int size)
+void ForthMemoryStats::trackDeallocation(size_t size)
 {
     mNumFrees++;
     mCurrentInUse -= size;

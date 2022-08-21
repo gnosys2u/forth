@@ -22,33 +22,33 @@ public:
     ~ForthBlockFileManager();
 
     const char*     GetBlockFilename();
-    char*           GetBlock( uint32_t blockNum, bool readContents );
+    char*           GetBlock( ucell blockNum, bool readContents );
     void            UpdateCurrentBuffer();
     void            SaveBuffers( bool unassignAfterSaving );
     void            EmptyBuffers();
     FILE*           OpenBlockFile( bool forWrite = false );
-    uint32_t    GetNumBlocksInFile();
-    inline int32_t*    GetBlockPtr() { return &mBlockNumber; };
-    uint32_t    GetBytesPerBlock() const;
-    uint32_t    GetNumBuffers() const;
+    ucell    GetNumBlocksInFile();
+    inline cell*    GetBlockPtr() { return &mBlockNumber; };
+    ucell    GetBytesPerBlock() const;
+    ucell    GetNumBuffers() const;
 
 private:
 
-    uint32_t    AssignBuffer( uint32_t blockNum, bool readContents );
+    ucell    AssignBuffer( ucell blockNum, bool readContents );
     void            UpdateLRU();
-    bool            SaveBuffer( uint32_t bufferNum );
+    bool            SaveBuffer( ucell bufferNum );
     void            ReportError( eForthError errorCode, const char* pErrorMessage );
 
     char*           mpBlockFilename;
-    uint32_t    mNumBlocksInFile;
-    uint32_t    mNumBuffers;
-    uint32_t    mCurrentBuffer;
-    uint32_t*   mLRUBuffers;
-    uint32_t*   mAssignedBlocks;
+    ucell    mNumBlocksInFile;
+    ucell    mNumBuffers;
+    ucell    mCurrentBuffer;
+    ucell*   mLRUBuffers;
+    ucell*   mAssignedBlocks;
     char*           mpBlocks;
     bool*           mUpdatedBlocks;
-    int32_t            mBlockNumber;       // number returned by 'blk'
-    uint32_t    mBytesPerBlock;
+    cell            mBlockNumber;       // number returned by 'blk'
+    ucell    mBytesPerBlock;
 };
 
 namespace OBlockFile

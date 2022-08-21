@@ -215,21 +215,21 @@ typedef void (*traceOutRoutine) ( void *pData, const char* pFormat, va_list argL
 
 // the varMode state makes variables do something other
 //  than their default behaviour (fetch)
-typedef enum {
+enum class VarOperation:ucell {
     kVarDefaultOp = 0,
     kVarFetch,
     kVarRef,
     kVarStore,
     kVarPlusStore,
     kVarMinusStore,
-	kVarObjectClear,
+    kVarObjectClear,
     kNumVarops
-} varOperation;
+};
 
 #define DEFAULT_INPUT_BUFFER_LEN   (16 * 1024)
 
 // these are the results of running the inner interpreter
-typedef enum {
+enum class OpResult:ucell {
     kResultOk,          // no need to exit
     kResultDone,        // exit because of "done" opcode
     kResultExitShell,   // exit because of a "bye" opcode
@@ -238,7 +238,7 @@ typedef enum {
     kResultException,   // exit because of uncaught exception
     kResultShutdown,    // exit because of a "shutdown" opcode
 	kResultYield,		// exit because of a stopThread/yield/sleepThread opcode
-} eForthResult;
+};
 
 // run state of ForthFibers
 typedef enum

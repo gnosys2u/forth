@@ -110,10 +110,10 @@ public:
     virtual void    ForgetCleanup( void *pForgetLimit, forthop op );
 
     // compile/interpret symbol if it is a valid structure accessor
-    virtual bool    ProcessSymbol( ForthParseInfo *pInfo, eForthResult& exitStatus );
+    virtual bool    ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus );
 
     // compile symbol if it is a class member variable or method
-    virtual bool    ProcessMemberSymbol( ForthParseInfo *pInfo, eForthResult& exitStatus );
+    virtual bool    ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus );
 
     void            AddBuiltinClasses( ForthEngine* pEngine );
     void            ShutdownBuiltinClasses(ForthEngine* pEngine);

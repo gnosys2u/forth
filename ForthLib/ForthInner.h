@@ -116,12 +116,12 @@ struct ForthCoreState
 };
 
 
-extern eForthResult InnerInterpreter( ForthCoreState *pCore );
-extern eForthResult InterpretOneOp( ForthCoreState *pCore, forthop op );
+extern OpResult InnerInterpreter( ForthCoreState *pCore );
+extern OpResult InterpretOneOp( ForthCoreState *pCore, forthop op );
 #ifdef ASM_INNER_INTERPRETER
-extern eForthResult InnerInterpreterFast( ForthCoreState *pCore );
+extern OpResult InnerInterpreterFast( ForthCoreState *pCore );
 extern void InitAsmTables( ForthCoreState *pCore );
-extern eForthResult InterpretOneOpFast( ForthCoreState *pCore, forthop op );
+extern OpResult InterpretOneOpFast( ForthCoreState *pCore, forthop op );
 #endif
 
 void InitDispatchTables( ForthCoreState* pCore );
@@ -199,14 +199,14 @@ inline forthop GetCurrentOp( ForthCoreState *pCore )
 #define GET_SDEPTH                      (pCore->ST - pCore->SP)
 #define GET_RDEPTH                      (pCore->RT - pCore->RP)
 
-#define GET_STATE                       (eForthResult)(pCore->state)
-#define SET_STATE( A )                  (pCore->state = (A))
+#define GET_STATE                       (OpResult)(pCore->state)
+#define SET_STATE( A )                  (pCore->state = (ucell)(A))
 
 #define GET_ENGINE                      ((ForthEngine *) (pCore->pEngine))
 
-#define GET_VAR_OPERATION               (pCore->varMode)
-#define SET_VAR_OPERATION( A )          (pCore->varMode = (A))
-#define CLEAR_VAR_OPERATION             (pCore->varMode = kVarDefaultOp)
+#define GET_VAR_OPERATION               (VarOperation)(pCore->varMode)
+#define SET_VAR_OPERATION( A )          (pCore->varMode = static_cast<ucell>(A))
+#define CLEAR_VAR_OPERATION             (pCore->varMode = static_cast<ucell>(VarOperation::kVarDefaultOp))
 
 #define GET_NUM_OPS		                (pCore->numOps)
 

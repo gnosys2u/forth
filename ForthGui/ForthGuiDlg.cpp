@@ -359,8 +359,8 @@ UINT ForthWorkerThread(LPVOID pParam)
 void CForthGuiDlg::RunForthThreadLoop()
 {
     // loop, waiting on input semaphore and processing lines until 'bye'
-    eForthResult result = kResultOk;
-    while (result != kResultExitShell && result != kResultShutdown)
+    OpResult result = OpResult::kResultOk;
+    while (result != OpResult::kResultExitShell && result != OpResult::kResultShutdown)
     {
         DWORD waitResult = WaitForSingleObject(mInputSemaphore, INFINITE);
         if (waitResult != WAIT_OBJECT_0)
@@ -608,10 +608,10 @@ void CForthGuiDlg::OnBnClickedOk()
     //LeaveCriticalSection(&mInputCriticalSection);
 }
 
-eForthResult CForthGuiDlg::ProcessLine( char* pLine )
+OpResult CForthGuiDlg::ProcessLine( char* pLine )
 {
 	ForthInputStack* pInput = mpShell->GetInput();
-    eForthResult result = kResultOk;
+    OpResult result = OpResult::kResultOk;
 
 	//pEdit->GetWindowText( mInBuffer, INPUT_BUFFER_SIZE - 4 );
 	char* pEndLine = strchr( pLine, '\r' );
@@ -621,7 +621,7 @@ eForthResult CForthGuiDlg::ProcessLine( char* pLine )
 	}
     result = mpShell->ProcessLine( pLine );
 
-	if ( result == kResultOk )
+	if ( result == OpResult::kResultOk )
 	{
 		// to implement the "load" op, we must do 
 		while ( pInput->InputStream() != mpInStream )
@@ -643,7 +643,7 @@ eForthResult CForthGuiDlg::ProcessLine( char* pLine )
                     result = mpShell->ProcessLine(pLine);
                 }
 			}
-			if ( bQuit || (result != kResultOk) )
+			if ( bQuit || (result != OpResult::kResultOk) )
 			{
 				break;
 			}
@@ -651,7 +651,7 @@ eForthResult CForthGuiDlg::ProcessLine( char* pLine )
 	}
 	switch ( result )
 	{
-	case kResultFatalError:
+	case OpResult::kResultFatalError:
 		DestroyForth();
 		CreateForth();
 		break;

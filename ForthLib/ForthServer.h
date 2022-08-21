@@ -27,7 +27,7 @@ public:
     ForthServerInputStream( ForthPipe* pMsgPipe, bool isFile = false, int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
     virtual ~ForthServerInputStream();
 
-    virtual int     GetSourceID();
+    virtual cell    GetSourceID();
 
     virtual char    *GetLine( const char *pPrompt );
     virtual char    *AddContinuationLine();

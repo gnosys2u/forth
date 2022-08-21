@@ -101,7 +101,7 @@ public:
     virtual forthop*    FindNextSymbol( ForthParseInfo *pInfo, forthop* pStartEntry, ucell serial=0 );
 
     // compile/interpret entry returned by FindSymbol
-    virtual eForthResult ProcessEntry(forthop* pEntry );
+    virtual OpResult ProcessEntry(forthop* pEntry );
 
     // return a string telling the type of library
     virtual const char* GetType( void );

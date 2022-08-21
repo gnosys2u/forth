@@ -166,15 +166,15 @@ public:
     // FullyExecuteOp is used by the Outer Interpreter (ForthEngine::ProcessToken) to
     // execute forth ops, and is also how systems external to forth execute ops
     //
-	eForthResult        FullyExecuteOp(ForthCoreState* pCore, forthop opCode);
+	OpResult        FullyExecuteOp(ForthCoreState* pCore, forthop opCode);
 	// ExecuteOp will start execution of an op, but will not finish user defs or methods
-	eForthResult        ExecuteOp(ForthCoreState* pCore, forthop opCode);
+	OpResult        ExecuteOp(ForthCoreState* pCore, forthop opCode);
 	// ExecuteOps executes a sequence of forth ops
     // The sequence must be terminated with an OP_DONE
-	eForthResult        ExecuteOps(ForthCoreState* pCore, forthop* pOps);
+	OpResult        ExecuteOps(ForthCoreState* pCore, forthop* pOps);
 
-	eForthResult		FullyExecuteMethod(ForthCoreState* pCore, ForthObject& obj, int methodNum);
-    eForthResult        DeleteObject(ForthCoreState* pCore, ForthObject& obj);
+	OpResult		FullyExecuteMethod(ForthCoreState* pCore, ForthObject& obj, int methodNum);
+    OpResult        DeleteObject(ForthCoreState* pCore, ForthObject& obj);
     void                ReleaseObject(ForthCoreState* pCore, ForthObject& inObject);
 
     // add an op to the operator dispatch table. returns the assigned opcode (without type field)
@@ -236,7 +236,7 @@ public:
     int32_t            AddLocalArray( const char *pName, int32_t typeCode, int32_t varSize );
 	bool			HasLocalVariables();
 
-    eForthResult    ProcessToken( ForthParseInfo *pInfo );
+    OpResult    ProcessToken( ForthParseInfo *pInfo );
     char *          GetLastInputToken( void );
 
     const char *            GetOpTypeName( int32_t opType );
@@ -313,7 +313,7 @@ public:
     inline ForthEnumInfo*   GetNewestEnumInfo(void) { return mpNewestEnum; };
     void                    SetNewestEnumInfo(ForthEnumInfo *pInfo) { mpNewestEnum = pInfo; };
     void                    GetErrorString( char *pBuffer, int bufferSize );
-    eForthResult            CheckStacks( void );
+    OpResult            CheckStacks( void );
     void                    SetError( eForthError e, const char *pString = NULL );
     void                    AddErrorText( const char *pString );
     void                    SetFatalError( eForthError e, const char *pString = NULL );
@@ -373,7 +373,7 @@ public:
 	// if inText is null, string is not copied, an uninitialized space of size inNumChars+1 is allocated
 	// if inNumChars is null and inText is not null, strlen(inText) is used for temp string size
 	// if both inText and inNumChars are null, an uninitialized space of 255 chars is allocated
-	char*					AddTempString(const char* inText = nullptr, int inNumChars = -1);
+	char*					AddTempString(const char* inText = nullptr, cell inNumChars = -1);
     inline cell             UnusedTempStringSpace() { return (mStringBufferASize - (mpStringBufferANext - mpStringBufferA)); }
 
     void                    AddGlobalObjectVariable(ForthObject* pObject);
@@ -478,7 +478,7 @@ protected:
     std::vector<forthop*> mContinuations;
     int32_t            mContinuationIx;
     forthop*        mContinueDestination;
-    int32_t            mContinueCount;
+    cell            mContinueCount;
 
     ForthEnumInfo*  mpNewestEnum;
 

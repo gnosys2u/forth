@@ -38,8 +38,8 @@ public:
     uint64_t getMaxActiveAllocations();
     uint64_t getMaxBytesInUse();
 
-    void trackAllocation(int size);
-    void trackDeallocation(int size);
+    void trackAllocation(size_t size);
+    void trackDeallocation(size_t size);
 
 private:
     std::string mName;

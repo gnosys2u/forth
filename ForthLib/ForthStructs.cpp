@@ -449,7 +449,7 @@ ForthTypesManager::GetNewestClass( void )
 
 // compile/interpret symbol if is a valid structure accessor
 bool
-ForthTypesManager::ProcessSymbol( ForthParseInfo *pInfo, eForthResult& exitStatus )
+ForthTypesManager::ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus )
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
     ForthCoreState* pCore = pEngine->GetCoreState();
@@ -484,7 +484,7 @@ ForthTypesManager::ProcessSymbol( ForthParseInfo *pInfo, eForthResult& exitStatu
 
 // compile symbol if it is a member variable or method
 bool
-ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, eForthResult& exitStatus )
+ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus )
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
     forthop *pDst = &(mCode[0]);
@@ -798,7 +798,7 @@ ForthStructVocabulary::DefineInstance( void )
             pHere = (char *) (mpEngine->GetDP());
             mpEngine->AllotLongs( (nBytes  + 3) >> 2 );
             memset( pHere, 0, nBytes );
-            if ( isPtr && (GET_VAR_OPERATION == kVarStore) )
+            if ( isPtr && (GET_VAR_OPERATION == VarOperation::kVarStore) )
             {
                 // var definition was preceeded by "->", so initialize var
 				mpEngine->FullyExecuteOp(pCore, pEntry[0]);
@@ -1507,7 +1507,7 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
                 mpEngine->AddGlobalObjectVariable((ForthObject *)pHere);
             }
 
-            if ( GET_VAR_OPERATION == kVarStore )
+            if ( GET_VAR_OPERATION == VarOperation::kVarStore )
             {
                 ForthObject srcObj = (ForthObject)SPOP;
                 if ( isPtr )
@@ -1691,7 +1691,7 @@ ForthClassVocabulary::FindInterfaceIndex( int32_t classId )
 int32_t
 ForthClassVocabulary::GetNumInterfaces( void )
 {
-	return mInterfaces.size();
+	return (int32_t) mInterfaces.size();
 }
 
 
@@ -2193,7 +2193,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                 pEngine->CompileBuiltinOpcode( OP_DO_BYTE + CODE_TO_BASE_TYPE(baseType) );
                 pHere = (char *) (pEngine->GetDP());
                 pEngine->AllotLongs( (nBytes  + 3) >> 2 );
-                if ( GET_VAR_OPERATION == kVarStore )
+                if ( GET_VAR_OPERATION == VarOperation::kVarStore )
                 {
                     // var definition was preceeded by "->", so initialize var
 #if 1
@@ -2315,7 +2315,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                 // a length of 4 means room for 4 chars plus a terminating null
                 pEngine->AllotLongs( ((len  + 4) & ~3) >> 2 );
                 *pStr = 0;
-                if ( GET_VAR_OPERATION == kVarStore )
+                if ( GET_VAR_OPERATION == VarOperation::kVarStore )
                 {
                     // var definition was preceeded by "->", so initialize var
                     pEngine->ExecuteOp(pCore,  pEntry[0] );

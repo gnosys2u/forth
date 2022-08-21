@@ -2956,7 +2956,7 @@ namespace OArray
 		{
 			// growing - add zeros to end of array
 			short* pElement = &(a[oldSize]);
-			memset(pElement, 0, ((newSize - oldSize) << 1));
+			memset(pElement, 0, (size_t)((newSize - oldSize) << 1));
 		}
 		METHOD_RETURN;
 	}

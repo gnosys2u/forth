@@ -37,7 +37,7 @@ ForthParseInfo::~ForthParseInfo()
 void
 ForthParseInfo::SetToken(const char *pSrc)
 {
-	int symLen, padChars;
+	size_t symLen, padChars;
 	char *pDst;
 
 	if (pSrc != NULL)

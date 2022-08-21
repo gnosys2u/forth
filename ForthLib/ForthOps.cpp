@@ -115,7 +115,7 @@ float maximumBogosity()
 // bye is a user command which causes the entire forth program to exit
 FORTHOP( byeOp )
 {
-    SET_STATE( kResultExitShell );
+    SET_STATE( OpResult::kResultExitShell );
 }
 
 // badOp is used to detect executing uninitialized op variables
@@ -1720,7 +1720,7 @@ FORTHOP( definitionsOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
     ForthVocabularyStack* pVocabStack = pEngine->GetVocabularyStack();
-	if ( GET_VAR_OPERATION != kVarDefaultOp )
+	if ( GET_VAR_OPERATION != VarOperation::kVarDefaultOp )
 	{
 		pEngine->GetDefinitionVocabulary()->DoOp( pCore );
 	}
@@ -1776,7 +1776,7 @@ FORTHOP( strForgetOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
     const char* pSym = (const char *)(SPOP);
-	bool verbose = (GET_VAR_OPERATION != kVarDefaultOp);
+	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
     bool forgotIt = pEngine->ForgetSymbol( pSym, !verbose );
     // reset search & definitions vocabs in case we deleted a vocab we were using
     pEngine->SetDefinitionVocabulary( pEngine->GetForthVocabulary() );
@@ -1881,7 +1881,7 @@ FORTHOP( vlistOp )
     bool quit = false;
     ForthVocabularyStack* pVocabStack = pEngine->GetVocabularyStack();
     ForthVocabulary* pVocab;
-	bool verbose = (GET_VAR_OPERATION != kVarDefaultOp);
+	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
 	pEngine->ShowSearchInfo();
 	int depth = 0;
 	while (!quit)
@@ -1901,7 +1901,7 @@ FORTHOP( vlistOp )
 
 FORTHOP( verboseBop )
 {
-    SET_VAR_OPERATION( kNumVarops );
+    SET_VAR_OPERATION( VarOperation::kNumVarops );
 }
 
 FORTHOP( strFindOp )
@@ -2249,7 +2249,7 @@ FORTHOP( returnsOp )
 FORTHOP( doMethodOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
-    int32_t methodIndex = SPOP;
+    cell methodIndex = SPOP;
     RPUSH( ((cell) GET_TP) );
     ForthObject obj;
     POP_OBJECT(obj);
@@ -2586,7 +2586,7 @@ FORTHOP(makeObjectOp)
     }
 
     __newOp(pCore, pClassName);
-    if (GET_STATE != kResultOk)
+    if (GET_STATE != OpResult::kResultOk)
     {
         return;
     }
@@ -2607,7 +2607,7 @@ FORTHOP(makeObjectOp)
             }
             else
             {
-                SET_VAR_OPERATION(kVarStore);
+                SET_VAR_OPERATION(VarOperation::kVarStore);
             }
             pClassVocab->DefineInstance(pInstanceName, pContainedClassName);
         }
@@ -2877,7 +2877,7 @@ FORTHOP(doStructTypeOp)
 	}
 	else
 	{
-		if (GET_VAR_OPERATION == kVarRef)
+		if (GET_VAR_OPERATION == VarOperation::kVarRef)
 		{
 			SPUSH((cell)pVocab);
 			doDefineInstance = false;
@@ -2926,7 +2926,7 @@ FORTHOP( doEnumOp )
     }
     else
     {
-        if (GET_VAR_OPERATION == kVarRef)
+        if (GET_VAR_OPERATION == VarOperation::kVarRef)
         {
             // ref ENUM_DEFINING_OP ... returns ptr to enum info block
             SPUSH((cell)oldIP);
@@ -4535,7 +4535,7 @@ FORTHOP( describeOp )
 	}
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
     ForthStructVocabulary* pVocab = pManager->GetStructVocabulary( buff );
-	bool verbose = (GET_VAR_OPERATION != kVarDefaultOp);
+	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
 
     if ( pVocab )
     {
@@ -4839,24 +4839,24 @@ FORTHOP( featuresOp )
 
     switch ( GET_VAR_OPERATION )
     {
-    case kVarStore:
+    case VarOperation::kVarStore:
         pEngine->SetFeatures( SPOP );
         break;
 
-    case kVarDefaultOp:
-    case kVarFetch:
+    case VarOperation::kVarDefaultOp:
+    case VarOperation::kVarFetch:
         SPUSH( pEngine->GetFeatures() );
         break;
 
-    case kVarRef:
+    case VarOperation::kVarRef:
         SPUSH( (cell)(&(pEngine->GetFeatures())) );
         break;
 
-    case kVarPlusStore:
+    case VarOperation::kVarPlusStore:
         pEngine->SetFeature( SPOP );
         break;
 
-    case kVarMinusStore:
+    case VarOperation::kVarMinusStore:
         pEngine->ClearFeature( SPOP );
         break;
 
@@ -4919,7 +4919,7 @@ FORTHOP(vocChainNextOp)
 FORTHOP( turboOp )
 {
     GET_ENGINE->ToggleFastMode();
-    SET_STATE( kResultDone );
+    SET_STATE( OpResult::kResultDone );
 }
 
 FORTHOP( errorOp )
@@ -5871,19 +5871,19 @@ FORTHOP( exitThreadOp )
 
 FORTHOP(yieldOp)
 {
-	SET_STATE(kResultYield);
+	SET_STATE(OpResult::kResultYield);
 }
 
 FORTHOP(stopFiberOp)
 {
-	SET_STATE(kResultYield);
+	SET_STATE(OpResult::kResultYield);
 	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
 	pFiber->Stop();
 }
 
 FORTHOP(sleepFiberOp)
 {
-	SET_STATE(kResultYield);
+	SET_STATE(OpResult::kResultYield);
 	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
 	uint32_t sleepMilliseconds = (uint32_t)(SPOP);
 	pFiber->Sleep(sleepMilliseconds);
@@ -5891,7 +5891,7 @@ FORTHOP(sleepFiberOp)
 
 FORTHOP(exitFiberOp)
 {
-	SET_STATE(kResultYield);
+	SET_STATE(OpResult::kResultYield);
 	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
 	pFiber->Exit();
 }
@@ -6238,7 +6238,7 @@ FORTHOP( serverOp )
 
 FORTHOP( shutdownOp )
 {
-    SET_STATE( kResultShutdown );
+    SET_STATE( OpResult::kResultShutdown );
 }
 
 
@@ -6321,7 +6321,7 @@ FORTHOP(closeOp)
 //  exit after interpreting a single opcode
 FORTHOP( doneBop )
 {
-    SET_STATE( kResultDone );
+    SET_STATE( OpResult::kResultDone );
 }
 
 // abort is a user command which causes the entire forth engine to exit,
@@ -6980,7 +6980,7 @@ FORTHOP(doExitBop)
         SET_IP( newIP );
 		if (newIP == nullptr)
 		{
-			SET_STATE(kResultDone);
+			SET_STATE(OpResult::kResultDone);
 		}
     }
 }
@@ -7006,7 +7006,7 @@ FORTHOP(doExitLBop)
 		SET_IP(newIP);
 		if (newIP == nullptr)
 		{
-			SET_STATE(kResultDone);
+			SET_STATE(OpResult::kResultDone);
 		}
 	}
 }
@@ -7031,7 +7031,7 @@ FORTHOP(doExitMBop)
 
 		if (newIP == nullptr)
 		{
-			SET_STATE(kResultDone);
+			SET_STATE(OpResult::kResultDone);
 		}
 	}
 }
@@ -7059,7 +7059,7 @@ FORTHOP(doExitMLBop)
 
 		if (newIP == nullptr)
 		{
-			SET_STATE(kResultDone);
+			SET_STATE(OpResult::kResultDone);
 		}
 	}
 }
@@ -7976,7 +7976,7 @@ FORTHOP(spBop)
 #else
     intVarAction(pCore, (int *)&(pCore->SP));
 #endif
-    if ((varOp == kVarDefaultOp) || (varOp == kVarFetch))
+    if ((varOp == VarOperation::kVarDefaultOp) || (varOp == VarOperation::kVarFetch))
     {
         *(pCore->SP) += sizeof(cell);
     }
@@ -8417,27 +8417,27 @@ FORTHOP(fillBop)
 
 FORTHOP(fetchVaractionBop)
 {
-	SET_VAR_OPERATION( kVarFetch );
+	SET_VAR_OPERATION( VarOperation::kVarFetch );
 }
 
 FORTHOP(intoVaractionBop)
 {
-    SET_VAR_OPERATION( kVarStore );
+    SET_VAR_OPERATION( VarOperation::kVarStore );
 }
 
 FORTHOP(addToVaractionBop)
 {
-    SET_VAR_OPERATION( kVarPlusStore );
+    SET_VAR_OPERATION( VarOperation::kVarPlusStore );
 }
 
 FORTHOP(subtractFromVaractionBop)
 {
-    SET_VAR_OPERATION( kVarMinusStore );
+    SET_VAR_OPERATION( VarOperation::kVarMinusStore );
 }
 
 FORTHOP(refVaractionBop)
 {
-    SET_VAR_OPERATION( kVarRef );
+    SET_VAR_OPERATION( VarOperation::kVarRef );
 }
 
 FORTHOP(setVarActionBop)
@@ -8848,7 +8848,7 @@ FORTHOP( archX86Bop )
 
 FORTHOP( oclearVaractionBop )
 {
-	SET_VAR_OPERATION( kVarObjectClear );
+	SET_VAR_OPERATION( VarOperation::kVarObjectClear );
 }
 
 FORTHOP(faddBlockBop)

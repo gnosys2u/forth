@@ -251,7 +251,7 @@ entry InitAsmTables
 ;
 ; single step a thread
 ;
-; extern eForthResult InterpretOneOpFast( ForthCoreState *pCore, forthop op );
+; extern OpResult InterpretOneOpFast( ForthCoreState *pCore, forthop op );
 entry InterpretOneOpFast
     ; rcx is pCore	(rdi in Linux)
     ; rdx is op		(rsi in Linux)
@@ -317,7 +317,7 @@ InterpretOneOpFastExit2:	; this is exit for state != OK
 ;
 ; inner interpreter C entry point
 ;
-; extern eForthResult InnerInterpreterFast( ForthCoreState *pCore );
+; extern OpResult InnerInterpreterFast( ForthCoreState *pCore );
 entry InnerInterpreterFast
 	push rbx
     push rdi

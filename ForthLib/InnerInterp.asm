@@ -203,7 +203,7 @@ entry InitAsmTables
 ;
 ; single step a thread
 ;
-; extern eForthResult InterpretOneOpFast( ForthCoreState *pCore, forthop op );
+; extern OpResult InterpretOneOpFast( ForthCoreState *pCore, forthop op );
 entry InterpretOneOpFast
 	push rcore
 	mov	rcore, esp
@@ -220,7 +220,7 @@ entry InterpretOneOpFast
 	mov	rpsp, [rcore + FCore.SPtr]
 	mov	rnext, InterpretOneOpFastExit
 	; TODO: should we reset state to OK before every step?
-	mov	eax, kResultOk
+	mov	eax, OpResult::kResultOk
 	mov	[rcore + FCore.state], eax
 	; instead of jumping directly to the inner loop, do a call so that
 	; error exits which do a return instead of branching to inner loop will work
@@ -247,7 +247,7 @@ InterpretOneOpFastExit2:	; this is exit for state != OK
 ;
 ; inner interpreter C entry point
 ;
-; extern eForthResult InnerInterpreterFast( ForthCoreState *pCore );
+; extern OpResult InnerInterpreterFast( ForthCoreState *pCore );
 entry InnerInterpreterFast
 	push rcore
 	mov	rcore, esp
@@ -259,7 +259,7 @@ entry InnerInterpreterFast
 	push rcore
 	
 	mov	rcore, [rcore + 8]      ; rcore -> ForthCore
-	mov	eax, kResultOk
+	mov	eax, OpResult::kResultOk
 	mov	[rcore + FCore.state], eax
 
 	call	interpFunc
@@ -383,14 +383,14 @@ interpLoopErrorExit:
 	; error exit point
 	; eax is error code
 	mov	[rcore + FCore.error], eax
-	mov	eax, kResultError
+	mov	eax, OpResult::kResultError
 	jmp	interpLoopExit
 	
 interpLoopFatalErrorExit:
 	; fatal error exit point
 	; eax is error code
 	mov	[rcore + FCore.error], eax
-	mov	eax, kResultFatalError
+	mov	eax, OpResult::kResultFatalError
 	jmp	interpLoopExit
 	
 ; op (in ebx) is not defined in assembler, dispatch through optype table
@@ -2997,7 +2997,7 @@ strFixupBop3:
 ;========================================
 
 entry doneBop
-	mov	eax,kResultDone
+	mov	eax,OpResult::kResultDone
 	jmp	interpLoopExit
 
 ;========================================

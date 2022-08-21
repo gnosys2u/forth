@@ -364,7 +364,7 @@ void ForthObjectReader::processElement(const std::string& name)
                 if (initOpcode != 0)
                 {
                     // copy object data pointer to TOS to be used by init 
-                    int32_t a = (GET_SP)[1];
+                    cell a = (GET_SP)[1];
                     SPUSH(a);
                     mpEngine->FullyExecuteOp(pCore, initOpcode);
                 }

@@ -36,45 +36,45 @@ public:
     virtual const char* GetBufferPointer( void );
     virtual const char* GetBufferBasePointer( void );
     virtual const char* GetReportedBufferBasePointer( void );
-    virtual int     *GetReadOffsetPointer( void );
-    virtual int     GetReadOffset( void );
-    virtual void    SetReadOffset( int offset );
-    virtual int     GetWriteOffset( void );
-    virtual void    SetWriteOffset( int offset );
-	virtual bool	IsEmpty();
-    virtual bool	IsGenerated();
-    virtual bool	IsFile();
+    virtual cell*       GetReadOffsetPointer( void );
+    virtual cell        GetReadOffset( void );
+    virtual void        SetReadOffset( int offset );
+    virtual cell        GetWriteOffset( void );
+    virtual void        SetWriteOffset( int offset );
+	virtual bool	    IsEmpty();
+    virtual bool	    IsGenerated();
+    virtual bool	    IsFile();
 
-    virtual int     GetBufferLength( void );
-    virtual void    SetBufferPointer( const char *pBuff );
-    virtual bool    IsInteractive( void ) = 0;
-    virtual int     GetLineNumber( void );
+    virtual cell        GetBufferLength( void );
+    virtual void        SetBufferPointer( const char *pBuff );
+    virtual bool        IsInteractive( void ) = 0;
+    virtual cell        GetLineNumber( void );
 	virtual const char* GetType( void );
 	virtual const char* GetName( void );
     
-    virtual int     GetSourceID() = 0;		// for the 'source' ansi forth op
-    virtual void    SeekToLineEnd();
-    virtual int32_t    GetBlockNumber();
+    virtual cell        GetSourceID() = 0;		// for the 'source' ansi forth op
+    virtual void        SeekToLineEnd();
+    virtual cell        GetBlockNumber();
 
-    virtual cell*   GetInputState() = 0;
-    virtual bool    SetInputState(cell* pState) = 0;
+    virtual cell*       GetInputState() = 0;
+    virtual bool        SetInputState(cell* pState) = 0;
 
-    virtual void    StuffBuffer(const char* pSrc);
-    virtual void    PrependString(const char* pSrc);
-    virtual void    AppendString(const char* pSrc);
-    virtual void    CropCharacters(int numCharacters);
+    virtual void        StuffBuffer(const char* pSrc);
+    virtual void        PrependString(const char* pSrc);
+    virtual void        AppendString(const char* pSrc);
+    virtual void        CropCharacters(cell numCharacters);
 
-	virtual bool	DeleteWhenEmpty();
-    virtual void    SetDeleteWhenEmpty(bool deleteIt);
+	virtual bool	    DeleteWhenEmpty();
+    virtual void        SetDeleteWhenEmpty(bool deleteIt);
 
     friend class ForthInputStack;
 
 protected:
     ForthInputStream    *mpNext;
-    int                 mReadOffset;
-    int                 mWriteOffset;
+    cell                mReadOffset;
+    cell                mWriteOffset;
     char                *mpBufferBase;
-    int                 mBufferLen;
+    cell                mBufferLen;
     bool                mbDeleteWhenEmpty;
 };
 
@@ -95,10 +95,10 @@ public:
 
     virtual char    *GetLine( const char *pPrompt );
     virtual bool    IsInteractive(void) { return false; };
-    virtual int     GetLineNumber( void );
+    virtual cell    GetLineNumber( void );
 	virtual const char* GetType( void );
 	virtual const char* GetName( void );
-    virtual int     GetSourceID();
+    virtual cell    GetSourceID();
 
     virtual cell*   GetInputState();
     virtual bool    SetInputState(cell* pState);
@@ -107,7 +107,7 @@ public:
 protected:
     FILE            *mpInFile;
     char*           mpName;
-    int             mLineNumber;
+    cell            mLineNumber;
     uint32_t    mLineStartOffset;
     cell            mState[8];
 };
@@ -129,7 +129,7 @@ public:
     virtual bool    IsInteractive(void) { return true; };
 	virtual const char* GetType( void );
 	virtual const char* GetName( void );
-    virtual int     GetSourceID();
+    virtual cell      GetSourceID();
 
     virtual cell*   GetInputState();
     virtual bool    SetInputState(cell* pState);
@@ -153,7 +153,7 @@ public:
     ForthBufferInputStream( const char *pDataBuffer, int dataBufferLen, bool isInteractive = true, int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
     virtual ~ForthBufferInputStream();
 
-    virtual int     GetSourceID();
+    virtual cell    GetSourceID();
     virtual char    *GetLine( const char *pPrompt );
     virtual bool    IsInteractive(void) { return mIsInteractive; };
 	virtual const char* GetType( void );
@@ -166,6 +166,8 @@ public:
 	//virtual bool	IsGenerated();
 
 protected:
+    static const int kNumStateMembers = 8;
+
     static int      sInstanceNumber;    // used for checking consistency in restore-input
 
     int             mInstanceNumber;    // used for checking consistency in restore-input
@@ -173,7 +175,7 @@ protected:
     char			*mpDataBuffer;
     char			*mpDataBufferBase;
     char			*mpDataBufferLimit;
-    cell            mState[8];
+    cell            mState[kNumStateMembers];
 	bool			mIsInteractive;
 };
 
@@ -190,13 +192,13 @@ public:
     ForthBlockInputStream(ForthBlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock);
     virtual ~ForthBlockInputStream();
 
-    virtual int     GetSourceID();
+    virtual cell    GetSourceID();
     virtual char    *GetLine( const char *pPrompt );
     virtual bool    IsInteractive(void) { return false; };
 	virtual const char* GetType( void );
  
     virtual void    SeekToLineEnd();
-    virtual int32_t    GetBlockNumber();
+    virtual cell    GetBlockNumber();
 
     virtual cell*   GetInputState();
     virtual bool    SetInputState(cell* pState);
@@ -224,8 +226,8 @@ public:
 	// returns true IFF expression was processed successfully
 	bool ProcessExpression(ForthInputStream* pInputStream);
 
-	virtual int     GetSourceID();
-	virtual char    *GetLine(const char *pPrompt);
+	virtual cell    GetSourceID();
+	virtual char*   GetLine(const char *pPrompt);
     virtual bool    IsInteractive(void) { return false; };
 	virtual const char* GetType(void);
 
@@ -276,13 +278,13 @@ public:
 
     const char*             GetBufferPointer( void );
     const char*             GetBufferBasePointer( void );
-    int                     *GetReadOffsetPointer( void );
-    int                     GetBufferLength( void );
+    cell*                   GetReadOffsetPointer( void );
+    cell                    GetBufferLength( void );
     void                    SetBufferPointer( const char *pBuff );
-    int                     GetReadOffset( void );
-    void                    SetReadOffset( int );
-    int                     GetWriteOffset( void );
-    void                    SetWriteOffset( int offset );
+    cell                    GetReadOffset( void );
+    void                    SetReadOffset( cell offset );
+    cell                    GetWriteOffset( void );
+    void                    SetWriteOffset(cell offset );
 	virtual bool			IsEmpty();
 
 protected:

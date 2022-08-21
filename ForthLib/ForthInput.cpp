@@ -136,36 +136,31 @@ ForthInputStack::GetFilenameAndLineNumber(int& lineNumber)
 	return NULL;
 }
 
-const char *
-ForthInputStack::GetBufferPointer( void )
+const char * ForthInputStack::GetBufferPointer( void )
 {
     return (mpHead == NULL) ? NULL : mpHead->GetBufferPointer();
 }
 
 
-const char *
-ForthInputStack::GetBufferBasePointer( void )
+const char * ForthInputStack::GetBufferBasePointer( void )
 {
     return (mpHead == NULL) ? NULL : mpHead->GetBufferBasePointer();
 }
 
 
-int *
-ForthInputStack::GetReadOffsetPointer( void )
+cell * ForthInputStack::GetReadOffsetPointer( void )
 {
     return (mpHead == NULL) ? NULL : mpHead->GetReadOffsetPointer();
 }
 
 
-int
-ForthInputStack::GetBufferLength( void )
+cell ForthInputStack::GetBufferLength( void )
 {
     return (mpHead == NULL) ? 0 : mpHead->GetBufferLength();
 }
 
 
-void
-ForthInputStack::SetBufferPointer( const char *pBuff )
+void ForthInputStack::SetBufferPointer( const char *pBuff )
 {
 	if (mpHead != NULL)
     {
@@ -174,15 +169,13 @@ ForthInputStack::SetBufferPointer( const char *pBuff )
 }
 
 
-int
-ForthInputStack::GetReadOffset( void )
+cell ForthInputStack::GetReadOffset( void )
 {
     return (mpHead == NULL) ? 0 : mpHead->GetReadOffset();
 }
 
 
-void
-ForthInputStack::SetReadOffset( int offset )
+void ForthInputStack::SetReadOffset( cell offset )
 {
     if (mpHead == NULL)
     {
@@ -191,15 +184,13 @@ ForthInputStack::SetReadOffset( int offset )
 }
 
 
-int
-ForthInputStack::GetWriteOffset( void )
+cell ForthInputStack::GetWriteOffset( void )
 {
     return (mpHead == NULL) ? 0 : mpHead->GetWriteOffset();
 }
 
 
-void
-ForthInputStack::SetWriteOffset( int offset )
+void ForthInputStack::SetWriteOffset( cell offset )
 {
     if (mpHead == NULL)
     {
@@ -208,8 +199,7 @@ ForthInputStack::SetWriteOffset( int offset )
 }
 
 
-void
-ForthInputStack::Reset( void )
+void ForthInputStack::Reset( void )
 {
     // dump all nested input streams
     if ( mpHead != NULL )
@@ -222,8 +212,7 @@ ForthInputStack::Reset( void )
 }
 
 
-bool
-ForthInputStack::IsEmpty(void)
+bool ForthInputStack::IsEmpty(void)
 {
 	return (mpHead == NULL) ? true : mpHead->IsEmpty();
 }
@@ -256,36 +245,31 @@ ForthInputStream::~ForthInputStream()
     }
 }
 
-const char *
-ForthInputStream::GetBufferPointer(void)
+const char * ForthInputStream::GetBufferPointer(void)
 {
     return mpBufferBase + mReadOffset;
 }
 
 
-const char *
-ForthInputStream::GetBufferBasePointer( void )
+const char * ForthInputStream::GetBufferBasePointer( void )
 {
     return mpBufferBase;
 }
 
 
-const char *
-ForthInputStream::GetReportedBufferBasePointer( void )
+const char * ForthInputStream::GetReportedBufferBasePointer( void )
 {
     return mpBufferBase;
 }
 
 
-int
-ForthInputStream::GetBufferLength( void )
+cell ForthInputStream::GetBufferLength( void )
 {
     return mBufferLen;
 }
 
 
-void
-ForthInputStream::SetBufferPointer( const char *pBuff )
+void ForthInputStream::SetBufferPointer( const char *pBuff )
 {
 	int offset = pBuff - mpBufferBase;
     if ( (offset < 0) || (offset >= mBufferLen) )
@@ -299,15 +283,13 @@ ForthInputStream::SetBufferPointer( const char *pBuff )
 	//SPEW_SHELL("SetBufferPointer %s:%s  offset %d  {%s}\n", GetType(), GetName(), offset, pBuff);
 }
 
-int*
-ForthInputStream::GetReadOffsetPointer( void )
+cell* ForthInputStream::GetReadOffsetPointer( void )
 {
     return &mReadOffset;
 }
 
 
-int
-ForthInputStream::GetReadOffset( void )
+cell ForthInputStream::GetReadOffset( void )
 {
     return mReadOffset;
 }
@@ -328,8 +310,7 @@ ForthInputStream::SetReadOffset( int offset )
 }
 
 
-int
-ForthInputStream::GetWriteOffset( void )
+cell ForthInputStream::GetWriteOffset( void )
 {
     return mWriteOffset;
 }
@@ -350,38 +331,32 @@ ForthInputStream::SetWriteOffset( int offset )
 }
 
 
-int
-ForthInputStream::GetLineNumber( void )
+cell ForthInputStream::GetLineNumber( void )
 {
     return -1;
 }
 
-const char*
-ForthInputStream::GetType( void )
+const char* ForthInputStream::GetType( void )
 {
     return "Base";
 }
 
-const char*
-ForthInputStream::GetName( void )
+const char* ForthInputStream::GetName( void )
 {
     return "mysteriousStream";
 }
 
-void
-ForthInputStream::SeekToLineEnd()
+void ForthInputStream::SeekToLineEnd()
 {
     mReadOffset = mWriteOffset;
 }
 
-int32_t
-ForthInputStream::GetBlockNumber()
+cell ForthInputStream::GetBlockNumber()
 {
     return 0;
 }
 
-void
-ForthInputStream::StuffBuffer( const char* pSrc )
+void ForthInputStream::StuffBuffer( const char* pSrc )
 {
     int len = strlen( pSrc );
     if ( len > (mBufferLen - 1) )
@@ -418,7 +393,7 @@ void ForthInputStream::AppendString(const char* pSrc)
     }
 }
 
-void ForthInputStream::CropCharacters(int numCharacters)
+void ForthInputStream::CropCharacters(cell numCharacters)
 {
     if (mWriteOffset >= numCharacters)
     {
@@ -491,15 +466,13 @@ ForthFileInputStream::~ForthFileInputStream()
     __FREE( mpName );
 }
 
-const char*
-ForthFileInputStream::GetName( void )
+const char* ForthFileInputStream::GetName( void )
 {
     return mpName;
 }
 
 
-char *
-ForthFileInputStream::GetLine( const char *pPrompt )
+char * ForthFileInputStream::GetLine( const char *pPrompt )
 {
     char *pBuffer;
 
@@ -524,21 +497,18 @@ ForthFileInputStream::GetLine( const char *pPrompt )
     return pBuffer;
 }
 
-int
-ForthFileInputStream::GetLineNumber( void )
+cell ForthFileInputStream::GetLineNumber(void)
 {
     return mLineNumber;
 }
 
 
-const char*
-ForthFileInputStream::GetType( void )
+const char* ForthFileInputStream::GetType( void )
 {
     return "File";
 }
 
-int
-ForthFileInputStream::GetSourceID()
+cell ForthFileInputStream::GetSourceID()
 {
     return static_cast<int>(reinterpret_cast<intptr_t>(mpInFile));
 }
@@ -564,8 +534,7 @@ cell* ForthFileInputStream::GetInputState()
     return pState;
 }
 
-bool
-ForthFileInputStream::SetInputState( cell* pState)
+bool ForthFileInputStream::SetInputState( cell* pState)
 {
     if ( pState[0] != 5 )
     {
@@ -593,8 +562,7 @@ ForthFileInputStream::SetInputState( cell* pState)
     return true;
 }
 
-bool
-ForthFileInputStream::IsFile(void)
+bool ForthFileInputStream::IsFile(void)
 {
     return true;
 }
@@ -640,20 +608,17 @@ ForthConsoleInputStream::GetLine( const char *pPrompt )
     return pBuffer;
 }
 
-const char*
-ForthConsoleInputStream::GetType( void )
+const char* ForthConsoleInputStream::GetType( void )
 {
     return "Console";
 }
 
-const char*
-ForthConsoleInputStream::GetName( void )
+const char* ForthConsoleInputStream::GetName( void )
 {
     return "Console";
 }
 
-int
-ForthConsoleInputStream::GetSourceID()
+cell ForthConsoleInputStream::GetSourceID()
 {
     return 0;
 }
@@ -735,6 +700,10 @@ ForthBufferInputStream::ForthBufferInputStream( const char *pSourceBuffer, int s
 	mpDataBufferLimit = mpDataBuffer + sourceBufferLen;
     mWriteOffset = sourceBufferLen;
     mInstanceNumber = sInstanceNumber++;
+    for (int i = 0; i < kNumStateMembers; ++i)
+    {
+        mState[i] = 0;
+    }
 }
 
 ForthBufferInputStream::~ForthBufferInputStream()
@@ -742,15 +711,13 @@ ForthBufferInputStream::~ForthBufferInputStream()
 	__FREE(mpDataBufferBase);
 }
 
-int
-ForthBufferInputStream::GetSourceID()
+cell ForthBufferInputStream::GetSourceID()
 {
     return -1;
 }
 
 
-char *
-ForthBufferInputStream::GetLine( const char *pPrompt )
+char * ForthBufferInputStream::GetLine( const char *pPrompt )
 {
     char *pBuffer = NULL;
     char *pDst, c;
@@ -782,15 +749,13 @@ ForthBufferInputStream::GetLine( const char *pPrompt )
 }
 
 
-const char*
-ForthBufferInputStream::GetType( void )
+const char* ForthBufferInputStream::GetType( void )
 {
     return "Buffer";
 }
 
 
-const char *
-ForthBufferInputStream::GetReportedBufferBasePointer( void )
+const char * ForthBufferInputStream::GetReportedBufferBasePointer( void )
 {
     return mpSourceBuffer;
 }
@@ -814,8 +779,7 @@ cell* ForthBufferInputStream::GetInputState()
     return pState;
 }
 
-bool
-ForthBufferInputStream::SetInputState(cell* pState)
+bool ForthBufferInputStream::SetInputState(cell* pState)
 {
     if ( pState[0] != 4 )
     {
@@ -862,15 +826,13 @@ ForthBlockInputStream::~ForthBlockInputStream()
 {
 }
 
-int
-ForthBlockInputStream::GetSourceID()
+cell ForthBlockInputStream::GetSourceID()
 {
     return -1;
 }
 
 
-char *
-ForthBlockInputStream::GetLine( const char *pPrompt )
+char * ForthBlockInputStream::GetLine( const char *pPrompt )
 {
     // TODO!
     char* pBuffer = NULL;
@@ -896,15 +858,13 @@ ForthBlockInputStream::GetLine( const char *pPrompt )
 }
 
 
-const char*
-ForthBlockInputStream::GetType( void )
+const char* ForthBlockInputStream::GetType( void )
 {
     return "Block";
 }
 
 
-void
-ForthBlockInputStream::SeekToLineEnd()
+void ForthBlockInputStream::SeekToLineEnd()
 {
     // TODO! this 
     mReadOffset = (mReadOffset + 64) & 0xFFFFFFC0;
@@ -954,14 +914,12 @@ ForthBlockInputStream::SetInputState(cell* pState)
     return true;
 }
 
-int32_t
-ForthBlockInputStream::GetBlockNumber()
+cell ForthBlockInputStream::GetBlockNumber()
 {
     return mCurrentBlock;
 }
 
-bool
-ForthBlockInputStream::ReadBlock()
+bool ForthBlockInputStream::ReadBlock()
 {
     bool success = true;
     ForthEngine* pEngine = ForthEngine::GetInstance();
@@ -985,8 +943,7 @@ ForthBlockInputStream::ReadBlock()
     return success;
 }
 
-bool
-ForthBlockInputStream::IsFile(void)
+bool ForthBlockInputStream::IsFile(void)
 {
     return true;
 }
@@ -1059,7 +1016,7 @@ ForthExpressionInputStream::ProcessExpression(ForthInputStream* pInputStream)
 	ResetStrings();
 	const char* pSrc = pInputStream->GetBufferPointer();
 	const char* pNewSrc = pSrc;
-	char c;
+    char c = 0;
 	char previousChar = '\0';
 	bool danglingPeriod = false;	 // to allow ")." at end of line to force continuation to next line
 	ForthParseInfo parseInfo((int32_t *)mpBufferBase, mBufferLen);
@@ -1224,26 +1181,22 @@ ForthExpressionInputStream::ProcessExpression(ForthInputStream* pInputStream)
 	return result;
 }
 
-int
-ForthExpressionInputStream::GetSourceID()
+cell ForthExpressionInputStream::GetSourceID()
 {
 	return -1;
 }
 
-char*
-ForthExpressionInputStream::GetLine(const char *pPrompt)
+char* ForthExpressionInputStream::GetLine(const char *pPrompt)
 {
 	return NULL;
 }
 
-const char*
-ForthExpressionInputStream::GetType(void)
+const char* ForthExpressionInputStream::GetType(void)
 {
 	return "Expression";
 }
 
-void
-ForthExpressionInputStream::SeekToLineEnd()
+void ForthExpressionInputStream::SeekToLineEnd()
 {
 
 }

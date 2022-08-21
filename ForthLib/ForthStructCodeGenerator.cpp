@@ -60,7 +60,7 @@ bool ForthStructCodeGenerator::Generate( ForthParseInfo *pInfo, forthop*& pDst, 
 	mpStructVocab = nullptr;
     mpContainedClassVocab = nullptr;
 	const char* pSource = mpParseInfo->GetToken();
-	int srcBytes = strlen( pSource ) + 1;
+	int srcBytes = (int)strlen( pSource ) + 1;
 	if ( srcBytes > mBufferBytes )
 	{
 		mBufferBytes = srcBytes + 64;
@@ -128,11 +128,11 @@ void ForthStructCodeGenerator::HandlePreceedingVarop()
     else
     {
         // we are interpreting, clear any existing varAction, but compile an op to set it after first op
-        uint32_t varMode = GET_VAR_OPERATION;
-        if ( varMode )
+        VarOperation varMode = GET_VAR_OPERATION;
+        if ( varMode != VarOperation::kVarDefaultOp )
         {
             CLEAR_VAR_OPERATION;
-            mCompileVarop = gCompiledOps[OP_FETCH] + (varMode - kVarFetch);
+            mCompileVarop = gCompiledOps[OP_FETCH] + ((ucell)varMode - (ucell)VarOperation::kVarFetch);
         }
     }
 }

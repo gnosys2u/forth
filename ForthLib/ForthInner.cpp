@@ -78,13 +78,13 @@ VarAction byteOps[] =
 void _doByteVarop( ForthCoreState* pCore, signed char* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    uint32_t varOp = GET_VAR_OPERATION;
-    if ( varOp )
+    VarOperation varOp = GET_VAR_OPERATION;
+    if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= kVarMinusStore )
+        if ( varOp <= VarOperation::kVarMinusStore )
         {
             SPUSH( (cell) pVar );
-            byteOps[ varOp ] ( pCore );
+            byteOps[ (ucell)varOp ] ( pCore );
         }
         else
         {
@@ -137,13 +137,13 @@ VarAction ubyteOps[] =
 static void _doUByteVarop( ForthCoreState* pCore, unsigned char* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    uint32_t varOp = GET_VAR_OPERATION;
-    if ( varOp )
+    VarOperation varOp = GET_VAR_OPERATION;
+    if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= kVarMinusStore )
+        if (varOp <= VarOperation::kVarMinusStore)
         {
-            SPUSH( (cell) pVar );
-            ubyteOps[ varOp ] ( pCore );
+            SPUSH((cell)pVar);
+            ubyteOps[(ucell)varOp](pCore);
         }
         else
         {
@@ -354,13 +354,13 @@ VarAction shortOps[] =
 static void _doShortVarop( ForthCoreState* pCore, short* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    uint32_t varOp = GET_VAR_OPERATION;
-    if ( varOp )
+    VarOperation varOp = GET_VAR_OPERATION;
+    if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= kVarMinusStore )
+        if (varOp <= VarOperation::kVarMinusStore)
         {
-            SPUSH( (cell) pVar );
-            shortOps[ varOp ] ( pCore );
+            SPUSH((cell)pVar);
+            shortOps[(ucell)varOp](pCore);
         }
         else
         {
@@ -413,13 +413,13 @@ VarAction ushortOps[] =
 static void _doUShortVarop( ForthCoreState* pCore, unsigned short* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    uint32_t varOp = GET_VAR_OPERATION;
-    if ( varOp )
+    VarOperation varOp = GET_VAR_OPERATION;
+    if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= kVarMinusStore )
+        if (varOp <= VarOperation::kVarMinusStore)
         {
-            SPUSH( (cell) pVar );
-            ushortOps[ varOp ] ( pCore );
+            SPUSH((cell)pVar);
+            ushortOps[(ucell)varOp](pCore);
         }
         else
         {
@@ -630,13 +630,13 @@ VarAction intOps[] =
 void _doIntVarop( ForthCoreState* pCore, int* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    uint32_t varOp = GET_VAR_OPERATION;
-    if ( varOp )
+    VarOperation varOp = GET_VAR_OPERATION;
+    if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= kVarMinusStore )
+        if (varOp <= VarOperation::kVarMinusStore)
         {
-            SPUSH( (cell) pVar );
-            intOps[ varOp ] ( pCore );
+            SPUSH((cell)pVar);
+            intOps[(ucell)varOp](pCore);
         }
         else
         {
@@ -696,13 +696,13 @@ VarAction uintOps[] =
 static void _doUIntVarop(ForthCoreState* pCore, uint32_t* pVar)
 {
     ForthEngine* pEngine = (ForthEngine*)pCore->pEngine;
-    uint32_t varOp = GET_VAR_OPERATION;
-    if (varOp)
+    VarOperation varOp = GET_VAR_OPERATION;
+    if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= kVarMinusStore)
+        if (varOp <= VarOperation::kVarMinusStore)
         {
             SPUSH((cell)pVar);
-            uintOps[varOp](pCore);
+            uintOps[(ucell)varOp](pCore);
         }
         else
         {
@@ -914,13 +914,13 @@ VarAction floatOps[] =
 static void _doFloatVarop( ForthCoreState* pCore, float* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    uint32_t varOp = GET_VAR_OPERATION;
-    if ( varOp )
+    VarOperation varOp = GET_VAR_OPERATION;
+    if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= kVarMinusStore )
+        if (varOp <= VarOperation::kVarMinusStore)
         {
-            SPUSH( (cell) pVar );
-            floatOps[ varOp ] ( pCore );
+            SPUSH((cell)pVar);
+            floatOps[(ucell)varOp](pCore);
         }
         else
         {
@@ -1062,13 +1062,13 @@ VarAction doubleOps[] =
 static void _doDoubleVarop( ForthCoreState* pCore, double* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    uint32_t varOp = GET_VAR_OPERATION;
-    if ( varOp )
+    VarOperation varOp = GET_VAR_OPERATION;
+    if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= kVarMinusStore )
+        if (varOp <= VarOperation::kVarMinusStore)
         {
-            SPUSH( (cell) pVar );
-            doubleOps[ varOp ] ( pCore );
+            SPUSH((cell)pVar);
+            doubleOps[(ucell)varOp](pCore);
         }
         else
         {
@@ -1236,13 +1236,13 @@ VarAction stringOps[] =
 static void _doStringVarop( ForthCoreState* pCore, char* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    uint32_t varOp = GET_VAR_OPERATION;
-    if ( varOp )
+    VarOperation varOp = GET_VAR_OPERATION;
+    if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= kVarMinusStore )
+        if (varOp <= VarOperation::kVarMinusStore)
         {
-            SPUSH( (cell) pVar );
-            stringOps[ varOp ] ( pCore );
+            SPUSH((cell)pVar);
+            stringOps[(ucell)varOp](pCore);
         }
         else
         {
@@ -1375,13 +1375,13 @@ VarAction opOps[] =
 static void _doOpVarop( ForthCoreState* pCore, int32_t* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    uint32_t varOp = GET_VAR_OPERATION;
-    if ( varOp )
+    VarOperation varOp = GET_VAR_OPERATION;
+    if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= kVarMinusStore )
+        if (varOp <= VarOperation::kVarMinusStore)
         {
-            SPUSH( (cell) pVar );
-            opOps[ varOp ] ( pCore );
+            SPUSH((cell)pVar);
+            opOps[(ucell)varOp](pCore);
         }
         else
         {
@@ -1493,21 +1493,21 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
 
-	uint32_t varOp = GET_VAR_OPERATION;
+    VarOperation varOp = GET_VAR_OPERATION;
 	CLEAR_VAR_OPERATION;
 	switch ( varOp )
 	{
 
-	case kVarDefaultOp:
-	case kVarFetch:
+	case VarOperation::kVarDefaultOp:
+	case VarOperation::kVarFetch:
 		PUSH_OBJECT( *pVar );
 		break;
 
-	case kVarRef:
+	case VarOperation::kVarRef:
 		SPUSH( (cell) pVar );
 		break;
 
-	case kVarStore:
+	case VarOperation::kVarStore:
 		{
             ForthObject& oldObj = *pVar;
 			ForthObject newObj;
@@ -1521,7 +1521,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 		}
 		break;
 
-	case kVarPlusStore:
+	case VarOperation::kVarPlusStore:
 		{
 			// store but don't increment refcount
 			ForthObject& oldObj = *pVar;
@@ -1531,7 +1531,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 		}
 		break;
 
-	case kVarMinusStore:
+	case VarOperation::kVarMinusStore:
 		{
 			// unref - push object on stack, clear out variable, decrement refcount but don't delete if 0
 			ForthObject& oldObj = *pVar;
@@ -1550,7 +1550,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 		}
 		break;
 
-	case kVarObjectClear:
+	case VarOperation::kVarObjectClear:
 		{
 			ForthObject& oldObj = *pVar;
 			if (oldObj != nullptr)
@@ -1728,13 +1728,13 @@ VarAction longOps[] =
 void longVarAction( ForthCoreState* pCore, int64_t* pVar )
 {
     ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
-    uint32_t varOp = GET_VAR_OPERATION;
-    if ( varOp )
+    VarOperation varOp = GET_VAR_OPERATION;
+    if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= kVarMinusStore )
+        if (varOp <= VarOperation::kVarMinusStore)
         {
-            SPUSH( (cell) pVar );
-            longOps[ varOp ] ( pCore );
+            SPUSH((cell)pVar);
+            longOps[(ucell)varOp](pCore);
         }
         else
         {
@@ -2290,7 +2290,7 @@ OPTYPE_ACTION( NumVaropComboAction )
     SPUSH( num );
 
 	// set varop to bits 22:23 + 2
-	SET_VAR_OPERATION( ((opVal >> 22) & 3) + 2 );
+    SET_VAR_OPERATION(static_cast<VarOperation>(((opVal >> 22) & 3) + 2));
 }
 
 OPTYPE_ACTION( NumOpComboAction )
@@ -2649,7 +2649,7 @@ void InitDispatchTables( ForthCoreState* pCore )
 void CoreSetError( ForthCoreState *pCore, eForthError error, bool isFatal )
 {
     pCore->error =  error;
-    pCore->state = (isFatal) ? kResultFatalError : kResultError;
+    pCore->state = (ucell)((isFatal) ? OpResult::kResultFatalError : OpResult::kResultError);
 }
 
 //############################################################################
@@ -2661,10 +2661,9 @@ void CoreSetError( ForthCoreState *pCore, eForthError error, bool isFatal )
 
 
 
-eForthResult
-InnerInterpreter( ForthCoreState *pCore )
+OpResult InnerInterpreter( ForthCoreState *pCore )
 {
-    SET_STATE( kResultOk );
+    SET_STATE( OpResult::kResultOk );
 
 	bool bContinueLooping = true;
 	while (bContinueLooping)
@@ -2674,8 +2673,8 @@ InnerInterpreter( ForthCoreState *pCore )
 		int traceFlags = pEngine->GetTraceFlags();
 		if (traceFlags & kLogInnerInterpreter)
 		{
-			eForthResult result = GET_STATE;
-			while (result == kResultOk)
+			OpResult result = GET_STATE;
+			while (result == OpResult::kResultOk)
 			{
 				// fetch op at IP, advance IP
                 forthop* pIP = GET_IP;
@@ -2685,7 +2684,7 @@ InnerInterpreter( ForthCoreState *pCore )
 				SET_IP(pIP);
 				DISPATCH_FORTH_OP(pCore, op);
 				result = GET_STATE;
-				if (result != kResultDone)
+				if (result != OpResult::kResultDone)
 				{
 					if (traceFlags & kLogStack)
 					{
@@ -2699,7 +2698,7 @@ InnerInterpreter( ForthCoreState *pCore )
 		else
 #endif
 		{
-			while (GET_STATE == kResultOk)
+			while (GET_STATE == OpResult::kResultOk)
 			{
                 forthop* pIP = GET_IP;
 				forthop op = *pIP++;
@@ -2715,10 +2714,9 @@ InnerInterpreter( ForthCoreState *pCore )
     return GET_STATE;
 }
 
-eForthResult
-InterpretOneOp( ForthCoreState *pCore, forthop op )
+OpResult InterpretOneOp( ForthCoreState *pCore, forthop op )
 {
-    SET_STATE( kResultOk );
+    SET_STATE( OpResult::kResultOk );
 
 #ifdef TRACE_INNER_INTERPRETER
 	ForthEngine* pEngine = GET_ENGINE;
@@ -2748,8 +2746,7 @@ InterpretOneOp( ForthCoreState *pCore, forthop op )
 }
 
 #if 0
-eForthResult
-InnerInterpreter( ForthCoreState *pCore )
+OpResult InnerInterpreter( ForthCoreState *pCore )
 {
     forthop opVal;
     ucell numBuiltinOps;
@@ -2758,14 +2755,14 @@ InnerInterpreter( ForthCoreState *pCore )
     forthop op;
     numBuiltinOps = pCore->numBuiltinOps;
 
-    SET_STATE( kResultOk );
+    SET_STATE( OpResult::kResultOk );
 
 #ifdef TRACE_INNER_INTERPRETER
 	ForthEngine* pEngine = GET_ENGINE;
 	int traceFlags = pEngine->GetTraceFlags();
 	if ( traceFlags & kLogInnerInterpreter )
 	{
-		while ( GET_STATE == kResultOk )
+		while ( GET_STATE == OpResult::kResultOk )
 		{
 			// fetch op at IP, advance IP
 			pIP = GET_IP;
@@ -2785,7 +2782,7 @@ InnerInterpreter( ForthCoreState *pCore )
 	else
 #endif
 	{
-		while ( GET_STATE == kResultOk )
+		while ( GET_STATE == OpResult::kResultOk )
 		{
 			// fetch op at IP, advance IP
 			pIP = GET_IP;
