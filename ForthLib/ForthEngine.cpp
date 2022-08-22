@@ -1458,9 +1458,9 @@ ForthEngine::TraceStack( ForthCoreState* pCore )
     TraceOut("  stack[%d]:", nItems);
 #define MAX_TRACE_STACK_ITEMS 8
 #if defined(WIN32)
-	ucell numToDisplay = min(MAX_TRACE_STACK_ITEMS, nItems);
+	ucell numToDisplay = min((ucell)MAX_TRACE_STACK_ITEMS, nItems);
 #else
-	ucell numToDisplay = std::min(MAX_TRACE_STACK_ITEMS, nItems);
+	ucell numToDisplay = std::min((ucell)MAX_TRACE_STACK_ITEMS, nItems);
 #endif
 	for (i = 0; i < numToDisplay; i++)
 	{
@@ -1470,6 +1470,7 @@ ForthEngine::TraceStack( ForthCoreState* pCore )
         TraceOut( " %x", *pSP++ );
 #endif
 	}
+
 	if (nItems > numToDisplay)
 	{
 		TraceOut(" <%d more>", nItems - numToDisplay);
@@ -1482,7 +1483,7 @@ ForthEngine::TraceStack( ForthCoreState* pCore )
 #if defined(WIN32)
     numToDisplay = min(MAX_TRACE_RSTACK_ITEMS, nItems);
 #else
-    numToDisplay = std::min(MAX_TRACE_RSTACK_ITEMS, nItems);
+    numToDisplay = std::min((ucell)MAX_TRACE_RSTACK_ITEMS, nItems);
 #endif
     for (i = 0; i < numToDisplay; i++)
     {
@@ -1492,6 +1493,7 @@ ForthEngine::TraceStack( ForthCoreState* pCore )
         TraceOut(" %x", *pRP++);
 #endif
     }
+
     if (nItems > numToDisplay)
     {
         TraceOut(" <%d more>", nItems - numToDisplay);

@@ -1391,10 +1391,10 @@ namespace OLock
 #ifdef WIN32
         BOOL result = TryEnterCriticalSection(pLockStruct->pLock);
 #else
-		int locOpResult::k = pthread_mutex_trylock(pLockStruct->pLock);
-		bool result = (locOpResult::k == 0);
+		int lockResult = pthread_mutex_trylock(pLockStruct->pLock);
+		bool result = (lockResult == 0);
 #endif
-		SPUSH((int)result);
+		SPUSH((cell)result);
 		METHOD_RETURN;
 	}
 
