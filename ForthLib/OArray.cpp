@@ -160,7 +160,7 @@ namespace OArray
     FORTHOP(oArrayFindMethod)
     {
         GET_THIS(oArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         ForthObject soughtObj;
         POP_OBJECT(soughtObj);
         oArray::iterator iter;
@@ -1149,7 +1149,7 @@ namespace OArray
     FORTHOP(oBagFindMethod)
     {
         GET_THIS(oBagStruct, pBag);
-        int32_t found = 0;
+        cell found = 0;
         stackInt64 soughtTag;
         LPOP(soughtTag);
         oBag::iterator iter;
@@ -1545,7 +1545,7 @@ namespace OArray
     FORTHOP(oBagFindValueMethod)
     {
         GET_THIS(oBagStruct, pBag);
-        int32_t found = 0;
+        cell found = 0;
         stackInt64 soughtTag;
         LPOP(soughtTag);
         oBag::iterator iter;
@@ -2090,7 +2090,7 @@ namespace OArray
     FORTHOP(oByteArrayFindMethod)
     {
         GET_THIS(oByteArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         char soughtByte = (char)(SPOP);
         oByteArray::iterator iter;
         oByteArray& a = *(pArray->elements);
@@ -2357,7 +2357,7 @@ namespace OArray
     FORTHOP(oByteArrayFindValueMethod)
     {
         GET_THIS(oByteArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         char val = (char)SPOP;
         oByteArray& a = *(pArray->elements);
         char* pElement = &(a[0]);
@@ -2807,7 +2807,7 @@ namespace OArray
     FORTHOP(oShortArrayFindMethod)
     {
         GET_THIS(oShortArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         short soughtShort = (short)(SPOP);
         oShortArray::iterator iter;
         oShortArray& a = *(pArray->elements);
@@ -3076,7 +3076,7 @@ namespace OArray
     FORTHOP(oShortArrayFindValueMethod)
     {
         GET_THIS(oShortArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         short val = (short)SPOP;
         oShortArray& a = *(pArray->elements);
         for (uint32_t i = 0; i < a.size(); i++)
@@ -3514,7 +3514,7 @@ namespace OArray
     FORTHOP(oIntArrayFindMethod)
     {
         GET_THIS(oIntArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         int soughtInt = SPOP;
         oIntArray::iterator iter;
         oIntArray& a = *(pArray->elements);
@@ -3766,7 +3766,7 @@ namespace OArray
     FORTHOP(oIntArrayFindValueMethod)
     {
         GET_THIS(oIntArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         int val = SPOP;
         oIntArray& a = *(pArray->elements);
         for (uint32_t i = 0; i < a.size(); i++)
@@ -4325,7 +4325,7 @@ namespace OArray
     FORTHOP(oLongArrayFindMethod)
     {
         GET_THIS(oLongArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         stackInt64 a64;
         LPOP(a64);
         int64_t soughtLong = a64.s64;
@@ -4608,7 +4608,7 @@ namespace OArray
     FORTHOP(oLongArrayFindValueMethod)
     {
         GET_THIS(oLongArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         stackInt64 a64;
         LPOP(a64);
         int64_t val = a64.s64;
@@ -5053,7 +5053,7 @@ namespace OArray
     FORTHOP(oDoubleArrayFindMethod)
     {
         GET_THIS(oDoubleArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         double soughtDouble = DPOP;
         oDoubleArray::iterator iter;
         oDoubleArray& a = *(pArray->elements);
@@ -5197,7 +5197,7 @@ namespace OArray
     FORTHOP(oDoubleArrayFindValueMethod)
     {
         GET_THIS(oDoubleArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         double dval = DPOP;
         oDoubleArray& a = *(pArray->elements);
         for (uint32_t i = 0; i < a.size(); i++)

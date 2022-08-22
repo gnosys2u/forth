@@ -138,8 +138,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-        oMapIterStruct* pIter = new oMapIterStruct;
-        TRACK_ITER_NEW;
+		MALLOCATE_ITER(oMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -250,7 +249,7 @@ namespace OMap
     FORTHOP(oMapFindMethod)
     {
         GET_THIS(oMapStruct, pMap);
-        int32_t found = 0;
+        cell found = 0;
 
         oMap& a = *(pMap->elements);
         ForthObject key;
@@ -298,7 +297,7 @@ namespace OMap
 	FORTHOP(oMapGrabMethod)
 	{
 		GET_THIS(oMapStruct, pMap);
-        int32_t found = 0;
+        cell found = 0;
 		oMap& a = *(pMap->elements);
         ForthObject key;
         POP_OBJECT(key);
@@ -360,7 +359,7 @@ namespace OMap
 	{
 		GET_THIS(oMapStruct, pMap);
         ForthObject retVal = nullptr;
-		int32_t found = 0;
+		cell found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oMap::iterator iter;
@@ -650,7 +649,7 @@ namespace OMap
 	};
 
 
-    void setIntMap(oIntMapStruct* pMap, int key, ForthObject& newObj, ForthCoreState* pCore)
+    void setIntMap(oIntMapStruct* pMap, int32_t key, ForthObject& newObj, ForthCoreState* pCore)
     {
         oIntMap& a = *(pMap->elements);
         oIntMap::iterator iter = a.find(key);
@@ -721,8 +720,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIIntMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-        oIntMapIterStruct* pIter = new oIntMapIterStruct;
-        TRACK_ITER_NEW;
+		MALLOCATE_ITER(oIntMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -817,7 +815,7 @@ namespace OMap
     FORTHOP(oIntMapFindMethod)
     {
         GET_THIS(oIntMapStruct, pMap);
-        int32_t found = 0;
+        cell found = 0;
 
         oIntMap& a = *(pMap->elements);
         int32_t key = SPOP;
@@ -864,7 +862,7 @@ namespace OMap
 		GET_THIS(oIntMapStruct, pMap);
 		oIntMap& a = *(pMap->elements);
 		int32_t key = SPOP;
-        int32_t found = 0;
+        cell found = 0;
 
         oIntMap::iterator iter = a.find(key);
 		if (iter != a.end())
@@ -919,7 +917,7 @@ namespace OMap
     FORTHOP(oIntMapFindValueMethod)
 	{
 		GET_THIS(oIntMapStruct, pMap);
-		int32_t found = 0;
+		cell found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oIntMap::iterator iter;
@@ -1013,7 +1011,6 @@ namespace OMap
 		GET_THIS(oIntMapIterStruct, pIter);
 		SAFE_RELEASE(pCore, pIter->parent);
 		delete pIter->cursor;
-		delete pIter;
 		TRACK_ITER_DELETE;
 		METHOD_RETURN;
 	}
@@ -1271,8 +1268,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIFloatMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-        oFloatMapIterStruct* pIter = new oFloatMapIterStruct;
-        TRACK_ITER_NEW;
+		MALLOCATE_ITER(oFloatMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -1349,7 +1345,7 @@ namespace OMap
     FORTHOP(oFloatMapFindMethod)
     {
         GET_THIS(oFloatMapStruct, pMap);
-        int32_t found = 0;
+        cell found = 0;
 
         oFloatMap& a = *(pMap->elements);
         float key = FPOP;
@@ -1373,7 +1369,7 @@ namespace OMap
 		GET_THIS(oFloatMapStruct, pMap);
 		oFloatMap& a = *(pMap->elements);
 		float key = FPOP;
-        int32_t found = 0;
+        cell found = 0;
 
         oFloatMap::iterator iter = a.find(key);
         if (iter != a.end())
@@ -1428,7 +1424,7 @@ namespace OMap
 	FORTHOP(oFloatMapFindValueMethod)
 	{
 		GET_THIS(oFloatMapStruct, pMap);
-		int32_t found = 0;
+		cell found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oFloatMap::iterator iter;
@@ -1592,8 +1588,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCILongMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-        oLongMapIterStruct* pIter = new oLongMapIterStruct;
-        TRACK_ITER_NEW;
+		MALLOCATE_ITER(oLongMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -1682,7 +1677,7 @@ namespace OMap
     FORTHOP(oLongMapFindMethod)
     {
         GET_THIS(oLongMapStruct, pMap);
-        int32_t found = 0;
+        cell found = 0;
 
         oLongMap& a = *(pMap->elements);
         stackInt64 key;
@@ -1731,7 +1726,7 @@ namespace OMap
 		oLongMap& a = *(pMap->elements);
 		stackInt64 key;
 		LPOP(key);
-        int32_t found = 0;
+        cell found = 0;
 
         oLongMap::iterator iter = a.find(key.s64);
         if (iter != a.end())
@@ -1789,7 +1784,7 @@ namespace OMap
 	{
 		GET_THIS(oLongMapStruct, pMap);
 		stackInt64 retVal;
-		int32_t found = 0;
+		cell found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oLongMap::iterator iter;
@@ -2146,8 +2141,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIDoubleMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-        oDoubleMapIterStruct* pIter = new oDoubleMapIterStruct;
-        TRACK_ITER_NEW;
+		MALLOCATE_ITER(oDoubleMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -2243,7 +2237,7 @@ namespace OMap
     FORTHOP(oDoubleMapFindMethod)
     {
         GET_THIS(oDoubleMapStruct, pMap);
-        int32_t found = 0;
+        cell found = 0;
 
         oDoubleMap& a = *(pMap->elements);
         double key = DPOP;
@@ -2292,7 +2286,7 @@ namespace OMap
 		GET_THIS(oDoubleMapStruct, pMap);
 		oDoubleMap& a = *(pMap->elements);
 		double key = DPOP;
-        int32_t found = 0;
+        cell found = 0;
 
         oDoubleMap::iterator iter = a.find(key);
         if (iter != a.end())
@@ -2347,7 +2341,7 @@ namespace OMap
     FORTHOP(oDoubleMapFindValueMethod)
 	{
 		GET_THIS(oDoubleMapStruct, pMap);
-		int32_t found = 0;
+		cell found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oDoubleMap::iterator iter;
@@ -2668,8 +2662,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIStringIntMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-        oStringIntMapIterStruct* pIter = new oStringIntMapIterStruct;
-        TRACK_ITER_NEW;
+		MALLOCATE_ITER(oStringIntMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -2756,7 +2749,7 @@ namespace OMap
     FORTHOP(oStringIntMapFindMethod)
     {
         GET_THIS(oStringIntMapStruct, pMap);
-        int32_t found = 0;
+        cell found = 0;
 
         oStringIntMap& a = *(pMap->elements);
         std::string key;
@@ -2800,7 +2793,7 @@ namespace OMap
 		oStringIntMap& a = *(pMap->elements);
 		std::string key;
 		key = (const char*)(SPOP);
-        int32_t found = 0;
+        cell found = 0;
 
         oStringIntMap::iterator iter = a.find(key);
         if (iter != a.end())
@@ -2845,7 +2838,7 @@ namespace OMap
     FORTHOP(oStringIntMapFindValueMethod)
 	{
 		GET_THIS(oStringIntMapStruct, pMap);
-		int32_t found = 0;
+		cell found = 0;
 		int soughtVal = SPOP;
 
 		oStringIntMap::iterator iter;
@@ -3242,8 +3235,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIStringLongMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-        oStringLongMapIterStruct* pIter = new oStringLongMapIterStruct;
-        TRACK_ITER_NEW;
+		MALLOCATE_ITER(oStringLongMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -3327,7 +3319,7 @@ namespace OMap
     FORTHOP(oStringLongMapFindMethod)
     {
         GET_THIS(oStringLongMapStruct, pMap);
-        int32_t found = 0;
+        cell found = 0;
 
         oStringLongMap& a = *(pMap->elements);
         std::string key;
@@ -3372,7 +3364,7 @@ namespace OMap
 		std::string key;
 		key = (const char*)(SPOP);
 		stackInt64 val;
-        int32_t found = 0;
+        cell found = 0;
 
         oStringLongMap::iterator iter = a.find(key);
         if (iter != a.end())
@@ -3420,7 +3412,7 @@ namespace OMap
     FORTHOP(oStringLongMapFindValueMethod)
 	{
 		GET_THIS(oStringLongMapStruct, pMap);
-		int32_t found = 0;
+		cell found = 0;
 		stackInt64 soughtVal;
 		LPOP(soughtVal);
 

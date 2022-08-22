@@ -220,12 +220,20 @@ void* ForthMemoryManager::allocate(size_t numBytes)
                 mUnusedInNewestBlock -= size;
                 result = mpNextAllocation;
                 mpNextAllocation += size;
+            	//printf(">>> allocate @%p %d bytes, pool%02d\n", result, numBytes, poolNum);
             }
+            /*
+            else
+            {
+            	printf(">>> allocate @%p %d bytes, pool%02d RECYCLED\n", result, numBytes, poolNum);
+            }
+            */
         }
         else
         {
             result = ::malloc(numBytes);
             mBigThingStats->trackAllocation(numBytes);
+        	//printf(">>> allocateBIG @%p %d bytes\n", result, numBytes);
         }
     }
 
@@ -245,9 +253,11 @@ void ForthMemoryManager::deallocate(void* pBlock, size_t numBytes)
     {
         ForthMemoryPoolBucket* pool = mPools[poolNum];
         pool->deallocate((char *)pBlock);
+    	//printf(">>> deallocate @%p %d bytes, pool%02d\n", pBlock, numBytes, poolNum);
     }
     else
     {
+    	//printf(">>> deallocateBIG @%p %d bytes\n", pBlock, numBytes);
         ::free(pBlock);
         mBigThingStats->trackDeallocation(numBytes);
     }

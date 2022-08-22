@@ -1078,7 +1078,7 @@ namespace OString
     FORTHOP(oStringMapFindMethod)
     {
         GET_THIS(oStringMapStruct, pMap);
-        int32_t found = 0;
+        cell found = 0;
         ForthObject soughtObj;
         POP_OBJECT(soughtObj);
         oStringMap::iterator iter;
@@ -1134,7 +1134,7 @@ namespace OString
 	FORTHOP(oStringMapGrabMethod)
 	{
 		GET_THIS(oStringMapStruct, pMap);
-        int32_t found = 0;
+        cell found = 0;
         oStringMap& a = *(pMap->elements);
 		std::string key;
 		key = (const char*)(SPOP);
@@ -1190,7 +1190,7 @@ namespace OString
     FORTHOP(oStringMapFindValueMethod)
 	{
 		GET_THIS(oStringMapStruct, pMap);
-		int32_t found = 0;
+		cell found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		oStringMap::iterator iter;

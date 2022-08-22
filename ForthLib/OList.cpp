@@ -799,7 +799,7 @@ namespace OList
 	{
 		GET_THIS(oListIterStruct, pIter);
 		oListElement* pCur = pIter->cursor;
-        int32_t found = 0;
+        cell found = 0;
 		ForthObject soughtObj;
 		POP_OBJECT(soughtObj);
 		if (pCur != NULL)

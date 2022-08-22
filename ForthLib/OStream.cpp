@@ -462,7 +462,7 @@ namespace OStream
     FORTHOP(oInStreamIterCharMethod)
     {
         GET_THIS(oInStreamStruct, pInStream);
-        int32_t found = 0;
+        cell found = 0;
         if ((pInStream->pInFuncs != nullptr)
             && (pInStream->pInFuncs->inChar != nullptr))
         {
@@ -494,7 +494,7 @@ namespace OStream
     FORTHOP(oInStreamIterBytesMethod)
     {
         GET_THIS(oInStreamStruct, pInStream);
-        int32_t found = 0;
+        cell found = 0;
         if ((pInStream->pInFuncs != nullptr)
             && (pInStream->pInFuncs->inBytes != nullptr))
         {
@@ -528,7 +528,7 @@ namespace OStream
     FORTHOP(oInStreamIterLineMethod)
     {
         ForthEngine *pEngine = ForthEngine::GetInstance();
-        int32_t found = 0;
+        cell found = 0;
         ForthObject obj = GET_TP;
         pEngine->FullyExecuteMethod(pCore, obj, kInStreamGetLineMethod);
         int numRead = (int)SPOP;
@@ -556,7 +556,7 @@ namespace OStream
     FORTHOP(oInStreamIterStringMethod)
     {
         ForthEngine *pEngine = ForthEngine::GetInstance();
-        int32_t found = 0;
+        cell found = 0;
 
         ForthObject thisStream = GET_TP;
 
