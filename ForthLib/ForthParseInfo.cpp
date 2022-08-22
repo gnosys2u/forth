@@ -51,10 +51,10 @@ ForthParseInfo::SetToken(const char *pSrc)
 		{
 			symLen = mMaxChars;
 		}
-        mNumChars = symLen;
+        mNumChars = (int)symLen;
 		// set length byte
 #ifdef WIN32
-        *pDst++ = min(symLen, 255);
+        *pDst++ = (char)(min(symLen, 255));
 #else
         *pDst++ = std::min(symLen, 255);
 #endif
@@ -70,9 +70,9 @@ ForthParseInfo::SetToken(const char *pSrc)
 
 		// token has already been copied to mpToken, just set length byte
 		symLen = strlen(((char *)mpToken) + 1);
-        mNumChars = symLen;
+        mNumChars = (int)symLen;
 #ifdef WIN32
-		*((char *)mpToken) = min(symLen, 255);
+		*((char *)mpToken) = (char)(min(symLen, 255));
 #else
 		*((char *)mpToken) = std::min(symLen, 255);
 #endif
@@ -88,7 +88,7 @@ ForthParseInfo::SetToken(const char *pSrc)
 	// 4aaa|a0##    4           2       2
 	// 5aaa|aa0#    5           1       2
 	//
-	mNumLongs = (symLen + 4) >> 2;
+	mNumLongs = (int)((symLen + 4) >> 2);
 
 
 	padChars = (symLen + 2) & 3;

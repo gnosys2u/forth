@@ -249,7 +249,7 @@ forthop* ForthOpcodeCompiler::GetLastCompiledIntoPtr( void )
 	return mpLastIntoOpcode;
 }
 
-bool ForthOpcodeCompiler::GetPreviousOpcode( forthOpType& opType, forthop& opVal, int index )
+bool ForthOpcodeCompiler::GetPreviousOpcode( forthOpType& opType, forthop& opVal, uint32_t index )
 {
     // index of 0 means most recently opcode
 	if ( mPeepholeValidCount > index )

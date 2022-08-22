@@ -230,7 +230,7 @@ void ForthBlockFileManager::UpdateLRU()
             {
                 if ( i != 0 )
                 {
-                    for ( int j = i; j != 0; j-- )
+                    for (ucell j = i; j != 0; j--)
                     {
                         mLRUBuffers[j] = mLRUBuffers[j - 1];
                     }

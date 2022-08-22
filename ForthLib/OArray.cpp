@@ -21,7 +21,7 @@
 #include "OList.h"
 #include "OMap.h"
 
-static void ReportBadArrayIndex(const char* pWhere, int ix, int arraySize)
+static void ReportBadArrayIndex(const char* pWhere, ucell ix, size_t arraySize)
 {
 	char buff[64];
 #if defined(WIN32)
@@ -165,7 +165,7 @@ namespace OArray
         POP_OBJECT(soughtObj);
         oArray::iterator iter;
         oArray& a = *(pArray->elements);
-        for (uint32_t i = 0; i < a.size(); i++)
+        for (ucell i = 0; i < a.size(); i++)
         {
             ForthObject& o = a[i];
             if (OBJECTS_SAME(o, soughtObj))
@@ -242,7 +242,7 @@ namespace OArray
     {
         GET_THIS(oArrayStruct, pArray);
         oArray& a = *(pArray->elements);
-        uint32_t ix = (uint32_t)SPOP;
+        ucell ix = SPOP;
         if (a.size() > ix)
         {
             PUSH_OBJECT(a[ix]);
@@ -258,7 +258,7 @@ namespace OArray
     {
         GET_THIS(oArrayStruct, pArray);
         oArray& a = *(pArray->elements);
-        uint32_t ix = (uint32_t)SPOP;
+        ucell ix = SPOP;
         if (a.size() > ix)
         {
             ForthObject& oldObj = a[ix];
@@ -277,7 +277,7 @@ namespace OArray
     {
         GET_THIS(oArrayStruct, pArray);
         oArray& a = *(pArray->elements);
-        uint32_t ix = (uint32_t)SPOP;
+        ucell ix = SPOP;
         if (a.size() > ix)
         {
             SPUSH((cell)&(a[ix]));
@@ -293,8 +293,8 @@ namespace OArray
     {
         GET_THIS(oArrayStruct, pArray);
         oArray& a = *(pArray->elements);
-        uint32_t ix = (uint32_t)SPOP;
-        uint32_t jx = (uint32_t)SPOP;
+        ucell ix = SPOP;
+        ucell jx = SPOP;
         if ((a.size() > ix) && (a.size() > jx))
         {
             ForthObject t = a[ix];
@@ -312,13 +312,13 @@ namespace OArray
 	{
 		GET_THIS(oArrayStruct, pArray);
 		oArray& a = *(pArray->elements);
-		uint32_t newSize = SPOP;
+		ucell newSize = SPOP;
 		if (a.size() != newSize)
 		{
 			if (a.size() > newSize)
 			{
 				// shrinking - release elements which are beyond new end of array
-				for (uint32_t i = newSize; i < a.size(); i++)
+				for (ucell i = newSize; i < a.size(); i++)
 				{
 					SAFE_RELEASE(pCore, a[i]);
 				}
@@ -328,7 +328,7 @@ namespace OArray
 			{
 				// growing - add null objects to end of array
 				a.resize(newSize);
-				for (uint32_t i = a.size(); i < newSize; i++)
+				for (ucell i = a.size(); i < newSize; i++)
 				{
 					a[i] = nullptr;
 				}
@@ -342,8 +342,8 @@ namespace OArray
         GET_THIS(oArrayStruct, pArray);
 
         oArray& a = *(pArray->elements);
-        uint32_t ix = (uint32_t)SPOP;
-        uint32_t oldSize = a.size();
+        ucell ix = SPOP;
+        size_t oldSize = a.size();
         if (oldSize >= ix)
         {
             ForthObject newObj;
@@ -370,8 +370,8 @@ namespace OArray
         GET_THIS(oArrayStruct, pArray);
 
         oArray& a = *(pArray->elements);
-        uint32_t ix = (uint32_t)SPOP;
-        uint32_t oldSize = a.size();
+        ucell ix = SPOP;
+        size_t oldSize = a.size();
         if (ix < a.size())
         {
             ForthObject fobj = a[ix];
@@ -427,13 +427,13 @@ namespace OArray
 	{
 		GET_THIS(oArrayStruct, pArray);
 		oArray& a = *(pArray->elements);
-		uint32_t newSize = SPOP;
+		size_t newSize = SPOP;
 		if (a.size() != newSize)
 		{
 			if (a.size() > newSize)
 			{
 				// shrinking - release elements which are beyond new end of array
-				for (uint32_t i = newSize; i < a.size(); i++)
+				for (ucell i = newSize; i < a.size(); i++)
 				{
 					SAFE_RELEASE(pCore, a[i]);
 				}
@@ -443,7 +443,7 @@ namespace OArray
 			{
 				// growing - add null objects to end of array
 				a.resize(newSize);
-				for (uint32_t i = a.size(); i < newSize; i++)
+				for (ucell i = a.size(); i < newSize; i++)
 				{
 					a[i] = nullptr;
 				}
@@ -451,7 +451,7 @@ namespace OArray
 		}
 		if (newSize > 0)
 		{
-			for (int i = newSize - 1; i >= 0; i--)
+			for (ucell i = newSize - 1; i >= 0; i--)
 			{
 				ForthObject& oldObj = a[i];
 				ForthObject newObj;
@@ -471,23 +471,23 @@ namespace OArray
     {
         GET_THIS(oArrayStruct, pArray);
         oArray& a = *(pArray->elements);
-        uint32_t offset = SPOP;
-        uint32_t numObjects = SPOP;
+        ucell offset = SPOP;
+        ucell numObjects = SPOP;
         ForthObject* pSrc = (ForthObject*)(SPOP);
-        uint32_t newSize = (uint32_t)(numObjects + offset);
-        uint32_t oldSize = a.size();
+        ucell newSize = numObjects + offset;
+        size_t oldSize = a.size();
 
         // NOTE: overlapping source and dest will result in undefined behavior
 
         // increase refcount on all source objects
-        for (uint32_t i = 0; i < numObjects; i++)
+        for (ucell i = 0; i < numObjects; i++)
         {
             ForthObject& srcObj = pSrc[i];
             SAFE_KEEP(srcObj);
         }
 
         // decrease refcount on all dest objects
-        for (uint32_t i = offset; i < oldSize; i++)
+        for (ucell i = offset; i < oldSize; i++)
         {
             ForthObject& dstObj = a[i];
             SAFE_RELEASE(pCore, dstObj);
@@ -508,12 +508,12 @@ namespace OArray
     FORTHOP(oArrayFindValueMethod)
     {
         GET_THIS(oArrayStruct, pArray);
-        int32_t found = 0;
+        cell found = 0;
         ForthObject soughtObj;
         POP_OBJECT(soughtObj);
         oArray::iterator iter;
         oArray& a = *(pArray->elements);
-        for (uint32_t i = 0; i < a.size(); i++)
+        for (ucell i = 0; i < a.size(); i++)
         {
             ForthObject& o = a[i];
             if (OBJECTS_SAME(o, soughtObj))
@@ -535,13 +535,13 @@ namespace OArray
 		METHOD_RETURN;
 	}
 
-    int objectArrayQuicksortPartition(ForthCoreState* pCore, ForthObject* pData, int left, int right)
+    cell objectArrayQuicksortPartition(ForthCoreState* pCore, ForthObject* pData, cell left, cell right)
 	{
 		ForthObject* pLeft = pData + left;
 		ForthObject* pRight = pData + right;
 		ForthObject pivot = *pLeft;
 		ForthObject tmp;
-		int compareResult;
+		cell compareResult;
 		ForthEngine* pEngine = ForthEngine::GetInstance();
 
 		left--;
@@ -580,11 +580,11 @@ namespace OArray
 		}
 	}
 
-	void objectArrayQuicksortStep(ForthCoreState* pCore, ForthObject* pData, int left, int right)
+	void objectArrayQuicksortStep(ForthCoreState* pCore, ForthObject* pData, cell left, cell right)
 	{
 		if (left < right)
 		{
-			int pivot = objectArrayQuicksortPartition(pCore, pData, left, right);
+			cell pivot = objectArrayQuicksortPartition(pCore, pData, left, right);
 			objectArrayQuicksortStep(pCore, pData, left, pivot);
 			objectArrayQuicksortStep(pCore, pData, pivot + 1, right);
 		}
@@ -648,7 +648,7 @@ namespace OArray
     {
         GET_THIS(oArrayStruct, pArray);
         oArray& a = *(pArray->elements);
-        uint32_t ix = (uint32_t)SPOP;
+        ucell ix = SPOP;
         if (a.size() > ix)
         {
             ForthObject fobj = a[ix];
@@ -903,12 +903,12 @@ namespace OArray
     FORTHOP(oArrayIterFindNextMethod)
     {
         GET_THIS(oArrayIterStruct, pIter);
-        int32_t retVal = 0;
+        cell retVal = 0;
         ForthObject soughtObj;
         POP_OBJECT(soughtObj);
         oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
         oArray& a = *(pArray->elements);
-        uint32_t i = pIter->cursor;
+        ucell i = pIter->cursor;
         while (i < a.size())
         {
             ForthObject& o = a[i];
@@ -930,18 +930,18 @@ namespace OArray
 
 		oArrayStruct* pArray = reinterpret_cast<oArrayStruct *>(pIter->parent);
 		oArray& a = *(pArray->elements);
-		uint32_t ix = pIter->cursor;
-		uint32_t oldSize = a.size();
+		ucell ix = pIter->cursor;
+		size_t oldSize = a.size();
 		if (oldSize >= ix)
 		{
 			ForthObject newObj;
 			POP_OBJECT(newObj);
 			// add dummy object to end of array
-			a.resize(oldSize + 1);
+			a.resize(oldSize + (ucell)1);
 			if ((oldSize > 0) && (ix < oldSize))
 			{
 				// move old entries up by size of ForthObject
-				memmove(&(a[ix + 1]), &(a[ix]), sizeof(ForthObject) * (oldSize - ix));
+				memmove(&(a[ix + (ucell)1]), &(a[ix]), sizeof(ForthObject) * (oldSize - ix));
 			}
 			a[ix] = newObj;
 			SAFE_KEEP(newObj);
@@ -994,7 +994,7 @@ namespace OArray
     struct oBagStruct
     {
         forthop* pMethods;
-        uint32_t    refCount;
+        ucell    refCount;
         oBag*    elements;
     };
 
@@ -1338,13 +1338,13 @@ namespace OArray
     {
         GET_THIS(oBagStruct, pBag);
         oBag& a = *(pBag->elements);
-        uint32_t newSize = SPOP;
+        size_t newSize = SPOP;
         if (a.size() != newSize)
         {
             if (a.size() > newSize)
             {
                 // shrinking - release elements which are beyond new end of array
-                for (uint32_t i = newSize; i < a.size(); i++)
+                for (ucell i = newSize; i < a.size(); i++)
                 {
                     SAFE_RELEASE(pCore, a[i].obj);
                 }
@@ -1357,7 +1357,7 @@ namespace OArray
                 bagElement emptyElement;
                 emptyElement.obj = nullptr;
                 emptyElement.tag.s64 = 0L;
-                for (uint32_t i = a.size(); i < newSize; i++)
+                for (ucell i = a.size(); i < newSize; i++)
                 {
                     a[i] = emptyElement;
                 }
@@ -1371,8 +1371,8 @@ namespace OArray
         GET_THIS(oBagStruct, pBag);
 
         oBag& a = *(pBag->elements);
-        uint32_t ix = (uint32_t)SPOP;
-        uint32_t oldSize = a.size();
+        ucell ix = SPOP;
+        size_t oldSize = a.size();
         if (oldSize >= ix)
         {
             bagElement newElement;
@@ -1400,8 +1400,8 @@ namespace OArray
         GET_THIS(oBagStruct, pBag);
 
         oBag& a = *(pBag->elements);
-        uint32_t ix = (uint32_t)SPOP;
-        uint32_t oldSize = a.size();
+        ucell ix = SPOP;
+        size_t oldSize = a.size();
         if (ix < a.size())
         {
             bagElement oldElement = a[ix];
@@ -1460,13 +1460,13 @@ namespace OArray
     {
         GET_THIS(oBagStruct, pBag);
         oBag& a = *(pBag->elements);
-        uint32_t newSize = SPOP;
+        size_t newSize = SPOP;
         if (a.size() != newSize)
         {
             if (a.size() > newSize)
             {
                 // shrinking - release elements which are beyond new end of array
-                for (uint32_t i = newSize; i < a.size(); i++)
+                for (ucell i = newSize; i < a.size(); i++)
                 {
                     SAFE_RELEASE(pCore, a[i].obj);
                 }
@@ -1479,7 +1479,7 @@ namespace OArray
                 bagElement emptyElement;
                 emptyElement.obj = nullptr;
                 emptyElement.tag.s64 = 0L;
-                for (uint32_t i = a.size(); i < newSize; i++)
+                for (ucell i = a.size(); i < newSize; i++)
                 {
                     a[i] = emptyElement;
                 }
@@ -1487,7 +1487,7 @@ namespace OArray
         }
         if (newSize > 0)
         {
-            for (int i = newSize - 1; i >= 0; i--)
+            for (cell i = newSize - 1; i >= 0; i--)
             {
                 bagElement& oldElement = a[i];
                 bagElement newElement;
@@ -1508,23 +1508,23 @@ namespace OArray
     {
         GET_THIS(oBagStruct, pBag);
         oBag& a = *(pBag->elements);
-        uint32_t offset = SPOP;
-        uint32_t numElements = SPOP;
+        ucell offset = SPOP;
+        ucell numElements = SPOP;
         bagElement* pSrc = (bagElement*)(SPOP);
-        uint32_t newSize = (uint32_t)(numElements + offset);
-        uint32_t oldSize = a.size();
+        ucell newSize = numElements + offset;
+        size_t oldSize = a.size();
 
         // NOTE: overlapping source and dest will result in undefined behavior
 
         // increase refcount on all source objects
-        for (uint32_t i = 0; i < numElements; i++)
+        for (ucell i = 0; i < numElements; i++)
         {
             bagElement& srcElement = pSrc[i];
             SAFE_KEEP(srcElement.obj);
         }
 
         // decrease refcount on all dest objects
-        for (uint32_t i = offset; i < oldSize; i++)
+        for (ucell i = offset; i < oldSize; i++)
         {
             bagElement& dstElement = a[i];
             SAFE_RELEASE(pCore, dstElement.obj);
@@ -1885,7 +1885,7 @@ namespace OArray
         LPOP(soughtTag);
         oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         oBag& a = *(pBag->elements);
-        uint32_t i = pIter->cursor;
+        ucell i = pIter->cursor;
         while (i < a.size())
         {
             if (a[i].tag.s64 == soughtTag.s64)
@@ -1906,8 +1906,8 @@ namespace OArray
 
         oBagStruct* pBag = reinterpret_cast<oBagStruct *>(pIter->parent);
         oBag& a = *(pBag->elements);
-        uint32_t ix = pIter->cursor;
-        uint32_t oldSize = a.size();
+        ucell ix = pIter->cursor;
+        size_t oldSize = a.size();
         if (oldSize >= ix)
         {
             bagElement newElement;
@@ -1970,16 +1970,16 @@ namespace OArray
 	struct oByteArrayStruct
 	{
         forthop*        pMethods;
-        uint32_t           refCount;
+        ucell           refCount;
 		oByteArray*    elements;
 	};
 
 	struct oByteArrayIterStruct
 	{
         forthop*        pMethods;
-		uint32_t			refCount;
+		ucell			refCount;
 		ForthObject		parent;
-		uint32_t			cursor;
+		ucell			cursor;
 	};
 
     oByteArrayIterStruct* createByteArrayIterator(ForthCoreState* pCore, oByteArrayStruct* pArray)
@@ -2687,16 +2687,16 @@ namespace OArray
 	struct oShortArrayStruct
 	{
         forthop*        pMethods;
-        uint32_t           refCount;
+        ucell           refCount;
 		oShortArray*    elements;
 	};
 
 	struct oShortArrayIterStruct
 	{
         forthop*        pMethods;
-        uint32_t			refCount;
+        ucell			refCount;
 		ForthObject		parent;
-		uint32_t			cursor;
+		ucell			cursor;
 	};
 
     oShortArrayIterStruct* createShortArrayIterator(ForthCoreState* pCore, oShortArrayStruct* pArray)
@@ -3394,16 +3394,16 @@ namespace OArray
 	struct oIntArrayStruct
 	{
         forthop*        pMethods;
-        uint32_t           refCount;
+        ucell           refCount;
 		oIntArray*      elements;
 	};
 
 	struct oIntArrayIterStruct
 	{
         forthop*        pMethods;
-        uint32_t			refCount;
+        ucell			refCount;
 		ForthObject		parent;
-		uint32_t			cursor;
+		ucell			cursor;
 	};
 
     oIntArrayIterStruct* createIntArrayIterator(ForthCoreState* pCore, oIntArrayStruct* pArray)
@@ -3656,8 +3656,8 @@ namespace OArray
     {
         GET_THIS(oIntArrayStruct, pArray);
         oIntArray& a = *(pArray->elements);
-        uint32_t newSize = SPOP;
-        uint32_t oldSize = a.size();
+        ucell newSize = SPOP;
+        size_t oldSize = a.size();
         a.resize(newSize);
         if (oldSize < newSize)
         {
@@ -3673,8 +3673,8 @@ namespace OArray
         GET_THIS(oIntArrayStruct, pArray);
 
         oIntArray& a = *(pArray->elements);
-        uint32_t ix = (uint32_t)SPOP;
-        uint32_t oldSize = a.size();
+        ucell ix = SPOP;
+        size_t oldSize = a.size();
         if (oldSize >= ix)
         {
             int insertedVal = SPOP;
@@ -4204,16 +4204,16 @@ namespace OArray
 	struct oLongArrayStruct
 	{
         forthop*        pMethods;
-        uint32_t           refCount;
+        ucell           refCount;
 		oLongArray*    elements;
 	};
 
 	struct oLongArrayIterStruct
 	{
         forthop*        pMethods;
-        uint32_t			refCount;
+        ucell			refCount;
 		ForthObject		parent;
-		uint32_t			cursor;
+        ucell			cursor;
 	};
 
     oLongArrayIterStruct* createLongArrayIterator(ForthCoreState* pCore, oLongArrayStruct* pArray)
@@ -4933,16 +4933,16 @@ namespace OArray
 	struct oDoubleArrayStruct
 	{
         forthop*        pMethods;
-        uint32_t           refCount;
+        ucell           refCount;
 		oDoubleArray*   elements;
 	};
 
 	struct oDoubleArrayIterStruct
 	{
         forthop*        pMethods;
-        uint32_t			refCount;
+        ucell			refCount;
 		ForthObject		parent;
-		uint32_t			cursor;
+		ucell			cursor;
 	};
 
     oDoubleArrayIterStruct* createDoubleArrayIterator(ForthCoreState* pCore, oDoubleArrayStruct* pArray)
@@ -5268,19 +5268,19 @@ namespace OArray
     struct oStructArrayStruct
     {
         forthop*                pMethods;
-        uint32_t                   refCount;
+        ucell                   refCount;
         oStructArray*           elements;
-        uint32_t                   elementSize;
-        uint32_t                   numElements;
+        ucell                   elementSize;
+        ucell                   numElements;
         ForthStructVocabulary*  pVocab;
     };
 
     struct oStructArrayIterStruct
     {
         forthop*        pMethods;
-        uint32_t			refCount;
+        ucell			refCount;
         ForthObject		parent;
-        uint32_t			cursor;
+        ucell			cursor;
     };
 
     oStructArrayIterStruct* createStructArrayIterator(ForthCoreState* pCore, oStructArrayStruct* pArray)
@@ -5961,7 +5961,7 @@ namespace OArray
 	struct oPairStruct
 	{
         forthop*        pMethods;
-        uint32_t           refCount;
+        ucell           refCount;
 		ForthObject	    a;
 		ForthObject	    b;
 	};
@@ -5969,7 +5969,7 @@ namespace OArray
 	struct oPairIterStruct
 	{
         forthop*        pMethods;
-        uint32_t			refCount;
+        ucell			refCount;
 		ForthObject		parent;
 		int				cursor;
 	};
@@ -6295,7 +6295,7 @@ namespace OArray
 	struct oTripleStruct
 	{
         forthop*        pMethods;
-        uint32_t           refCount;
+        ucell           refCount;
 		ForthObject	    a;
 		ForthObject	    b;
 		ForthObject	    c;
@@ -6304,7 +6304,7 @@ namespace OArray
 	struct oTripleIterStruct
 	{
         forthop*        pMethods;
-        uint32_t			refCount;
+        ucell			refCount;
 		ForthObject		parent;
 		int				cursor;
 	};

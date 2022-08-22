@@ -74,7 +74,7 @@ private:
 
 struct ForthLabelReference
 {
-	ForthLabelReference(forthop *inBranchIP, int inBranchType)
+	ForthLabelReference(forthop *inBranchIP, cell inBranchType)
 		: branchIP(inBranchIP)
 		, branchType(inBranchType)
 	{

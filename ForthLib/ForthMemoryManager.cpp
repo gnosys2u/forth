@@ -205,7 +205,7 @@ void* ForthMemoryManager::allocate(size_t numBytes)
     void* result = nullptr;
     if (numBytes != 0)
     {
-        int poolNum = (numBytes - 1) >> 3;
+        int poolNum = (int)((numBytes - 1) >> 3);
         if (poolNum < NUM_MEMORY_POOLS)
         {
             ForthMemoryPoolBucket* pool = mPools[poolNum];
@@ -240,7 +240,7 @@ void ForthMemoryManager::deallocate(void* pBlock, size_t numBytes)
         printf("### bogus free %d @%p, not in storage!\n", (int)numBytes, pBlock);
     }
     */
-    int poolNum = (numBytes - 1) >> 3;
+    int poolNum = (int)((numBytes - 1) >> 3);
     if (poolNum < NUM_MEMORY_POOLS)
     {
         ForthMemoryPoolBucket* pool = mPools[poolNum];

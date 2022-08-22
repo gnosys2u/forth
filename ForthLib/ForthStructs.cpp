@@ -139,8 +139,8 @@ ForthTypesManager::StartStructDefinition( const char *pName )
 
     forthop *pEntry = pEngine->StartOpDefinition( pName, true, kOpUserDefImmediate );
 	mNewestTypeIndex = static_cast<int>(mStructInfo.size());
-	ForthStructVocabulary* pVocab = new ForthStructVocabulary(pName, mNewestTypeIndex);
-	mStructInfo.emplace_back(ForthTypeInfo(pVocab, *pEntry, mNewestTypeIndex));
+	ForthStructVocabulary* pVocab = new ForthStructVocabulary(pName, (int)mNewestTypeIndex);
+	mStructInfo.emplace_back(ForthTypeInfo(pVocab, *pEntry, (int)mNewestTypeIndex));
 	SPEW_STRUCTS("StartStructDefinition %s struct index %d\n", pName, mNewestTypeIndex);
     return pVocab;
 }
@@ -463,7 +463,7 @@ ForthTypesManager::ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus )
 		// when done, either compile (copy) or execute code in mCode buffer
 		if ( pEngine->IsCompiling() )
 		{
-			int nLongs = pDst - &(mCode[0]);
+			int nLongs = (int)(pDst - &(mCode[0]));
 			if ( mpCodeGenerator->UncompileLastOpcode() )
 			{
 				pEngine->UncompileLastOpcode();
@@ -573,7 +573,7 @@ ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitSta
         return false;
     }
     // when done, compile (copy) the code in mCode buffer
-    int nLongs = pDst - &(mCode[0]);
+    int nLongs = (int)(pDst - &(mCode[0]));
     if ( nLongs )
     {
         for (int i = 0; i < nLongs; ++i)
@@ -1089,7 +1089,7 @@ ForthStructVocabulary::TypecodeToString( int32_t typeCode, char* outBuff, size_t
         }
         else
         {
-            sprintf(buff2, "UNKNOWN BASE TYPE %d", baseType);
+            sprintf(buff2, "UNKNOWN BASE TYPE %d", (int)baseType);
         }
         strcat( buff, buff2 );
     }
@@ -1836,7 +1836,7 @@ ForthClassVocabulary::PrintEntry(forthop*   pEntry )
         }
         else
         {
-            sprintf(buff, "UNKNOWN BASE TYPE %d", baseType);
+            sprintf(buff, "UNKNOWN BASE TYPE %d", (int)baseType);
         }
         CONSOLE_STRING_OUT( buff );
     }
@@ -1913,7 +1913,7 @@ ForthInterface::Copy( ForthInterface* pInterface, bool isPrimaryInterface )
 	    mpDefiningClass = pInterface->GetDefiningClass();
 	}
     mNumAbstractMethods = pInterface->mNumAbstractMethods;
-    int numMethods = pInterface->mMethods.size();
+    int numMethods = (int)(pInterface->mMethods.size());
     mMethods.resize( numMethods );
     for ( int i = INTERFACE_SKIPPED_ENTRIES; i < numMethods; i++ )
     {
@@ -1965,7 +1965,7 @@ void
 ForthInterface::Implements( ForthClassVocabulary* pVocab )
 {
     ForthInterface* pInterface = pVocab->GetInterface( 0 );
-    int numMethods = pInterface->mMethods.size();
+    int numMethods = (int)(pInterface->mMethods.size());
     mMethods.resize( numMethods );
 	for ( int i = INTERFACE_SKIPPED_ENTRIES; i < numMethods; i++ )
 	{
@@ -1978,7 +1978,7 @@ ForthInterface::Implements( ForthClassVocabulary* pVocab )
 int
 ForthInterface::AddMethod( forthop method )
 {
-    int methodIndex = mMethods.size() - INTERFACE_SKIPPED_ENTRIES;
+    int methodIndex = (int)(mMethods.size() - INTERFACE_SKIPPED_ENTRIES);
 	mMethods.push_back( method );
     if ( method == gCompiledOps[OP_BAD_OP] )
     {
@@ -2096,7 +2096,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
         }
         else
         {
-            len = SPOP;
+            len = (int32_t)(SPOP);
         }
     }
 

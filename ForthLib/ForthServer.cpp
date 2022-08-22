@@ -72,13 +72,13 @@ namespace
     size_t fileRead( void* data, size_t itemSize, size_t numItems, FILE* pFile )
     {
         ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
-        return (size_t)pShell->FileRead( pFile, data, itemSize, numItems );
+        return (size_t)pShell->FileRead( pFile, data, (int)itemSize, (int)numItems );
     }
 
     size_t fileWrite( const void* data, size_t itemSize, size_t numItems, FILE* pFile )
     {
         ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
-        return (size_t)pShell->FileWrite( pFile, data, itemSize, numItems );
+        return (size_t)pShell->FileWrite( pFile, data, (int)itemSize, (int)numItems );
     }
 
     int fileGetChar( FILE* pFile )
@@ -517,7 +517,7 @@ char* ForthServerInputStream::AddContinuationLine()
                 char* pBufferDst = mpBufferBase + mWriteOffset;
                 if ((srcLen + mWriteOffset) > mBufferLen)
                 {
-                    srcLen = (mBufferLen - mWriteOffset) - 1;
+                    srcLen = (int)((mBufferLen - mWriteOffset) - 1);
                 }
                 memcpy(pBufferDst, pSrcLine, srcLen);
                 pBufferDst[srcLen] = '\0';

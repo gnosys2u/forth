@@ -168,11 +168,11 @@ public:
 	};
 
 	inline char *               GetEntryName(const forthop* pEntry) {
-        return ((char *) pEntry) + (mValueLongs << 2) + 1;
+        return ((char *) pEntry) + ((cell)mValueLongs << 2) + 1;
     };
 
     inline int                  GetEntryNameLength( const forthop* pEntry ) {
-        return (int) *(((char *) pEntry) + (mValueLongs << 2));
+        return (int) *(((char *) pEntry) + ((cell)mValueLongs << 2));
     };
 
     inline int                  GetValueLength()

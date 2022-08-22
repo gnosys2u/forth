@@ -132,7 +132,7 @@ void ForthStructCodeGenerator::HandlePreceedingVarop()
         if ( varMode != VarOperation::kVarDefaultOp )
         {
             CLEAR_VAR_OPERATION;
-            mCompileVarop = gCompiledOps[OP_FETCH] + ((ucell)varMode - (ucell)VarOperation::kVarFetch);
+            mCompileVarop = (uint32_t)(gCompiledOps[OP_FETCH] + ((ucell)varMode - (ucell)VarOperation::kVarFetch));
         }
     }
 }
@@ -168,7 +168,7 @@ bool ForthStructCodeGenerator::HandleFirst()
         char* pColon = strchr( mpToken, ':' );
         if ( pColon != NULL )
         {
-            int colonPos = pColon - mpToken;
+            int colonPos = (int)(pColon - mpToken);
             if ( (tokenLength > 4) && (colonPos > 0) && (colonPos < (tokenLength - 2)) )
             {
                 ////////////////////////////////////

@@ -41,7 +41,7 @@ namespace OSocket
     struct oSocketStruct
     {
         forthop*    pMethods;
-        uint32_t       refCount;
+        ucell       refCount;
 #ifdef WIN32
         SOCKET      fd;
 #else
