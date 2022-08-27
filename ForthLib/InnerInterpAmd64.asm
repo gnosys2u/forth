@@ -34,6 +34,23 @@ BITS 64
 ; rax, rcx, rdx, r8, r9, r10, r11, r12, r13, r14, r15 are volatile and can be stomped by function calls.
 ; rbx, rbp, rdi, rsi, rsp, r12, r13, r14, r15, xmm6-xmm15 are non-volatile and must be saved/restored.
 ;
+;		win		linux		forth
+; rax	  retval
+; rbx
+; rcx	arg0	arg3
+; rdx	arg1	arg2
+; rsi			arg1		rip
+; rdi			arg0		rnext
+; rsp
+; rbp
+; r8	arg2	arg4		opcode in optype action routines
+; r9	arg3	arg5		roptab
+; r10	v		v			rnumops
+; r11	v		v			racttab
+; r12						rcore
+; r13						rfp
+; r14						rsp
+; r15 						rrp
 ;
 ; amd64 register usage:
 ;	rsi			rip     IP
@@ -99,7 +116,7 @@ SECTION .text
 ;	mov	[rcore + FCore.SPtr], rpsp
 ; jump to interpFuncReenter at end - interpFuncReenter will restore ESI, EDX, and EDI and go back to inner loop
 
-; OSX requires that the system stack be on a 16-byte boundary before you call any system routine
+; Linux & OSX requires that the system stack be on a 16-byte boundary before you call any system routine
 ; In general in the inner interpreter code the system stack is kept at 16-byte boundary, so to
 ; determine how much need to offset the system stack to maintain OSX stack alignment, you count
 ; the number of pushes done, including both arguments to the called routine and any extra registers
@@ -424,12 +441,21 @@ traceLoopExecuteEntry:
 	xor	rax, rax		; put null in trace IP for indirect execution (op isn't at IP)
 	sub	rip, 4			; actual IP was already advanced by execute/method op, don't double advance it
 traceLoopDebug2:
+%ifdef LINUX
+	mov	rdi, rcore
+	mov	rsi, rax
+	mov rdx, rbx
+%else
     mov rcx, rcore      ; 1st param - core
     mov rdx, rax        ; 2nd param - IP
     mov r8, rbx         ; 3rd param - opcode (used if IP param is null)
+%endif
 	sub rsp, 32			; shadow space
 	xcall traceOp
 	add rsp, 32
+%ifdef LINUX
+%else
+%endif
 	mov roptab, [rcore + FCore.ops]
 	mov rnumops, [rcore + FCore.numOps]
 	mov racttab, [rcore + FCore.optypeAction]
