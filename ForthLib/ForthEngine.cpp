@@ -395,8 +395,8 @@ ForthEngine::~ForthEngine()
     {
 #ifdef WIN32
 		VirtualFree( mDictionary.pBase, 0, MEM_RELEASE );
-#elif MACOSX
-        munmap(mDictionary.pBase, mDictionary.len * sizeof(int32_t));
+#elif defined(MACOSX) || defined(LINUX)
+        munmap(mDictionary.pBase, mDictionary.len * sizeof(forthop));
 #else
         __FREE( mDictionary.pBase );
 #endif
