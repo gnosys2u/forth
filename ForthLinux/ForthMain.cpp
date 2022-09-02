@@ -30,7 +30,7 @@ void OutputToLogger(const char* pBuffer)
         {
             perror("error making fifo");
         }
-        loggerFD = open(myfifo, O_NONBLOCK | O_WRONLY);
+        loggerFD = open(myfifo, O_WRONLY);
     }
     if (loggerFD >= 0)
     {
