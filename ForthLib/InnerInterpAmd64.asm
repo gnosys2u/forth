@@ -127,6 +127,9 @@ SECTION .text
 ; called each time an instruction is executed
 traceDebugFlags EQU	kLogProfiler + kLogStack + kLogInnerInterpreter
 
+; extra stack space allocated around external calls
+kShadowSpace	EQU	32
+
 ;-----------------------------------------------
 ;
 ; unaryDoubleFunc is used for dsin, dsqrt, dceil, ...
@@ -142,13 +145,17 @@ EXTERN %2
 %1:
 %endif
 	movsd xmm0, QWORD[rpsp]
-	sub rsp, 32			; shadow space
 %ifdef LINUX
-	call	%2
-%else
-	call	%2
+	push rip
+	push rnext
 %endif
-	add rsp, 32
+	sub rsp, kShadowSpace			; shadow space
+	call	%2
+	add rsp, kShadowSpace
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
     movsd QWORD[rpsp], xmm0
 	jmp	restoreNext
 %endmacro
@@ -168,13 +175,17 @@ EXTERN %2
 %1:
 %endif
 	movss xmm0, DWORD[rpsp]
-	sub rsp, 32			; shadow space
 %ifdef LINUX
-	call	%2
-%else
-	call	%2
+	push rip
+	push rnext
 %endif
-	add rsp, 32
+	sub rsp, kShadowSpace			; shadow space
+	call	%2
+	add rsp, kShadowSpace
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
     movss DWORD[rpsp], xmm0
 	jmp	restoreNext
 %endmacro
@@ -204,9 +215,9 @@ entry extOpType
     mov rcx, rcore  ; 1st param to C routine
     mov rdx, r8     ; 2nd param to C routine
     ; stack is already 16-byte aligned
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call	rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	; NOTE: we can't just jump to interpFuncReenter, since that will replace rnext & break single stepping
 	mov	roptab, [rcore + FCore.ops]
 	mov	rnumops, [rcore + FCore.numOps]
@@ -220,7 +231,7 @@ entry extOpType
 ; the interpreter loop exit point - causes an access violation exception ?why?
 	;mov	rip, [rcore + FCore.IPtr]
 	;mov	rpsp, [rcore + FCore.SPtr]
-	;jmp	interpLoopExit	; if something went wrong
+	;jmp	interpFuncExit	; if something went wrong
 	
 extOpType1:
 ; TODO!
@@ -303,20 +314,24 @@ entry InterpretOneOpFast
 	; error exits which do a return instead of branching to inner loop will work
     ; interpLoopExecuteEntry expects opcode in rbx
     mov rbx, rdx
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call	interpLoopExecuteEntry
 	jmp	InterpretOneOpFastExit2
 
 InterpretOneOpFastExit:		; this is exit for state == OK - discard the unused return address from call above
 	add	rsp, 8
 InterpretOneOpFastExit2:	; this is exit for state != OK
-	add rsp, 32
+	add rsp, kShadowSpace
 	mov	[rcore + FCore.SPtr], rpsp
 	mov	[rcore + FCore.RPtr], rrp
 	mov	[rcore + FCore.FPtr], rfp
 	mov	[rcore + FCore.IPtr], rip
 	mov	rax, [rcore + FCore.state]
 
+%ifdef LINUX
+	pop rdx
+	pop rcx
+%endif
     pop r15
     pop r14
     pop r13
@@ -324,10 +339,6 @@ InterpretOneOpFastExit2:	; this is exit for state != OK
     pop rsi
     pop rdi
     pop rbx
-%ifdef LINUX
-	pop rdx
-	pop rcx
-%endif
 	ret
 
 ;-----------------------------------------------
@@ -374,7 +385,8 @@ entry InnerInterpreterFast
 ;   rcore is set by caller
 ;	jump to interpFuncReenter if you need to reload IP, SP, interpLoop
 entry interpFunc
-	sub rsp, 8			; 16-byte align stack
+	push rbp			; 16-byte align stack
+	mov rbp, rsp
 entry interpFuncReenter
 	mov	rpsp, [rcore + FCore.SPtr]
 	mov rrp, [rcore + FCore.RPtr]
@@ -409,6 +421,10 @@ entry interpFuncReenter
 	jmp	rnext
 
 entry interpLoopDebug
+	cmp rsp, rbp
+	jz .iil2
+	mov rbx, [rcore + FCore.scratch]
+.iil2:
 	; while debugging, store IP,SP in corestate shadow copies after every instruction
 	;   so crash stacktrace will be more accurate (off by only one instruction)
 	mov	[rcore + FCore.IPtr], rip
@@ -417,6 +433,7 @@ entry interpLoopDebug
 	mov	[rcore + FCore.FPtr], rfp
 entry interpLoop
 	mov	ebx, [rip]		; rbx is opcode
+	mov	[rcore + FCore.scratch], rbx
 	add	rip, 4			; advance IP
 	; interpLoopExecuteEntry is entry for executeBop/methodWithThis/methodWithTos - expects opcode in rbx
 interpLoopExecuteEntry:
@@ -442,6 +459,8 @@ traceLoopExecuteEntry:
 	sub	rip, 4			; actual IP was already advanced by execute/method op, don't double advance it
 traceLoopDebug2:
 %ifdef LINUX
+	push rip
+	push rnext
 	mov	rdi, rcore
 	mov	rsi, rax
 	mov rdx, rbx
@@ -450,11 +469,12 @@ traceLoopDebug2:
     mov rdx, rax        ; 2nd param - IP
     mov r8, rbx         ; 3rd param - opcode (used if IP param is null)
 %endif
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	xcall traceOp
-	add rsp, 32
+	add rsp, kShadowSpace
 %ifdef LINUX
-%else
+	pop rnext
+	pop rip
 %endif
 	mov roptab, [rcore + FCore.ops]
 	mov rnumops, [rcore + FCore.numOps]
@@ -462,8 +482,8 @@ traceLoopDebug2:
 	add	rip, 4			; advance IP
 	jmp interpLoopExecuteEntry
 
-interpLoopExit:
-	add rsp, 8
+interpFuncExit:
+	pop rbp
 	mov	[rcore + FCore.state], rax
 	mov	[rcore + FCore.IPtr], rip
 	mov	[rcore + FCore.SPtr], rpsp
@@ -473,29 +493,29 @@ interpLoopExit:
 
 badOptype:
 	mov	rax, kForthErrorBadOpcodeType
-	jmp	interpLoopErrorExit
+	jmp	interpFuncErrorExit
 
 badVarOperation:
 	mov	rax, kForthErrorBadVarOperation
-	jmp	interpLoopErrorExit
+	jmp	interpFuncErrorExit
 	
 badOpcode:
 	mov	rax, kForthErrorBadOpcode
 
 	
-interpLoopErrorExit:
+interpFuncErrorExit:
 	; error exit point
 	; rax is error code
 	mov	[rcore + FCore.error], rax
 	mov	rax, kResultError
-	jmp	interpLoopExit
+	jmp	interpFuncExit
 	
-interpLoopFatalErrorExit:
+interpFuncFatalErrorExit:
 	; fatal error exit point
 	; rax is error code
 	mov	[rcore + FCore.error], rax
 	mov	rax, kResultFatalError
-	jmp	interpLoopExit
+	jmp	interpFuncExit
 	
 ; op (in rbx) is not defined in assembler, dispatch through optype table
 notNative:
@@ -516,6 +536,10 @@ restoreNext:
 	mov roptab, [rcore + FCore.ops]
 	mov rnumops, [rcore + FCore.numOps]
 	mov racttab, [rcore + FCore.optypeAction]
+%ifdef LINUX
+;	mov	rnext, [rcore + FCore.innerLoop]	; rnext/rdi in linux is arg0 for calls
+;	mov rip, [rcore + FCore.IPtr]			; rip/rsi in linux is arg1 for calls
+%endif
     jmp rnext
     
 ; externalBuiltin is invoked when a builtin op which is outside of range of table is invoked
@@ -542,14 +566,20 @@ cCodeType:
 	mov	[rcore + FCore.RPtr], rrp
 	mov	[rcore + FCore.FPtr], rfp
 %ifdef LINUX
+	; need to save/restore rnext/rdi since interpretOneOpFast passes in the register, but doesn't
+	;  change the copy in rcore.innerLoop, since that would break tracing
+	push rnext
     mov rdi, rcore      ; 1st param - core
+	sub rsp, kShadowSpace + 8			; shadow space
+	call	rax
+	add rsp, kShadowSpace + 8
+	pop rnext
 %else
     mov rcx, rcore      ; 1st param - core
-%endif
-    mov rcx, rcore      ; 1st param - core
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call	rax
-	add rsp, 32
+	add rsp, kShadowSpace
+%endif
 	; load IP and SP from core, in case C routine modified them
 	; NOTE: we can't just jump to interpFuncReenter, since that will replace rnext & break single stepping
 	mov	rpsp, [rcore + FCore.SPtr]
@@ -560,18 +590,15 @@ cCodeType:
 	mov roptab, [rcore + FCore.ops]
 	mov rnumops, [rcore + FCore.numOps]
 	mov racttab, [rcore + FCore.optypeAction]
-%ifdef LINUX
-	mov	rnext, [rcore + FCore.innerLoop]	; rnext/rdi was used as first arg (pCore) above
-%endif
 	or	rax, rax
-	jnz	interpLoopExit		; if something went wrong (should this be interpLoopErrorExit?)
+	jnz	interpFuncExit		; if something went wrong (should this be interpFuncErrorExit?)
 	jmp	rnext					; if everything is ok
 	
 ; NOTE: Feb. 14 '07 - doing the right thing here - restoring IP & SP and jumping to
 ; the interpreter loop exit point - causes an access violation exception ?why?
 	;mov	rip, [rcore + FCore.IPtr]
 	;mov	rpsp, [rcore + FCore.SPtr]
-	;jmp	interpLoopExit	; if something went wrong
+	;jmp	interpFuncExit	; if something went wrong
 	
 
 ;-----------------------------------------------
@@ -592,7 +619,7 @@ entry userDefType
 
 badUserDef:
 	mov	rax, kForthErrorBadOpcode
-	jmp	interpLoopErrorExit
+	jmp	interpFuncErrorExit
 
 ;-----------------------------------------------
 ;
@@ -1966,9 +1993,10 @@ entry memberDoubleArrayType
 GLOBAL localStringType, stringEntry, localStringFetch, localStringStore, localStringAppend
 entry localStringType
 	mov	rax, rbx
-	; see if a varop is specified
+	; see if opcode specifies a varop
 	and	rax, 00E00000h
 	jz localStringType1
+	; store opcode varop in core.varMode
 	shr	rax, 21
 	mov	[rcore + FCore.varMode], rax
 localStringType1:
@@ -1979,6 +2007,9 @@ localStringType1:
 	sub	rax, rbx
 	; see if it is a fetch
 stringEntry:
+%ifdef LINUX
+	mov	[rcore + FCore.IPtr], rip		; save IP as it will get stomped in xcalls in linux
+%endif
 	mov	rbx, [rcore + FCore.varMode]
 	or	rbx, rbx
 	jnz	localString1
@@ -2014,16 +2045,15 @@ localStringStore:
 	; TOS is src string addr
     mov rbx, rax            ; strlen will stomp rax
 %ifdef LINUX
+	push rip
+	push rnext
 	mov	rdi, [rpsp]			; rdi/rnext -> chars of src string
 %else
 	mov	rcx, [rpsp]			; rcx -> chars of src string
 %endif
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace
 	xcall	strlen
-%ifdef LINUX
-	mov	rnext, [rcore + FCore.innerLoop]
-%endif
-	add rsp, 32
+	add rsp, kShadowSpace
 	; rax is src string length
 	; rbx -> dest string maxLen field
     ; TOS -> src string
@@ -2047,22 +2077,23 @@ lsStore1:
     mov r8, rax             ; 3rd param - num chars to copy
     mov rbx, rcx
 %endif
+    add rpsp, 8
 
     add rbx, rax            ; rbx -> end of dest string
-    add rpsp, 8
 	; add the terminating null
 	xor	rax, rax
 	mov	[rbx], al
 	; set var operation back to fetch
 	mov	[rcore + FCore.varMode], rax
 
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	xcall	memcpy
-%ifdef LINUX
-	mov	rnext, [rcore + FCore.innerLoop]
-%endif
-	add rsp, 32
+	add rsp, kShadowSpace
 
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 
 localStringAppend:
@@ -2070,16 +2101,15 @@ localStringAppend:
 	; TOS is src string addr
     mov rbx, rax            ; strlen will stomp rax
 %ifdef LINUX
+	push rip
+	push rnext
 	mov	rdi, [rpsp]			; rdi/rnext -> chars of src string
 %else
 	mov	rcx, [rpsp]			; rcx -> chars of src string
 %endif
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	xcall	strlen
-%ifdef LINUX
-	mov	rnext, [rcore + FCore.innerLoop]
-%endif
-	add rsp, 32
+	add rsp, kShadowSpace
 	; rax is src string length
 	; rbx -> dest string maxLen field
     ; TOS -> src string
@@ -2099,16 +2129,24 @@ lsAppend1:
     mov [rbx + 4], rcx
 	
 	; do the copy
+%ifdef LINUX
+    lea rdi, [rbx + 8]      ; 1st param - dest pointer
+    add rdi, [rbx + 4]      ;   at end of current dest string
+    mov rsi, [rpsp]         ; 2nd param - src pointer
+    ; 3rd param - num chars to copy - already in r8
+    mov rbx, rdi
+%else
     lea rcx, [rbx + 8]      ; 1st param - dest pointer
     add rcx, [rbx + 4]      ;   at end of current dest string
     mov rdx, [rpsp]         ; 2nd param - src pointer
-    add rpsp, 8
     ; 3rd param - num chars to copy - already in r8
     mov rbx, rcx
+%endif
+    add rpsp, 8
     add rbx, r8            ; rbx -> end of dest string
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space (usually 32, but we have 8 bytes from src pointer we didn't pop above
 	xcall	memcpy
-	add rsp, 32
+	add rsp, kShadowSpace
     
 	; add the terminating null
 	xor	rax, rax
@@ -2116,6 +2154,10 @@ lsAppend1:
 		
 	; set var operation back to fetch
 	mov	[rcore + FCore.varMode], rax
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 
 localStringActionTable:
@@ -2570,7 +2612,7 @@ localObjectUnref:
 	jnz	lou1
 	; report refcount negative error
 	mov	rax, kForthErrorBadReferenceCount
-	jmp	interpLoopErrorExit
+	jmp	interpFuncErrorExit
 lou1:
 	; decrement object refcount
 	sub	rax, 1
@@ -2668,7 +2710,7 @@ entry methodWithThisType
 	or	rax, rax
 	jnz methodThis1
 	mov	rax, kForthErrorBadObject
-	jmp	interpLoopErrorExit
+	jmp	interpFuncErrorExit
 methodThis1:
 	sub	rrp, 8
 	mov	[rrp], rax
@@ -2691,7 +2733,7 @@ entry methodWithTOSType
 	or	rax, rax
 	jnz methodTos1
 	mov	rax, kForthErrorBadObject
-	jmp	interpLoopErrorExit
+	jmp	interpFuncErrorExit
 methodTos1:
 	; push current this on return stack
 	mov	rcx, [rcore + FCore.TPtr]
@@ -2717,13 +2759,22 @@ entry methodWithSuperType
 	mov	[rrp], rax
 	
 	mov	rcx, [rcx - 8]		; rcx -> class vocabulary object
+%ifdef LINUX
+	mov	rdi, [rcx + 16]		; 1st param rcx -> class vocabulary
+	mov	[rcore + FCore.IPtr], rip		; save IP as it will get stomped in xcalls in linux
+%else
 	mov	rcx, [rcx + 16]		; 1st param rcx -> class vocabulary
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall getSuperClassMethods
-	add rsp, 32
+	add rsp, kShadowSpace
 	mov roptab, [rcore + FCore.ops]
 	mov rnumops, [rcore + FCore.numOps]
 	mov racttab, [rcore + FCore.optypeAction]
+%ifdef LINUX
+	mov	rnext, [rcore + FCore.innerLoop]	; rdi/rnext was stomped above
+	mov	rip, [rcore + FCore.IPtr]	; rdi/rnext was stomped above
+%endif
 	; rax -> super class methods table
 	mov	rcx, [rcore + FCore.TPtr]
 	mov	[rcx], rax		; set this methods ptr to super class methods
@@ -3147,7 +3198,7 @@ strFixupBop2:
 	jge	strFixupBop3
 	; characters have been written past string storage end
 	mov	rax, kForthErrorStringOverflow
-	jmp	interpLoopErrorExit
+	jmp	interpFuncErrorExit
 
 strFixupBop3:
 	mov	[rcx-4], rax
@@ -3157,13 +3208,13 @@ strFixupBop3:
 
 entry doneBop
 	mov	rax,kResultDone
-	jmp	interpLoopExit
+	jmp	interpFuncExit
 
 ;========================================
 
 entry abortBop
 	mov	rax,kForthErrorAbort
-	jmp	interpLoopFatalErrorExit
+	jmp	interpFuncFatalErrorExit
 
 ;========================================
 
@@ -4039,53 +4090,85 @@ unaryFloatFunc	ffloorBop, floorf
 ;========================================
 	
 entry datan2Bop
+%ifdef LINUX
+	push rip
+	push rnext
+%endif
     movsd xmm1, QWORD[rpsp]
     add rpsp, 8
     movsd xmm0, QWORD[rpsp]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	xcall	atan2
-	add rsp, 32
+	add rsp, kShadowSpace
     movsd QWORD[rpsp], xmm0
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 	
 entry fatan2Bop
+%ifdef LINUX
+	push rip
+	push rnext
+%endif
     movss xmm1, DWORD[rpsp]
     add rpsp, 8
     movss xmm0, DWORD[rpsp]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	xcall	atan2f
-	add rsp, 32
+	add rsp, kShadowSpace
     movss DWORD[rpsp], xmm0
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 	
 entry dpowBop
 	; a^x
+%ifdef LINUX
+	push rip
+	push rnext
+%endif
     movsd xmm1, QWORD[rpsp]
     add rpsp, 8
     movsd xmm0, QWORD[rpsp]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	xcall	pow
-	add rsp, 32
+	add rsp, kShadowSpace
     movsd QWORD[rpsp], xmm0
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 	
 entry fpowBop
 	; a^x
+%ifdef LINUX
+	push rip
+	push rnext
+%endif
     movss xmm1, DWORD[rpsp]
     add rpsp, 8
     movss xmm0, DWORD[rpsp]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	xcall	powf
-	add rsp, 32
+	add rsp, kShadowSpace
     xor rax, rax
     movd eax, xmm0
     mov [rpsp], rax
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
@@ -4113,12 +4196,22 @@ entry dldexpBop
 	; get arg a
     movsd xmm0, QWORD[rpsp + 8]
 	; get arg n
+%ifdef LINUX
+	push rip
+	push rnext
+    mov rdi, [rpsp]
+%else
     mov rdx, [rpsp]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall ldexp
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 8
     movsd QWORD[rpsp], xmm0
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
@@ -4129,14 +4222,24 @@ entry fldexpBop
 	; get arg a
     movss xmm0, DWORD[rpsp + 8]
 	; get arg n
+%ifdef LINUX
+	push rip
+	push rnext
+    mov rdi, [rpsp]
+%else
     mov rdx, [rpsp]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall ldexpf
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 8
     xor rax, rax
     movd eax, xmm0
     mov [rpsp], rax
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
@@ -4149,11 +4252,21 @@ entry dfrexpBop
     xor rax, rax
     sub rpsp, 8
     mov [rpsp], rax
+%ifdef LINUX
+	push rip
+	push rnext
+    mov rdi, rpsp
+%else
     mov rdx, rpsp
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall frexp
-	add rsp, 32
+	add rsp, kShadowSpace
     movsd QWORD[rpsp + 8], xmm0
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
@@ -4166,13 +4279,23 @@ entry ffrexpBop
     xor rax, rax
     sub rpsp, 8
     mov [rpsp], rax
+%ifdef LINUX
+	push rip
+	push rnext
+    mov rdi, rpsp
+%else
     mov rdx, rpsp
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall frexpf
-	add rsp, 32
+	add rsp, kShadowSpace
     xor rax, rax
     movd eax, xmm0
     mov [rpsp + 8], rax
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
@@ -4182,12 +4305,22 @@ entry dmodfBop
 	; get arg a
     movsd xmm0, QWORD[rpsp]
 	; get arg ptrToDoubleWholeReturn
+%ifdef LINUX
+	push rip
+	push rnext
+    mov rdi, rpsp
+%else
     mov rdx, rpsp
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall modf
-	add rsp, 32
+	add rsp, kShadowSpace
     sub rpsp, 8
     movsd QWORD[rpsp], xmm0
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
@@ -4197,16 +4330,26 @@ entry fmodfBop
 	; get arg a
     movss xmm0, DWORD[rpsp]
 	; get arg ptrToIntExponentReturn
+%ifdef LINUX
+	push rip
+	push rnext
+    mov rdi, rpsp
+%else
     mov rdx, rpsp
+%endif
     xor rax, rax
     mov [rpsp], rax
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	xcall modff
-	add rsp, 32
+	add rsp, kShadowSpace
     sub rpsp, 8
     xor rax, rax
     movd eax, xmm0
     mov [rpsp], rax
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
@@ -4214,14 +4357,22 @@ entry fmodfBop
 entry dfmodBop
     ; fmod(numerator denominator)
     ; get arg denominator
+%ifdef LINUX
+	push rip
+	push rnext
+%endif
     movsd xmm1, QWORD[rpsp]
     add rpsp, 8
     ; get arg numerator
     movsd xmm0, QWORD[rpsp]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	xcall fmod
-	add rsp, 32
+	add rsp, kShadowSpace
     movsd QWORD[rpsp], xmm0
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
@@ -4229,16 +4380,24 @@ entry dfmodBop
 entry ffmodBop
     ; fmodf(numerator denominator)
     ; get arg denominator
+%ifdef LINUX
+	push rip
+	push rnext
+%endif
     movss xmm1, DWORD[rpsp]
     add rpsp, 8
     ; get arg numerator
     movss xmm0, DWORD[rpsp]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	xcall fmodf
-	add rsp, 32
+	add rsp, kShadowSpace
     xor rax, rax
     movd eax, xmm0
     mov [rpsp], rax
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 
 ;========================================
@@ -4326,11 +4485,11 @@ entry doExitBop
 
 doExitBop1:
 	mov	rax, kForthErrorReturnStackUnderflow
-	jmp	interpLoopErrorExit
+	jmp	interpFuncErrorExit
 	
 doExitBop2:
 	mov	rax, kForthErrorParamStackUnderflow
-	jmp	interpLoopErrorExit
+	jmp	interpFuncErrorExit
 	
 ;========================================
 
@@ -5478,40 +5637,76 @@ entry sfetchNextBop
 
 entry moveBop
 	;	TOS: nBytes dstPtr srcPtr
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdx, [rpsp]
+	mov	rsi, [rpsp + 16]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	r8, [rpsp]
 	mov	rdx, [rpsp + 16]
 	mov	rcx, [rpsp + 8]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	memmove
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 24
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 
 ;========================================
 
 entry memcmpBop
 	;	TOS: nBytes mem2Ptr mem1Ptr
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdx, [rpsp]
+	mov	rsi, [rpsp + 8]
+	mov	rdi, [rpsp + 16]
+%else
 	mov	r8, [rpsp]
 	mov	rdx, [rpsp + 8]
 	mov	rcx, [rpsp + 16]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	memcmp
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 16
     mov [rpsp], rax
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 
 ;========================================
 
 entry fillBop
 	;	TOS: byteVal nBytes dstPtr
-	mov	rdx, [rpsp]
-	mov	r8, [rpsp + 8]
-	mov	rcx, [rpsp + 16]
-	sub rsp, 32			; shadow space
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]			; arg1
+	mov	rdx, [rpsp + 8]		; arg2
+	mov	rdi, [rpsp + 16]	; arg0
+%else
+	mov	rdx, [rpsp]			; arg1
+	mov	r8, [rpsp + 8]		; arg2
+	mov	rcx, [rpsp + 16]	; arg0
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	memset
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 24
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 
 ;========================================
@@ -5690,25 +5885,48 @@ entry stringVarActionBop
 
 entry strcpyBop
 	;	TOS: srcPtr dstPtr
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	rdx, [rpsp]
 	mov	rcx, [rpsp + 8]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	strcpy
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 16
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 
 ;========================================
 
 entry strncpyBop
 	;	TOS: maxBytes srcPtr dstPtr
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdx, [rpsp]
+	mov	rsi, [rpsp + 8]
+	mov	rdi, [rpsp + 16]
+%else
 	mov	r8, [rpsp]
 	mov	rdx, [rpsp + 8]
 	mov	rcx, [rpsp + 16]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	strncpy
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 24
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 
 ;========================================
@@ -5733,50 +5951,95 @@ strlenBop2:
 
 entry strcatBop
 	;	TOS: srcPtr dstPtr
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	rdx, [rpsp]
 	mov	rcx, [rpsp + 8]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	strcat
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 16
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 
 ;========================================
 
 entry strncatBop
 	;	TOS: maxBytes srcPtr dstPtr
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdx, [rpsp]
+	mov	rsi, [rpsp + 8]
+	mov	rdi, [rpsp + 16]
+%else
 	mov	r8, [rpsp]
 	mov	rdx, [rpsp + 8]
 	mov	rcx, [rpsp + 16]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	strncat
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 24
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 
 ;========================================
 
 entry strchrBop
 	;	TOS: char strPtr
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	rdx, [rpsp]
 	mov	rcx, [rpsp + 8]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	strchr
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 8
 	mov	[rpsp], rax
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry strrchrBop
 	;	TOS: char strPtr
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	rdx, [rpsp]
 	mov	rcx, [rpsp + 8]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	strrchr
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 8
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	mov	[rpsp], rax
 	jmp	restoreNext
 	
@@ -5784,14 +6047,25 @@ entry strrchrBop
 
 entry strcmpBop
 	;	TOS: ptr2 ptr1
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	rdx, [rpsp]
 	mov	rcx, [rpsp + 8]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	strcmp
-	add rsp, 32
+	add rsp, kShadowSpace
 strcmp1:
 	xor	rbx, rbx
+%ifdef LINUX
+	cmp	eax, ebx
+%else
 	cmp	rax, rbx
+%endif
 	jz	strcmp3		; if strings equal, return 0
 	jg	strcmp2
 	sub	rbx, 2
@@ -5800,33 +6074,52 @@ strcmp2:
 strcmp3:
 	add	rpsp, 8
 	mov	[rpsp], rbx
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry stricmpBop
 	;	TOS: ptr2 ptr1
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	rdx, [rpsp]
 	mov	rcx, [rpsp + 8]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 %ifdef WIN64
     xcall	stricmp
 %else
 	xcall	strcasecmp
 %endif
-	add rsp, 32
+	add rsp, kShadowSpace
 	jmp	strcmp1
 	
 ;========================================
 
 entry strncmpBop
 	;	TOS: numChars ptr2 ptr1
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdx, [rpsp]
+	mov	rsi, [rpsp + 8]
+	mov	rdi, [rpsp + 16]
+%else
 	mov	r8, [rpsp]
 	mov	rdx, [rpsp + 8]
 	mov	rcx, [rpsp + 16]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	strncmp
-	add rsp, 32
+	add rsp, kShadowSpace
 strncmp1:
 	xor	rbx, rbx
 	cmp	rax, rbx
@@ -5838,32 +6131,58 @@ strncmp2:
 strncmp3:
 	add	rpsp, 16
 	mov	[rpsp], rbx
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry strstrBop
 	;	TOS: ptr2 ptr1
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	rdx, [rpsp]
 	mov	rcx, [rpsp + 8]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	strstr
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 8
 	mov	[rpsp], rax
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry strtokBop
 	;	TOS: ptr2 ptr1
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	rdx, [rpsp]
 	mov	rcx, [rpsp + 8]
-	sub rsp, 32			; shadow space
+%endif
+	sub rsp, kShadowSpace			; shadow space
 	xcall	strtok
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 8
 	mov	[rpsp], rax
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
@@ -6020,178 +6339,322 @@ entry executeBop
 ;========================================
 
 entry	fopenBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	rdx, [rpsp]
 	mov	rcx, [rpsp + 8]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.fileOpen]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 8
 	mov	[rpsp], rax	; push fopen result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	fcloseBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdi, [rpsp]
+%else
 	mov	rcx, [rpsp]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.fileClose]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	mov	[rpsp], rax	; push fclose result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	fseekBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdx, [rpsp]
+	mov	rsi, [rpsp + 8]
+	mov	rdi, [rpsp + 16]
+%else
 	mov	r8, [rpsp]
 	mov	rdx, [rpsp + 8]
 	mov	rcx, [rpsp + 16]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.fileSeek]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 16
 	mov	[rpsp], rax	; push fseek result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	freadBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rcx, [rpsp]
+	mov	rdx, [rpsp + 8]
+	mov	rsi, [rpsp + 16]
+	mov	rdi, [rpsp + 24]
+%else
 	mov	r9, [rpsp]
 	mov	r8, [rpsp + 8]
 	mov	rdx, [rpsp + 16]
 	mov	rcx, [rpsp + 24]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.fileRead]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 24
 	mov	[rpsp], rax	; push fread result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	fwriteBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rcx, [rpsp]
+	mov	rdx, [rpsp + 8]
+	mov	rsi, [rpsp + 16]
+	mov	rdi, [rpsp + 24]
+%else
 	mov	r9, [rpsp]
 	mov	r8, [rpsp + 8]
 	mov	rdx, [rpsp + 16]
 	mov	rcx, [rpsp + 24]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.fileWrite]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 24
 	mov	[rpsp], rax	; push fwrite result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	fgetcBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdi, [rpsp]
+%else
 	mov	rcx, [rpsp]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.fileGetChar]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	mov	[rpsp], rax	; push fgetc result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	fputcBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	rdx, [rpsp]
 	mov	rcx, [rpsp + 8]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.filePutChar]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	add rpsp, 8
 	mov	[rpsp], rax	; push fputc result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	feofBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdi, [rpsp]
+%else
 	mov	rcx, [rpsp]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.fileAtEnd]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	mov	[rpsp], rax	; push feof result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	fexistsBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdi, [rpsp]
+%else
 	mov	rcx, [rpsp]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.fileExists]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	mov	[rpsp], rax	; push fexists result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	ftellBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdi, [rpsp]
+%else
 	mov	rcx, [rpsp]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.fileTell]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	mov	[rpsp], rax	; push ftell result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	flenBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdi, [rpsp]
+%else
 	mov	rcx, [rpsp]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.fileGetLength]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	mov	[rpsp], rax	; push flen result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	fgetsBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rdx, [rpsp]
+	mov	rsi, [rpsp + 8]
+	mov	rdi, [rpsp + 16]
+%else
 	mov	r8, [rpsp]
 	mov	rdx, [rpsp + 8]
 	mov	rcx, [rpsp + 16]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.fileGetString]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 16
 	mov	[rpsp], rax	; push fgets result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 	
 ;========================================
 
 entry	fputsBop
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+%else
 	mov	rdx, [rpsp]
 	mov	rcx, [rpsp + 8]
+%endif
 	mov	rax, [rcore + FCore.FileFuncs]
 	mov	rax, [rax + FileFunc.filePutString]
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
 	call rax
-	add rsp, 32
+	add rsp, kShadowSpace
 	add	rpsp, 8
 	mov	[rpsp], rax	; push fputs result
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
+
 	
 ;========================================
 entry	setTraceBop
@@ -6201,6 +6664,8 @@ entry	setTraceBop
 	mov	[rcore + FCore.SPtr], rpsp
 	mov	[rcore + FCore.IPtr], rip
 	jmp interpFuncReenter
+
+%ifndef LINUX
 
 ;========================================
 
@@ -6278,7 +6743,7 @@ entry fprintfSub
     ; r8 & xmm2 - arg1
     ; r9 & xmm3 - arg2
     ; rest of arguments are on system stack
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
     xcall fprintf
     mov [rpsp], rax
 	; do stack cleanup
@@ -6349,7 +6814,7 @@ entry snprintfSub
     ; r8 - formatStr
     ; r9 & xmm3 - arg1
     ; rest of arguments are on system stack
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
     xcall snprintf
     mov [rpsp], rax
 	; do stack cleanup
@@ -6425,7 +6890,7 @@ entry oStringFormatSub
     ; r8 - formatStr
     ; r9 & xmm3 - arg1
     ; rest of arguments are on system stack
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
     xcall snprintf
     add rpsp, 8
 	; do stack cleanup
@@ -6496,7 +6961,7 @@ entry fscanfSub
     ; r8 - arg1 ptr
     ; r9 - arg2 ptr
     ; rest of arguments are on system stack
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
     xcall fscanf
     mov [rpsp], rax
 	; do stack cleanup
@@ -6566,7 +7031,7 @@ entry sscanfSub
     ; r8 - arg1 ptr
     ; r9 - arg2 ptr
     ; rest of arguments are on system stack
-	sub rsp, 32			; shadow space
+	sub rsp, kShadowSpace			; shadow space
     xcall sscanf
     mov [rpsp], rax
 	; do stack cleanup
@@ -6576,6 +7041,8 @@ entry sscanfSub
     pop rpsp
     pop rcore
 	ret
+
+%endif
 
 ;========================================
 entry dllEntryPointType
@@ -6589,6 +7056,31 @@ entry dllEntryPointType
 	cmp	rax, rnumops
 	jge	badUserDef
 
+%ifdef LINUX
+	push rip
+	push rnext
+	mov	rsi, [rpsp]
+	mov	rdi, [rpsp + 8]
+
+	mov	rdi, [roptab + rax*8]
+
+	mov	rsi, rbx
+	shr	rsi, 19
+	and	rsi, 1Fh
+
+	mov rdx, rbx
+	shr rdx, 16
+	and rdx, 7
+
+	mov rcx, rcore
+
+	; rdi - dll routine address
+	; rsi - arg count
+	; rdx - flags
+	; rcx - pCore
+%else
+	mov	rdx, [rpsp]
+	mov	rcx, [rpsp + 8]
 	mov	rcx, [roptab + rax*8]
 
 	mov	rdx, rbx
@@ -6605,10 +7097,16 @@ entry dllEntryPointType
 	; rdx - arg count
 	; r8 - flags
 	; r9 - pCore
-	sub rsp, 32
+%endif
+
+	sub rsp, kShadowSpace
 	xcall	CallDLLRoutine
-	add rsp, 32
+	add rsp, kShadowSpace
     mov rpsp, [rcore + FCore.SPtr]
+%ifdef LINUX
+	pop rnext
+	pop rip
+%endif
 	jmp	restoreNext
 
 
@@ -6767,23 +7265,25 @@ entry onzbComboType
 	mov	rax, rbx
 	shr	rax, 10
 	and	rax, 03FFCh
-	push rax
-	push rnext
+	push	rax
+	push	rnext
 	mov	rnext, onzbCombo1
 	and	rbx, 0FFFh
+	; first, go execute the opcode in rbx, when it jumps to rnext it will go to onzbCombo1
 	; opcode is in rbx
 	mov	rax, [rcore + FCore.innerExecute]
 	jmp rax
 	
 onzbCombo1:
-	pop	rnext
-	pop	rax
-	mov	rbx, [rpsp]
+	pop	rnext				; unstomp rnext
+	pop	rax					; rax is branch offset
+	mov	rbx, [rpsp]			; pop and test TOS
 	add	rpsp, 8
 	or	rbx, rbx
 	jz	onzbCombo2			; if TOS 0, don't branch
+	; we are going to branch, see if it forward or backward
 	mov	rbx, rax
-	and	rax, 02000h
+	and	rax, 02000h			; test sign bit of offset
 	jz	onzbForward
 	; backward branch
 	mov rax, 0xFFFFFFFFFFFFC000
