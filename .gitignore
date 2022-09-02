@@ -41,6 +41,7 @@
 *.filters
 *.lastbuildstate
 *.tlog
+*.log
 .vs
 build
 Backup
@@ -87,6 +88,8 @@ TextToSpeech
 Unused
 */Debug
 */Release
+*/DbgAsm
+*/RelAsm
 */Debug Client
 */Debug GUI
 */Debug Midi
@@ -121,7 +124,6 @@ master.log
 Scripts/tests/goodOutput/*.txt
 *.ipdb
 *.iobj
-ForthLib/x64/Debug Asm/ForthLib.log
 Win32
 x64
 *.log
@@ -130,8 +132,6 @@ ForthDLL/res/ForthDLL.rc2
 .settings
 ForthDLLxxx
 ForthDLLMainxxx
-ForthDLL/DbgAsm/ForthDLL.vcxproj.FileListAbsolute.txt
-ForthDLL/RelAsm/ForthDLL.vcxproj.FileListAbsolute.txt
 forth
 logger
 
