@@ -133,21 +133,17 @@ ForthParseInfo::BackslashChar(const char*& pSrc)
         switch (c)
         {
 
-        case 'a':        cResult = '\a';        break;
-        case 'b':        cResult = '\b';        break;
-        case 'e':        cResult = 0x1b;        break;
-        case 'f':        cResult = '\f';        break;
-        case 'n':        cResult = '\n';        break;
-        case 'r':        cResult = '\r';        break;
-        case 't':        cResult = '\t';        break;
-        case 'v':        cResult = '\v';        break;
-        case '0':        cResult = '\0';        break;
-        case '?':        cResult = '\?';        break;
-        case '\\':       cResult = '\\';        break;
-        case '\'':       cResult = '\'';        break;
-        case '\"':       cResult = '\"';        break;
+        case 'a':        cResult = '\a';        break;		// x07	bell
+        case 'b':        cResult = '\b';        break;		// x08	backspace
+        case 'e':        cResult = 0x1b;        break;		// x1b	escape
+        case 'f':        cResult = '\f';        break;		// x0b	formfeed
+        case 'n':        cResult = '\n';        break;		// x0a	newline
+        case 'r':        cResult = '\r';        break;		// x0d	carriage return
+        case 't':        cResult = '\t';        break;		// x09	tab (horizontal)
+        case 'v':        cResult = '\v';        break;		// x0b	vertical tab
+        case '0':        cResult = '\0';        break;		// x00	nul
 
-        case 'x':
+        case 'x':											// hex-value
         {
             int val = hexValue(*pSrc);
             if (val >= 0)
@@ -163,6 +159,7 @@ ForthParseInfo::BackslashChar(const char*& pSrc)
             break;
         }
 
+		// this handles \'  \"  \\  \` among others
         default:         cResult = c;           break;
 
         }
