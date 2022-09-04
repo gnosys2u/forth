@@ -360,7 +360,11 @@ lf atcFileReader.txt
   getConsoleColor -> int color
   new atcGame -> game
   game.init( blword )
+#if FORTH64
+  srand(xor(time dup 32 rshift swap MAXUINT and))
+#else
   srand(xor(time))
+#endif
   if(atcFileReader:loadAtcFile( game.name.get game))
     clearConsole
     //t{ game.show "\n\n\n=====================================\n\n\n" %s }t
