@@ -166,6 +166,48 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+September 3 2022
+
+The Linux assembler inner interpreter version is complete, it runs test.txt
+without failures.  atc fails to parse its airport definition files, but that
+is happening on master too.
+-> it was a 64-bit conversion problem - atc at start seeds random generator
+  by grabbing time (a double) and turns it into 32-bits by xor-ing its two
+  32-bit parts - fixed
+
+I made the printf/scanf/oStringFormatSub routines not be defined in assembler
+for now on Linux, I might leave it that way permanently.
+I should also rethink about having assembler versions of things which are
+just wrappers on clib functions, like fopen/fread/strcmp/memcpy, they are more
+of a pain than they are worth.
+
++ thread cleanup - get rid of thread/fiber forthops which are redundant
+  with Thread/Fiber/System methods
+	createThread		kill, System method
+        async_philosophers philosophers pizzashop help helpdeck testNotes
+    createFiber			kill, Thread method
+        philosophers pizzashop helpdeck
+    exitThread			kill, add Thread method
+        async_philosophers philosophers pizzashop help helpdeck
+	yield				move to asm
+    stopFiber			kill, thisFiber.stop
+    sleepFiber			kill, thisFiber.sleep
+        philosophers pizzashop
+	exitFiber			kill, thisFiber.exit
+        philosophers pizzashop
+	getCurrentFiber		rename thisThread
+	getCurrentThread	rename thisFiber
+        eventqueue threads
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 22 2022
+
+The Linux crash in rctest was caused by IntMapIterator being created with new
+and freed using the pooled memory manager.  C++ iterators need to be created
+with new, but the forth objects which hold them should be created with the
+pooled memory manager.  I am surprised that this bug wasn't caught in the
+Windows build.  Linux64 now runs test.txt with no errors.  I still need to
+get it working with assembler for builtin ops/
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 19 2022
 
 I've got the non-assembler Linux64 build largely working - it can now run user ops

@@ -3207,13 +3207,19 @@ strFixupBop3:
 ;========================================
 
 entry doneBop
-	mov	rax,kResultDone
+	mov	rax, kResultDone
+	jmp	interpFuncExit
+
+;========================================
+
+entry yieldBop
+	mov	rax, kResultYield
 	jmp	interpFuncExit
 
 ;========================================
 
 entry abortBop
-	mov	rax,kForthErrorAbort
+	mov	rax, kForthErrorAbort
 	jmp	interpFuncFatalErrorExit
 
 ;========================================

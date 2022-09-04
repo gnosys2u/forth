@@ -441,6 +441,7 @@ mkTag system System|System ops
 mkTag if If|Part of if statement
 mkTag case Case|Part of case statement
 mkTag loop Loop|Part of do or begin loops
+mkTag thread Thread|Ops related to threads
 
 // add string compile if loop case except
 // ? short byte unsigned
@@ -914,12 +915,20 @@ addOp printDecimalSigned|makes all decimal printing signed, printing in any othe
 addOp printAllSigned|makes printing in any base signed
 addOp printAllUnsigned|makes printing in any base unsigned
 
+tags: thread
+addOp thisThread|... THREAD_OBJECT|get currently running thread
+addOp thisFiber|... FIBER_OBJECT|get currently running fiber
+addOp yield|...|current fiber yields to any other ready fiber
+
 tags: dll
 addOp DLLVocabulary|DLLVocabulary VOCAB_NAME DLL_FILEPATH|creates a new DLL vocabulary, also loads the dll
 addOp addDLLEntry|NUM_ARGS "ENTRY_NAME" ...|adds a new entry point to current definitions DLL vocabulary
 addOp addDLLEntryEx|NUM_ARGS "OP_NAME" "ENTRY_NAME" ...|adds a new entry point to current definitions DLL vocabulary
 addOp DLLVoid||when used prior to dll_0...dll_15, newly defined word will return nothing on TOS
 
+
+// TODO: tag these
+tags:
 addOp lit|... IVAL|pushes longword which is compiled immediately after it
 addOp flit|... FVAL|pushes float which is compiled immediately after it
 addOp dlit|... DVAL|pushes double which is compiled immediately after it
@@ -929,8 +938,6 @@ addOp ->+|N ->+ VAR ...|add N to VAR, append for strings
 addOp ->-|N ->- VAR ...|subtract N from VAR
 
 addOp this|... OBJECT|get value of THIS object
-addOp thisData|... OBJECT_DATA|get THIS object data pointer
-addOp thisMethods|... OBJECT_METHODS|get THIS object data methods
 
 addOp execute|OP ...|execute op which is on TOS
 addOp call|IP ...|rpushes current IP and sets IP to that on TOS
@@ -1033,11 +1040,6 @@ addOp InitializeCriticalSection|CRITSECTIONPTR ...|
 addOp DeleteCriticalSection|CRITSECTIONPTR ...|
 addOp EnterCriticalSection|CRITSECTIONPTR ...|
 addOp LeaveCriticalSection|CRITSECTIONPTR ...|
-addOp createThread|PSTACK_SIZE RSTACK_SIZE THREAD_OPCODE ... THREADPTR|
-addOp createFiber|PSTACK_SIZE RSTACK_SIZE THREAD_OPCODE ... THREADPTR|
-addOp destroyThread|THREADPTR ...|
-addOp startThread|THREADPTR ... RESULT|
-addOp exitThread||
 addOp FindFirstFile|PATHSTR FINDDATA_PTR ... SEARCH_HANDLE|
 addOp FindNextFile|SEARCH_HANDLE FINDDATA_PTR ... RESULT|
 addOp FindClose|SEARCH_HANDLE ... RESULT|
@@ -1647,6 +1649,7 @@ addMember cursor|... ENTRY_PTR|current position of iterator
 addClass Fiber|Object|synchronous thread object
 addMethod start|...|mark this fiber as ready to run
 addMethod startWithArgs|ARGS INT_NUM_ARGS ... BOOL|push specified arguments onto fiber param stack and start running it, returns if start worked (always true for now)
+addMethod exit|...|exit this fiber
 addMethod stop|...|stop this fiber from running
 addMethod join|...|stop calling fiber and wait for this fiber to finish running
 addMethod sleep|INT_MILLISECONDS ...|sleep this fiber for specified number of milliseconds
@@ -1665,6 +1668,7 @@ addMember id|...|this fibers thread id
 addClass Thread|Object|asynchronous thread - runs multiple Fibers (synchronous threads)
 addMethod start|...|start this thread running asynchronously
 addMethod startWithArgs|ARGS INT_NUM_ARGS ... BOOL|push specified arguments onto thread param stack and start running it, returns if start worked
+addMethod exit|...|exit this thread
 addMethod join|...|stop current fiber and wait for this thread to exit
 addMethod reset|...|reset all the fibers which this thread is running
 addMethod createFiber|MAINLOOP_OP INT_PSTACK_SIZE INT_RSTACK_SIZE ... SYNC_THREAD_OBJECT|create a Fiber with specified stacks and main loop op

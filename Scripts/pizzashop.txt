@@ -42,7 +42,7 @@ class: AsyncPizzaDriver
       ]p
     repeat
     p[ "driver " %s id %d " has gone home.\n" %s ]p
-    exitThread
+    thisThread.exit
   ;m
 
   m: init
@@ -84,7 +84,7 @@ class: AsyncPizzaDriver
     new AsyncPizzaDriver -> izzy
     i -> izzy.id
     drivers.push(izzy)
-    izzy.init(createThread(lit asyncDeliveryLoop 1000 1000) pizzaReadyToDeliver i pizzasToDeliverEach)
+    izzy.init(system.createThread(lit asyncDeliveryLoop 1000 1000) pizzaReadyToDeliver i pizzasToDeliverEach)
     izzy.deliverThread.startWithArgs(r[ izzy ]r) drop
     oclear izzy
   loop
@@ -144,7 +144,7 @@ class: PizzaDriver
       d[ p[ "driver " %s id %d " waiting for a pizza to deliver\n" %s ]p ]d
       pizzaReadyToDeliver.wait
       d[ p[ "driver " %s id %d " got pizza, delivering to customer\n" %s ]p ]d
-      sleepFiber(deliveryTime)
+      thisFiber.sleep(deliveryTime)
       d[ p[ "driver " %s id %d " returning to pizza shop\n" %s ]p ]d
       deliveredCountLock.grab
       pizzasDelivered   1 ->+ pizzasDelivered
@@ -160,7 +160,7 @@ class: PizzaDriver
       ]p
     repeat
     p[ "driver " %s id %d " has gone home.\n" %s ]p
-    exitFiber
+    thisFiber.exit
   ;m
 
   m: init
@@ -202,7 +202,7 @@ class: PizzaDriver
     new PizzaDriver -> izzy
     i -> izzy.id
     drivers.push(izzy)
-    izzy.init(createFiber(lit deliveryLoop 1000 1000) pizzaReadyToDeliver i pizzasToDeliverEach)
+    izzy.init(thisThread.createFiber(lit deliveryLoop 1000 1000) pizzaReadyToDeliver i pizzasToDeliverEach)
     izzy.deliverFiber.startWithArgs(r[ izzy ]r) drop
     oclear izzy
   loop
@@ -210,7 +210,7 @@ class: PizzaDriver
   begin
   while(pizzasToMake 0>)
     d[ p[ "pizza in the oven!\n" %s ]p ]d
-    sleepFiber(makingTime)
+    thisFiber.sleep(makingTime)
     d[ p[ "made another pizza!\n" %s ]p ]d
     pizzaReadyToDeliver.post
     1 ->- pizzasToMake

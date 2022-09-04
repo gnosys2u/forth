@@ -521,25 +521,47 @@ extern forthop gCompiledOps[];
 
 typedef struct
 {
-   const char       *name;
-   ucell            flags;
+   const char*      name;
    void*            value;
+   uint32_t         flags;
 } baseDictionaryEntry;
 
-// helper macro for built-in op entries in baseDictionary
-#define OP_DEF( func, funcName )  { funcName, kOpCCode, (void *)func }
+#if defined(ASM_INNER_INTERPRETER)
+#define NATIVE_OPTYPE kOpNative
+#else
+#define NATIVE_OPTYPE kOpCCode
+#endif
 
+// helper macro for built-in op entries in baseDictionary
+#define OP_DEF( func, funcName )  { funcName, (void *)func, kOpCCode }
 // helper macro for ops which have precedence (execute at compile time)
-#define PRECOP_DEF( func, funcName )  { funcName, kOpCCodeImmediate, (void *)func }
+#define PRECOP_DEF( func, funcName )  { funcName, (void *)func, kOpCCodeImmediate }
+// helper macro for built-in op entries in baseDictionary which are defined in assembler
+#define NATIVE_DEF( func, funcName )  { funcName, (void *)func, NATIVE_OPTYPE }
+
+typedef struct {
+    const char*     name;
+    void*           value;
+    uint32_t        flags;
+    uint32_t        index;
+} baseDictionaryCompiledEntry;
+
+// these are ops which may be compiled by forth itself
+#define OP_COMPILED_DEF( func, funcName, index )  { funcName, (void *)func, kOpCCode, index }
+#define PRECOP_COMPILED_DEF( func, funcName, index )  { funcName, (void *)func, kOpCCodeImmediate, index }
+#define NATIVE_COMPILED_DEF( func, funcName, index ) { funcName, (void *)func, NATIVE_OPTYPE, index }
+
+
 
 
 typedef struct
 {
     const char*     name;
     void*           value;
-    ucell           returnType;
+    uint32_t        returnType;
 } baseMethodEntry;
 
+#define OP_DEF_RETURNS( func, funcName, retType )  { funcName, (void *)func, retType }
 
 // trace output flags
 #ifdef INCLUDE_TRACE

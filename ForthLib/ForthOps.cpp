@@ -36,7 +36,7 @@
 #include "ForthBlockFileManager.h"
 #include "ForthShowContext.h"
 #include "ForthObjectReader.h"
-
+#include "ForthBuiltinClasses.h"
 #if defined(LINUX) || defined(MACOSX)
 #include <strings.h>
 #include <errno.h>
@@ -4742,6 +4742,59 @@ FORTHOP( DLLStdCallOp )
 	}
 }
 
+struct userCallbackData {
+    void*               pUserData;
+    ForthCoreState*     pCore;
+    forthop             callbackOp;
+    uint32_t            numArgs;
+};
+
+cell genericCallback(struct userCallbackData* pCallbackData, cell arg1)
+{
+    // this callback is shared by many user defined ops to interface to DLL routines which need a callback
+    // the DLL callback signature must start with a void* userdata parameter (pUserData)
+    // pUserData points to a data block which holds:
+    // cell     userData pointer supplied by the user defined op
+    // cell     pointer to ForthCoreState for fiber which is getting the callback
+    // forthop  user-defined callback op
+    // int      number of arguments callback has
+    cell result = 0;
+    ForthCoreState* pCore = pCallbackData->pCore;
+
+    ForthEngine* pEngine = (ForthEngine*)(pCore->pEngine);
+
+    cell* args = &arg1;
+    for (int i = 0; i < pCallbackData->numArgs; ++i)
+    {
+        SPUSH(*args);
+        args++;
+    }
+    SPUSH((cell)pCallbackData->numArgs);
+    SPUSH((cell)(pCallbackData->pUserData));
+
+    pEngine->FullyExecuteOp(pCore, pCallbackData->callbackOp);
+
+    result = SPOP;
+    return result;
+}
+
+FORTHOP(createCallbackOp)
+{
+    userCallbackData* pCB = (userCallbackData*)__ALLOCATE_BYTES(sizeof(userCallbackData));
+    pCB->numArgs = (uint32_t)(SPOP);
+    pCB->pUserData = (void*)(SPOP);
+    pCB->callbackOp = (forthop)(SPOP);
+    pCB->pCore = pCore;
+
+    SPUSH((cell)genericCallback);
+    SPUSH((cell)pCB);
+}
+
+FORTHOP(destroyCallbackOp)
+{
+    void* pCB = (void*)(SPOP);
+    __DEALLOCATE_BYTES(pCB, sizeof(userCallbackData));
+}
 
 FORTHOP( blwordOp )
 {
@@ -5835,73 +5888,12 @@ FORTHOP( thruOp )
 //  threads
 ///////////////////////////////////////////
 
-FORTHOP( createThreadOp )
-{
-	ForthObject asyncThread;
-	int returnStackLongs = (int)(SPOP);
-	int paramStackLongs = (int)(SPOP);
-	int32_t threadOp = SPOP;
-	ForthEngine* pEngine = GET_ENGINE;
-	OThread::CreateThreadObject(asyncThread, pEngine, threadOp, paramStackLongs, returnStackLongs);
-
-	PUSH_OBJECT(asyncThread);
-}
-
-FORTHOP(createFiberOp)
-{
-	ForthEngine* pEngine = GET_ENGINE;
-	ForthObject fiber;
-
-	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
-	ForthThread* pThread = pFiber->GetParent();
-	int returnStackLongs = (int)(SPOP);
-	int paramStackLongs = (int)(SPOP);
-	int32_t threadOp = SPOP;
-	OThread::CreateFiberObject(fiber, pThread, pEngine, threadOp, paramStackLongs, returnStackLongs);
-
-	PUSH_OBJECT(fiber);
-}
-
-FORTHOP( exitThreadOp )
-{
-	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
-	ForthThread* pThread = pFiber->GetParent();
-	pThread->Exit();
-}
-
-FORTHOP(yieldOp)
-{
-	SET_STATE(OpResult::kYield);
-}
-
-FORTHOP(stopFiberOp)
-{
-	SET_STATE(OpResult::kYield);
-	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
-	pFiber->Stop();
-}
-
-FORTHOP(sleepFiberOp)
-{
-	SET_STATE(OpResult::kYield);
-	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
-	uint32_t sleepMilliseconds = (uint32_t)(SPOP);
-	pFiber->Sleep(sleepMilliseconds);
-}
-
-FORTHOP(exitFiberOp)
-{
-	SET_STATE(OpResult::kYield);
-	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
-	pFiber->Exit();
-}
-
-FORTHOP(getCurrentFiberOp)
+FORTHOP(thisFiberOp)
 {
 	PUSH_OBJECT(((ForthFiber *)(pCore->pFiber))->GetFiberObject());
 }
 
-FORTHOP(getCurrentThreadOp)
+FORTHOP(thisThreadOp)
 {
 	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
 	ForthThread* pThread = pFiber->GetParent();
@@ -8828,6 +8820,11 @@ FORTHOP( dpBop )
     SPUSH((cell)pDP);
 }
 
+FORTHOP(yieldBop)
+{
+    SET_STATE(OpResult::kYield);
+}
+
 FORTHOP( archARMBop )
 {
 #ifdef X86_ARCHITECTURE
@@ -9162,26 +9159,7 @@ extern GFORTHOP( doOpArrayBop );
 extern GFORTHOP( doLongArrayBop );
 extern GFORTHOP( doObjectArrayBop );
 
-typedef struct {
-   const char       *name;
-   uint32_t            flags;
-   void*            value;
-   int              index;
-} baseDictionaryCompiledEntry;
-
-// helper macro for built-in op entries in baseDictionary
-#define OP_DEF( func, funcName )  { funcName, kOpCCode, (void *)func }
-#define OP_COMPILED_DEF( func, funcName, index )  { funcName, kOpCCode, (void *)func, index }
-
-// helper macro for ops which have precedence (execute at compile time)
-#define PRECOP_DEF( func, funcName )  { funcName, kOpCCodeImmediate, (void *)func }
-#define PRECOP_COMPILED_DEF( func, funcName, index )  { funcName, kOpCCodeImmediate, (void *)func, index }
-
 #ifdef ASM_INNER_INTERPRETER
-
-// helper macro for built-in op entries in baseDictionary
-#define NATIVE_DEF( func, funcName )  { funcName, kOpNative, (void *)func }
-#define NATIVE_COMPILED_DEF( func, funcName, index ) { funcName, kOpNative, (void *)func, index }
 
 #define OPREF extern GFORTHOP
 
@@ -9311,12 +9289,7 @@ OPREF(fmixBlockBop);
 OPREF(daddBlockBop);        OPREF(dsubBlockBop);        OPREF(dmulBlockBop);
 OPREF(ddivBlockBop);        OPREF(dscaleBlockBop);      OPREF(doffsetBlockBop);
 OPREF(dmixBlockBop);
-#else
-
-// helper macro for built-in op entries in baseDictionary
-#define NATIVE_DEF( func, funcName )  { funcName, kOpCCode, (forthop*) func }
-#define NATIVE_COMPILED_DEF( func, funcName, index )  { funcName, kOpCCode, (forthop*) func, index }
-
+OPREF(yieldBop);
 #endif
 
 baseDictionaryCompiledEntry baseCompiledDictionary[] =
@@ -9412,10 +9385,7 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     OP_COMPILED_DEF(        raiseOp,                "raise",            OP_RAISE),
     NATIVE_COMPILED_DEF(    unsuperBop,              "_unsuper",        OP_UNSUPER),
     NATIVE_COMPILED_DEF(    rdropBop,                "rdrop",           OP_RDROP),
-    NATIVE_COMPILED_DEF(    noopBop,                "noop",             OP_NOOP),
-
-    // following must be last in table
-    OP_COMPILED_DEF(		NULL,                   NULL,					-1 )
+    NATIVE_COMPILED_DEF(    noopBop,                "noop",             OP_NOOP)
 };
 
 
@@ -9432,6 +9402,8 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(    leaveBop,                "leave" ),
     NATIVE_DEF(    hereBop,                 "here" ),
     NATIVE_DEF(    dpBop,                   "dp" ),
+    NATIVE_DEF(    yieldBop,                "yield" ),
+
     NATIVE_DEF(    fetchVaractionBop,       "fetch" ),
     NATIVE_DEF(    odropBop,                "odrop"),
 
@@ -10103,6 +10075,8 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    DLLVoidOp,              "DLLVoid" ),
     OP_DEF(    DLLLongOp,              "DLLLong" ),
     OP_DEF(    DLLStdCallOp,           "DLLStdCall" ),
+    OP_DEF(    createCallbackOp,       "createCallback"),
+    OP_DEF(    destroyCallbackOp,      "destroyCallback"),
 
     ///////////////////////////////////////////
     //  time and date
@@ -10183,19 +10157,6 @@ baseDictionaryEntry baseDictionary[] =
 	OP_DEF(		shutdownOp,				"shutdown" ),
 
     ///////////////////////////////////////////
-    //  threads
-    ///////////////////////////////////////////
-	OP_DEF( createThreadOp,             "createThread" ),
-    OP_DEF( createFiberOp,              "createFiber" ),
-    OP_DEF( exitThreadOp,               "exitThread" ),
-    OP_DEF( yieldOp,					"yield" ),
-    OP_DEF( stopFiberOp,				"stopFiber" ),
-    OP_DEF( sleepFiberOp,				"sleepFiber" ),
-    OP_DEF( exitFiberOp,				"exitFiber" ),
-	OP_DEF( getCurrentFiberOp,          "getCurrentFiber"),
-	OP_DEF( getCurrentThreadOp,         "getCurrentThread"),
-
-    ///////////////////////////////////////////
     //  exception handling
     ///////////////////////////////////////////
     PRECOP_DEF( tryOp,                  "try"),
@@ -10249,11 +10210,13 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF( forth64Op,					"FORTH64" ),
 
     OP_DEF( pathSeparatorOp,            "PATH_SEPARATOR"),
-
-    // following must be last in table
-    OP_DEF(    NULL,                   NULL )
 };
 
+baseMethodEntry opsWhichReturnObjects[] =
+{
+    OP_DEF_RETURNS(thisThreadOp,        "thisThread",   kBCIThread),
+    OP_DEF_RETURNS(thisFiberOp,         "thisFiber",    kBCIFiber)
+};
 
 //############################################################################
 //
@@ -10261,32 +10224,24 @@ baseDictionaryEntry baseDictionary[] =
 //
 //############################################################################
 
-void audioCallback(void *userdata, unsigned char *stream, int len)
-{
-    for ( int i = 0; i < len; i++ )
-    {
-        *stream++ = (i & 1) ? 127 : -128;
-    }
-}
-
 void AddForthOps( ForthEngine* pEngine )
 {
-	baseDictionaryCompiledEntry* pCompEntry = baseCompiledDictionary;
-
-	while ( pCompEntry->name != NULL )
+	for (baseDictionaryCompiledEntry& compEntry : baseCompiledDictionary)
 	{
-		forthop* pEntry = pEngine->AddBuiltinOp( pCompEntry->name, pCompEntry->flags, pCompEntry->value );
-		gCompiledOps[ pCompEntry->index ] = *pEntry;
-		pCompEntry++;
+		forthop* pEntry = pEngine->AddBuiltinOp(compEntry.name, compEntry.flags, compEntry.value );
+		gCompiledOps[compEntry.index] = *pEntry;
 	}
 
-	baseDictionaryEntry* pDictEntry = baseDictionary;
-
-	while ( pDictEntry->name != NULL )
+	for (baseDictionaryEntry& dictEntry : baseDictionary)
 	{
-		forthop* pEntry = pEngine->AddBuiltinOp( pDictEntry->name, pDictEntry->flags, pDictEntry->value );
-		pDictEntry++;
+		forthop* pEntry = pEngine->AddBuiltinOp( dictEntry.name, dictEntry.flags, dictEntry.value );
 	}
+
+    for (baseMethodEntry& objEntry : opsWhichReturnObjects)
+    {
+        forthop* pEntry = pEngine->AddBuiltinOp(objEntry.name, kOpCCode, objEntry.value);
+        pEntry[1] = OBJECT_TYPE_TO_CODE(0, objEntry.returnType);
+    }
 }
 
 };  // end extern "C"

@@ -9,7 +9,8 @@ o ability to build windows GUI apps in forth
 =======================================================================
 july 27 2022
 - see why the methods in xxx.show always seem to be the same
-- fix the test summary output
++ fix the test summary output
+
 =======================================================================
 fixing the super.delete problem
 

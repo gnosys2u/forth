@@ -985,6 +985,30 @@ namespace OThread
 		METHOD_RETURN;
 	}
 
+	FORTHOP(oThreadCreateFiberMethod)
+	{
+		GET_THIS(oThreadStruct, pThreadStruct);
+		ForthEngine* pEngine = GET_ENGINE;
+		ForthObject fiber;
+
+		ForthThread* pThread = pThreadStruct->pThread;
+		int returnStackLongs = (int)(SPOP);
+		int paramStackLongs = (int)(SPOP);
+		int32_t threadOp = SPOP;
+		OThread::CreateFiberObject(fiber, pThread, pEngine, threadOp, paramStackLongs, returnStackLongs);
+
+		PUSH_OBJECT(fiber);
+		METHOD_RETURN;
+	}
+
+	FORTHOP(oThreadExitMethod)
+	{
+		GET_THIS(oThreadStruct, pThreadStruct);
+		ForthThread* pThread = pThreadStruct->pThread;
+		pThread->Exit();
+		METHOD_RETURN;
+	}
+
     FORTHOP(oThreadJoinMethod)
     {
         GET_THIS(oThreadStruct, pThreadStruct);
@@ -997,21 +1021,6 @@ namespace OThread
 	{
 		GET_THIS(oThreadStruct, pThreadStruct);
 		pThreadStruct->pThread->Reset();
-		METHOD_RETURN;
-	}
-
-	FORTHOP(oThreadCreateFiberMethod)
-	{
-		GET_THIS(oThreadStruct, pThreadStruct);
-		ForthEngine* pEngine = GET_ENGINE;
-		ForthObject thread;
-
-		int returnStackLongs = (int)SPOP;
-		int paramStackLongs = (int)SPOP;
-        forthop fiberOp = (forthop)SPOP;
-        OThread::CreateFiberObject(thread, pThreadStruct->pThread, pEngine, fiberOp, paramStackLongs, returnStackLongs);
-
-		PUSH_OBJECT(thread);
 		METHOD_RETURN;
 	}
 
@@ -1043,9 +1052,10 @@ namespace OThread
 		METHOD("delete", oThreadDeleteMethod),
 		METHOD_RET("start", oThreadStartMethod, RETURNS_NATIVE(BaseType::kInt)),
 		METHOD_RET("startWithArgs", oThreadStartWithArgsMethod, RETURNS_NATIVE(BaseType::kInt)),
+		METHOD_RET("createFiber", oThreadCreateFiberMethod, RETURNS_OBJECT(kBCIFiber)),
+		METHOD("exit", oThreadExitMethod),
         METHOD("join", oThreadJoinMethod),
         METHOD("reset", oThreadResetMethod),
-		METHOD_RET("createFiber", oThreadCreateFiberMethod, RETURNS_OBJECT(kBCIFiber)),
 		METHOD_RET("getRunState", oThreadGetRunStateMethod, RETURNS_NATIVE(BaseType::kInt)),
         METHOD_RET("getName", oThreadGetNameMethod, RETURNS_NATIVE_PTR(BaseType::kByte)),
         METHOD("setName", oThreadSetNameMethod),
@@ -1143,11 +1153,20 @@ namespace OThread
 	FORTHOP(oFiberStopMethod)
 	{
 		GET_THIS(oFiberStruct, pFiberStruct);
-		pFiberStruct->pFiber->SetRunState(FiberState::kStopped);
+		SET_STATE(OpResult::kYield);
+		pFiberStruct->pFiber->Stop();
 		METHOD_RETURN;
 	}
 
-    FORTHOP(oFiberJoinMethod)
+	FORTHOP(oFiberExitMethod)
+	{
+		GET_THIS(oFiberStruct, pFiberStruct);
+		SET_STATE(OpResult::kYield);
+		pFiberStruct->pFiber->Exit();
+		METHOD_RETURN;
+	}
+
+	FORTHOP(oFiberJoinMethod)
     {
         GET_THIS(oFiberStruct, pFiberStruct);
         ForthFiber* pJoiner = pFiberStruct->pFiber->GetParent()->GetActiveFiber();
@@ -1278,8 +1297,9 @@ namespace OThread
 		METHOD("delete", oFiberDeleteMethod),
 		METHOD("start", oFiberStartMethod),
         METHOD_RET("startWithArgs", oFiberStartWithArgsMethod, RETURNS_NATIVE(BaseType::kInt)),
-        METHOD("stop", oFiberStopMethod),
-        METHOD("join", oFiberJoinMethod),
+		METHOD("stop", oFiberStopMethod),
+		METHOD("exit", oFiberExitMethod),
+		METHOD("join", oFiberJoinMethod),
         METHOD("sleep", oFiberSleepMethod),
         METHOD("wake", oFiberWakeMethod),
         METHOD("push", oFiberPushMethod),
@@ -1296,7 +1316,7 @@ namespace OThread
         //METHOD_RET("getParent", oFiberGetParentMethod, RETURNS_NATIVE(BaseType::k)),
 
 		MEMBER_VAR("id", NATIVE_TYPE_TO_CODE(0, BaseType::kCell)),
-		MEMBER_VAR("__thread", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
+		MEMBER_VAR("__fiber", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 
 		// following must be last in table
 		END_MEMBERS

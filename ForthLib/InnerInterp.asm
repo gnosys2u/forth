@@ -3002,6 +3002,12 @@ entry doneBop
 
 ;========================================
 
+entry yieldBop
+	mov	eax, kResultYield
+	jmp	interpLoopExit
+
+;========================================
+
 entry abortBop
 	mov	eax, kForthErrorAbort
 	jmp	interpLoopFatalErrorExit
