@@ -764,7 +764,7 @@ namespace OStream
     FORTHOP(oFileInStreamNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oFileInStreamStruct, pFileInStreamStruct, pClassVocab);
+		ALLOCATE_OBJECT(oFileInStreamStruct, pFileInStreamStruct, pClassVocab);
         pFileInStreamStruct->istream.pMethods = pClassVocab->GetMethods();
         pFileInStreamStruct->istream.refCount = 0;
 		pFileInStreamStruct->istream.pUserData = NULL;
@@ -1027,7 +1027,7 @@ namespace OStream
 	FORTHOP(oConsoleInStreamNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oFileInStreamStruct, pConsoleInStreamStruct, pClassVocab);
+		ALLOCATE_OBJECT(oFileInStreamStruct, pConsoleInStreamStruct, pClassVocab);
         pConsoleInStreamStruct->istream.pMethods = pClassVocab->GetMethods();
         pConsoleInStreamStruct->istream.refCount = 0;
 		pConsoleInStreamStruct->istream.pUserData = NULL;
@@ -1321,7 +1321,7 @@ namespace OStream
 	FORTHOP(oFileOutStreamNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oFileOutStreamStruct, pFileOutStream, pClassVocab);
+		ALLOCATE_OBJECT(oFileOutStreamStruct, pFileOutStream, pClassVocab);
         pFileOutStream->ostream.pMethods = pClassVocab->GetMethods();
         pFileOutStream->ostream.refCount = 0;
 		pFileOutStream->ostream.pOutFuncs = &fileOutFuncs;
@@ -1484,7 +1484,7 @@ namespace OStream
 	FORTHOP(oStringOutStreamNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oStringOutStreamStruct, pStringOutStream, pClassVocab);
+		ALLOCATE_OBJECT(oStringOutStreamStruct, pStringOutStream, pClassVocab);
         pStringOutStream->ostream.pMethods = pClassVocab->GetMethods();
         pStringOutStream->ostream.refCount = 0;
 		pStringOutStream->ostream.pOutFuncs = &stringOutFuncs;
@@ -1626,7 +1626,7 @@ namespace OStream
 	FORTHOP(oFunctionOutStreamNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oFunctionOutStreamStruct, pFunctionOutStream, pClassVocab);
+		ALLOCATE_OBJECT(oFunctionOutStreamStruct, pFunctionOutStream, pClassVocab);
         pFunctionOutStream->ostream.pMethods = pClassVocab->GetMethods();
         pFunctionOutStream->ostream.refCount = 0;
 		pFunctionOutStream->ostream.pOutFuncs = &(pFunctionOutStream->outFuncs);
@@ -1703,7 +1703,7 @@ namespace OStream
 	FORTHOP(oTraceOutStreamNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oOutStreamStruct, pTraceOutStream, pClassVocab);
+		ALLOCATE_OBJECT(oOutStreamStruct, pTraceOutStream, pClassVocab);
         pTraceOutStream->pMethods = pClassVocab->GetMethods();
         pTraceOutStream->refCount = 0;
 		pTraceOutStream->pOutFuncs = &traceOutFuncs;
@@ -1939,7 +1939,7 @@ void GetForthErrorOutStream(ForthCoreState* pCore, ForthObject& outObject)
 void CreateForthFileOutStream(ForthCoreState* pCore, ForthObject& outObject, FILE* pOutFile)
 {
     ForthClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIFileOutStream);
-	MALLOCATE_OBJECT(oOutStreamStruct, pFileOutStream, pClassVocab);
+	ALLOCATE_OBJECT(oOutStreamStruct, pFileOutStream, pClassVocab);
     pFileOutStream->pMethods = pClassVocab->GetMethods();
     pFileOutStream->refCount = 1;
 	pFileOutStream->pOutFuncs = &OStream::fileOutFuncs;
@@ -1951,14 +1951,14 @@ void CreateForthStringOutStream(ForthCoreState* pCore, ForthObject& outObject)
 {
     // create the internal string object
     ForthClassVocabulary* pClassVocab = GET_CLASS_VOCABULARY(kBCIString);
-    MALLOCATE_OBJECT(oStringStruct, pString, pClassVocab);
+    ALLOCATE_OBJECT(oStringStruct, pString, pClassVocab);
     pString->pMethods = pClassVocab->GetMethods();
     pString->refCount = 0;
     pString->hash = 0;
     pString->str = OString::createOString(OString::gDefaultOStringSize);
 
     pClassVocab = GET_CLASS_VOCABULARY(kBCIStringOutStream);
-    MALLOCATE_OBJECT(oStringOutStreamStruct, pStringOutStream, pClassVocab);
+    ALLOCATE_OBJECT(oStringOutStreamStruct, pStringOutStream, pClassVocab);
     pStringOutStream->ostream.pMethods = pClassVocab->GetMethods();
     pStringOutStream->ostream.refCount = 1;
 	pStringOutStream->ostream.pOutFuncs = &OStream::stringOutFuncs;
@@ -1978,7 +1978,7 @@ void CreateForthFunctionOutStream(ForthCoreState* pCore, ForthObject& outObject,
 	streamBytesOutRoutine outBytes, streamStringOutRoutine outString, void* pUserData)
 {
     ForthClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIFunctionOutStream);
-	MALLOCATE_OBJECT(OStream::oFunctionOutStreamStruct, pFunctionOutStream, pClassVocab);
+	ALLOCATE_OBJECT(OStream::oFunctionOutStreamStruct, pFunctionOutStream, pClassVocab);
     pFunctionOutStream->ostream.pMethods = pClassVocab->GetMethods();
     pFunctionOutStream->ostream.refCount = 1;
 	pFunctionOutStream->ostream.pOutFuncs = &(pFunctionOutStream->outFuncs);

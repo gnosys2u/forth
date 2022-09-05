@@ -99,7 +99,7 @@ namespace
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
         int32_t nBytes = pClassVocab->GetSize();
-		MALLOCATE_OBJECT(oObjectStruct, pThis, pClassVocab);
+		ALLOCATE_OBJECT(oObjectStruct, pThis, pClassVocab);
         // clear the entire object area - this handles both its refcount and any object pointers it might contain
         memset(pThis, 0, nBytes);
         pThis->pMethods = pClassVocab->GetMethods();

@@ -30,7 +30,7 @@ namespace OList
 	FORTHOP(oListNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oListStruct, pList, pClassVocab);
+		ALLOCATE_OBJECT(oListStruct, pList, pClassVocab);
         pList->pMethods = pClassVocab->GetMethods();
 		pList->refCount = 0;
 		pList->head = NULL;
@@ -77,7 +77,7 @@ namespace OList
         pList->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIListIter);
-        MALLOCATE_ITER(oListIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oListIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pList);
@@ -92,7 +92,7 @@ namespace OList
         pList->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIListIter);
-        MALLOCATE_ITER(oListIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oListIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pList);
@@ -125,7 +125,7 @@ namespace OList
             pList->refCount++;
             TRACK_KEEP;
             ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIListIter);
-            MALLOCATE_ITER(oListIterStruct, pIter, pIterVocab);
+            ALLOCATE_ITER(oListIterStruct, pIter, pIterVocab);
             pIter->pMethods = pIterVocab->GetMethods();
             pIter->refCount = 0;
             pIter->parent = reinterpret_cast<ForthObject>(pList);
@@ -140,7 +140,7 @@ namespace OList
     {
         // create an empty list
         ForthClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIList);
-        MALLOCATE_OBJECT(oListStruct, pCloneList, pClassVocab);
+        ALLOCATE_OBJECT(oListStruct, pCloneList, pClassVocab);
         pCloneList->pMethods = pClassVocab->GetMethods();
         pCloneList->refCount = 0;
         pCloneList->head = NULL;
@@ -152,7 +152,7 @@ namespace OList
         while (pCur != NULL)
         {
             oListElement* pNext = pCur->next;
-            MALLOCATE_LINK(oListElement, newElem);
+            ALLOCATE_LINK(oListElement, newElem);
             newElem->obj = pCur->obj;
             SAFE_KEEP(newElem->obj);
             if (oldTail == NULL)
@@ -224,7 +224,7 @@ namespace OList
         int n = SPOP;
         for (int i = 0; i < n; i++)
         {
-            MALLOCATE_LINK(oListElement, newElem);
+            ALLOCATE_LINK(oListElement, newElem);
             POP_OBJECT(newElem->obj);
             SAFE_KEEP(newElem->obj);
             newElem->next = NULL;
@@ -250,7 +250,7 @@ namespace OList
         GET_THIS(oListStruct, pList);
         oListElement* pCur = pList->head;
         ForthClassVocabulary *pArrayVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIArray);
-        MALLOCATE_OBJECT(oArrayStruct, pArray, pArrayVocab);
+        ALLOCATE_OBJECT(oArrayStruct, pArray, pArrayVocab);
         pArray->pMethods = pArrayVocab->GetMethods();
         pArray->refCount = 0;
         pArray->elements = new oArray;
@@ -314,7 +314,7 @@ namespace OList
 	FORTHOP(oListAddHeadMethod)
 	{
 		GET_THIS(oListStruct, pList);
-		MALLOCATE_LINK(oListElement, newElem);
+		ALLOCATE_LINK(oListElement, newElem);
 		POP_OBJECT(newElem->obj);
 		SAFE_KEEP(newElem->obj);
 		newElem->prev = NULL;
@@ -336,7 +336,7 @@ namespace OList
 
     void listAddTail(oListStruct* pList, ForthObject& obj, ForthCoreState* pCore)
     {
-        MALLOCATE_LINK(oListElement, newElem);
+        ALLOCATE_LINK(oListElement, newElem);
         newElem->obj = obj;
         SAFE_KEEP(obj);
         newElem->next = NULL;
@@ -863,7 +863,7 @@ namespace OList
 
 		// create an empty list
 		ForthClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIList);
-		MALLOCATE_OBJECT(oListStruct, pNewList, pClassVocab);
+		ALLOCATE_OBJECT(oListStruct, pNewList, pClassVocab);
         pNewList->pMethods = pClassVocab->GetMethods();
         pNewList->refCount = 0;
         pNewList->head = NULL;

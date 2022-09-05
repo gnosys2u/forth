@@ -42,7 +42,7 @@ namespace OSystem
         obj = reinterpret_cast<ForthObject>(&gSystemSingleton);
         obj->pMethods = pClassVocab->GetMethods();
 
-        MALLOCATE_OBJECT(oObjectStruct, pShellStack, gpShellStackVocab);
+        ALLOCATE_OBJECT(oObjectStruct, pShellStack, gpShellStackVocab);
         gSystemSingleton.shellStack = pShellStack;
         pShellStack->pMethods = gpShellStackVocab->GetMethods();
         pShellStack->refCount = 2000000000;

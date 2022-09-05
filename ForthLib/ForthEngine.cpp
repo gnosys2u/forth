@@ -2689,7 +2689,7 @@ OpResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
     obj->pMethods = savedMethods;
 
     // now free the storage for the object instance
-    __DEALLOCATE_BYTES(obj, objSize);
+    DEALLOCATE_BYTES(obj, objSize);
 
     //deleteDepth--;
     return exitStatus;

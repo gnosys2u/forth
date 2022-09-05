@@ -925,7 +925,7 @@ namespace OThread
 
 	void CreateThreadObject(ForthObject& outThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
 	{
-		MALLOCATE_OBJECT(oThreadStruct, pThreadStruct, gpThreadVocabulary);
+		ALLOCATE_OBJECT(oThreadStruct, pThreadStruct, gpThreadVocabulary);
         pThreadStruct->pMethods = gpThreadVocabulary->GetMethods();
         pThreadStruct->refCount = 1;
 		ForthThread* pThread = pEngine->CreateThread(threadOp, paramStackLongs, returnStackLongs);
@@ -1075,7 +1075,7 @@ namespace OThread
 
 	void CreateFiberObject(ForthObject& outFiber, ForthThread *pParentThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
 	{
-		MALLOCATE_OBJECT(oFiberStruct, pFiberStruct, gpFiberVocabulary);
+		ALLOCATE_OBJECT(oFiberStruct, pFiberStruct, gpFiberVocabulary);
         pFiberStruct->pMethods = gpFiberVocabulary->GetMethods();
         pFiberStruct->refCount = 1;
 		pFiberStruct->pFiber = pParentThread->CreateFiber(pEngine, threadOp, paramStackLongs, returnStackLongs);
@@ -1087,7 +1087,7 @@ namespace OThread
 
 	void FixupFiber(ForthFiber* pFiber)
 	{
-		MALLOCATE_OBJECT(oFiberStruct, pFiberStruct, gpFiberVocabulary);
+		ALLOCATE_OBJECT(oFiberStruct, pFiberStruct, gpFiberVocabulary);
 		ForthObject& primaryFiber = pFiber->GetFiberObject();
         pFiberStruct->pMethods = gpFiberVocabulary->GetMethods();
         pFiberStruct->refCount = 1;
@@ -1097,7 +1097,7 @@ namespace OThread
 
 	void FixupThread(ForthThread* pThread)
 	{
-		MALLOCATE_OBJECT(oThreadStruct, pThreadStruct, gpThreadVocabulary);
+		ALLOCATE_OBJECT(oThreadStruct, pThreadStruct, gpThreadVocabulary);
         pThreadStruct->pMethods = gpThreadVocabulary->GetMethods();
         pThreadStruct->refCount = 1;
 		pThreadStruct->pThread = pThread;
@@ -1354,7 +1354,7 @@ namespace OLock
 
 	void CreateAsyncLockObject(ForthObject& outAsyncLock, ForthEngine *pEngine)
 	{
-		MALLOCATE_OBJECT(oAsyncLockStruct, pLockStruct, gpAsyncLockVocabulary);
+		ALLOCATE_OBJECT(oAsyncLockStruct, pLockStruct, gpAsyncLockVocabulary);
         pLockStruct->pMethods = gpAsyncLockVocabulary->GetMethods();
 		pLockStruct->refCount = 0;
 #ifdef WIN32
@@ -1467,7 +1467,7 @@ namespace OLock
 	FORTHOP(oLockNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oLockStruct, pLockStruct, pClassVocab);
+		ALLOCATE_OBJECT(oLockStruct, pLockStruct, pClassVocab);
 
         pLockStruct->pMethods = pClassVocab->GetMethods();
         pLockStruct->refCount = 0;
@@ -1689,7 +1689,7 @@ namespace OLock
     FORTHOP(oSemaphoreNew)
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-        MALLOCATE_OBJECT(oSemaphoreStruct, pSemaphoreStruct, pClassVocab);
+        ALLOCATE_OBJECT(oSemaphoreStruct, pSemaphoreStruct, pClassVocab);
 
         pSemaphoreStruct->pMethods = pClassVocab->GetMethods();
         pSemaphoreStruct->refCount = 0;
@@ -1844,7 +1844,7 @@ namespace OLock
 
     void CreateAsyncSemaphoreObject(ForthObject& outSemaphore, ForthEngine *pEngine)
     {
-        MALLOCATE_OBJECT(oAsyncSemaphoreStruct, pSemaphoreStruct, gpSemaphoreVocabulary);
+        ALLOCATE_OBJECT(oAsyncSemaphoreStruct, pSemaphoreStruct, gpSemaphoreVocabulary);
         pSemaphoreStruct->pMethods = gpSemaphoreVocabulary->GetMethods();
         pSemaphoreStruct->refCount = 0;
 #ifdef WIN32

@@ -45,7 +45,7 @@ namespace OArray
     oArrayStruct* createArrayObject(ForthClassVocabulary *pClassVocab)
     {
 
-        MALLOCATE_OBJECT(oArrayStruct, pArray, pClassVocab);
+        ALLOCATE_OBJECT(oArrayStruct, pArray, pClassVocab);
         pArray->pMethods = pClassVocab->GetMethods();
         pArray->refCount = 0;
         pArray->elements = new oArray;
@@ -55,7 +55,7 @@ namespace OArray
     oArrayIterStruct* createArrayIterator(ForthCoreState* pCore, oArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIArrayIter);
-        MALLOCATE_ITER(oArrayIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oArrayIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pArray);
@@ -199,7 +199,7 @@ namespace OArray
         }
         // create clone array and set is size to match this array
         ForthClassVocabulary *pArrayVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIArray);
-        MALLOCATE_OBJECT(oArrayStruct, pCloneArray, pArrayVocab);
+        ALLOCATE_OBJECT(oArrayStruct, pCloneArray, pArrayVocab);
         pCloneArray->pMethods = pArray->pMethods;
         pCloneArray->refCount = 0;
         pCloneArray->elements = new oArray;
@@ -609,7 +609,7 @@ namespace OArray
         oArray& a = *(pArray->elements);
 
         ForthClassVocabulary *pListVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIList);
-        MALLOCATE_OBJECT(oListStruct, pList, pListVocab);
+        ALLOCATE_OBJECT(oListStruct, pList, pListVocab);
         pList->pMethods = pListVocab->GetMethods();
         pList->refCount = 0;
         pList->head = NULL;
@@ -621,7 +621,7 @@ namespace OArray
         {
             ForthObject& o = *iter;
             SAFE_KEEP(o);
-            MALLOCATE_LINK(oListElement, newElem);
+            ALLOCATE_LINK(oListElement, newElem);
             newElem->obj = o;
             if (oldTail == NULL)
             {
@@ -863,7 +863,7 @@ namespace OArray
 	{
 		GET_THIS(oArrayIterStruct, pIter);
 		ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIArrayIter);
-		MALLOCATE_ITER(oArrayIterStruct, pNewIter, pIterVocab);
+		ALLOCATE_ITER(oArrayIterStruct, pNewIter, pIterVocab);
         pNewIter->pMethods = pIterVocab->GetMethods();
 		pNewIter->refCount = 0;
         pNewIter->parent = pIter->parent;
@@ -1008,7 +1008,7 @@ namespace OArray
     oBagStruct* createBagObject(ForthObject& destObj, ForthClassVocabulary *pClassVocab)
     {
 
-        MALLOCATE_OBJECT(oBagStruct, pBag, pClassVocab);
+        ALLOCATE_OBJECT(oBagStruct, pBag, pClassVocab);
         pBag->pMethods = pClassVocab->GetMethods();
         pBag->refCount = 0;
         pBag->elements = new oBag;
@@ -1018,7 +1018,7 @@ namespace OArray
     oArrayIterStruct* createBagIterator(ForthCoreState* pCore, oBagStruct* pBag)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIBagIter);
-        MALLOCATE_ITER(oArrayIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oArrayIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pBag);
@@ -1187,7 +1187,7 @@ namespace OArray
         }
         // create clone array and set is size to match this array
         ForthClassVocabulary *pBagVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIBag);
-        MALLOCATE_OBJECT(oBagStruct, pCloneBag, pBagVocab);
+        ALLOCATE_OBJECT(oBagStruct, pCloneBag, pBagVocab);
         pCloneBag->pMethods = pBag->pMethods;
         pCloneBag->refCount = 0;
         pCloneBag->elements = new oBag;
@@ -1847,7 +1847,7 @@ namespace OArray
     {
         GET_THIS(oArrayIterStruct, pIter);
         ForthClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIBagIter);
-        MALLOCATE_ITER(oArrayIterStruct, pNewIter, pClassVocab);
+        ALLOCATE_ITER(oArrayIterStruct, pNewIter, pClassVocab);
         pNewIter->pMethods = pClassVocab->GetMethods();
         pNewIter->refCount = 0;
         pNewIter->parent = pIter->parent;
@@ -1985,7 +1985,7 @@ namespace OArray
     oByteArrayIterStruct* createByteArrayIterator(ForthCoreState* pCore, oByteArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIByteArrayIter);
-        MALLOCATE_ITER(oByteArrayIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oByteArrayIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pArray);
@@ -2030,7 +2030,7 @@ namespace OArray
     FORTHOP(oByteArrayNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oByteArrayStruct, pArray, pClassVocab);
+		ALLOCATE_OBJECT(oByteArrayStruct, pArray, pClassVocab);
         pArray->pMethods = pClassVocab->GetMethods();
 		pArray->refCount = 0;
 		pArray->elements = new oByteArray;
@@ -2118,7 +2118,7 @@ namespace OArray
         oByteArray& a = *(pArray->elements);
         // create clone array and set is size to match this array
         ForthClassVocabulary *pArrayVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIByteArray);
-        MALLOCATE_OBJECT(oByteArrayStruct, pCloneArray, pArrayVocab);
+        ALLOCATE_OBJECT(oByteArrayStruct, pCloneArray, pArrayVocab);
         pCloneArray->pMethods = pArray->pMethods;
         pCloneArray->refCount = 0;
         pCloneArray->elements = new oByteArray;
@@ -2593,7 +2593,7 @@ namespace OArray
         pArray->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIByteArrayIter);
-        MALLOCATE_ITER(oByteArrayIterStruct, pNewIter, pIterVocab);
+        ALLOCATE_ITER(oByteArrayIterStruct, pNewIter, pIterVocab);
         pNewIter->pMethods = pIter->pMethods;
         pNewIter->refCount = 0;
         pNewIter->parent = pIter->parent;
@@ -2702,7 +2702,7 @@ namespace OArray
     oShortArrayIterStruct* createShortArrayIterator(ForthCoreState* pCore, oShortArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIShortArrayIter);
-        MALLOCATE_ITER(oShortArrayIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oShortArrayIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = (ForthObject)(pArray);
@@ -2747,7 +2747,7 @@ namespace OArray
     FORTHOP(oShortArrayNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oShortArrayStruct, pArray, pClassVocab);
+		ALLOCATE_OBJECT(oShortArrayStruct, pArray, pClassVocab);
         pArray->pMethods = pClassVocab->GetMethods();
         pArray->refCount = 0;
 		pArray->elements = new oShortArray;
@@ -2833,7 +2833,7 @@ namespace OArray
         oShortArray& a = *(pArray->elements);
         // create clone array and set is size to match this array
         ForthClassVocabulary *pArrayVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIShortArray);
-        MALLOCATE_OBJECT(oShortArrayStruct, pCloneArray, pArrayVocab);
+        ALLOCATE_OBJECT(oShortArrayStruct, pCloneArray, pArrayVocab);
         pCloneArray->pMethods = pArray->pMethods;
         pCloneArray->refCount = 0;
         pCloneArray->elements = new oShortArray;
@@ -3303,7 +3303,7 @@ namespace OArray
         pArray->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIShortArrayIter);
-        MALLOCATE_ITER(oShortArrayIterStruct, pNewIter, pIterVocab);
+        ALLOCATE_ITER(oShortArrayIterStruct, pNewIter, pIterVocab);
         pNewIter->pMethods = pIter->pMethods;
         pNewIter->refCount = 0;
         pNewIter->parent = pIter->parent;
@@ -3409,7 +3409,7 @@ namespace OArray
     oIntArrayIterStruct* createIntArrayIterator(ForthCoreState* pCore, oIntArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIIntArrayIter);
-        MALLOCATE_ITER(oIntArrayIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oIntArrayIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pArray);
@@ -3454,7 +3454,7 @@ namespace OArray
     FORTHOP(oIntArrayNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oIntArrayStruct, pArray, pClassVocab);
+		ALLOCATE_OBJECT(oIntArrayStruct, pArray, pClassVocab);
         pArray->pMethods = pClassVocab->GetMethods();
         pArray->refCount = 0;
 		pArray->elements = new oIntArray;
@@ -3540,7 +3540,7 @@ namespace OArray
         oIntArray& a = *(pArray->elements);
         // create clone array and set is size to match this array
         ForthClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIIntArray);
-        MALLOCATE_OBJECT(oIntArrayStruct, pCloneArray, pClassVocab);
+        ALLOCATE_OBJECT(oIntArrayStruct, pCloneArray, pClassVocab);
         pCloneArray->pMethods = pClassVocab->GetMethods();
         pCloneArray->refCount = 0;
         pCloneArray->elements = new oIntArray;
@@ -4006,7 +4006,7 @@ namespace OArray
         pArray->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIIntArrayIter);
-        MALLOCATE_ITER(oIntArrayIterStruct, pNewIter, pIterVocab);
+        ALLOCATE_ITER(oIntArrayIterStruct, pNewIter, pIterVocab);
         pNewIter->pMethods = pIter->pMethods;
         pNewIter->refCount = 0;
         pNewIter->cursor = pIter->cursor;
@@ -4219,7 +4219,7 @@ namespace OArray
     oLongArrayIterStruct* createLongArrayIterator(ForthCoreState* pCore, oLongArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCILongArrayIter);
-        MALLOCATE_ITER(oLongArrayIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oLongArrayIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pArray);
@@ -4264,7 +4264,7 @@ namespace OArray
     FORTHOP(oLongArrayNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oLongArrayStruct, pArray, pClassVocab);
+		ALLOCATE_OBJECT(oLongArrayStruct, pArray, pClassVocab);
         pArray->pMethods = pClassVocab->GetMethods();
         pArray->refCount = 0;
 		pArray->elements = new oLongArray;
@@ -4353,7 +4353,7 @@ namespace OArray
         oLongArray& a = *(pArray->elements);
         // create clone array and set is size to match this array
         ForthClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCILongArray);
-        MALLOCATE_OBJECT(oLongArrayStruct, pCloneArray, pClassVocab);
+        ALLOCATE_OBJECT(oLongArrayStruct, pCloneArray, pClassVocab);
         pCloneArray->pMethods = pClassVocab->GetMethods();
         pCloneArray->refCount = 0;
         pCloneArray->elements = new oLongArray;
@@ -4838,7 +4838,7 @@ namespace OArray
         pArray->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCILongArrayIter);
-        MALLOCATE_ITER(oLongArrayIterStruct, pNewIter, pIterVocab);
+        ALLOCATE_ITER(oLongArrayIterStruct, pNewIter, pIterVocab);
         pNewIter->pMethods = pIter->pMethods;
         pNewIter->refCount = 0;
         pNewIter->parent = reinterpret_cast<ForthObject>(pArray);
@@ -4948,7 +4948,7 @@ namespace OArray
     oDoubleArrayIterStruct* createDoubleArrayIterator(ForthCoreState* pCore, oDoubleArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIDoubleArrayIter);
-        MALLOCATE_ITER(oDoubleArrayIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oDoubleArrayIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pArray);
@@ -4993,7 +4993,7 @@ namespace OArray
     FORTHOP(oDoubleArrayNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oDoubleArrayStruct, pArray, pClassVocab);
+		ALLOCATE_OBJECT(oDoubleArrayStruct, pArray, pClassVocab);
         pArray->pMethods = pClassVocab->GetMethods();
         pArray->refCount = 0;
 		pArray->elements = new oDoubleArray;
@@ -5286,7 +5286,7 @@ namespace OArray
     oStructArrayIterStruct* createStructArrayIterator(ForthCoreState* pCore, oStructArrayStruct* pArray)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIStructArrayIter);
-        MALLOCATE_ITER(oStructArrayIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oStructArrayIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pArray);
@@ -5343,7 +5343,7 @@ namespace OArray
     FORTHOP(oStructArrayNew)
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-        MALLOCATE_OBJECT(oStructArrayStruct, pArray, pClassVocab);
+        ALLOCATE_OBJECT(oStructArrayStruct, pArray, pClassVocab);
         pArray->pMethods = pClassVocab->GetMethods();
         pArray->refCount = 0;
         pArray->elements = new oStructArray;
@@ -5890,7 +5890,7 @@ namespace OArray
         pArray->refCount++;
         TRACK_KEEP;
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIStructArrayIter);
-        MALLOCATE_ITER(oStructArrayIterStruct, pNewIter, pIterVocab);
+        ALLOCATE_ITER(oStructArrayIterStruct, pNewIter, pIterVocab);
         pNewIter->pMethods = pIter->pMethods;
         pNewIter->refCount = 0;
         pNewIter->parent = reinterpret_cast<ForthObject>(pArray);
@@ -5978,7 +5978,7 @@ namespace OArray
     oPairIterStruct* createPairIterator(ForthCoreState* pCore, oPairStruct* pPair)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIPairIter);
-        MALLOCATE_ITER(oPairIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oPairIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->pMethods = pIterVocab->GetMethods();
@@ -5989,7 +5989,7 @@ namespace OArray
     FORTHOP(oPairNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oPairStruct, pPair, pClassVocab);
+		ALLOCATE_OBJECT(oPairStruct, pPair, pClassVocab);
         pPair->pMethods = pClassVocab->GetMethods();
         pPair->refCount = 0;
         pPair->a = nullptr;
@@ -6313,7 +6313,7 @@ namespace OArray
     oTripleIterStruct* createTripleIterator(ForthCoreState* pCore, oTripleStruct* pTriple)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCITripleIter);
-        MALLOCATE_ITER(oTripleIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oTripleIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pTriple);
@@ -6323,7 +6323,7 @@ namespace OArray
     FORTHOP(oTripleNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oTripleStruct, pTriple, pClassVocab);
+		ALLOCATE_OBJECT(oTripleStruct, pTriple, pClassVocab);
         pTriple->pMethods = pClassVocab->GetMethods();
         pTriple->refCount = 0;
         pTriple->a = nullptr;

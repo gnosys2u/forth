@@ -138,7 +138,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-		MALLOCATE_ITER(oMapIterStruct, pIter, pIterVocab);
+		ALLOCATE_ITER(oMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -149,7 +149,7 @@ namespace OMap
     FORTHOP(oMapNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oMapStruct, pMap, pClassVocab);
+		ALLOCATE_OBJECT(oMapStruct, pMap, pClassVocab);
         pMap->pMethods = pClassVocab->GetMethods();
 		pMap->refCount = 0;
 		pMap->elements = new oMap;
@@ -720,7 +720,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIIntMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-		MALLOCATE_ITER(oIntMapIterStruct, pIter, pIterVocab);
+		ALLOCATE_ITER(oIntMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -731,7 +731,7 @@ namespace OMap
     FORTHOP(oIntMapNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oIntMapStruct, pMap, pClassVocab);
+		ALLOCATE_OBJECT(oIntMapStruct, pMap, pClassVocab);
         pMap->pMethods = pClassVocab->GetMethods();
         pMap->refCount = 0;
 		pMap->elements = new oIntMap;
@@ -1268,7 +1268,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIFloatMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-		MALLOCATE_ITER(oFloatMapIterStruct, pIter, pIterVocab);
+		ALLOCATE_ITER(oFloatMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -1279,7 +1279,7 @@ namespace OMap
     FORTHOP(oFloatMapNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oFloatMapStruct, pMap, pClassVocab);
+		ALLOCATE_OBJECT(oFloatMapStruct, pMap, pClassVocab);
         pMap->pMethods = pClassVocab->GetMethods();
         pMap->refCount = 0;
 		pMap->elements = new oFloatMap;
@@ -1510,7 +1510,7 @@ namespace OMap
 
     oLongMapStruct* createLongMapObject(ForthClassVocabulary *pClassVocab)
     {
-        MALLOCATE_OBJECT(oLongMapStruct, pMap, pClassVocab);
+        ALLOCATE_OBJECT(oLongMapStruct, pMap, pClassVocab);
         pMap->pMethods = pClassVocab->GetMethods();
         pMap->refCount = 0;
         pMap->elements = new oLongMap;
@@ -1588,7 +1588,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCILongMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-		MALLOCATE_ITER(oLongMapIterStruct, pIter, pIterVocab);
+		ALLOCATE_ITER(oLongMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -2141,7 +2141,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIDoubleMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-		MALLOCATE_ITER(oDoubleMapIterStruct, pIter, pIterVocab);
+		ALLOCATE_ITER(oDoubleMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -2152,7 +2152,7 @@ namespace OMap
     FORTHOP(oDoubleMapNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oDoubleMapStruct, pMap, pClassVocab);
+		ALLOCATE_OBJECT(oDoubleMapStruct, pMap, pClassVocab);
         pMap->pMethods = pClassVocab->GetMethods();
         pMap->refCount = 0;
 		pMap->elements = new oDoubleMap;
@@ -2662,7 +2662,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIStringIntMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-		MALLOCATE_ITER(oStringIntMapIterStruct, pIter, pIterVocab);
+		ALLOCATE_ITER(oStringIntMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -2673,7 +2673,7 @@ namespace OMap
     FORTHOP(oStringIntMapNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oStringIntMapStruct, pMap, pClassVocab);
+		ALLOCATE_OBJECT(oStringIntMapStruct, pMap, pClassVocab);
         pMap->pMethods = pClassVocab->GetMethods();
         pMap->refCount = 0;
 		pMap->elements = new oStringIntMap;
@@ -3235,7 +3235,7 @@ namespace OMap
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIStringLongMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
-		MALLOCATE_ITER(oStringLongMapIterStruct, pIter, pIterVocab);
+		ALLOCATE_ITER(oStringLongMapIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -3246,7 +3246,7 @@ namespace OMap
     FORTHOP(oStringLongMapNew)
 	{
 		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-		MALLOCATE_OBJECT(oStringLongMapStruct, pMap, pClassVocab);
+		ALLOCATE_OBJECT(oStringLongMapStruct, pMap, pClassVocab);
         pMap->pMethods = pClassVocab->GetMethods();
         pMap->refCount = 0;
 		pMap->elements = new oStringLongMap;

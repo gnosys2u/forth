@@ -1285,7 +1285,7 @@ namespace OVocabulary
 		pVocabulary->refCount++;
 		TRACK_KEEP;
 		ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIVocabularyIter);
-		MALLOCATE_ITER(oVocabularyIterStruct, pIter, pIterVocab);
+		ALLOCATE_ITER(oVocabularyIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
 		pIter->parent = reinterpret_cast<ForthObject>(pVocabulary);

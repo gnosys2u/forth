@@ -99,7 +99,7 @@ namespace OString
     FORTHOP( oStringNew )
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *) (SPOP);
-        MALLOCATE_OBJECT( oStringStruct, pString, pClassVocab );
+        ALLOCATE_OBJECT( oStringStruct, pString, pClassVocab );
         pString->pMethods = pClassVocab->GetMethods();
         pString->refCount = 0;
         pString->hash = 0;
@@ -724,7 +724,7 @@ namespace OString
 					notDone = false;
 				}
 				oString* str = createOString(substringSize);
-				MALLOCATE_OBJECT(oStringStruct, pSubString, pClassVocab);
+				ALLOCATE_OBJECT(oStringStruct, pSubString, pClassVocab);
                 pSubString->pMethods = pClassVocab->GetMethods();
 				pSubString->refCount = 1;
 				pSubString->hash = 0;
@@ -979,7 +979,7 @@ namespace OString
     oStringMapStruct* createStringMapObject(ForthClassVocabulary *pClassVocab)
     {
 
-        MALLOCATE_OBJECT(oStringMapStruct, pMap, pClassVocab);
+        ALLOCATE_OBJECT(oStringMapStruct, pMap, pClassVocab);
         pMap->pMethods = pClassVocab->GetMethods();
         pMap->refCount = 0;
         pMap->elements = new oStringMap;

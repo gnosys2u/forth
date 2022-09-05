@@ -47,7 +47,7 @@ namespace ODeque
     oDequeIterStruct* createDequeIterator(ForthCoreState* pCore, oDequeStruct* pDeq)
     {
         ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIDequeIter);
-        MALLOCATE_ITER(oDequeIterStruct, pIter, pIterVocab);
+        ALLOCATE_ITER(oDequeIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pDeq);
@@ -87,7 +87,7 @@ namespace ODeque
     FORTHOP(oDequeNew)
     {
         ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
-        MALLOCATE_OBJECT(oDequeStruct, pDeque, pClassVocab);
+        ALLOCATE_OBJECT(oDequeStruct, pDeque, pClassVocab);
         pDeque->pMethods = pClassVocab->GetMethods();
         pDeque->refCount = 0;
         pDeque->que = new oDeque;

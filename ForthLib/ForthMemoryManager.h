@@ -12,13 +12,13 @@
 #define __FREE s_memoryManager->free
 
 #if defined(USE_POOLED_MEMORY_MANAGER)
-#define __ALLOCATE_BYTES(NUM_BYTES)         s_memoryManager->allocate(NUM_BYTES)
-#define __DEALLOCATE_BYTES(PTR, NUM_BYTES)  s_memoryManager->deallocate(PTR, NUM_BYTES)
-#define __DEALLOCATE_OBJECT(OBJ)            s_memoryManager->deallocateObject(OBJ)
+#define ALLOCATE_BYTES(NUM_BYTES)         s_memoryManager->allocate(NUM_BYTES)
+#define DEALLOCATE_BYTES(PTR, NUM_BYTES)  s_memoryManager->deallocate(PTR, NUM_BYTES)
+#define DEALLOCATE_OBJECT(OBJ)            s_memoryManager->deallocateObject(OBJ)
 #else
-#define __ALLOCATE_BYTES(NUM_BYTES)         s_memoryManager->malloc(NUM_BYTES)
-#define __DEALLOCATE_BYTES(PTR, NUM_BYTES)  s_memoryManager->free(PTR)
-#define __DEALLOCATE_OBJECT(OBJ)            s_memoryManager->free(OBJ)
+#define ALLOCATE_BYTES(NUM_BYTES)         s_memoryManager->malloc(NUM_BYTES)
+#define DEALLOCATE_BYTES(PTR, NUM_BYTES)  s_memoryManager->free(PTR)
+#define DEALLOCATE_OBJECT(OBJ)            s_memoryManager->free(OBJ)
 #endif
 
 extern void startMemoryManager();

@@ -2660,7 +2660,7 @@ FORTHOP( allocObjectOp )
     if (pMethods)
     {
         int32_t nBytes = pClassVocab->GetSize();
-        ForthObject newObject = (ForthObject) __ALLOCATE_BYTES( nBytes );
+        ForthObject newObject = (ForthObject) ALLOCATE_BYTES( nBytes );
 		memset(newObject, 0, nBytes );
         newObject->pMethods = pMethods;
         SPUSH( (cell)newObject);
@@ -4780,7 +4780,7 @@ cell genericCallback(struct userCallbackData* pCallbackData, cell arg1)
 
 FORTHOP(createCallbackOp)
 {
-    userCallbackData* pCB = (userCallbackData*)__ALLOCATE_BYTES(sizeof(userCallbackData));
+    userCallbackData* pCB = (userCallbackData*)ALLOCATE_BYTES(sizeof(userCallbackData));
     pCB->numArgs = (uint32_t)(SPOP);
     pCB->pUserData = (void*)(SPOP);
     pCB->callbackOp = (forthop)(SPOP);
@@ -4793,7 +4793,7 @@ FORTHOP(createCallbackOp)
 FORTHOP(destroyCallbackOp)
 {
     void* pCB = (void*)(SPOP);
-    __DEALLOCATE_BYTES(pCB, sizeof(userCallbackData));
+    DEALLOCATE_BYTES(pCB, sizeof(userCallbackData));
 }
 
 FORTHOP( blwordOp )
