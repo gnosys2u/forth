@@ -496,12 +496,12 @@ unsigned __stdcall ForthThread::RunLoop(void *pUserData)
 void* ForthThread::RunLoop(void *pUserData)
 #endif
 {
-    ForthThread* pParentThread = (ForthThread*)pUserData;
-	ForthFiber* pActiveFiber = pParentThread->GetActiveFiber();
+    ForthThread* pThisThread = (ForthThread*)pUserData;
+	ForthFiber* pActiveFiber = pThisThread->GetActiveFiber();
 	ForthEngine* pEngine = pActiveFiber->GetEngine();
-    //printf("Starting thread %x\n", pParentThread);
+    //printf("Starting thread %x\n", pThisThread);
 
-    pParentThread->mRunState = FiberState::kReady;
+    pThisThread->mRunState = FiberState::kReady;
 	OpResult exitStatus = OpResult::kOk;
 	bool keepRunning = true;
 	while (keepRunning)
@@ -519,16 +519,16 @@ void* ForthThread::RunLoop(void *pUserData)
 			exitStatus = InnerInterpreter(pCore);
 		}
 
-		bool switchActiveThread = false;
+		bool switchActiveFiber = false;
 		switch (exitStatus)
 		{
 		case OpResult::kYield:
-			switchActiveThread = true;
+			switchActiveFiber = true;
 			SET_STATE(OpResult::kOk);
 			break;
 
 		case OpResult::kDone:
-			switchActiveThread = true;
+			switchActiveFiber = true;
 			checkForAllDone = true;
 			break;
 
@@ -536,22 +536,23 @@ void* ForthThread::RunLoop(void *pUserData)
 			break;
 		}
 
-		if (switchActiveThread)
+		if (switchActiveFiber)
 		{
 			// TODO!
-			// - switch to next runnable thread
-			// - sleep if all threads are sleeping
-			// - deal with all threads stopped
+			// - switch to next runnable fiber
+			// - sleep if all fibers are sleeping
+			// - deal with all fibers stopped
 			uint32_t now = pEngine->GetElapsedTime();
 
-			ForthFiber* pNextFiber = pParentThread->GetNextReadyFiber();
+			ForthFiber* pNextFiber = pThisThread->GetNextReadyFiber();
 			if (pNextFiber != nullptr)
 			{
 				pActiveFiber = pNextFiber;
 			}
 			else
 			{
-				pNextFiber = pParentThread->GetNextSleepingFiber();
+				pNextFiber = pThisThread->GetNextSleepingFiber();
+				// pNextFiber is fiber in this thread which has earliest wakeup time
 				if (pNextFiber != nullptr)
 				{
 					uint32_t wakeupTime = pNextFiber->GetWakeupTime();
@@ -562,8 +563,8 @@ void* ForthThread::RunLoop(void *pUserData)
 					}
 					else
 					{
-						// TODO: don't always sleep until wakeupTime, since threads which are blocked or stopped
-						//  could be unblocked or started by other async threads
+						// TODO: don't always sleep until wakeupTime, since fibers which are blocked or stopped
+						//  could be unblocked or started by other threads
 						int sleepMilliseconds = wakeupTime - now;
 #ifdef WIN32
 						::Sleep((DWORD)sleepMilliseconds);
@@ -583,7 +584,7 @@ void* ForthThread::RunLoop(void *pUserData)
 		if (checkForAllDone)
 		{
 			keepRunning = false;
-			for (ForthFiber* pFiber : pParentThread->mFibers)
+			for (ForthFiber* pFiber : pThisThread->mFibers)
 			{
 				if (pFiber->GetRunState() != FiberState::kExited)
 				{
@@ -594,22 +595,29 @@ void* ForthThread::RunLoop(void *pUserData)
 		}
 	}
 
-    //printf("Exiting thread %x signaling exitEvent %d\n", pParentThread, pParentThread->mExitSignal);
+	// NOTE: this seems redundant with ForthThread::Exit, but if you include the _endthreadex
+	//  here you will get a crash.  So for now, threads must explicitly do thisThread.exit, not
+	// just return from their thread op, which causes a different crash when another thread tries
+	// to do a join on this thread
+
+	// so I guess this code should never be executed - there is no returning from RunLoop.
+
+	//printf("Exiting thread %x signaling exitEvent %d\n", pThisThread, pThisThread->mExitSignal);
 #ifdef WIN32
-	pParentThread->mRunState = FiberState::kExited;
-    if (!SetEvent(pParentThread->mExitSignal))
-    {
-        printf("ForthThread::RunLoop SetEvent failed (%d)\n", GetLastError());
-    }
+	pThisThread->mRunState = FiberState::kExited;
+	if (!SetEvent(pThisThread->mExitSignal))
+	{
+		printf("ForthThread::RunLoop SetEvent failed (%d)\n", GetLastError());
+	}
 
-    return 0;
+	return 0;
 #else
-    pthread_mutex_lock(&pParentThread->mExitMutex);
-	pParentThread->mRunState = FiberState::kExited;
-	pthread_cond_broadcast(&pParentThread->mExitSignal);
-    pthread_mutex_unlock(&pParentThread->mExitMutex);
+	pthread_mutex_lock(&pThisThread->mExitMutex);
+	pThisThread->mRunState = FiberState::kExited;
+	pthread_cond_broadcast(&pThisThread->mExitSignal);
+	pthread_mutex_unlock(&pThisThread->mExitMutex);
 
-    return nullptr;
+	return nullptr;
 #endif
 }
 
@@ -661,35 +669,36 @@ void ForthThread::InnerLoop()
         if (switchActiveFiber)
         {
             // TODO!
-            // - switch to next runnable thread
-            // - sleep if all threads are sleeping
-            // - deal with all threads stopped
+            // - switch to next runnable fiber
+            // - sleep if all fibers are sleeping
+            // - deal with all fibers stopped
             uint32_t now = pEngine->GetElapsedTime();
 
             ForthFiber* pNextFiber = GetNextReadyFiber();
             if (pNextFiber != nullptr)
             {
-                //printf("Switching from thread 0x%x to ready thread 0x%x\n", pActiveFiber, pNextFiber);
+                //printf("Switching from fiber 0x%x to ready fiber 0x%x\n", pActiveFiber, pNextFiber);
                 pActiveFiber = pNextFiber;
                 SetActiveFiber(pActiveFiber);
             }
             else
             {
                 pNextFiber = GetNextSleepingFiber();
-                if (pNextFiber != nullptr)
+				// pNextFiber is fiber in this thread which has earliest wakeup time
+				if (pNextFiber != nullptr)
                 {
                     uint32_t wakeupTime = pNextFiber->GetWakeupTime();
                     if (now >= wakeupTime)
                     {
-                        //printf("Switching from thread 0x%x to waking thread 0x%x\n", pActiveFiber, pNextFiber);
+                        //printf("Switching from fiber 0x%x to fiber 0x%x\n", pActiveFiber, pNextFiber);
                         pNextFiber->Wake();
                         pActiveFiber = pNextFiber;
                         SetActiveFiber(pActiveFiber);
                     }
                     else
                     {
-                        // TODO: don't always sleep until wakeupTime, since threads which are blocked or stopped
-                        //  could be unblocked or started by other async threads
+                        // TODO: don't always sleep until wakeupTime, since fibers which are blocked or stopped
+                        //  could be unblocked or started by other threads
                         int sleepMilliseconds = wakeupTime - now;
 #ifdef WIN32
                         ::Sleep((DWORD)sleepMilliseconds);
