@@ -376,7 +376,7 @@ public:
 	char*					AddTempString(const char* inText = nullptr, cell inNumChars = -1);
     inline cell             UnusedTempStringSpace() { return (mStringBufferASize - (mpStringBufferANext - mpStringBufferA)); }
 
-    void                    AddGlobalObjectVariable(ForthObject* pObject);
+    void                    AddGlobalObjectVariable(ForthObject* pObject, ForthVocabulary* pVocab, const char* pName);
     void                    CleanupGlobalObjectVariables(forthop* pNewDP);
 
     void                    RaiseException(ForthCoreState* pCore, cell exceptionNum);

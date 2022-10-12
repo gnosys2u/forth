@@ -3872,7 +3872,7 @@ FORTHOP(addTempStringOp)
     SPUSH((cell)pDst);
 }
 
-#if defined(ASM_INNER_INTERPRETER) && !defined(LINUX)
+#if defined(ASM_INNER_INTERPRETER) && (!defined(LINUX) || defined(RASPI))
 #define PRINTF_SUBS_IN_ASM
 #endif
 

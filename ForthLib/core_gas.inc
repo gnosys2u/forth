@@ -28,7 +28,7 @@ kResultError			=		3
 kResultFatalError		=		4
 kResultException		=		5
 kResultShutdown			=		6
-kResultTrace			=		7
+kResultYield			=		7
 
 kForthErrorNone						=		0
 kForthErrorBadOpcode				=		1

@@ -3321,8 +3321,9 @@ bool ForthEngine::HasPendingContinuations()
 }
 
 
-void ForthEngine::AddGlobalObjectVariable(ForthObject* pObject)
+void ForthEngine::AddGlobalObjectVariable(ForthObject* pObject, ForthVocabulary* pVocab, const char* pName)
 {
+    TraceOut("Adding %s global object [%d] @%p of class %s\n", pName, mGlobalObjectVariables.size(), pObject, pVocab->GetName());
     mGlobalObjectVariables.push_back(pObject);
 }
 
@@ -3336,11 +3337,12 @@ void ForthEngine::CleanupGlobalObjectVariables(forthop* pNewDP)
             // we are done releasing objects, all remaining objects are below new DP
             break;
         }
-        ForthObject& obj = *(mGlobalObjectVariables[objectIndex]);
+	ForthObject* pVariable = mGlobalObjectVariables[objectIndex];
+        ForthObject& obj = *pVariable;
         if (obj != nullptr)
         {
             ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
-            TraceOut("Releasing object of class %s, refcount %d\n", pClassObject->pVocab->GetName(), obj->refCount);
+            TraceOut("Releasing global object [%d] @%p of class %s, refcount %d\n", objectIndex, pVariable, pClassObject->pVocab->GetName(), obj->refCount);
             SAFE_RELEASE(mpCore, obj);
         }
         objectIndex--;

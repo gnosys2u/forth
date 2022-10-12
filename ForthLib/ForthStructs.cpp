@@ -1477,7 +1477,7 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
             pHere = (ForthObject*)mpEngine->GetDP();
             if (!isPtr)
             {
-                mpEngine->AddGlobalObjectVariable((ForthObject *)pHere);
+                mpEngine->AddGlobalObjectVariable(pHere, this, pInstanceName);
             }
             mpEngine->AllotLongs((nBytes * numElements) >> 2);
             memset( pHere, 0, (nBytes * numElements) );
@@ -1498,7 +1498,7 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
             memset( pHere, 0, nBytes );
             if ( !isPtr )
             {
-                mpEngine->AddGlobalObjectVariable((ForthObject *)pHere);
+                mpEngine->AddGlobalObjectVariable(pHere, this, pInstanceName);
             }
 
             if ( GET_VAR_OPERATION == VarOperation::kVarStore )
