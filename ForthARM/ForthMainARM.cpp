@@ -17,7 +17,7 @@ static int loggerFD = -1;
 
 void OutputToLogger(const char* pBuffer)
 {
-#if 0
+#if 1
 	if (loggerFD < 0)
 	{
 	    const char* myfifo = "/tmp/forthLoggerFIFO";
@@ -28,7 +28,7 @@ void OutputToLogger(const char* pBuffer)
 		{
 			perror("error making fifo");
 		}
-	    loggerFD = open(myfifo, O_WRONLY | O_NONBLOCK);
+	    loggerFD = open(myfifo, O_WRONLY);
 	}
     write(loggerFD, pBuffer, strlen(pBuffer) + 1);
     //close(loggerFD);
