@@ -99,7 +99,7 @@ kResultError			=		3
 kResultFatalError		=		4
 kResultException		=		5
 kResultShutdown			=		6
-kResultTrace			=		7
+kResultYield			=		7
 
 kForthErrorNone						=		0
 kForthErrorBadOpcode				=		1
@@ -157,7 +157,7 @@ fileGetLength	=		40
 fileGetString	=		44
 filePutString	=		48
 
-	.global	abortBop, dropBop, nipBop, doDoesBop, litBop, litBop, dlitBop, doVariableBop, doConstantBop, doDConstantBop, doneBop
+	.global	abortBop, dropBop, nipBop, doDoesBop, litBop, litBop, dlitBop, doVariableBop, doConstantBop, doDConstantBop, doneBop, yieldBop
 	.global	doByteBop, doShortBop, doIntBop, doFloatBop, refVaractionBop, fetchVaractionBop, intoVaractionBop, addToVaractionBop, subtractFromVaractionBop, doExitBop
 	.global	doExitLBop, doExitMBop, doExitMLBop, doVocabBop, doByteArrayBop, doShortArrayBop, doIntArrayBop, doFloatArrayBop
 	.global	plusBop, ifetchBop, doStructBop, doStructArrayBop, doDoBop, doLoopBop, doLoopNBop, dfetchBop
@@ -263,7 +263,8 @@ InterpretOneOpFast:
 	mov	r3, #kResultOk				@ r3 = kResultOk
 	str	r3, [rcore, #istate]		@ SET_STATE( kResultOk )
 	
-	bl	.II2						@ don't know how to load lr directly
+	mov	r0, r1
+	bl	interpLoopExecuteEntry						@ don't know how to load lr directly
 	b	.IIExit
 
 
@@ -2239,6 +2240,13 @@ doneBop:
 	str	r0, [rcore, #istate]
 	bx	lr
 
+@@@@@@@@@@@@@@@@@  yield  @@@@@@@@@@@@@@@@@
+
+yieldBop:
+	mov	r0, #kResultYield
+	str	r0, [rcore, #istate]
+	bx	lr
+
 @@@@@@@@@@@@@@@@@  _doByte  @@@@@@@@@@@@@@@@@
 
 @ doByteOp is compiled as the first op in global byte vars
@@ -2702,10 +2710,11 @@ lfetchBop:
 	bx	lr
 
 lstoreNextBop:
-	ldmia	rsp!, {r0, r1}	@ r1 = value, r0 = ptr to dest ptr
-	ldr	r2, [r0]			@ r2 = dest ptr
-	stmia	r2!, {r1}		@ store value and advance dest ptr
-	str	r2, [r0]			@ update stored dest ptr
+	ldmia	rsp!, {r0,r1,r2}	@ r1/r2 = value, r0 = ptr to dest ptr
+	ldr	r3, [r0]				@ r3 = dest ptr
+	stmia	r3!, {r2}			@ store value and advance dest ptr
+	stmia	r3!, {r1}
+	str	r3, [r0]				@ update stored dest ptr
 	bx	lr
 
 lfetchNextBop:
@@ -3502,18 +3511,18 @@ ffrexpBop:
 fmodfBop:
 	push	{rcore, lr}
 	flds	s0, [rsp]
-	sub	rsp, #8
 	mov	r0, rsp
+	sub	rsp, #4
 	bl	modff
-	fsts	s0, [rsp, #4]
+	fsts	s0, [rsp]
 	pop	{rcore, lr}
 	bx	lr
 	
 ffmodBop:
 	push	{rcore, lr}
-	flds	s0, [rsp]
-	add		rsp, #4
 	flds	s1, [rsp]
+	add		rsp, #4
+	flds	s0, [rsp]
 	bl	fmodf
 	fsts	s0, [rsp]
 	pop	{rcore, lr}
@@ -3678,18 +3687,18 @@ dfrexpBop:
 dmodfBop:
 	push	{rcore, lr}
 	fldd	d0, [rsp]
-	sub	rsp, #8
 	mov	r0, rsp
+	sub	rsp, #8
 	bl	modf
-	fstd	d0, [rsp, #8]
+	fstd	d0, [rsp]
 	pop	{rcore, lr}
 	bx	lr
 	
 dfmodBop:
 	push	{rcore, lr}
-	fldd	d0, [rsp]
-	add		rsp, #8
 	fldd	d1, [rsp]
+	add		rsp, #8
+	fldd	d0, [rsp]
 	bl	fmod
 	fstd	d0, [rsp]
 	pop	{rcore, lr}
@@ -5246,8 +5255,7 @@ sstoreBop:
 
 sfetchBop:
 	ldr	r0, [rsp]
-	eor	r1, r1
-	ldrh	r1, [r0]
+	ldrsh	r1, [r0]
 	str	r1, [rsp]
 	bx	lr
 
@@ -5267,16 +5275,6 @@ sfetchNextBop:
 	str	r2, [r1]			@ update stored src ptr
 	str	r0, [rsp]
 	bx	lr
-	
-@@@@@@@@@@@@@@@@@  sw@  @@@@@@@@@@@@@@@@@
-
-swfetchBop:
-	ldr	r0, [rsp]
-	eor	r1, r1
-	ldrsh	r1, [r0]
-	str	r1, [rsp]
-	bx	lr
-
 	
 @@@@@@@@@@@@@@@@@  w2i  @@@@@@@@@@@@@@@@@
 
