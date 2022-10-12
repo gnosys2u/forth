@@ -1,42 +1,137 @@
+#####################################################################################
+
+# you may need to install readline with this command:
+# sudo apt-get install libreadline6-dev libreadline6
+
 #.PHONY:	all clean depends
 
+MAINSRC = .
+MAINOBJ = $(MAINSRC)/obj
+LIBSRC = ../ForthLib
+LIBOBJ = $(LIBSRC)/obj
+
 CC = g++
-GAS = as
+ASM = as
 CDEBUG = -g
-DEFINES = -DRASPI -DLINUX
-CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -marm
+
+
+DEFINES = -DRASPI -DLINUX -DASM_INNER_INTERPRETER -DINCLUDE_TRACE -DSTORAGE_LONGS=4000000
+CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -std=c++11 -marm
+
 #WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wsign-compare -Wunused-but-set-variable
-WARNING_FLAGS = -Wno-format -Wno-reorder -Wno-unused-variable
+#WARNING_FLAGS = -Wno-format -Wno-reorder -Wno-unused-variable
+WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wno-sign-compare -Wno-conversion-null -Wno-pointer-arith
+
 CPPFLAGS = $(CFLAGS) -std=c++11 -I ../ForthLib
+#CPPFLAGS = $(CFLAGS) -I ForthLib
+
+
+
+#DEFINES = -DLINUX -DASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -DFORTH64 -DINCLUDE_TRACE
+#DEFINES = -DLINUX -DNOASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -DFORTH64 -DINCLUDE_TRACE
+
+ASMFLAGS = --defsym ASM_INNER_INTERPRETER=1
 
 LDFLAGS = $(CDEBUG)
 LD_LIBRARIES = -L ../ForthLib -lforth -lm -lc -lstdc++ -ldl -lpthread -lreadline
-OBJDIR = obj
 
-#DEPDIR = dep
-#DEPS := $(patsubst %.cpp,$(DEPDIR)/%.d,$(SRCS))
+SRCS = \
+	ForthShell.cpp \
+	ForthEngine.cpp \
+	ForthInner.cpp \
+	ForthInput.cpp \
+	ForthVocabulary.cpp \
+	ForthBuiltinClasses.cpp \
+	ForthExtension.cpp \
+	ForthShowContext.cpp \
+	ForthStructs.cpp \
+	ForthStructCodeGenerator.cpp \
+	ForthOps.cpp \
+	ForthServer.cpp \
+	ForthClient.cpp \
+	ForthOpcodeCompiler.cpp \
+	ForthBlockFileManager.cpp \
+	ForthParseInfo.cpp \
+	ForthPipe.cpp \
+	ForthForgettable.cpp \
+	ForthThread.cpp \
+	ForthObjectReader.cpp \
+	ForthMemoryManager.cpp \
+	kbhit.cpp \
+	OArray.cpp \
+	ODeque.cpp \
+	OList.cpp \
+	OMap.cpp \
+	ONumber.cpp \
+	OSocket.cpp \
+	OStream.cpp \
+	OString.cpp \
+	OSystem.cpp
+	
+	
+#ASMSRCS = InnerInterpAmd64.asm \
+#	AsmCore64.asm
+#ASMSRCS = InnerInterpARM.S
+#ASMOBJS := $(patsubst %.S,$(LIBOBJ)/%.o,$(ASMSRCS))
+ASMOBJS := $(LIBOBJ)/InnerInterpARM.o
 
-$(OBJDIR)/ForthMainARM.o:	ForthMainARM.cpp
+OBJS := $(patsubst %.cpp,$(LIBOBJ)/%.o,$(SRCS)) $(ASMOBJS)
+DEPDIR = dep
+DEPS := $(patsubst %.cpp,$(DEPDIR)/%.d,$(SRCS))
+# XDEFS is used to pass in defines from the make command line
+LIBS := -lm -lstdc++ -ldl -lpthread -no-pie
+
+$(LIBOBJ)/InnerInterpARM.o: $(MAINSRC)/InnerInterpARM.S
+	$(CC) $(CFLAGS) -o $(LIBOBJ)/InnerInterpARM.o -c $(MAINSRC)/InnerInterpARM.S
+
+$(LIBSRC)/libforth.a:	$(OBJS)
+	ar rcs $(LIBSRC)/libforth.a $(OBJS)
+	
+	
+-include $(DEPS)
+
+stuff:
+	echo "DEPS=" $(DEPS)
+	echo "OBJS=" $(OBJS)
+	echo "SRCS=" $(SRCS)
+
+#spoo: ForthOps.cpp
+#	echo "at " $@ "   less" $< "   star" $* "   pat" $(patsubst %.cpp,%.d,$@)
+	
+$(DEPDIR)/%.d: %.cpp
+	$(CC) -M $(CPPFLAGS) -o $(DEPDIR)/$*.d $(LIBSRC)/$*.cpp
+	
+#%.d: ../%.cpp
+#	$(CC) -M $(CPPFLAGS) -o $*.d $<
+	
+#	echo "DEP at=" $@ "   less=" $< "   star=" $*
+
+$(LIBOBJ)/%.o: $(LIBSRC)/%.cpp
+	$(CC) $(CFLAGS) -o $(LIBOBJ)/$*.o $(LIBSRC)/$*.cpp
+    
+#$(LIBOBJ)/%.o: $(LIBSRC)/%.asm
+#	$(ASM) $(ASMFLAGS) -o $(LIBOBJ)/$*.o $(LIBSRC)/$*.asm
+
+$(MAINOBJ)/ForthMainARM.o:	$(MAINSRC)/ForthMainARM.cpp
 	echo "* " $*
 	echo "< " $<
 	echo "@ " $@
-	$(CC) $(CPPFLAGS) -o $(OBJDIR)/ForthMainARM.o ForthMainARM.cpp
+	$(CC) $(CPPFLAGS) -o $(MAINOBJ)/ForthMainARM.o $(MAINSRC)/ForthMainARM.cpp
 
-forth:	$(OBJDIR)/ForthMainARM.o ../ForthLib/libforth.a
-	gcc $(OBJDIR)/ForthMainARM.o $(DEFINES) -o forth -I ../ForthLib $(LD_LIBRARIES)
+forth:	$(MAINOBJ)/ForthMainARM.o $(LIBSRC)/libforth.a
+	$(CC) $(MAINOBJ)/ForthMainARM.o $(DEFINES) -o forth -I ../ForthLib $(LD_LIBRARIES) -no-pie
+	cp forth ../Sandbox
 
-logger: ForthLoggerARM.cpp
-	gcc ForthLoggerARM.cpp -o logger
+logger: $(MAINSRC)/ForthLoggerARM.cpp
+	$(CC) $(MAINSRC)/ForthLoggerARM.cpp -o logger
 
-#-include $(DEPS)
-
-#$(DEPDIR)/%.d: %.cpp
-#	gcc -M $(CPPFLAGS) -o $(DEPDIR)/$*.d $<
-	
 clean:
-	-rm -f libforth.a
-	-rm -f $(OBJDIR)/*.o
-#	-rm $(DEPDIR)/*.d
-
-all:	libforth.a forth
+	-rm $(MAINOBJ)/*.o
+	-rm $(DEPDIR)/*.d
+	-rm $(LIBOBJ)/*.o
+	-rm $(LIBSRC)/libforth.a
+	-rm ./forth
+    
+#all:	forth $(LIBSRC)/libforth.a
+all:	forth
 
