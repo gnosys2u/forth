@@ -8,9 +8,12 @@
 
 //#include "pch.h"
 
+#include <atomic>
 #include "ForthMemoryManager.h"
 
 struct ForthCoreState;
+
+#define ATOMIC_REFCOUNTS 1
 
 #if defined(WIN32) || defined(_WIN64)
 #define WINDOWS_BUILD
@@ -341,13 +344,19 @@ typedef struct {
     ucell               len;
 } ForthMemorySection;
 
+#if defined(ATOMIC_REFCOUNTS)
+#define REFCOUNTER      std::atomic<ucell>
+#else
+#define REFCOUNTER      ucell
+#endif
+
 // this is what is placed on the stack to represent a forth object
 // this points to a number of longwords, the first longword is the methods pointer,
 // the second longword is the reference count, followed by class dependant data
 struct oObjectStruct
 {
     forthop*            pMethods;
-    ucell               refCount;
+    REFCOUNTER          refCount;
 };
 
 typedef oObjectStruct* ForthObject;

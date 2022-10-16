@@ -77,6 +77,14 @@ void unrefObject(ForthObject& fobj)
 	ForthEngine *pEngine = ForthEngine::GetInstance();
 	if (fobj != nullptr)
 	{
+#if defined(ATOMIC_REFCOUNTS)
+		ucell oldCount = fobj->refCount.fetch_sub(1);
+		if (oldCount == 0)
+		{
+			fobj->refCount++;
+			pEngine->SetError(ForthError::kBadReferenceCount, " unref with refcount already zero");
+		}
+#else
 		if (fobj->refCount == 0)
 		{
 			pEngine->SetError(ForthError::kBadReferenceCount, " unref with refcount already zero");
@@ -85,6 +93,7 @@ void unrefObject(ForthObject& fobj)
 		{
 			fobj->refCount -= 1;
 		}
+#endif
 	}
 }
 
@@ -202,18 +211,26 @@ namespace
 	FORTHOP(objectReleaseMethod)
 	{
         ForthObject obj = GET_TP;
-		obj->refCount -= 1;
+		bool doRelease = false;
 		TRACK_RELEASE;
-		if (obj->refCount != 0)
+
+#if defined(ATOMIC_REFCOUNTS)
+		doRelease = (obj->refCount.fetch_sub(1) == 1);
+#else
+		obj->refCount -= 1;
+		doRelease = (obj->refCount == 0);
+#endif
+		if (doRelease)
 		{
-			METHOD_RETURN;
-		}
-		else
-		{
-			ForthEngine *pEngine = ForthEngine::GetInstance();
+			//((ForthEngine*)(pCore->pEngine))->DeleteObject(pCore, obj);
+			ForthEngine* pEngine = ForthEngine::GetInstance();
 			uint32_t deleteOp = obj->pMethods[kMethodDelete];
 			pEngine->ExecuteOp(pCore, deleteOp);
 			// we are effectively chaining to the delete op, its method return will pop TPM & TPD for us
+		}
+		else
+		{
+			METHOD_RETURN;
 		}
 	}
 

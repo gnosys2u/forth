@@ -18,14 +18,14 @@ namespace OString
     struct oStringMapStruct
     {
         forthop*    pMethods;
-        ucell       refCount;
+        REFCOUNTER  refCount;
         oStringMap*	elements;
     };
 
     struct oStringMapIterStruct
     {
         forthop*                pMethods;
-        ucell                   refCount;
+        REFCOUNTER              refCount;
         ForthObject			    parent;
         oStringMap::iterator	*cursor;
     };

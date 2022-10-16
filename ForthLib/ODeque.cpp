@@ -23,7 +23,7 @@ namespace ODeque
     struct oDequeStruct
     {
         forthop*        pMethods;
-        ucell			refCount;
+        REFCOUNTER      refCount;
         oDeque          *que;
     };
 
@@ -31,7 +31,7 @@ namespace ODeque
     struct oDequeIterStruct
     {
         int32_t*               pMethods;
-        ucell				refCount;
+        REFCOUNTER          refCount;
         ForthObject			parent;
         oDeque::iterator	*cursor;
     };

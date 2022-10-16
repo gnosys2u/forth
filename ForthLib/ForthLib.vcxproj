@@ -1085,11 +1085,11 @@
     <None Include="core.inc" />
     <CustomBuild Include="InnerInterp.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">nasm -f win64 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">nasm -f win64 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
@@ -1101,15 +1101,15 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">nasm -f win64 "%(FullPath)" -o $(OutDir)%(Filename).obj $(USE_ASM_INTERP) -dWIN64</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32 -dATOMIC_REFCOUNTS</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm -f win64 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN64 -dATOMIC_REFCOUNTS</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32 -dATOMIC_REFCOUNTS</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win64 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN64 -dATOMIC_REFCOUNTS</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">core.inc;%(AdditionalInputs)</AdditionalInputs>
@@ -1148,11 +1148,11 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dASM_INNER_INTERPRETER -dWIN64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dWIN64 -dATOMIC_REFCOUNTS</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dASM_INNER_INTERPRETER -dWIN64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dWIN64 -dATOMIC_REFCOUNTS</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>

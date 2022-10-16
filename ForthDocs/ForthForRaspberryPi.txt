@@ -60,6 +60,9 @@ and run gdb attaching to the running forth process by doing this:
   ps -a | grep forth
   gdb -p FORTH_PROCESS_ID
   
+-> don't need this in gdb on raspbian in 2022
+
+
 r
   run program
 bt

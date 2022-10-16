@@ -132,7 +132,7 @@ struct OutStreamFuncs
 struct oOutStreamStruct
 {
     forthop*            pMethods;
-    ucell               refCount;
+	REFCOUNTER          refCount;
 	void*               pUserData;
 	OutStreamFuncs*     pOutFuncs;
 	char				eolChars[4];
@@ -169,7 +169,7 @@ enum
 struct oInStreamStruct
 {
     forthop*            pMethods;
-    ucell               refCount;
+	REFCOUNTER          refCount;
 	void*               pUserData;
 	int					bTrimEOL;
     InStreamFuncs*      pInFuncs;
@@ -178,9 +178,9 @@ struct oInStreamStruct
 typedef std::vector<ForthObject> oArray;
 struct oArrayStruct
 {
-    forthop*    pMethods;
-    ucell       refCount;
-	oArray*     elements;
+    forthop*			pMethods;
+	REFCOUNTER          refCount;
+	oArray*				elements;
 };
 
 struct oListElement
@@ -192,18 +192,18 @@ struct oListElement
 
 struct oListStruct
 {
-    forthop*        pMethods;
-    ucell			refCount;
-	oListElement*	head;
-	oListElement*	tail;
+    forthop*			pMethods;
+	REFCOUNTER          refCount;
+	oListElement*		head;
+	oListElement*		tail;
 };
 
 struct oArrayIterStruct
 {
-    forthop*        pMethods;
-    ucell			refCount;
-	ForthObject		parent;
-	ucell			cursor;
+    forthop*			pMethods;
+	REFCOUNTER          refCount;
+	ForthObject			parent;
+	ucell				cursor;
 };
 
 #define DEFAULT_STRING_DATA_BYTES 32
@@ -217,25 +217,25 @@ struct oString
 
 struct oStringStruct
 {
-    forthop*    pMethods;
-    ucell		refCount;
-	ucell		hash;
-	oString*	str;
+    forthop*			pMethods;
+	REFCOUNTER          refCount;
+	ucell				hash;
+	oString*			str;
 };
 
 typedef std::map<int64_t, ForthObject> oLongMap;
 struct oLongMapStruct
 {
-    forthop*    pMethods;
-    ucell       refCount;
-    oLongMap*	elements;
+    forthop*			pMethods;
+	REFCOUNTER          refCount;
+    oLongMap*			elements;
 };
 
 struct oLongMapIterStruct
 {
     forthop*            pMethods;
-    ucell				refCount;
-    ForthObject			parent;
+	REFCOUNTER          refCount;
+	ForthObject			parent;
     oLongMap::iterator*	cursor;
 };
 

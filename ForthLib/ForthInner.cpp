@@ -1538,14 +1538,22 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 			PUSH_OBJECT(oldObj);
 			if (oldObj != nullptr)
 			{
-				if (oldObj->refCount > 0)
-				{
+#if defined(ATOMIC_REFCOUNTS)
+                if (oldObj->refCount.fetch_sub(1) == 0)
+                {
+                    oldObj->refCount++;
+                    pEngine->SetError(ForthError::kBadReferenceCount);
+                }
+#else
+                if (oldObj->refCount > 0)
+                {
                     oldObj->refCount -= 1;
-				}
-				else
-				{
-					pEngine->SetError(ForthError::kBadReferenceCount);
-				}
+                }
+                else
+                {
+                    pEngine->SetError(ForthError::kBadReferenceCount);
+                }
+#endif
 			}
 		}
 		break;

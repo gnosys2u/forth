@@ -2289,56 +2289,70 @@ localObjectRef:
 	jmp	rnext
 	
 localObjectStore:
-	; TOS is new object, eax points to destination/old object
+	; TOS is new object
+	; eax -> destinationVar/old object
 	xor	ebx, ebx			; set var operation back to default/fetch
 	mov	[rcore + FCore.varMode], ebx
 los0:
+	push rnext
 	mov ebx, [eax]		; ebx = olbObj
-	mov ecx, eax		; ecx -> destination
+	mov rnext, eax		; rnext -> destinationVar
 	mov eax, [rpsp]		; eax = newObj
 	cmp eax, ebx
 	jz losx				; objects are same, don't change refcount
 	; handle newObj refcount
 	or eax, eax
 	jz los1				; if newObj is null, don't try to increment refcount
-	inc dword[eax + Object.refCount]	; increment newObj refcount
-	; handle oldObj refcount
+
+	; newObj isn't null, increment its refcount
+%ifdef ATOMIC_REFCOUNTS
+	mov	ecx, 1
+	lock xadd dword[eax + Object.refCount], ecx
+%else
+	inc dword[eax + Object.refCount]
+%endif
+
 los1:
+	mov	[rnext], eax		; destinationVar = newObj
+
+	; handle oldObj refcount
 	or ebx, ebx
-	jz los2				; if oldObj is null, don't try to decrement refcount
+	jz losx				; if oldObj is null, don't try to decrement refcount
+
+	; oldObj  isn't null, decrement its refcount
+%ifdef ATOMIC_REFCOUNTS
+	mov	ecx, -1
+	lock xadd dword[ebx + Object.refCount], ecx
+	cmp	ecx, 1
+	jz los3
+%else
 	dec dword[ebx + Object.refCount]
 	jz los3
-los2:
-	mov	[ecx], eax		; var = newObj
+%endif
+
 losx:
 	add	rpsp, 4
+	pop rnext
 	jmp	rnext
 
 	; object var held last reference to oldObj, invoke olbObj.delete method
-	; eax = newObj
-	; ebx = oldObj
-	; [ecx] = var (still holds oldObj)
 los3:
-	push rnext
-	push eax
-	; TOS is object
+	; ebx = oldObj
 
 	; push this ptr on return stack
-	mov	rnext, [rcore + FCore.RPtr]
-	sub	rnext, 4
-	mov	[rcore + FCore.RPtr], rnext
+	mov	ecx, [rcore + FCore.RPtr]
+	sub	ecx, 4
+	mov	[rcore + FCore.RPtr], ecx
 	mov	eax, [rcore + FCore.TPtr]
-	mov	[rnext], eax
+	mov	[ecx], eax
 	
 	; set this to oldObj
 	mov	[rcore + FCore.TPtr], ebx
 	mov	ebx, [ebx]	; ebx = oldObj methods pointer
 	mov	ebx, [ebx]	; ebx = oldObj method 0 (delete)
 
-	pop eax
 	pop rnext
 	
-	mov	[ecx], eax		; var = newObj
 	add	rpsp, 4
 
 	; execute the delete method opcode which is in ebx
@@ -2382,19 +2396,29 @@ localObjectUnref:
 	; set var operation back to fetch
 	mov	[rcore + FCore.varMode], eax
 	; get object refcount, see if it is already 0
+
+	; decrement object refcount
+%ifdef ATOMIC_REFCOUNTS
+	mov	ecx, -1
+	lock xadd dword[ebx + Object.refCount], ecx
+	or ecx, ecx
+	; ugh, this leaves count as negative
+	jz	louNegativeCountError
+%else
 	mov	eax, [ebx + Object.refCount]
 	or	eax, eax
-	jnz	lou1
-	; report refcount negative error
-	mov	eax, kForthErrorBadReferenceCount
-	jmp	interpLoopErrorExit
+	jz	louNegativeCountError
 lou1:
-	; decrement object refcount
 	sub	eax, 1
 	mov	[ebx + Object.refCount], eax
+%endif
 lou2:
 	jmp	rnext
 
+louNegativeCountError:
+	; report refcount negative error
+	mov	eax, kForthErrorBadReferenceCount
+	jmp	interpLoopErrorExit
 	
 localObjectActionTable:
 	DD	localObjectFetch
@@ -5757,6 +5781,28 @@ entry lfetchNextBop
 	
 ;========================================
 
+entry plusStoreCellBop
+	mov	eax, [rpsp]
+	mov ebx, [rpsp+4]
+	add rpsp, 8
+	add ebx, [eax]
+	mov [eax], ebx
+	jmp	rnext
+	
+;========================================
+
+entry plusStoreAtomicCellBop
+	mov	eax, [rpsp]
+	add rpsp, 4
+	mov	ebx, [rpsp]
+	mov ecx, ebx
+	lock xadd DWORD[eax], ebx
+	add ebx, ecx
+	mov	[rpsp], ebx
+	jmp	rnext
+	
+;========================================
+
 entry istoreBop
 	mov	eax, [rpsp]
 	mov	ebx, [rpsp+4]
@@ -6087,6 +6133,7 @@ entry odropBop
 	;  otherwise do nothing
 	mov	eax, [rpsp]
 	add	rpsp, 4
+	; TODO: how should atomic refcounts be handled here?
 	mov	ebx, [eax + Object.refCount]
 	or	ebx, ebx
 	jnz .odrop1

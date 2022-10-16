@@ -27,11 +27,22 @@
 
 #define GET_THIS( THIS_TYPE, THIS_NAME ) THIS_TYPE* THIS_NAME = reinterpret_cast<THIS_TYPE *>(GET_TP);
 
+#if defined(ATOMIC_REFCOUNTS)
+
+#define SAFE_RELEASE( _pCore, _obj ) \
+	if ( _obj != nullptr ) { \
+		if ( _obj->refCount.fetch_sub(1) == 1 ) { ((ForthEngine *) (_pCore->pEngine))->DeleteObject( _pCore, _obj ); } \
+	} TRACK_RELEASE
+
+#else
+
 #define SAFE_RELEASE( _pCore, _obj ) \
 	if ( _obj != nullptr ) { \
 		_obj->refCount -= 1; \
 		if ( _obj->refCount == 0 ) { ((ForthEngine *) (_pCore->pEngine))->DeleteObject( _pCore, _obj ); } \
 	} TRACK_RELEASE
+
+#endif
 
 #define SAFE_KEEP( _obj )       if ( _obj != nullptr ) { _obj->refCount += 1; } TRACK_KEEP
 

@@ -2534,26 +2534,44 @@ entry localObjectStore
 los0:
 	mov	[rcore + FCore.varMode], rbx
 	mov rbx, [rax]		; rbx = olbObj
-	mov rcx, rax		; rcx -> destination
+	mov rcx, rax		; rcx -> destinationVar
 	mov rax, [rpsp]		; rax = newObj
 	add	rpsp, 8
-	mov	[rcx], rax		; var = newObj
+	mov	[rcx], rax		; destinationVar = newObj
 	cmp rax, rbx
 	jz losx				; objects are same, don't change refcount
 	; handle newObj refcount
 	or rax, rax
 	jz los1				; if newObj is null, don't try to increment refcount
-	inc QWORD[rax + Object.refCount]	; increment newObj refcount
+
+	; newObj isn't null, increment its refcount
+%ifdef ATOMIC_REFCOUNTS
+	mov	rcx, 1
+	lock xadd QWORD[rax + Object.refCount], rcx
+%else
+	inc QWORD[rax + Object.refCount]
+%endif
+
 	; handle oldObj refcount
 los1:
 	or rbx, rbx
 	jz losx				; if oldObj is null, don't try to decrement refcount
+
+	; oldObj  isn't null, decrement its refcount
+%ifdef ATOMIC_REFCOUNTS
+	mov	rcx, -1
+	lock xadd QWORD[rbx + Object.refCount], rcx
+	cmp	rcx, 1
+	jz los3
+%else
 	dec QWORD[rbx + Object.refCount]
 	jz los3
+%endif
+
 losx:
 	jmp	rnext
 
-	; object var held last reference to oldObj, invoke olbObj.delete method
+	; destinationVar held last reference to oldObj, invoke olbObj.delete method
 	; rax = newObj
 	; rbx = oldObj
 los3:
@@ -2607,19 +2625,28 @@ localObjectUnref:
 	; set var operation back to fetch
 	mov	[rcore + FCore.varMode], rax
 	; get object refcount, see if it is already 0
+%ifdef ATOMIC_REFCOUNTS
+	mov	rcx, -1
+	lock xadd QWORD[rbx + Object.refCount], rcx
+	or rcx, rcx
+	; ugh, this leaves count as negative
+	jz	louNegativeCountError
+%else
 	mov	rax, [rbx + Object.refCount]
 	or	rax, rax
-	jnz	lou1
-	; report refcount negative error
-	mov	rax, kForthErrorBadReferenceCount
-	jmp	interpFuncErrorExit
-lou1:
+	jz	louNegativeCountError
 	; decrement object refcount
 	sub	rax, 1
 	mov	[rbx + Object.refCount], rax
+%endif
+
 lou2:
 	jmp	rnext
 
+louNegativeCountError:
+	; report refcount negative error
+	mov	rax, kForthErrorBadReferenceCount
+	jmp	interpFuncErrorExit
 	
 localObjectActionTable:
 	DQ	localObjectFetch
@@ -5510,6 +5537,28 @@ entry lfetchNextBop
 	
 ;========================================
 
+entry plusStoreCellBop
+	mov	rax, [rpsp]
+	mov rbx, [rpsp+8]
+	add rpsp, 16
+	add rbx, [rax]
+	mov [rax], rbx
+	jmp	rnext
+	
+;========================================
+
+entry plusStoreAtomicCellBop
+	mov	rax, [rpsp]
+	add rpsp, 8
+	mov	rbx, [rpsp]
+	mov rcx, rbx
+	lock xadd QWORD[rax], rbx
+	add rbx, rcx
+	mov	[rpsp], rbx
+	jmp	rnext
+	
+;========================================
+
 entry istoreBop
 	mov	rax, [rpsp]
 	mov	rbx, [rpsp + 8]
@@ -5757,6 +5806,7 @@ entry odropBop
 	;  otherwise do nothing
 	mov	rax, [rpsp]
 	add	rpsp, 8
+	; TODO: how should atomic refcounts be handled here?
 	mov	rbx, [rax + Object.refCount]
 	or	rbx, rbx
 	jnz .odrop1

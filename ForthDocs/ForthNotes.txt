@@ -5,11 +5,23 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+- document gotchas about using unref and Array.pop in multithreaded code
+  -> an object with a 0 refcount on TOS is only threadsafe when it is just created,
+     after it is being shared by multiple threads this state is always very unsafe
+
+- have verbose describe of a class or struct shows its typeIndex
+
+- add general immediate ops, so 'N op' would compile into just the op plus an immediate operand
+  - there would need to be new optypes for each of native, C and userDefs
+  - there would need to be 32 and 64 bit variants, maybe signed and unsigned for 32-bits
+
+- get rid of old userDef optypes, replace with relativeDef optypes
+
 - get multiple interfaces working using wrapper objects
 
 - add a global AsyncLock for things like pushConsoleOut
 
-? deal with ref counting being non-atomic
++ deal with ref counting being non-atomic
   ? or just prohibit sharing objects between threads
 
 + get DLL support working for 64-bit
@@ -164,6 +176,74 @@ Double and long memory and stack layouts:
 
 Double has consistent layout, long is reversed on param stack.
 
+
+
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+October 15 2022
+
+While debugging atomic refcounting, I found a serious thread related bug in
+ForthEngine::ExecuteOps - it was always executing the ops using mpMainThread->InnerLoop,
+so it was using the active fiber of the main thread, not the active fiber of
+the current thread.  The crash was happening when the second test thread created
+a new Array object, which executes the 'new' op with ForthEngine::FullyExecuteOp,
+which calls ExecuteOps.  Changing ExecuteOps to get the correct thread and fiber
+from its pCore parameter fixed several crashes in the hammer tests.
+All versions still show refcounting errors when local object store is used.
+
+The local object store refcount errors were because I had ifdef-ed the assembler
+code changes to allow testing with and without atomic refcounts, and the symbol
+define (ATOMIC_REFCOUNTS) wasn't being defined - I had changed the custom build
+rule in the ForthLib project, but now Forth has the sources built in the ForthDLL
+project.  DOH!  Fixing that made all the refcounts work.
+
+The hammer tests also crash if they are run after running test.txt, but I think
+that isn't a new crash.
+
++ add -dATOMIC_REFCOUNTS to nasm build rule
+- try out object version of hammerer with and without atomic refcounts
+- do ARM atomic refcount assembler code
++ do win32 assembler code
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+October 13 2022
+
+A problem came up in the atomic refcount testing - I did a version of the
+hammerer test which did many keep/release ops on the same object in two different threads.
+o there are no count errors in the no-assembler atomic refcount version.
+o there are many errors in the assembler non-atomic-refcount version
+o there is often a single count error in the assembler atomic-refcount version
+
+The problem doesn't seem to be in the keep/release methods, it seems to be in the
+local object assignments, which only happen once per thread.  I took the code
+I was using for atomic refcounting (lock xadd) and made a '+!@' operator with it,
+a hammerer using it doesn't show any count errors.
+
+I made another hammerer that does repeated object assign/object clears in two
+threads, it shows many count errors, so the problem is in the local object store
+assembler code.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+October 12 2022
+
+I finally got around to fixing the remaining problems on ARM after integrating
+the AMD64 changes.  The biggest problem was the biclasstest exception
+when deleting a global object - it turns out the problem was that
+Class.create wasn't working at all, which was caused by InterpretOneOpFast
+being completely broken - it wasn't using the second argument (opcode)
+at all, I don't know how it got that broken.  There were several other
+problems caught by forthtest, all are fixed.
+
+ForthARM/Makefile is now used to build the main forth program, forthlib,
+and the logger.  In geany, with that Makefile selected, hit f8, which will
+do a 'make forth'.
+
+I did some more work on atomic refcounts, it is ?mostly done? for AMD64, there is a
+problem case - what if multiple threads have references to an object, then
+they all do an op like unref or Array.pop that can leave an object with a
+zero refcount on TOS, if one of those threads does an odrop then all the other
+object references on TOS of other threads refer to a deleted object.  I can't
+think of a way to get around the problem, other than just avoiding designing
+multi-threaded code that gets in that situation.  Maybe add thread safe ops
+like unref/pop that transfer ownership to a specified object variable?
+Like replace unref with 'xfer' and pop with 'popTo'.
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 September 3 2022

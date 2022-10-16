@@ -31,15 +31,15 @@
 struct oThreadStruct
 {
     forthop*            pMethods;
-    ucell               refCount;
+	REFCOUNTER          refCount;
 	cell                id;
-	ForthThread	*pThread;
+	ForthThread			*pThread;
 };
 
 struct oFiberStruct
 {
     forthop*            pMethods;
-    ucell               refCount;
+	REFCOUNTER          refCount;
     cell                id;
 	ForthFiber			*pFiber;
 };
@@ -335,11 +335,18 @@ void ForthFiber::WakeAllJoiningFibers()
         //SAFE_RELEASE(&mCore, joiner);
 		if (joiner != nullptr)
 		{
+#if defined(ATOMIC_REFCOUNTS)
+			if (joiner->refCount.fetch_sub(1) == 1)
+			{
+				((ForthEngine*)(mCore.pEngine))->DeleteObject(&mCore, joiner);
+			}
+#else
 			joiner->refCount -= 1;
 			if (joiner->refCount == 0)
 			{
 				((ForthEngine*)(mCore.pEngine))->DeleteObject(&mCore, joiner);
 			}
+#endif
 		}
 		TRACK_RELEASE;
         pFiber = pNextFiber;
@@ -1350,7 +1357,7 @@ namespace OLock
 	struct oAsyncLockStruct
 	{
         forthop*        pMethods;
-        ucell           refCount;
+		REFCOUNTER      refCount;
 		cell            id;
 #ifdef WIN32
 		CRITICAL_SECTION* pLock;
@@ -1461,7 +1468,7 @@ namespace OLock
 	struct oLockStruct
 	{
         forthop*        pMethods;
-        ucell           refCount;
+		REFCOUNTER      refCount;
 		cell            id;
 		cell            lockDepth;
 #ifdef WIN32
@@ -1684,7 +1691,7 @@ namespace OLock
     struct oSemaphoreStruct
     {
         forthop*        pMethods;
-        uint32_t			refCount;
+		REFCOUNTER      refCount;
         cell            id;
         cell            count;
 #ifdef WIN32
@@ -1840,7 +1847,7 @@ namespace OLock
     struct oAsyncSemaphoreStruct
     {
         forthop*        pMethods;
-        uint32_t			refCount;
+		REFCOUNTER      refCount;
         cell            id;
 #ifdef WIN32
         HANDLE pSemaphore;

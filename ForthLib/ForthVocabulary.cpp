@@ -1201,21 +1201,6 @@ namespace OVocabulary
 	///
 	//                 Vocabulary
 	//
-	struct oVocabularyStruct
-	{
-        forthop*            pMethods;
-        ucell               refCount;
-		ForthVocabulary*	vocabulary;
-	};
-
-	struct oVocabularyIterStruct
-	{
-        forthop*            pMethods;
-        ucell               refCount;
-        ForthObject			parent;
-		forthop*            cursor;
-		ForthVocabulary*	vocabulary;
-	};
 
 	FORTHOP(oVocabularyNew)
 	{

@@ -48,7 +48,7 @@ struct ForthTypeInfo
 typedef struct
 {
     forthop*                    pMethods;
-    ucell                       refCount;
+    REFCOUNTER                  refCount;
 	ForthClassVocabulary*       pVocab;
     forthop                     newOp;
 } ForthClassObject;

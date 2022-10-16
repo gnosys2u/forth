@@ -8379,6 +8379,23 @@ FORTHOP(lfetchNextBop)
     *ppA = pA;
 }
 
+FORTHOP(plusStoreCellBop)
+{
+    NEEDS(2);
+    cell* p = (cell*)(SPOP);
+    cell v = SPOP;
+    *p += v;
+}
+
+FORTHOP(plusStoreAtomicCellBop)
+{
+    NEEDS(2);
+    std::atomic<cell>* p = (std::atomic<cell>*)(SPOP);
+    cell v = SPOP;
+    cell result = p->fetch_add(v) + v;
+    SPUSH(result);
+}
+
 FORTHOP(memcmpBop)
 {
     NEEDS(3);
@@ -9240,8 +9257,8 @@ OPREF( lGreaterEqualsBop ); OPREF( lGreaterEquals0Bop ); OPREF( lLessEqualsBop )
 OPREF( lLessEquals0Bop );   OPREF(doDConstantBop);
 OPREF(dstoreBop);
 #endif
-OPREF(lfetchBop);
-OPREF(lstoreBop);         OPREF(lstoreNextBop);     OPREF(lfetchNextBop);
+OPREF(lfetchBop);           OPREF(plusStoreCellBop);  OPREF(plusStoreAtomicCellBop);
+OPREF(lstoreBop);           OPREF(lstoreNextBop);     OPREF(lfetchNextBop);
 
 OPREF( rpushBop );          OPREF( rpopBop );           OPREF( rpeekBop );
 OPREF( rdropBop );          OPREF( rpBop );             OPREF( r0Bop );
@@ -9637,6 +9654,8 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(    lfetchBop,               "l@"),
     NATIVE_DEF(    lstoreNextBop,           "l@!++"),
     NATIVE_DEF(    lfetchNextBop,           "l@@++"),
+    NATIVE_DEF(    plusStoreCellBop,        "+!" ),
+    NATIVE_DEF(    plusStoreAtomicCellBop,  "+!@" ),
     NATIVE_DEF(    moveBop,                 "move" ),
     NATIVE_DEF(    memcmpBop,               "memcmp"),
     NATIVE_DEF(    fillBop,                 "fill" ),

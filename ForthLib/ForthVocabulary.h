@@ -28,16 +28,16 @@ class ForthVocabulary;
 struct oVocabularyStruct
 {
     forthop*            pMethods;
-    ucell               refCount;
+    REFCOUNTER          refCount;
 	ForthVocabulary*	vocabulary;
 };
 
 struct oVocabularyIterStruct
 {
     forthop*            pMethods;
-    ucell               refCount;
+    REFCOUNTER          refCount;
     ForthObject			parent;
-	int32_t*				cursor;
+    forthop*            cursor;
 	ForthVocabulary*	vocabulary;
 };
 

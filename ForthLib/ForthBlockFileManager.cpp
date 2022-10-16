@@ -311,7 +311,7 @@ namespace OBlockFile
     struct oBlockFileStruct
     {
         forthop*                pMethods;
-        ucell                   refCount;
+        REFCOUNTER              refCount;
         ForthBlockFileManager*  pManager;
     };
 

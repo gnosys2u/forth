@@ -15,7 +15,7 @@ namespace OSystem
 	struct oSystemStruct
 	{
         forthop*        pMethods;
-        ucell           refCount;
+        REFCOUNTER      refCount;
         ForthObject     namedObjects;
         ForthObject     args;
         ForthObject     env;

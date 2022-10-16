@@ -30,14 +30,14 @@ namespace OMap
 	struct oMapStruct
 	{
         forthop*        pMethods;
-        ucell           refCount;
+        REFCOUNTER      refCount;
 		oMap*	        elements;
 	};
 
 	struct oMapIterStruct
 	{
         forthop*            pMethods;
-        ucell				refCount;
+        REFCOUNTER          refCount;
 		ForthObject			parent;
 		oMap::iterator*		cursor;
 	};
@@ -636,14 +636,14 @@ namespace OMap
 	struct oIntMapStruct
 	{
         forthop*        pMethods;
-        ucell           refCount;
+        REFCOUNTER      refCount;
 		oIntMap*		elements;
 	};
 
 	struct oIntMapIterStruct
 	{
         forthop*            pMethods;
-        ucell				refCount;
+        REFCOUNTER          refCount;
 		ForthObject			parent;
 		oIntMap::iterator	*cursor;
 	};
@@ -1184,15 +1184,15 @@ namespace OMap
 	struct oFloatMapStruct
 	{
         forthop*        pMethods;
-        ucell           refCount;
+        REFCOUNTER      refCount;
 		oFloatMap*		elements;
 	};
 
 	struct oFloatMapIterStruct
 	{
         forthop*            pMethods;
-        ucell				refCount;
-		ForthObject			parent;
+        REFCOUNTER          refCount;
+        ForthObject			parent;
 		oFloatMap::iterator	*cursor;
 	};
 
@@ -2057,14 +2057,14 @@ namespace OMap
 	struct oDoubleMapStruct
 	{
         forthop*        pMethods;
-        ucell           refCount;
+        REFCOUNTER      refCount;
 		oDoubleMap*	    elements;
 	};
 
 	struct oDoubleMapIterStruct
 	{
         forthop*            pMethods;
-        ucell				refCount;
+        REFCOUNTER          refCount;
 		ForthObject			parent;
 		oDoubleMap::iterator*	cursor;
 	};
@@ -2609,14 +2609,14 @@ namespace OMap
 	struct oStringIntMapStruct
 	{
         forthop*        pMethods;
-        ucell           refCount;
+        REFCOUNTER      refCount;
 		oStringIntMap*	elements;
 	};
 
 	struct oStringIntMapIterStruct
 	{
         forthop*            pMethods;
-        ucell				refCount;
+        REFCOUNTER          refCount;
 		ForthObject			parent;
 		oStringIntMap::iterator	*cursor;
 	};
@@ -3182,14 +3182,14 @@ namespace OMap
 	struct oStringLongMapStruct
 	{
         forthop*        pMethods;
-        ucell           refCount;
+        REFCOUNTER      refCount;
 		oStringLongMap*	elements;
 	};
 
 	struct oStringLongMapIterStruct
 	{
         forthop*            pMethods;
-        ucell				refCount;
+        REFCOUNTER          refCount;
 		ForthObject			parent;
 		oStringLongMap::iterator	*cursor;
 	};

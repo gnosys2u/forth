@@ -2594,7 +2594,9 @@ OpResult ForthEngine::ExecuteOps(ForthCoreState* pCore, forthop *pOps)
 
     savedIP = pCore->IP;
     pCore->IP = pOps;
-    mpMainThread->InnerLoop();
+    ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
+    pFiber->GetParent()->InnerLoop();
+
     OpResult exitStatus = (OpResult)pCore->state;
 
 	pCore->IP = savedIP;
@@ -2697,7 +2699,15 @@ OpResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
 
 void ForthEngine::ReleaseObject(ForthCoreState* pCore, ForthObject& inObject)
 {
+    // TODO: why isn't this just a ForthObject?
     oOutStreamStruct* pObjData = reinterpret_cast<oOutStreamStruct*>(inObject);
+#if defined(ATOMIC_REFCOUNTS)
+    if (pObjData->refCount.fetch_sub(1) == 1)
+    {
+        DeleteObject(pCore, inObject);
+        inObject = nullptr;
+    }
+#else
     if (pObjData->refCount > 1)
     {
         --pObjData->refCount;
@@ -2707,6 +2717,7 @@ void ForthEngine::ReleaseObject(ForthCoreState* pCore, ForthObject& inObject)
         DeleteObject(pCore, inObject);
         inObject = nullptr;
     }
+#endif
 }
 
 
@@ -3342,7 +3353,8 @@ void ForthEngine::CleanupGlobalObjectVariables(forthop* pNewDP)
         if (obj != nullptr)
         {
             ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
-            TraceOut("Releasing global object [%d] @%p of class %s, refcount %d\n", objectIndex, pVariable, pClassObject->pVocab->GetName(), obj->refCount);
+            ucell refCount = obj->refCount;
+            TraceOut("Releasing global object [%d] @%p of class %s, refcount %d\n", objectIndex, pVariable, pClassObject->pVocab->GetName(), refCount);
             SAFE_RELEASE(mpCore, obj);
         }
         objectIndex--;

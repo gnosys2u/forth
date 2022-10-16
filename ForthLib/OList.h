@@ -13,7 +13,7 @@ namespace OList
 	struct oListIterStruct
 	{
         forthop*        pMethods;
-        ucell           refCount;
+		REFCOUNTER      refCount;
 		ForthObject		parent;
 		oListElement*	cursor;
 	};

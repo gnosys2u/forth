@@ -208,6 +208,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\ForthLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -401,14 +402,14 @@
     <None Include="..\ForthLib\core.inc" />
     <None Include="..\ForthLib\core64.inc" />
     <CustomBuild Include="..\ForthLib\InnerInterp.asm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">nasm -i$(SolutionDir)ForthLib\ -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">nasm -i$(SolutionDir)ForthLib\ -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">nasm -i$(SolutionDir)ForthLib\ -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32 -dATOMIC_REFCOUNTS</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">nasm -i$(SolutionDir)ForthLib\ -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32 -dATOMIC_REFCOUNTS</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nasm -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nasm -i$(SolutionDir)ForthLib\ -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">nasm -i$(SolutionDir)ForthLib\ -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32 -dATOMIC_REFCOUNTS</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nasm -i$(SolutionDir)ForthLib\ -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32 -dATOMIC_REFCOUNTS</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">nasm -i$(SolutionDir)ForthLib\ -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32 -dATOMIC_REFCOUNTS</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win32 "%(FullPath)" -o $(IntDir)%(Filename).obj -dWIN32 -dATOMIC_REFCOUNTS</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
@@ -456,9 +457,9 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nasm -i$(SolutionDir)ForthLib\ -f win64 "%(FullPath)" -o "$(IntDir)%(Filename).obj" -dWIN64</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">nasm -i$(SolutionDir)ForthLib\ -f win64 "%(FullPath)" -o "$(IntDir)%(Filename).obj" -dWIN64</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nasm -i$(SolutionDir)ForthLib\ -f win64 "%(FullPath)" -o "$(IntDir)%(Filename).obj" -dWIN64</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -i$(SolutionDir)ForthLib\ -f win64 "%(FullPath)" -o "$(IntDir)%(Filename).obj" -dWIN64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -i$(SolutionDir)ForthLib\ -f win64 "%(FullPath)" -o "$(IntDir)%(Filename).obj" -dWIN64 -dATOMIC_REFCOUNTS</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm -i$(SolutionDir)ForthLib\ -f win64 "%(FullPath)" -o "$(IntDir)%(Filename).obj" -dWIN64</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -i$(SolutionDir)ForthLib\ -f win64 "%(FullPath)" -o "$(IntDir)%(Filename).obj" -dWIN64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -i$(SolutionDir)ForthLib\ -f win64 "%(FullPath)" -o "$(IntDir)%(Filename).obj" -dWIN64 -dATOMIC_REFCOUNTS</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Assembling %(Filename)</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">Assembling %(Filename)</Message>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)ForthLib\core64.inc</AdditionalInputs>
