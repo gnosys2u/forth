@@ -15,7 +15,7 @@ ASM = as
 CDEBUG = -g
 
 
-DEFINES = -DRASPI -DLINUX -DASM_INNER_INTERPRETER -DINCLUDE_TRACE -DSTORAGE_LONGS=4000000
+DEFINES = -DRASPI -DLINUX -DASM_INNER_INTERPRETER -DINCLUDE_TRACE -DATOMIC_REFCOUNTS -DSTORAGE_LONGS=4000000
 CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -std=c++11 -marm
 
 #WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wsign-compare -Wunused-but-set-variable
@@ -82,7 +82,7 @@ DEPS := $(patsubst %.cpp,$(DEPDIR)/%.d,$(SRCS))
 LIBS := -lm -lstdc++ -ldl -lpthread -no-pie
 
 $(LIBOBJ)/InnerInterpARM.o: $(MAINSRC)/InnerInterpARM.S
-	$(CC) $(CFLAGS) -o $(LIBOBJ)/InnerInterpARM.o -c $(MAINSRC)/InnerInterpARM.S
+	$(CC) $(CFLAGS) -o $(LIBOBJ)/InnerInterpARM.o -DATOMIC_REFCOUNTS -DASM_INNER_INTERPRETER -c $(MAINSRC)/InnerInterpARM.S
 
 $(LIBSRC)/libforth.a:	$(OBJS)
 	ar rcs $(LIBSRC)/libforth.a $(OBJS)
