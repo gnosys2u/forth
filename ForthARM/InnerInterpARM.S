@@ -172,7 +172,7 @@ filePutString	=		48
 	.global rpushBop, rpopBop, rdropBop, rpBop, r0Bop, dupBop, checkDupBop, swapBop, overBop
 	.global rotBop, tuckBop, pickBop, spBop, s0Bop, fpBop, ddupBop, dswapBop, ddropBop, doverBop, drotBop
 	.global istoreBop, bstoreBop, ubfetchBop, bfetchBop, c2iBop, sstoreBop, sfetchBop, swfetchBop, w2iBop, dstoreBop
-	.global lstoreBop, lfetchBop, lstoreNextBop, lfetchNextBop, odropBop
+	.global lstoreBop, lfetchBop, lstoreNextBop, lfetchNextBop, odropBop, plusStoreCellBop, plusStoreAtomicCellBop
 	.global	moveBop, memcmpBop, fillBop, setVarActionBop, getVarActionBop, strcpyBop, strncpyBop, strlenBop, strcatBop, strncatBop
 	.global	strchrBop, strrchrBop, strcmpBop, strncmpBop, stricmpBop, strstrBop, strtokBop, initStringBop, strFixupBop
 	.global doUByteBop, doUByteArrayBop, doUShortBop, doUShortArrayBop
@@ -1929,25 +1929,58 @@ localObjectRef:
 	bx	lr
 	
 localObjectStore:
-	@ r0 points to oldObj container var
+	@ r0 -> dstVar (oldObj container)
 	@ TOS is newObj contents
 	ldmia	rsp!, {r3}	        @ pop TOS object value into r3 (newObj)
-	ldmia	r0, {r2}			@ r2 is oldObj contents
-	stmia	r0, {r3}		    @ newObj -> oldObj
+	ldr	r2, [r0]				@ is oldObj contents
+	str	r3, [r0]			    @ dstVar = newObj
 	cmp	r3, r2
 	beq	.los2					@ if oldObj == newObj, don't touch refcounts
 	orrs	r3, r3
 	beq	.los1					@ if newObj is null, don't increment refcount
+
+	@ increment newObj refcount
+#ifdef ATOMIC_REFCOUNTS
+	@dmb	ish             		@ memory barrier
+.losInc:
+	add	r3, #4
+	ldrex	r1, [r3]			@ load newObj.refCount and lock
+    add		r1, #1
+    strex	r0, r1, [r3]    	@ try store back to newObj.refCount, r0 will be 0 if store was done
+    sub	r3, #4
+    cmp     r0, #0
+    bne	.losInc
+	@dmb ish             		@ memory barrier
+#else
 	ldr	r1, [r3, #4]			@ increment newObj refcount
 	add	r1, #1
 	str	r1, [r3, #4]
+#endif
+
 .los1:
 	orrs	r2, r2
 	beq	.los2					@ if oldObj is null, don't decrement refcount
-	ldr	r1, [r2, #4]			@ decrement oldObj refcount
+
+	@ decrement oldObj refcount
+#ifdef ATOMIC_REFCOUNTS
+	@dmb	ish             		@ memory barrier
+.losDec:
+	add	r2, #4
+	ldrex	r1, [r2]			@ load oldObj.refCount and lock
+    subs	r1, #1
+    strex	r0, r1, [r2]    	@ try store back to oldObj.refCount, r0 will be 0 if store was done
+    sub	r2, #4
+    cmp     r0, #0
+    bne	.losDec
+	@dmb ish             		@ memory barrier
+	orrs	r1, r1
+#else
+	ldr	r1, [r2, #4]
 	subs	r1, #1
 	str	r1, [r2, #4]
+#endif
 	beq	.los3					@ oldObj refcount went to zero, go delete it
+
 .los2:
 	bx	lr
 	
@@ -1964,6 +1997,7 @@ localObjectStore:
 	bx	r1
 	
 .localObject1:
+	@ dispatch to local object action routines based on varMode
 	@ r0 points to the object field
 	@ r1 is varMode
 	@ r2 is 0
@@ -1980,6 +2014,7 @@ odropBop:
 	ldmia	rsp!, {r2}
 	orrs	r2, r2
 	beq	.odrop2					@ if obj is null, don't decrement refcount
+	@ TODO: how should atomic refcounts be handled here?
 	ldr	r1, [r2, #4]			@ check refcount
 	orrs	r1, r1
 	beq		.odrop3
@@ -2026,19 +2061,37 @@ localObjectUnref:
 	@ clear object var
 	eor	r3, r3
 	str	r3, [r0]
+
+	@ decrement object refcount
+#ifdef ATOMIC_REFCOUNTS
+	@dmb	ish             		@ memory barrier
+.louDec:
+	add r2, #4
+	ldrex	r3, [r2]			@ load obj.refCount and lock
+    subs	r3, #1
+    strex	r0, r3, [r2]    	@ try store back to obj.refCount, r0 will be 0 if store was done
+    sub	r2, #4
+    cmp     r0, #0
+    bne	.louDec
+	@dmb ish             		@ memory barrier
+	orrs r3, r3
+	blt .louNegativeCountError
+#else
 	@ get object refcount, see if it is already 0
 	ldr r3, [r2, #4]
 	orrs r3, r3
-	bne lou1
+	beq .louNegativeCountError
+	sub	r3, #1
+	str	r3, [r2, #4]
+#endif
+lou2:
+	bx	lr
+
+.louNegativeCountError:
 	@ report refcount negative error
 	mov	r0, #kForthErrorBadReferenceCount
 	b	interpLoopErrorExit
-lou1:
-	@ decrement object refcount
-	sub	r3, #1
-	str	r3, [r2, #4]
-lou2:
-	bx	lr
+
 
 	.align	2	
 .localObject3:
@@ -5947,6 +6000,31 @@ sscanfSub2:
 	pop	{r0-r3, rcore, rsp, rrp, lr}
 	bx	lr
 
+@@@@@@@@@@@@@@@@@  +!  @@@@@@@@@@@@@@@@@
+
+plusStoreCellBop:
+	ldmia	rsp!, {r0, r1}		@ r0 is ptr to dst ptr, r1 is amount to add
+	ldr	r2, [r0]
+	add	r1, r2
+	str	r1, [r0]
+	bx	lr
+
+@@@@@@@@@@@@@@@@@  +!  @@@@@@@@@@@@@@@@@
+
+plusStoreAtomicCellBop:
+	ldmia	rsp!, {r0, r1}	@ r0 is ptr to dst ptr, r1 is amount to add
+	@dmb	ish             @ memory barrier
+psa1:
+	ldrex	r2, [r0]		@ load @r0 and lock
+    adds	r2, r1
+    strex	r3, r2, [r0]    @ try store back to @r0, r3 will be 0 if store was done
+    cmp     r3, #0          @ r3 will be 0 if lock held
+    bne	psa1
+	@dmb ish             	@ memory barrier
+	
+	stmdb	rsp!, {r2}		@ value that was stored
+	bx	lr
+
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @                                                    @
 @ these ops used to be in extops_arm, but it seems   @
@@ -5966,15 +6044,6 @@ absBop:
 	str	r0, [rsp]
 	bx	lr
   
-@@@@@@@@@@@@@@@@@  +!  @@@@@@@@@@@@@@@@@
-
-plusStoreBop:
-	ldmia	rsp!, {r0, r1}	// r0 is ptr to dst ptr, r1 is amount to add
-	ldr	r2, [r0]
-	add	r1, r2
-	str	r1, [r0]
-	bx	lr
-
 @@@@@@@@@@@@@@@@@  roll  @@@@@@@@@@@@@@@@@
 
 rollBop:

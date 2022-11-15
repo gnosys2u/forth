@@ -6418,16 +6418,26 @@ FORTHOP( divmodBop )
     lldiv_t v;
     v = lldiv(a, b);
 #else
-    div_t v;
 
 #if defined(WIN32)
+
+    div_t v;
 #if defined(MSDEV)
     v = div(a, b);
 #else
     v = ldiv(a, b);
 #endif
+
+#elif defined(RASPI)
+
+    div_t v;
+    v = div(a, b);
+
 #elif defined(LINUX) || defined(MACOSX)
+
+    div_t v;
     v = ldiv(a, b);
+
 #endif
 #endif
     SPUSH( v.rem );
