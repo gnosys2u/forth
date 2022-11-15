@@ -1,6 +1,6 @@
 #####################################################################################
 #
-# Forth Accessor extensions
+# Forth Varop Suffixes
 #
 #####################################################################################
 
@@ -250,3 +250,181 @@ current idea:
 ^!      to store and increment refcount
 ^-      to clear and decrement refcount
 !       store leaving refcount untouched
+
+? would it be better to do a!+ instead of a+!?
++ it would eliminate name collisions with things like c+!
+
+? would it be good for array types to do a(i)! instead of a!(i) ?
+- harder to implement
++ looks better
+
+? maybe use ~ to mean clear and decrement refcount?
+
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+@
+!
+&
+~
++
+-
+
+
+
+++
+--
+
+!+
+!-
+!o
+
+@++
+@--
+!++
+!--
+++@
+--@
+++!
+--!
+
+
+
+
+
+&
+    &       Ref
+~
+    ~       Clear
+@
+    @       Get
+    --@     DecGet
+    ++@     IncGet
+!
+    !       Set
+    --!     DecSet
+    ++!     IncSet
++
+    +       Add
+    ++      Inc
+    !+      AddSet
+    !++     SetInc
+    @++     GetInc
+-
+    -       Sub
+    --      Dec
+    !-      SubSet
+    !--     SetDec
+    @--     GetDec
+o
+    !o      SetNoRef
+
+
+++
+--
+
+!+
+!-
+!o
+
+@++
+@--
+!++
+!--
+++@
+--@
+++!
+--!
+
+---------------------------
+Unknown     suffix hasn't been checked yet
+None        <no suffix>    
+Address     &    
+Clear       ~    
+Get         @    
+DecGet      --@  
+IncGet      ++@  
+Set         !    
+DecSet      --!  
+IncSet      ++!  
+Add         +    
+Inc         ++   
+AddSet      !+   
+SetInc      !++  
+GetInc      @++  
+Sub         -    
+Dec         --   
+SubSet      !-   
+SetDec      !--  
+GetDec      @--  
+SetNoRef    !o   
+---------------------------
+None
+    valid for all types
+    for operators, executes the op
+    for other types returns value
+Address     &    
+    valid for all types
+Clear       ~    
+    valid for all types?
+    sets numeric types to 0 or 0.0
+    for objects, decrements refcount on referenced object and clears
+Get         @    
+    valid for all types
+    for all types returns value (only really needed for operators)
+DecGet      --@  
+    valid for pointer types and integer types (byte short int long)
+    for pointer types, move pointer to previous element and return its value
+    for integer types, decrement number and return it
+IncGet      ++@  
+    valid for pointer types and integer types (byte short int long)
+    for pointer types, move pointer to next element and return its value
+    for integer types, increment number and return it
+Set         !    
+    valid for all types
+    sets value to that on stack
+    for objects also increments refcount of stored object, decrements refcount of old object
+DecSet      --!  
+    valid for pointer types
+    move pointer to previous element, then store TOS there
+IncSet      ++!  
+    valid for pointer types
+    move pointer to next element, then store TOS there
+Add         +  
+    valid for numeric types
+    fetch element value and add to TOS
+Inc         ++   
+    valid for pointer types and integer types (byte short int long)
+    for pointer types, move pointer to next element
+    for integer types, increment number
+AddTo       !+   
+    valid for pointer types and numeric types
+    for pointer types, move pointer ahead by TOS elements
+    for numeric types, add value on TOS to element
+SetInc      !++  
+    valid for pointer types
+    store TOS to pointed element, then move pointer to next element
+GetInc      @++  
+    valid for pointer types
+    fetch pointed element, then move pointer to next element
+Sub         -    
+    valid for numeric types
+    fetch element value and subtract from TOS
+Dec         --   
+    valid for pointer types and integer types (byte short int long)
+    for pointer types, move pointer to previous element
+    for integer types, decrement number
+SubFrom     !-   
+    valid for pointer types and numeric types
+    for pointer types, move pointer backwards by TOS elements
+    for numeric types, subtract value on TOS from element
+SetDec      !--  
+    valid for pointer types
+    store TOS to pointed elemet, then move pointer to previous element
+GetDec      @--  
+    valid for pointer types
+    fetch pointed element, then move pointer to previous element
+SetNoRef    !o   
+    valid for object types
+    store object on TOS to element, leave all refcounts unchanged
+    
+---------------------------

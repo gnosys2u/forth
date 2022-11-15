@@ -5,6 +5,12 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+- allow methods to do 'returns Array of foo' instead of just 'returns Array'
+  ? would 'returns Array:foo' be acceptable?
+
+- check out if things like a(i).b(j) work
+  instanceArray(i).memberArray(j)
+  
 - document gotchas about using unref and Array.pop in multithreaded code
   -> an object with a 0 refcount on TOS is only threadsafe when it is just created,
      after it is being shared by multiple threads this state is always very unsafe
@@ -179,6 +185,18 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+October 16 2022
+
+I did the ARM atomic refcount support today, it wasn't bad at all.
+
+- test atomic refcounting on Linux
+- check performance of refcounting on all platforms
+- figure out what to do (if anything) for atomic refcounting in odrop
+- track down crash when you run test.txt and then hammer.txt
++ add -dATOMIC_REFCOUNTS to nasm build rule
++ do ARM atomic refcount assembler code
++ do win32 atomic refcount assembler code
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 October 15 2022
 
 While debugging atomic refcounting, I found a serious thread related bug in
@@ -198,11 +216,6 @@ project.  DOH!  Fixing that made all the refcounts work.
 
 The hammer tests also crash if they are run after running test.txt, but I think
 that isn't a new crash.
-
-+ add -dATOMIC_REFCOUNTS to nasm build rule
-- try out object version of hammerer with and without atomic refcounts
-- do ARM atomic refcount assembler code
-+ do win32 assembler code
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 October 13 2022
 
