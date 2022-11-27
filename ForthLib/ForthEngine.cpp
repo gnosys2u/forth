@@ -1500,6 +1500,25 @@ ForthEngine::TraceStack( ForthCoreState* pCore )
     }
 }
 
+const static char* varopNames[] =
+{
+    "",     // kVarDefaultOp = 0,
+    "@",    // kVarGet,
+    "&",    // kVarRef,
+    "!",    // kVarSet,
+    "!+",   // kVarSetPlus,
+    "!-",   // kVarSetMinus,
+    "~",    // kVarClear,
+    "+",    // kVarPlus,
+    "++",   // kVarInc,
+    "-",    // kVarMinus,
+    "--",   // kVarDec,
+    "++@",  // kVarIncGet,
+    "--@",  // kVarDecGet,
+    "@++",  // kVarGetInc,
+    "@--"   // kVarGetDec,
+};
+
 void
 ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUserDefs )
 {
@@ -1611,10 +1630,10 @@ ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
             case kOpFieldUShort:        case kOpFieldUShortArray:
             case kOpFieldUInt:          case kOpFieldUIntArray:
             {
-                if ((opVal & 0xE00000) != 0)
+                if ((opVal & 0xF00000) != 0)
                 {
-                    int varOp = opVal >> 21;
-                    SNPRINTF(pBuffer, buffSize, "%s %s_%x", gOpNames[(OP_FETCH - 1) + varOp], opTypeName, (opVal & 0x1FFFFF));
+                    int varOp = opVal >> 20;
+                    SNPRINTF(pBuffer, buffSize, "%s_%x%s", opTypeName, (opVal & 0xFFFFF), varopNames[varOp]);
                 }
                 else
                 {

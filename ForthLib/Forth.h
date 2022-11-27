@@ -223,9 +223,20 @@ enum class VarOperation:ucell {
     kVarGet,
     kVarRef,
     kVarSet,
+
     kVarSetPlus,
     kVarSetMinus,
     kVarClear,
+    kVarPlus,
+
+    kVarInc,
+    kVarMinus,
+    kVarDec,
+    kVarIncGet,
+    
+    kVarDecGet,
+    kVarGetInc,
+    kVarGetDec,
     kNumVarops
 };
 

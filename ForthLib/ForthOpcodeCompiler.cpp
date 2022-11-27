@@ -139,7 +139,7 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
             && GetPreviousOpcode(previousOpType, previousOpVal)
             && (previousOpType == NATIVE_OPTYPE)
             && ((opType >= kOpLocalByte) && (opType <= kOpMemberObject))
-            && FITS_IN_BITS(newOpVal, 21))
+            && FITS_IN_BITS(newOpVal, 20))
         {
             forthop previousOp = COMPILED_OP(previousOpType, previousOpVal);
             if ((previousOp >= gCompiledOps[OP_FETCH]) && (previousOp <= gCompiledOps[OP_OCLEAR]))
@@ -157,7 +157,7 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
                     }
                     else
                     {
-                        forthop varOpBits = (previousOp - (gCompiledOps[OP_FETCH] - 1)) << 21;
+                        forthop varOpBits = (previousOp - (gCompiledOps[OP_FETCH] - 1)) << 20;
                         op = COMPILED_OP(opType, varOpBits | opVal);
                     }
                     SPEW_COMPILATION("Compiling 0x%08x @ 0x%08x\n", op, pOpcode);

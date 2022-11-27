@@ -30,17 +30,24 @@ void NativeActionOuter( ForthCoreState *pCore, forthop opVal )
 {
 	NativeAction(pCore, opVal);
 }
+
+VAR_ACTION(BadVarOperation)
+{
+    ForthEngine* pEngine = GET_ENGINE;
+    pEngine->SetError(ForthError::kBadVarOperation);
+}
+
 //////////////////////////////////////////////////////////////////////
 ////
 ///
 //                     byte
 // 
 
-// doByte{Fetch,Ref,Store,PlusStore,MinusStore} are parts of doByteOp
+// doByte{Fetch,Ref,Store,SetPlus,SetMinus} are parts of doByteOp
 VAR_ACTION( doByteFetch ) 
 {
-    signed char c = *(signed char *)(SPOP);
-    SPUSH( (cell) c );
+    signed char a = *(signed char *)(SPOP);
+    SPUSH( (cell) a );
 }
 
 VAR_ACTION( doByteRef )
@@ -53,16 +60,84 @@ VAR_ACTION( doByteStore )
     *pA = (unsigned char) (SPOP);
 }
 
-VAR_ACTION( doBytePlusStore ) 
+VAR_ACTION( doByteSetPlus ) 
 {
     unsigned char *pA = (unsigned char *)(SPOP);
     *pA = (unsigned char) ((*pA) + SPOP);
 }
 
-VAR_ACTION( doByteMinusStore ) 
+VAR_ACTION( doByteSetMinus ) 
 {
     unsigned char *pA = (unsigned char *)(SPOP);
     *pA = (unsigned char) ((*pA) - SPOP);
+}
+
+VAR_ACTION(doByteClear)
+{
+    char* pA = (char*)(SPOP);
+    *pA = 0;
+}
+
+VAR_ACTION(doBytePlus)
+{
+    signed char a = *(signed char*)(SPOP);
+    cell v = (SPOP) + (cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doByteInc)
+{
+    char* pA = (char*)(SPOP);
+    *pA += 1;
+}
+
+VAR_ACTION(doByteMinus)
+{
+    signed char a = *(signed char*)(SPOP);
+    cell v = (SPOP) - (cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doByteDec)
+{
+    char* pA = (char*)(SPOP);
+    *pA -= 1;
+}
+
+VAR_ACTION(doByteIncGet)
+{
+    signed char* pA = (signed char*)(SPOP);
+    signed char a = *pA;
+    a++;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doByteDecGet)
+{
+    signed char* pA = (signed char*)(SPOP);
+    signed char a = *pA;
+    a--;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doByteGetInc)
+{
+    signed char* pA = (signed char*)(SPOP);
+    signed char a = *pA;
+    SPUSH((cell)a);
+    a++;
+    *pA = a;
+}
+
+VAR_ACTION(doByteGetDec)
+{
+    signed char* pA = (signed char*)(SPOP);
+    signed char a = *pA;
+    SPUSH((cell)a);
+    a--;
+    *pA = a;
 }
 
 VarAction byteOps[] =
@@ -71,8 +146,17 @@ VarAction byteOps[] =
     doByteFetch,
     doByteRef,
     doByteStore,
-    doBytePlusStore,
-    doByteMinusStore
+    doByteSetPlus,
+    doByteSetMinus,
+    doByteClear,
+    doBytePlus,
+    doByteInc,
+    doByteMinus,
+    doByteDec,
+    doByteIncGet,
+    doByteDecGet,
+    doByteGetInc,
+    doByteGetDec
 };
 
 void _doByteVarop( ForthCoreState* pCore, signed char* pVar )
@@ -81,7 +165,7 @@ void _doByteVarop( ForthCoreState* pCore, signed char* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= VarOperation::kVarSetMinus )
+        if (varOp < VarOperation::kNumVarops)
         {
             SPUSH( (cell) pVar );
             byteOps[ (ucell)varOp ] ( pCore );
@@ -120,8 +204,58 @@ GFORTHOP( byteVarActionBop )
 
 VAR_ACTION( doUByteFetch ) 
 {
-    unsigned char c = *(unsigned char *)(SPOP);
-    SPUSH( (cell) c );
+    unsigned char a = *(unsigned char *)(SPOP);
+    SPUSH( (cell) a );
+}
+
+VAR_ACTION(doUBytePlus)
+{
+    unsigned char a = *(unsigned char*)(SPOP);
+    cell v = (SPOP)+(cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doUByteMinus)
+{
+    unsigned char a = *(unsigned char*)(SPOP);
+    cell v = (SPOP)-(cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doUByteIncGet)
+{
+    unsigned char* pA = (unsigned char*)(SPOP);
+    unsigned char a = *pA;
+    a++;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doUByteDecGet)
+{
+    unsigned char* pA = (unsigned char*)(SPOP);
+    unsigned char a = *pA;
+    a--;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doUByteGetInc)
+{
+    unsigned char* pA = (unsigned char*)(SPOP);
+    unsigned char a = *pA;
+    SPUSH((cell)a);
+    a++;
+    *pA = a;
+}
+
+VAR_ACTION(doUByteGetDec)
+{
+    unsigned char* pA = (unsigned char*)(SPOP);
+    unsigned char a = *pA;
+    SPUSH((cell)a);
+    a--;
+    *pA = a;
 }
 
 VarAction ubyteOps[] =
@@ -130,8 +264,17 @@ VarAction ubyteOps[] =
     doUByteFetch,
     doByteRef,
     doByteStore,
-    doBytePlusStore,
-    doByteMinusStore
+    doByteSetPlus,
+    doByteSetMinus,
+    doByteClear,
+    doUBytePlus,
+    doByteInc,
+    doUByteMinus,
+    doByteDec,
+    doUByteIncGet,
+    doUByteDecGet,
+    doUByteGetInc,
+    doUByteGetDec
 };
 
 static void _doUByteVarop( ForthCoreState* pCore, unsigned char* pVar )
@@ -140,7 +283,7 @@ static void _doUByteVarop( ForthCoreState* pCore, unsigned char* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarSetMinus)
+        if (varOp < VarOperation::kNumVarops)
         {
             SPUSH((cell)pVar);
             ubyteOps[(ucell)varOp](pCore);
@@ -177,7 +320,7 @@ GFORTHOP( ubyteVarActionBop )
 }
 #endif
 
-#define SET_OPVAL VarOperation varMode = (VarOperation)(opVal >> 21); 	if (varMode != VarOperation::kVarDefaultOp) { pCore->varMode = varMode; opVal &= 0x1FFFFF; }
+#define SET_OPVAL VarOperation varMode = (VarOperation)(opVal >> 20); 	if (varMode != VarOperation::kVarDefaultOp) { pCore->varMode = varMode; opVal &= 0xFFFFF; }
 
 OPTYPE_ACTION( LocalByteAction )
 {
@@ -312,11 +455,11 @@ OPTYPE_ACTION( MemberUByteArrayAction )
 //                     short
 // 
 
-// doShort{Fetch,Ref,Store,PlusStore,MinusStore} are parts of doShortOp
+// doShort{Fetch,Ref,Store,SetPlus,SetMinus} are parts of doShortOp
 VAR_ACTION( doShortFetch )
 {
-    short s = *(short *)(SPOP);
-    SPUSH( (cell) s );
+    short a = *(short *)(SPOP);
+    SPUSH( (cell) a );
 }
 
 VAR_ACTION( doShortRef )
@@ -329,16 +472,84 @@ VAR_ACTION( doShortStore )
     *pA = (short) (SPOP);
 }
 
-VAR_ACTION( doShortPlusStore ) 
+VAR_ACTION( doShortSetPlus ) 
 {
     short *pA = (short *)(SPOP);
     *pA = (short)((*pA) + SPOP);
 }
 
-VAR_ACTION( doShortMinusStore ) 
+VAR_ACTION( doShortSetMinus ) 
 {
     short *pA = (short *)(SPOP);
     *pA = (short)((*pA) - SPOP);
+}
+
+VAR_ACTION(doShortClear)
+{
+    short* pA = (short*)(SPOP);
+    *pA = 0;
+}
+
+VAR_ACTION(doShortPlus)
+{
+    short a = *(short*)(SPOP);
+    cell v = (SPOP)+(cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doShortInc)
+{
+    short* pA = (short*)(SPOP);
+    *pA += 1;
+}
+
+VAR_ACTION(doShortMinus)
+{
+    short a = *(short*)(SPOP);
+    cell v = (SPOP)-(cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doShortDec)
+{
+    short* pA = (short*)(SPOP);
+    *pA -= 1;
+}
+
+VAR_ACTION(doShortIncGet)
+{
+    short* pA = (short*)(SPOP);
+    short a = *pA;
+    a++;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doShortDecGet)
+{
+    short* pA = (short*)(SPOP);
+    short a = *pA;
+    a--;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doShortGetInc)
+{
+    short* pA = (short*)(SPOP);
+    short a = *pA;
+    SPUSH((cell)a);
+    a++;
+    *pA = a;
+}
+
+VAR_ACTION(doShortGetDec)
+{
+    short* pA = (short*)(SPOP);
+    short a = *pA;
+    SPUSH((cell)a);
+    a--;
+    *pA = a;
 }
 
 VarAction shortOps[] =
@@ -347,8 +558,17 @@ VarAction shortOps[] =
     doShortFetch,
     doShortRef,
     doShortStore,
-    doShortPlusStore,
-    doShortMinusStore
+    doShortSetPlus,
+    doShortSetMinus,
+    doShortClear,
+    doShortPlus,
+    doShortInc,
+    doShortMinus,
+    doShortDec,
+    doShortIncGet,
+    doShortDecGet,
+    doShortGetInc,
+    doShortGetDec
 };
 
 static void _doShortVarop( ForthCoreState* pCore, short* pVar )
@@ -357,7 +577,7 @@ static void _doShortVarop( ForthCoreState* pCore, short* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarSetMinus)
+        if (varOp < VarOperation::kNumVarops)
         {
             SPUSH((cell)pVar);
             shortOps[(ucell)varOp](pCore);
@@ -396,8 +616,58 @@ GFORTHOP( shortVarActionBop )
 
 VAR_ACTION( doUShortFetch )
 {
-    unsigned short s = *(unsigned short *)(SPOP);
-    SPUSH( (cell) s );
+    unsigned short a = *(unsigned short *)(SPOP);
+    SPUSH( (cell) a );
+}
+
+VAR_ACTION(doUShortPlus)
+{
+    unsigned short a = *(unsigned short*)(SPOP);
+    cell v = (SPOP)+(cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doUShortMinus)
+{
+    unsigned short a = *(unsigned short*)(SPOP);
+    cell v = (SPOP)-(cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doUShortIncGet)
+{
+    unsigned short* pA = (unsigned short*)(SPOP);
+    unsigned short a = *pA;
+    a++;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doUShortDecGet)
+{
+    unsigned short* pA = (unsigned short*)(SPOP);
+    unsigned short a = *pA;
+    a--;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doUShortGetInc)
+{
+    unsigned short* pA = (unsigned short*)(SPOP);
+    unsigned short a = *pA;
+    SPUSH((cell)a);
+    a++;
+    *pA = a;
+}
+
+VAR_ACTION(doUShortGetDec)
+{
+    unsigned short* pA = (unsigned short*)(SPOP);
+    unsigned short a = *pA;
+    SPUSH((cell)a);
+    a--;
+    *pA = a;
 }
 
 VarAction ushortOps[] =
@@ -406,8 +676,17 @@ VarAction ushortOps[] =
     doUShortFetch,
     doShortRef,
     doShortStore,
-    doShortPlusStore,
-    doShortMinusStore
+    doShortSetPlus,
+    doShortSetMinus,
+    doShortClear,
+    doUShortPlus,
+    doShortInc,
+    doUShortMinus,
+    doShortDec,
+    doUShortIncGet,
+    doUShortDecGet,
+    doUShortGetInc,
+    doUShortGetDec
 };
 
 static void _doUShortVarop( ForthCoreState* pCore, unsigned short* pVar )
@@ -416,7 +695,7 @@ static void _doUShortVarop( ForthCoreState* pCore, unsigned short* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarSetMinus)
+        if (varOp < VarOperation::kNumVarops)
         {
             SPUSH((cell)pVar);
             ushortOps[(ucell)varOp](pCore);
@@ -588,7 +867,7 @@ OPTYPE_ACTION( MemberUShortArrayAction )
 //                     int
 // 
 
-// doInt{Fetch,Ref,Store,PlusStore,MinusStore} are parts of doIntOp
+// doInt{Fetch,Ref,Store,SetPlus,SetMinus} are parts of doIntOp
 VAR_ACTION( doIntFetch ) 
 {
     int32_t *pA = (int32_t *) (SPOP);
@@ -605,16 +884,84 @@ VAR_ACTION( doIntStore )
     *pA = SPOP;
 }
 
-VAR_ACTION( doIntPlusStore ) 
+VAR_ACTION( doIntSetPlus ) 
 {
     int32_t *pA = (int32_t *) (SPOP);
     *pA += SPOP;
 }
 
-VAR_ACTION( doIntMinusStore ) 
+VAR_ACTION( doIntSetMinus ) 
 {
     int32_t *pA = (int32_t *) (SPOP);
     *pA -= SPOP;
+}
+
+VAR_ACTION(doIntClear)
+{
+    int* pA = (int*)(SPOP);
+    *pA = 0;
+}
+
+VAR_ACTION(doIntPlus)
+{
+    int a = *(int*)(SPOP);
+    cell v = (SPOP)+(cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doIntInc)
+{
+    int* pA = (int*)(SPOP);
+    *pA += 1;
+}
+
+VAR_ACTION(doIntMinus)
+{
+    int a = *(int*)(SPOP);
+    cell v = (SPOP)-(cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doIntDec)
+{
+    int* pA = (int*)(SPOP);
+    *pA -= 1;
+}
+
+VAR_ACTION(doIntIncGet)
+{
+    int* pA = (int*)(SPOP);
+    int a = *pA;
+    a++;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doIntDecGet)
+{
+    int* pA = (int*)(SPOP);
+    int a = *pA;
+    a--;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doIntGetInc)
+{
+    int* pA = (int*)(SPOP);
+    int a = *pA;
+    SPUSH((cell)a);
+    a++;
+    *pA = a;
+}
+
+VAR_ACTION(doIntGetDec)
+{
+    int* pA = (int*)(SPOP);
+    int a = *pA;
+    SPUSH((cell)a);
+    a--;
+    *pA = a;
 }
 
 VarAction intOps[] =
@@ -623,8 +970,17 @@ VarAction intOps[] =
     doIntFetch,
     doIntRef,
     doIntStore,
-    doIntPlusStore,
-    doIntMinusStore
+    doIntSetPlus,
+    doIntSetMinus,
+    doIntClear,
+    doIntPlus,
+    doIntInc,
+    doIntMinus,
+    doIntDec,
+    doIntIncGet,
+    doIntDecGet,
+    doIntGetInc,
+    doIntGetDec
 };
 
 void _doIntVarop( ForthCoreState* pCore, int* pVar )
@@ -633,7 +989,7 @@ void _doIntVarop( ForthCoreState* pCore, int* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarSetMinus)
+        if (varOp < VarOperation::kNumVarops)
         {
             SPUSH((cell)pVar);
             intOps[(ucell)varOp](pCore);
@@ -679,8 +1035,58 @@ GFORTHOP( intVarActionBop )
 
 VAR_ACTION(doUIntFetch)
 {
-    uint32_t s = *(uint32_t*)(SPOP);
-    SPUSH((cell)s);
+    uint32_t a = *(uint32_t*)(SPOP);
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doUIntPlus)
+{
+    unsigned int a = *(unsigned int*)(SPOP);
+    cell v = (SPOP)+(cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doUIntMinus)
+{
+    unsigned int a = *(unsigned int*)(SPOP);
+    cell v = (SPOP)-(cell)a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doUIntIncGet)
+{
+    unsigned int* pA = (unsigned int*)(SPOP);
+    unsigned int a = *pA;
+    a++;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doUIntDecGet)
+{
+    unsigned int* pA = (unsigned int*)(SPOP);
+    unsigned int a = *pA;
+    a--;
+    *pA = a;
+    SPUSH((cell)a);
+}
+
+VAR_ACTION(doUIntGetInc)
+{
+    unsigned int* pA = (unsigned int*)(SPOP);
+    unsigned int a = *pA;
+    SPUSH((cell)a);
+    a++;
+    *pA = a;
+}
+
+VAR_ACTION(doUIntGetDec)
+{
+    unsigned int* pA = (unsigned int*)(SPOP);
+    unsigned int a = *pA;
+    SPUSH((cell)a);
+    a--;
+    *pA = a;
 }
 
 VarAction uintOps[] =
@@ -689,9 +1095,19 @@ VarAction uintOps[] =
     doUIntFetch,
     doIntRef,
     doIntStore,
-    doIntPlusStore,
-    doIntMinusStore
+    doIntSetPlus,
+    doIntSetMinus,
+    doIntClear,
+    doUIntPlus,
+    doIntInc,
+    doUIntMinus,
+    doIntDec,
+    doUIntIncGet,
+    doUIntDecGet,
+    doUIntGetInc,
+    doUIntGetDec
 };
+
 
 static void _doUIntVarop(ForthCoreState* pCore, uint32_t* pVar)
 {
@@ -699,7 +1115,7 @@ static void _doUIntVarop(ForthCoreState* pCore, uint32_t* pVar)
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarSetMinus)
+        if (varOp < VarOperation::kNumVarops)
         {
             SPUSH((cell)pVar);
             uintOps[(ucell)varOp](pCore);
@@ -889,26 +1305,54 @@ OPTYPE_ACTION(MemberUIntArrayAction)
 //                     float
 // 
 
-VAR_ACTION( doFloatPlusStore ) 
+VAR_ACTION( doFloatSetPlus ) 
 {
     float *pA = (float *) (SPOP);
     *pA += FPOP;
 }
 
-VAR_ACTION( doFloatMinusStore ) 
+VAR_ACTION( doFloatSetMinus ) 
 {
     float *pA = (float *) (SPOP);
     *pA -= FPOP;
 }
 
+VAR_ACTION(doFloatClear)
+{
+    float* pA = (float*)(SPOP);
+    *pA = 0.0f;
+}
+
+VAR_ACTION(doFloatPlus)
+{
+    float a = *(float*)(SPOP);
+    cell v = SPOP;
+    float* pB = (float*)&v;
+    *pB += a;
+    SPUSH(v);
+}
+
+VAR_ACTION(doFloatMinus)
+{
+    float a = *(float*)(SPOP);
+    cell v = SPOP;
+    float* pB = (float*)&v;
+    *pB -= a;
+    SPUSH(v);
+}
+
 VarAction floatOps[] =
 {
-    doIntFetch,
+    doIntFetch,         // TODO: is this right for 64-bits?  or will it fail if hibit of float is set?
     doIntFetch,
     doIntRef,
     doIntStore,
-    doFloatPlusStore,
-    doFloatMinusStore
+    doFloatSetPlus,
+    doFloatSetMinus,
+    doFloatClear,
+    doFloatPlus,
+    BadVarOperation,        // should be impossible (no Inc for float)
+    doFloatMinus,
 };
 
 static void _doFloatVarop( ForthCoreState* pCore, float* pVar )
@@ -917,7 +1361,7 @@ static void _doFloatVarop( ForthCoreState* pCore, float* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarSetMinus)
+        if (varOp < VarOperation::kNumVarops)
         {
             SPUSH((cell)pVar);
             floatOps[(ucell)varOp](pCore);
@@ -1037,16 +1481,38 @@ VAR_ACTION( doDoubleStore )
     *pA = DPOP;
 }
 
-VAR_ACTION( doDoublePlusStore ) 
+VAR_ACTION( doDoubleSetPlus ) 
 {
     double *pA = (double *) (SPOP);
     *pA += DPOP;
 }
 
-VAR_ACTION( doDoubleMinusStore ) 
+VAR_ACTION( doDoubleSetMinus ) 
 {
     double *pA = (double *) (SPOP);
     *pA -= DPOP;
+}
+
+VAR_ACTION(doDoubleClear)
+{
+    double* pA = (double*)(SPOP);
+    *pA = 0.0;
+}
+
+VAR_ACTION(doDoublePlus)
+{
+    double* pA = (double*)(SPOP);
+    double b = DPOP;
+    b += *pA;
+    DPUSH(b);
+}
+
+VAR_ACTION(doDoubleMinus)
+{
+    double* pA = (double*)(SPOP);
+    double b = DPOP;
+    b -= *pA;
+    DPUSH(b);
 }
 
 VarAction doubleOps[] =
@@ -1055,8 +1521,12 @@ VarAction doubleOps[] =
     doDoubleFetch,
     doIntRef,
     doDoubleStore,
-    doDoublePlusStore,
-    doDoubleMinusStore
+    doDoubleSetPlus,
+    doDoubleSetMinus,
+    doDoubleClear,
+    doDoublePlus,
+    BadVarOperation,        // should be impossible (no Inc for double)
+    doDoubleMinus,
 };
 
 static void _doDoubleVarop( ForthCoreState* pCore, double* pVar )
@@ -1065,7 +1535,7 @@ static void _doDoubleVarop( ForthCoreState* pCore, double* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarSetMinus)
+        if (varOp < VarOperation::kNumVarops)
         {
             SPUSH((cell)pVar);
             doubleOps[(ucell)varOp](pCore);
@@ -1239,7 +1709,7 @@ static void _doStringVarop( ForthCoreState* pCore, char* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarSetMinus)
+        if (varOp <= VarOperation::kVarSetPlus)
         {
             SPUSH((cell)pVar);
             stringOps[(ucell)varOp](pCore);
@@ -1378,7 +1848,7 @@ static void _doOpVarop( ForthCoreState* pCore, int32_t* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarSetMinus)
+        if (varOp <= VarOperation::kVarSet)
         {
             SPUSH((cell)pVar);
             opOps[(ucell)varOp](pCore);
@@ -1386,7 +1856,7 @@ static void _doOpVarop( ForthCoreState* pCore, int32_t* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( ForthError::kBadVarOperation );
+            BadVarOperation(pCore);
         }
         CLEAR_VAR_OPERATION;
     }
@@ -1571,7 +2041,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 
 	default:
 		// report GET_VAR_OPERATION out of range
-		pEngine->SetError( ForthError::kBadVarOperation );
+        BadVarOperation(pCore);
 		break;
 	}
 }
@@ -1695,7 +2165,7 @@ VAR_ACTION( doLongStore )
 #endif
 }
 
-VAR_ACTION( doLongPlusStore ) 
+VAR_ACTION( doLongSetPlus ) 
 {
 #ifdef FORTH64
     int64_t* pA = (int64_t *)(SPOP);
@@ -1709,7 +2179,7 @@ VAR_ACTION( doLongPlusStore )
 #endif
 }
 
-VAR_ACTION( doLongMinusStore ) 
+VAR_ACTION( doLongSetMinus ) 
 {
 #ifdef FORTH64
     int64_t* pA = (int64_t *)(SPOP);
@@ -1723,14 +2193,131 @@ VAR_ACTION( doLongMinusStore )
 #endif
 }
 
+VAR_ACTION(doLongClear)
+{
+    long* pA = (long*)(SPOP);
+    *pA = 0L;
+}
+
+VAR_ACTION(doLongPlus)
+{
+#ifdef FORTH64
+    int64_t a = *(int64_t*)(SPOP);
+    int64_t v = (SPOP)+a;
+    SPUSH(v);
+#else
+    stackInt64 val64;
+    int64_t* pA = (int64_t*)(SPOP);
+    LPOP(val64);
+    val64.s64 += *pA;
+    LPUSH(val64);
+#endif
+}
+
+VAR_ACTION(doLongInc)
+{
+    int64_t* pA = (int64_t*)(SPOP);
+    *pA += 1;
+}
+
+VAR_ACTION(doLongMinus)
+{
+#ifdef FORTH64
+    int64_t a = *(int64_t*)(SPOP);
+    int64_t v = (SPOP)-a;
+    SPUSH(v);
+#else
+    stackInt64 val64;
+    int64_t* pA = (int64_t*)(SPOP);
+    LPOP(val64);
+    val64.s64 -= *pA;
+    LPUSH(val64);
+#endif
+}
+
+VAR_ACTION(doLongDec)
+{
+    int64_t* pA = (int64_t*)(SPOP);
+    *pA -= 1;
+}
+
+VAR_ACTION(doLongIncGet)
+{
+    int64_t* pA = (int64_t*)(SPOP);
+#ifdef FORTH64
+    int64_t a = (*pA) + 1;
+    *pA = a;
+    SPUSH(a);
+#else
+    stackInt64 val64;
+    val64.s64 = (*pA) + 1;
+    *pA = val64.s64;
+    LPUSH(val64);
+#endif
+}
+
+VAR_ACTION(doLongDecGet)
+{
+    int64_t* pA = (int64_t*)(SPOP);
+#ifdef FORTH64
+    int64_t a = (*pA) - 1;
+    *pA = a;
+    SPUSH(a);
+#else
+    stackInt64 val64;
+    val64.s64 = (*pA) - 1;
+    *pA = val64.s64;
+    LPUSH(val64);
+#endif
+}
+
+VAR_ACTION(doLongGetInc)
+{
+    int64_t* pA = (int64_t*)(SPOP);
+#ifdef FORTH64
+    int64_t a = (*pA);
+    *pA = a + 1;
+    SPUSH(a);
+#else
+    stackInt64 val64;
+    val64.s64 = (*pA);
+    *pA = val64.s64 + 1L;
+    LPUSH(val64);
+#endif
+}
+
+VAR_ACTION(doLongGetDec)
+{
+    int64_t* pA = (int64_t*)(SPOP);
+#ifdef FORTH64
+    int64_t a = (*pA);
+    *pA = a - 1;
+    SPUSH(a);
+#else
+    stackInt64 val64;
+    val64.s64 = (*pA);
+    *pA = val64.s64 - 1L;
+    LPUSH(val64);
+#endif
+}
+
 VarAction longOps[] =
 {
     doLongFetch,
     doLongFetch,
     doIntRef,
     doLongStore,
-    doLongPlusStore,
-    doLongMinusStore
+    doLongSetPlus,
+    doLongSetMinus,
+    doLongClear,
+    doLongPlus,
+    doLongInc,
+    doLongMinus,
+    doLongDec,
+    doLongIncGet,
+    doLongDecGet,
+    doLongGetInc,
+    doLongGetDec
 };
 
 void longVarAction( ForthCoreState* pCore, int64_t* pVar )
@@ -1739,7 +2326,7 @@ void longVarAction( ForthCoreState* pCore, int64_t* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarSetMinus)
+        if (varOp < VarOperation::kNumVarops)
         {
             SPUSH((cell)pVar);
             longOps[(ucell)varOp](pCore);
