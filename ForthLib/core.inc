@@ -32,12 +32,12 @@ EXTERN _%1
 %endmacro
 
 kVarDefaultOp		EQU		0
-kVarFetch			EQU		1
+kVarGet			    EQU		1
 kVarRef				EQU		2
-kVarStore			EQU		3
-kVarPlusStore		EQU		4
-kVarMinusStore		EQU		5
-kVarObjectClear		EQU		6
+kVarSet			    EQU		3
+kVarSetPlus		    EQU		4
+kVarSetMinus	    EQU		5
+kVarClear		    EQU		6
 
 kResultOk				EQU		0
 kResultDone				EQU		1

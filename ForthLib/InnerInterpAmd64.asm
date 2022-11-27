@@ -983,7 +983,7 @@ localByteFetch:
 	jmp	rnext
 
 localByte1:
-	cmp	rbx, kVarMinusStore
+	cmp	rbx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localByteActionTable
@@ -1025,7 +1025,7 @@ localUByteFetch:
 	jmp	rnext
 
 localUByte1:
-	cmp	rbx, kVarMinusStore
+	cmp	rbx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localUByteActionTable
@@ -1235,7 +1235,7 @@ localShortFetch:
 	jmp	rnext
 
 localShort1:
-	cmp	rbx, kVarMinusStore
+	cmp	rbx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localShortActionTable
@@ -1279,7 +1279,7 @@ localUShortFetch:
 	jmp	rnext
 
 localUShort1:
-	cmp	rbx, kVarMinusStore
+	cmp	rbx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localUShortActionTable
@@ -1488,7 +1488,7 @@ localIntFetch:
 	jmp	rnext
 
 localInt1:
-	cmp	rbx, kVarMinusStore
+	cmp	rbx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localIntActionTable
@@ -1531,7 +1531,7 @@ localUIntFetch:
 	jmp	rnext
 
 localUInt1:
-	cmp	rbx, kVarMinusStore
+	cmp	rbx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localUIntActionTable
@@ -1773,7 +1773,7 @@ localFloatActionTable:
 	DQ	localFloatMinusStore
 
 localFloat1:
-	cmp	rbx, kVarMinusStore
+	cmp	rbx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localFloatActionTable
@@ -1912,7 +1912,7 @@ localDoubleActionTable:
 	DQ	localDoubleMinusStore
 
 localDouble1:
-	cmp	rbx, kVarMinusStore
+	cmp	rbx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localDoubleActionTable
@@ -2024,7 +2024,7 @@ localStringFetch:
 	jmp	rnext
 
 localString1:
-	cmp	rbx, kVarPlusStore
+	cmp	rbx, kVarSetPlus
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localStringActionTable
@@ -2278,7 +2278,7 @@ localOpActionTable:
 	DQ	localIntStore
 
 localOp1:
-	cmp	rbx, kVarStore
+	cmp	rbx, kVarSet
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localOpActionTable
@@ -2380,7 +2380,7 @@ localLongFetch:
 	jmp	rnext
 
 localLong1:
-	cmp	rbx, kVarMinusStore
+	cmp	rbx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localLongActionTable
@@ -2521,7 +2521,7 @@ localObjectFetch:
 	jmp	rnext
 
 localObject1:
-	cmp	rbx, kVarObjectClear
+	cmp	rbx, kVarClear
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localObjectActionTable
@@ -5325,7 +5325,7 @@ entry spBop
 	mov	rbx, [rcore + FCore.varMode]
 	xor	rax, rax
 	mov	[rcore + FCore.varMode], rax
-	cmp	rbx, kVarMinusStore
+	cmp	rbx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, spActionTable
@@ -5767,35 +5767,35 @@ entry fillBop
 ;========================================
 
 entry fetchVaractionBop
-	mov	rax, kVarFetch
+	mov	rax, kVarGet
 	mov	[rcore + FCore.varMode], rax
 	jmp	rnext
 	
 ;========================================
 
 entry intoVaractionBop
-	mov	rax, kVarStore
+	mov	rax, kVarSet
 	mov	[rcore + FCore.varMode], rax
 	jmp	rnext
 	
 ;========================================
 
 entry addToVaractionBop
-	mov	rax, kVarPlusStore
+	mov	rax, kVarSetPlus
 	mov	[rcore + FCore.varMode], rax
 	jmp	rnext
 	
 ;========================================
 
 entry subtractFromVaractionBop
-	mov	rax, kVarMinusStore
+	mov	rax, kVarSetMinus
 	mov	[rcore + FCore.varMode], rax
 	jmp	rnext
 	
 ;========================================
 
 entry oclearVaractionBop
-	mov	rax, kVarObjectClear
+	mov	rax, kVarClear
 	mov	[rcore + FCore.varMode], rax
 	jmp	rnext
 		

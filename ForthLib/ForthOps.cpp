@@ -2607,7 +2607,7 @@ FORTHOP(makeObjectOp)
             }
             else
             {
-                SET_VAR_OPERATION(VarOperation::kVarStore);
+                SET_VAR_OPERATION(VarOperation::kVarSet);
             }
             pClassVocab->DefineInstance(pInstanceName, pContainedClassName);
         }
@@ -4892,12 +4892,12 @@ FORTHOP( featuresOp )
 
     switch ( GET_VAR_OPERATION )
     {
-    case VarOperation::kVarStore:
+    case VarOperation::kVarSet:
         pEngine->SetFeatures( SPOP );
         break;
 
     case VarOperation::kVarDefaultOp:
-    case VarOperation::kVarFetch:
+    case VarOperation::kVarGet:
         SPUSH( pEngine->GetFeatures() );
         break;
 
@@ -4905,11 +4905,11 @@ FORTHOP( featuresOp )
         SPUSH( (cell)(&(pEngine->GetFeatures())) );
         break;
 
-    case VarOperation::kVarPlusStore:
+    case VarOperation::kVarSetPlus:
         pEngine->SetFeature( SPOP );
         break;
 
-    case VarOperation::kVarMinusStore:
+    case VarOperation::kVarSetMinus:
         pEngine->ClearFeature( SPOP );
         break;
 
@@ -7978,7 +7978,7 @@ FORTHOP(spBop)
 #else
     intVarAction(pCore, (int *)&(pCore->SP));
 #endif
-    if ((varOp == VarOperation::kVarDefaultOp) || (varOp == VarOperation::kVarFetch))
+    if ((varOp == VarOperation::kVarDefaultOp) || (varOp == VarOperation::kVarGet))
     {
         *(pCore->SP) += sizeof(cell);
     }
@@ -8436,22 +8436,22 @@ FORTHOP(fillBop)
 
 FORTHOP(fetchVaractionBop)
 {
-	SET_VAR_OPERATION( VarOperation::kVarFetch );
+	SET_VAR_OPERATION( VarOperation::kVarGet );
 }
 
 FORTHOP(intoVaractionBop)
 {
-    SET_VAR_OPERATION( VarOperation::kVarStore );
+    SET_VAR_OPERATION( VarOperation::kVarSet );
 }
 
 FORTHOP(addToVaractionBop)
 {
-    SET_VAR_OPERATION( VarOperation::kVarPlusStore );
+    SET_VAR_OPERATION( VarOperation::kVarSetPlus );
 }
 
 FORTHOP(subtractFromVaractionBop)
 {
-    SET_VAR_OPERATION( VarOperation::kVarMinusStore );
+    SET_VAR_OPERATION( VarOperation::kVarSetMinus );
 }
 
 FORTHOP(refVaractionBop)
@@ -8872,7 +8872,7 @@ FORTHOP( archX86Bop )
 
 FORTHOP( oclearVaractionBop )
 {
-	SET_VAR_OPERATION( VarOperation::kVarObjectClear );
+	SET_VAR_OPERATION( VarOperation::kVarClear );
 }
 
 FORTHOP(faddBlockBop)
@@ -9383,7 +9383,7 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     NATIVE_COMPILED_DEF(    doDoBop,                 "_do",				OP_DO_DO ),				// 52
     NATIVE_COMPILED_DEF(    doLoopBop,               "_loop",			OP_DO_LOOP ),
     NATIVE_COMPILED_DEF(    doLoopNBop,              "_+loop",			OP_DO_LOOPN ),
-    // the order of the next four opcodes has to match the order of kVarRef...kVarMinusStore
+    // the order of the next four opcodes has to match the order of kVarRef...kVarSetMinus
     NATIVE_COMPILED_DEF(    fetchVaractionBop,       "fetch",			OP_FETCH ),				// 56
     NATIVE_COMPILED_DEF(    refVaractionBop,         "ref",				OP_REF ),
 	NATIVE_COMPILED_DEF(    intoVaractionBop,        "->",				OP_INTO ),				// 59

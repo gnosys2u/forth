@@ -132,7 +132,7 @@ void ForthStructCodeGenerator::HandlePreceedingVarop()
         if ( varMode != VarOperation::kVarDefaultOp )
         {
             CLEAR_VAR_OPERATION;
-            mCompileVarop = (uint32_t)(gCompiledOps[OP_FETCH] + ((ucell)varMode - (ucell)VarOperation::kVarFetch));
+            mCompileVarop = (uint32_t)(gCompiledOps[OP_FETCH] + ((ucell)varMode - (ucell)VarOperation::kVarGet));
         }
     }
 }

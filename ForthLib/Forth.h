@@ -220,12 +220,12 @@ typedef void (*traceOutRoutine) ( void *pData, const char* pFormat, va_list argL
 //  than their default behaviour (fetch)
 enum class VarOperation:ucell {
     kVarDefaultOp = 0,
-    kVarFetch,
+    kVarGet,
     kVarRef,
-    kVarStore,
-    kVarPlusStore,
-    kVarMinusStore,
-    kVarObjectClear,
+    kVarSet,
+    kVarSetPlus,
+    kVarSetMinus,
+    kVarClear,
     kNumVarops
 };
 

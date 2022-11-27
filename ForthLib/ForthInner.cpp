@@ -81,7 +81,7 @@ void _doByteVarop( ForthCoreState* pCore, signed char* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if ( varOp <= VarOperation::kVarMinusStore )
+        if ( varOp <= VarOperation::kVarSetMinus )
         {
             SPUSH( (cell) pVar );
             byteOps[ (ucell)varOp ] ( pCore );
@@ -140,7 +140,7 @@ static void _doUByteVarop( ForthCoreState* pCore, unsigned char* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarMinusStore)
+        if (varOp <= VarOperation::kVarSetMinus)
         {
             SPUSH((cell)pVar);
             ubyteOps[(ucell)varOp](pCore);
@@ -357,7 +357,7 @@ static void _doShortVarop( ForthCoreState* pCore, short* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarMinusStore)
+        if (varOp <= VarOperation::kVarSetMinus)
         {
             SPUSH((cell)pVar);
             shortOps[(ucell)varOp](pCore);
@@ -416,7 +416,7 @@ static void _doUShortVarop( ForthCoreState* pCore, unsigned short* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarMinusStore)
+        if (varOp <= VarOperation::kVarSetMinus)
         {
             SPUSH((cell)pVar);
             ushortOps[(ucell)varOp](pCore);
@@ -633,7 +633,7 @@ void _doIntVarop( ForthCoreState* pCore, int* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarMinusStore)
+        if (varOp <= VarOperation::kVarSetMinus)
         {
             SPUSH((cell)pVar);
             intOps[(ucell)varOp](pCore);
@@ -699,7 +699,7 @@ static void _doUIntVarop(ForthCoreState* pCore, uint32_t* pVar)
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarMinusStore)
+        if (varOp <= VarOperation::kVarSetMinus)
         {
             SPUSH((cell)pVar);
             uintOps[(ucell)varOp](pCore);
@@ -917,7 +917,7 @@ static void _doFloatVarop( ForthCoreState* pCore, float* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarMinusStore)
+        if (varOp <= VarOperation::kVarSetMinus)
         {
             SPUSH((cell)pVar);
             floatOps[(ucell)varOp](pCore);
@@ -1065,7 +1065,7 @@ static void _doDoubleVarop( ForthCoreState* pCore, double* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarMinusStore)
+        if (varOp <= VarOperation::kVarSetMinus)
         {
             SPUSH((cell)pVar);
             doubleOps[(ucell)varOp](pCore);
@@ -1239,7 +1239,7 @@ static void _doStringVarop( ForthCoreState* pCore, char* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarMinusStore)
+        if (varOp <= VarOperation::kVarSetMinus)
         {
             SPUSH((cell)pVar);
             stringOps[(ucell)varOp](pCore);
@@ -1378,7 +1378,7 @@ static void _doOpVarop( ForthCoreState* pCore, int32_t* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarMinusStore)
+        if (varOp <= VarOperation::kVarSetMinus)
         {
             SPUSH((cell)pVar);
             opOps[(ucell)varOp](pCore);
@@ -1499,7 +1499,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 	{
 
 	case VarOperation::kVarDefaultOp:
-	case VarOperation::kVarFetch:
+	case VarOperation::kVarGet:
 		PUSH_OBJECT( *pVar );
 		break;
 
@@ -1507,7 +1507,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 		SPUSH( (cell) pVar );
 		break;
 
-	case VarOperation::kVarStore:
+	case VarOperation::kVarSet:
 		{
             ForthObject& oldObj = *pVar;
 			ForthObject newObj;
@@ -1521,7 +1521,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 		}
 		break;
 
-	case VarOperation::kVarPlusStore:
+	case VarOperation::kVarSetPlus:
 		{
 			// store but don't increment refcount
 			ForthObject& oldObj = *pVar;
@@ -1531,7 +1531,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 		}
 		break;
 
-	case VarOperation::kVarMinusStore:
+	case VarOperation::kVarSetMinus:
 		{
 			// unref - push object on stack, clear out variable, decrement refcount but don't delete if 0
 			ForthObject& oldObj = *pVar;
@@ -1558,7 +1558,7 @@ static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
 		}
 		break;
 
-	case VarOperation::kVarObjectClear:
+	case VarOperation::kVarClear:
 		{
 			ForthObject& oldObj = *pVar;
 			if (oldObj != nullptr)
@@ -1739,7 +1739,7 @@ void longVarAction( ForthCoreState* pCore, int64_t* pVar )
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
-        if (varOp <= VarOperation::kVarMinusStore)
+        if (varOp <= VarOperation::kVarSetMinus)
         {
             SPUSH((cell)pVar);
             longOps[(ucell)varOp](pCore);

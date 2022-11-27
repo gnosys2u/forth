@@ -798,7 +798,7 @@ ForthStructVocabulary::DefineInstance( void )
             pHere = (char *) (mpEngine->GetDP());
             mpEngine->AllotLongs( (nBytes  + 3) >> 2 );
             memset( pHere, 0, nBytes );
-            if ( isPtr && (GET_VAR_OPERATION == VarOperation::kVarStore) )
+            if ( isPtr && (GET_VAR_OPERATION == VarOperation::kVarSet) )
             {
                 // var definition was preceeded by "->", so initialize var
 				mpEngine->FullyExecuteOp(pCore, pEntry[0]);
@@ -1501,7 +1501,7 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
                 mpEngine->AddGlobalObjectVariable(pHere, this, pInstanceName);
             }
 
-            if ( GET_VAR_OPERATION == VarOperation::kVarStore )
+            if ( GET_VAR_OPERATION == VarOperation::kVarSet )
             {
                 ForthObject srcObj = (ForthObject)SPOP;
                 if ( isPtr )
@@ -2183,7 +2183,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                 pEngine->CompileBuiltinOpcode(OP_DO_BYTE + (uint32_t)CODE_TO_BASE_TYPE((int)baseType));
                 pHere = (char *) (pEngine->GetDP());
                 pEngine->AllotLongs( (nBytes  + 3) >> 2 );
-                if ( GET_VAR_OPERATION == VarOperation::kVarStore )
+                if ( GET_VAR_OPERATION == VarOperation::kVarSet )
                 {
                     // var definition was preceeded by "->", so initialize var
 #if 1
@@ -2305,7 +2305,7 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                 // a length of 4 means room for 4 chars plus a terminating null
                 pEngine->AllotLongs( ((len  + 4) & ~3) >> 2 );
                 *pStr = 0;
-                if ( GET_VAR_OPERATION == VarOperation::kVarStore )
+                if ( GET_VAR_OPERATION == VarOperation::kVarSet )
                 {
                     // var definition was preceeded by "->", so initialize var
                     pEngine->ExecuteOp(pCore,  pEntry[0] );

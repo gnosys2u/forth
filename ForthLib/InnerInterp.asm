@@ -845,7 +845,7 @@ localByteFetch:
 	jmp	rnext
 
 localByte1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localByteActionTable + ebx*4]
@@ -886,7 +886,7 @@ localUByteFetch:
 	jmp	rnext
 
 localUByte1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localUByteActionTable + ebx*4]
@@ -1095,7 +1095,7 @@ localShortFetch:
 	jmp	rnext
 
 localShort1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localShortActionTable + ebx*4]
@@ -1137,7 +1137,7 @@ localUShortFetch:
 	jmp	rnext
 
 localUShort1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localShortActionTable + ebx*4]
@@ -1345,7 +1345,7 @@ localIntFetch:
 	jmp	rnext
 
 localInt1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localIntActionTable + ebx*4]
@@ -1528,7 +1528,7 @@ localFloatActionTable:
 	DD	localFloatMinusStore
 
 localFloat1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localFloatActionTable + ebx*4]
@@ -1678,7 +1678,7 @@ localDoubleActionTable:
 	DD	localDoubleMinusStore
 
 localDouble1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localDoubleActionTable + ebx*4]
@@ -1785,7 +1785,7 @@ localStringFetch:
 	jmp	rnext
 
 localString1:
-	cmp	ebx, kVarPlusStore
+	cmp	ebx, kVarSetPlus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localStringActionTable + ebx*4]
@@ -2015,7 +2015,7 @@ localOpActionTable:
 	DD	localIntStore
 
 localOp1:
-	cmp	ebx, kVarStore
+	cmp	ebx, kVarSet
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localOpActionTable + ebx*4]
@@ -2118,7 +2118,7 @@ localLongFetch:
 	jmp	rnext
 
 localLong1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localLongActionTable + ebx*4]
@@ -2274,7 +2274,7 @@ localObjectFetch:
 	jmp	rnext
 
 localObject1:
-	cmp	ebx, kVarObjectClear
+	cmp	ebx, kVarClear
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localObjectActionTable + ebx*4]
@@ -5558,7 +5558,7 @@ entry spBop
 	mov	ebx, [rcore + FCore.varMode]
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [spActionTable + ebx*4]
@@ -6094,35 +6094,35 @@ entry fillBop
 ;========================================
 
 entry fetchVaractionBop
-	mov	eax, kVarFetch
+	mov	eax, kVarGet
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 	
 ;========================================
 
 entry intoVaractionBop
-	mov	eax, kVarStore
+	mov	eax, kVarSet
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 	
 ;========================================
 
 entry addToVaractionBop
-	mov	eax, kVarPlusStore
+	mov	eax, kVarSetPlus
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 	
 ;========================================
 
 entry subtractFromVaractionBop
-	mov	eax, kVarMinusStore
+	mov	eax, kVarSetMinus
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 	
 ;========================================
 
 entry oclearVaractionBop
-	mov	eax, kVarObjectClear
+	mov	eax, kVarClear
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 		

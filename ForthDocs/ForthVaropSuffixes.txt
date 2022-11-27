@@ -338,93 +338,219 @@ o
 ---------------------------
 Unknown     suffix hasn't been checked yet
 None        <no suffix>    
-Address     &    
-Clear       ~    
-Get         @    
+Address     &               exists (ref, & prefix)
+Clear       ~               exists for objects (oclear)
+
+Get         @               exists (default, fetch)
 DecGet      --@  
 IncGet      ++@  
-Set         !    
+AtGet       @@
+DecAtGet      --@@  
+IncAtGet      ++@@  
+
+Set         !               exists  (->)
 DecSet      --!  
 IncSet      ++!  
-Add         +    
+AtSet       @!
+DecAtSet    --@!  
+IncAtSet    ++@!  
+
+Plus        +
+SetPlus     !+              exists (->+)
+AtSetPlus   @!+
 Inc         ++   
-AddSet      !+   
 SetInc      !++  
 GetInc      @++  
-Sub         -    
+AtSetInc    @!++  
+AtGetInc    @@++  
+
+Minus       -
+SetMinus    !-              exists (->-)
+AtSetMinus  @!-
 Dec         --   
-SubSet      !-   
 SetDec      !--  
 GetDec      @--  
-SetNoRef    !o   
+AtSetDec    @!--  
+AtGetDec    @@--  
+
+SetNoRef    !o              exists (->o)
+
 ---------------------------
-None
+Unknown
+    suffix hasn't been checked yet
+
+None        <no suffix>
     valid for all types
     for operators, executes the op
     for other types returns value
+
 Address     &    
     valid for all types
+    exists (ref, & prefix)
+
 Clear       ~    
     valid for all types?
+    exists for objects (oclear)
     sets numeric types to 0 or 0.0
     for objects, decrements refcount on referenced object and clears
+
 Get         @    
     valid for all types
+    exists (default, fetch)
     for all types returns value (only really needed for operators)
+
 DecGet      --@  
     valid for pointer types and integer types (byte short int long)
     for pointer types, move pointer to previous element and return its value
     for integer types, decrement number and return it
+
 IncGet      ++@  
     valid for pointer types and integer types (byte short int long)
     for pointer types, move pointer to next element and return its value
     for integer types, increment number and return it
+
+AtGet       @@
+    valid for pointer types
+    return element pointed to
+
 Set         !    
     valid for all types
+    exists  (->)
     sets value to that on stack
     for objects also increments refcount of stored object, decrements refcount of old object
+
 DecSet      --!  
     valid for pointer types
     move pointer to previous element, then store TOS there
+
 IncSet      ++!  
     valid for pointer types
     move pointer to next element, then store TOS there
-Add         +  
+
+AtSet       @!
+    valid for pointer types
+    store TOS to element pointed to
+
+Plus        +  
     valid for numeric types
     fetch element value and add to TOS
+    
 Inc         ++   
     valid for pointer types and integer types (byte short int long)
     for pointer types, move pointer to next element
     for integer types, increment number
-AddTo       !+   
+    
+SetPlus     !+
     valid for pointer types and numeric types
+    exists (->+)
     for pointer types, move pointer ahead by TOS elements
     for numeric types, add value on TOS to element
+
+AtSetPlus   @!+
+    valid for pointer types
+    add value on TOS to pointed to element
+
 SetInc      !++  
     valid for pointer types
     store TOS to pointed element, then move pointer to next element
+    
 GetInc      @++  
     valid for pointer types
     fetch pointed element, then move pointer to next element
-Sub         -    
+    
+Minus       -    
     valid for numeric types
     fetch element value and subtract from TOS
+
 Dec         --   
     valid for pointer types and integer types (byte short int long)
     for pointer types, move pointer to previous element
     for integer types, decrement number
-SubFrom     !-   
+
+SetMinus    !-   
     valid for pointer types and numeric types
-    for pointer types, move pointer backwards by TOS elements
+    exists (->-) for numeric types
+    for pointer types, move pointer backwards by TOS elements (new)
     for numeric types, subtract value on TOS from element
+
+AtSetMinus   @!-
+    valid for pointer types
+    subtract value on TOS from pointed to element
+
 SetDec      !--  
     valid for pointer types
-    store TOS to pointed elemet, then move pointer to previous element
+    store TOS to pointed element, then move pointer to previous element
+    
 GetDec      @--  
     valid for pointer types
     fetch pointed element, then move pointer to previous element
+    
 SetNoRef    !o   
     valid for object types
+    exists (->o)
     store object on TOS to element, leave all refcounts unchanged
     
 ---------------------------
+None        <no suffix>    
+Get         @               exists (default, fetch)
+Address     &               exists (ref, & prefix)
+Set         !               exists  (->)
+
+SetPlus     !+              exists (->+)
+SetMinus    !-              exists (->-)
+Clear       ~               exists for objects (oclear)
+DecGet      --@  
+
+IncGet      ++@  
+Plus        +
+Inc         ++   
+GetInc      @++  
+
+Minus       -
+Dec         --   
+GetDec      @--  
+
+AtGet       @@
+AtSet       @!
+AtSetPlus   @!+
+AtSetMinus  @!-
+DecSet      --!  
+IncSet      ++!  
+SetInc      !++  
+SetDec      !--  
+
+SetNoRef    !o              exists (->o)
+---------------------------
+    existing varops for locals and members:
+None        <no suffix>    
+Get         @               exists (default, fetch)
+Address     &               exists (ref, & prefix)
+Set         !               exists  (->)
+SetPlus     !+              exists (->+)
+SetMinus    !-              exists (->-)
+    SetNoRef    !o              exists (->o)  (same as ->-)
+Clear       ~               exists for objects (oclear)
+    new varops for locals and members:
+DecGet      --@  
+IncGet      ++@  
+Plus        +
+Inc         ++   
+GetInc      @++  
+Minus       -
+Dec         --   
+GetDec      @--  
+
+    new varops for pointer locals and members:
+AtGet       @@
+AtSet       @!
+AtSetPlus   @!+
+AtSetMinus  @!-
+AtSetDec    @!--  
+AtGetDec    @@--  
+AtSetInc    @!++  
+AtGetInc    @@++  
+AtDecSet    --@!
+AtDecGet    --@@
+AtIncSet    ++@!
+AtIncGet    ++@@
+
