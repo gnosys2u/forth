@@ -2200,13 +2200,13 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
 #else
                         if (baseType == BaseType::kDouble)
                         {
-                            *((int64_t *)pHere) = DPOP;
+                            *((double*)pHere) = DPOP;
                         }
                         else
                         {
                             stackInt64 sval;
                             LPOP(sval);
-                            *((int64_t *)pHere) = sval.s64;
+                            *((int64_t*)pHere) = sval.s64;
                         }
 #endif
                     }

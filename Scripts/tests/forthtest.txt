@@ -4,10 +4,12 @@ requires testbase
 
 : forthtest ;
 
+decimal
+
 // empty stack markers - should still be here after all tests done
 0xDEADBEEF 123456789
 
-decimal
+0 -> numFailedTests
 
 //: showsection " ================== " dup %s swap %s %s %nl ;
 
@@ -215,14 +217,6 @@ test[ checkResult( "123456\n" ) ]
 decimal
 
 //loaddone
-
-: 2=
-  rot = if
-    =
-  else
-    2drop false
-  endif
-;
 
 // < <= = <> > >= u< u> 0< 0<= 0= 0<> 0> 0>=
 test[ 1 5 < -1 -5 < not 7 7 < not ] test[ 22 11 <= not -134 77 <= 99 99 <= ] test[ 11 18 = not -11214 -11214 = ]
@@ -488,7 +482,7 @@ test[ sscanf("1 b 10 " "%d %c %x " ref a ref b ref c 3) 3 =  c 16 =  b 98 =  a 1
 // test fscanf
 ptrTo int tfile
 test[ fopen("__test.txt" "w" ) -> tfile   tfile 0<>]
-test[ fputs("1 b 10 " tfile ) dup %x %nl 0>=]
+test[ fputs("1 b 10 " tfile ) 0=]
 test[ fclose(tfile) 0=]
 test[ fopen("__test.txt" "r" ) -> tfile   tfile 0<>]
 test[ fscanf(tfile "%d %c %x " ref a ref b ref c 3) 3 =  c 16 =  b 98 =  a 1 =]
@@ -500,12 +494,8 @@ test[ remove("__test.txt") 0=]
 
 //%nl %nl "Hit ENTER to exit" %s
 //stdin fgetc
-: finalCheck
-  if( testFailed not )
-    "forthtest - all tests succeeded\n" %s
-  endif
-;
-finalCheck
+
+"forthtest" %s showPassFail
 
 loaddone
 

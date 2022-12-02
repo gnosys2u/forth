@@ -4,11 +4,13 @@ requires testbase
 
 : vartest ;
 
+decimal
+
 // empty stack markers - should still be here after all tests done
 0xDEADBEEF 123456789
 
-decimal
-//true -> beNoisy
+true beNoisy!
+0 numFailedTests!
 
 testBuff.set( "aba" )
 test[ checkResult( "aba" ) ]
@@ -19,7 +21,7 @@ test[ checkResult( "aba" ) ]
 55L long gvl!   12L ulong gvul!   7.5f float gvf!   -100.25l double gvd!
 
 test[ -11 gvb = 4 gvub = 0 gvs = 55 gvus = 12 gvi = 0 gvui = ]
-test[ 55L gvl = 12l gvul = 7.5f gvf f= -100.25L gvd d= ]
+test[ 55L gvl l= 12l gvul l= 7.5f gvf f= -100.25l gvd d= ]
 
 : testGlobalVars1
   startTest
@@ -101,15 +103,7 @@ test[ testLocalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 
 test[ 0xDEADBEEF 123456789 2= ]	// check for stack underflow or extra items
 
-
-: finalVarCheck
-  if(numFailedTests)
-    "vartest - " %s numFailedTests %d " failed\n" %s
-  else
-    "vartest - all tests succeeded\n" %s
-  endif
-;
-finalVarCheck
+"vartest" %s showPassFail
 
 loaddone
 

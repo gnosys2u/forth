@@ -1,8 +1,10 @@
 autoforget testbase
 : testbase ;
 
-false -> int testFailed
 false -> int beNoisy
+0 -> int numFailedTests
+
+: testFailed  numFailedTests 0<> ;
 
 String testBuff
 String testBuff2
@@ -72,12 +74,20 @@ Object oldErrorOut
   if( strcmp( testBuff.get expected ) )
     err[ "Expected |" %s expected %s "| got |" %s testBuff.get %s "|" %s %nl ]err
     false
-    true -> testFailed
+    1 ->+ numFailedTests
   else
     if( beNoisy )
       expected %s " passed\n" %s
 	endif
     true
+  endif
+;
+
+: 2=
+  rot = if
+    =
+  else
+    2drop false
   endif
 ;
 
@@ -111,7 +121,7 @@ Object oldErrorOut
       loop
     ]err
     
-    true -> testFailed
+    1 ->+ numFailedTests
   else
     if( beNoisy )
       ops %s " passed\n" %s
@@ -160,5 +170,12 @@ Object oldErrorOut
 
 setupTestBase
 
+: showPassFail
+  if(numFailedTests)
+    " - " %s numFailedTests %d " failed\n" %s
+  else
+    " - all tests succeeded\n" %s
+  endif
+;
 
 loaddone
