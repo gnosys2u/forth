@@ -44,6 +44,7 @@ ForthStructCodeGenerator::ForthStructCodeGenerator( ForthTypesManager* pTypeMana
     , mTypeCode((uint32_t)BASE_TYPE_TO_CODE(BaseType::kVoid))
     , mTOSTypeCode((uint32_t)BASE_TYPE_TO_CODE(BaseType::kVoid))
     , mUsesSuper(false)
+    , mSuffixVarop(VarOperation::kVarDefaultOp)
 {
 	mBufferBytes = 512;
 	mpBuffer = (char *)__MALLOC(mBufferBytes);
@@ -59,8 +60,21 @@ bool ForthStructCodeGenerator::Generate( ForthParseInfo *pInfo, forthop*& pDst, 
 	mpParseInfo = pInfo;
 	mpStructVocab = nullptr;
     mpContainedClassVocab = nullptr;
-	const char* pSource = mpParseInfo->GetToken();
-	int srcBytes = (int)strlen( pSource ) + 1;
+    ForthEngine* pEngine = ForthEngine::GetInstance();
+
+    mSuffixVarop = VarOperation::kVarDefaultOp;
+    if (pEngine->CheckFeature(kFFAllowVaropSuffix))
+    {
+        mSuffixVarop = mpParseInfo->CheckVaropSuffix();
+        if (mSuffixVarop != VarOperation::kVarDefaultOp)
+        {
+            mpParseInfo->ChopVaropSuffix();
+        }
+    }
+
+    const char* pSource = mpParseInfo->GetToken();
+
+    int srcBytes = (int)strlen( pSource ) + 1;
 	if ( srcBytes > mBufferBytes )
 	{
 		mBufferBytes = srcBytes + 64;
@@ -725,11 +739,14 @@ bool ForthStructCodeGenerator::HandleLast()
     //
     // this is final accessor field
     //
-    if (mCompileVarop != 0)
+
+    // keep using mCompileVarop as-is for things which are using explicit varop ops (-> ->+ oclear...)
+    if (mSuffixVarop == VarOperation::kVarDefaultOp && mCompileVarop != 0)
     {
         // compile variable-mode setting op just before final field
         *mpDst++ = mCompileVarop;
     }
+
     SPEW_STRUCTS(" FINAL");
     if (isMethod)
     {
@@ -739,13 +756,16 @@ bool ForthStructCodeGenerator::HandleLast()
     else if ( isPtr )
     {
         SPEW_STRUCTS( (isArray) ? " array of pointers\n" : " pointer\n" );
+        // TODO: handle new ptr varop suffixes
         opType = (isArray) ? kOpFieldCellArray : kOpFieldCell;
+        mOffset |= (((uint32_t)mSuffixVarop) << 20);
     }
     else
     {
         if ( isNative || isObject )
         {
             opType = (uint32_t)((isArray) ? kOpFieldByteArray : kOpFieldByte) + (uint32_t)CODE_TO_BASE_TYPE( mTypeCode );
+            mOffset |= (((uint32_t)mSuffixVarop) << 20);
         }
         else
         {

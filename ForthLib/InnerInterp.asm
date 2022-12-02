@@ -6168,7 +6168,7 @@ entry refVaractionBop
 
 ;========================================
 
-entry setVarActionBop
+entry setVaropBop
 	mov   eax, [rpsp]
 	add   rpsp, 4
 	mov	[rcore + FCore.varMode], eax
@@ -6176,7 +6176,7 @@ entry setVarActionBop
 
 ;========================================
 
-entry getVarActionBop
+entry getVaropBop
 	mov	eax, [rcore + FCore.varMode]
 	sub   rpsp, 4
 	mov   [rpsp], eax

@@ -8459,12 +8459,12 @@ FORTHOP(refVaractionBop)
     SET_VAR_OPERATION( VarOperation::kVarRef );
 }
 
-FORTHOP(setVarActionBop)
+FORTHOP(setVaropBop)
 {
     SET_VAR_OPERATION((VarOperation)(SPOP));
 }
 
-FORTHOP(getVarActionBop)
+FORTHOP(getVaropBop)
 {
     SPUSH((cell)(GET_VAR_OPERATION));
 }
@@ -9285,9 +9285,9 @@ OPREF( bfetchBop );         OPREF( bstoreNextBop );     OPREF( bfetchNextBop );
 OPREF( sbfetchBop );        OPREF( sstoreBop );
 OPREF( sfetchBop );         OPREF( sstoreNextBop );     OPREF( sfetchNextBop );
 
-OPREF( moveBop );           OPREF( fillBop );           OPREF( setVarActionBop );
+OPREF( moveBop );           OPREF( fillBop );           OPREF( setVaropBop );
 OPREF(memcmpBop);
-OPREF( getVarActionBop );   OPREF( byteVarActionBop );  OPREF( ubyteVarActionBop );
+OPREF( getVaropBop );   OPREF( byteVarActionBop );  OPREF( ubyteVarActionBop );
 OPREF( shortVarActionBop ); OPREF( ushortVarActionBop ); OPREF( intVarActionBop );
 #ifdef FORTH64
 OPREF(uintVarActionBop);
@@ -9389,8 +9389,9 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
 	NATIVE_COMPILED_DEF(    intoVaractionBop,        "->",				OP_INTO ),				// 59
     NATIVE_COMPILED_DEF(    addToVaractionBop,       "->+",				OP_INTO_PLUS ),
     NATIVE_COMPILED_DEF(    subtractFromVaractionBop, "->-",			OP_INTO_MINUS ),
-    NATIVE_COMPILED_DEF(oclearVaractionBop,          "oclear",          OP_OCLEAR ),
-	NATIVE_COMPILED_DEF(    doCheckDoBop,            "_?do",			OP_DO_CHECKDO ),
+    NATIVE_COMPILED_DEF(    oclearVaractionBop,      "oclear",          OP_OCLEAR ),
+    NATIVE_COMPILED_DEF(    setVaropBop,             "setVarop",        OP_SETVAROP ),
+    NATIVE_COMPILED_DEF(    doCheckDoBop,            "_?do",			OP_DO_CHECKDO ),
 
 	OP_COMPILED_DEF(		doVocabOp,              "_doVocab",			OP_DO_VOCAB ),
 	OP_COMPILED_DEF(		getClassByIndexOp,      "getClassByIndex",	OP_GET_CLASS_BY_INDEX ),
@@ -9669,8 +9670,7 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(    moveBop,                 "move" ),
     NATIVE_DEF(    memcmpBop,               "memcmp"),
     NATIVE_DEF(    fillBop,                 "fill" ),
-    NATIVE_DEF(    setVarActionBop,         "varAction!" ),
-    NATIVE_DEF(    getVarActionBop,         "varAction@" ),
+    NATIVE_DEF(    getVaropBop,             "getVarop" ),
     NATIVE_DEF(    byteVarActionBop,        "byteVarAction" ),
     NATIVE_DEF(    ubyteVarActionBop,       "ubyteVarAction" ),
     NATIVE_DEF(    shortVarActionBop,       "shortVarAction" ),

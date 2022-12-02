@@ -33,11 +33,22 @@ public:
 	
 	static char		BackslashChar(const char*& pSrc);
 
+    void            ChopVaropSuffix();
+    void            UnchopVaropSuffix();
+    VarOperation    CheckVaropSuffix();
+
+    static const char* GetVaropSuffix(VarOperation varop);
+
 private:
-	int32_t *      mpToken;         // pointer to token buffer, first byte is strlen(token)
-	int         mFlags;          // flags set by ForthShell::ParseToken for ForthEngine::ProcessToken
-	int         mNumLongs;       // number of longwords for fast comparison algorithm
-    int         mNumChars;
-	int         mMaxChars;
+    void UpdateLength(size_t symLen);
+    
+    int32_t*        mpToken;         // pointer to token buffer, first byte is strlen(token)
+	int             mFlags;          // flags set by ForthShell::ParseToken for ForthEngine::ProcessToken
+	int             mNumLongs;       // number of longwords for fast comparison algorithm
+    int             mNumChars;
+	int				mMaxChars;
+    char*           mpSuffix;       // null, unless CheckVaropSuffix found a valid suffix
+    VarOperation	mSuffixVarop;   // initialized to kNumVarops to indicate suffix not checked yet
+    char            mChoppedChar;   // set by ChopVaropSuffix
 };
 

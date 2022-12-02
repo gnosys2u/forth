@@ -43,14 +43,17 @@ a           fetch a to TOS
 a&          fetch address of a to TOS
 a@          fetch a to TOS
 a!          store TOS to a
-a+!         add TOS to a
-a-!         subtract TOS from a
+a!+         add TOS to a
+a!-         subtract TOS from a
 a++         increment a
 a--         decrement a
 a@++        fetch a to TOS, increment a
 a++@        increment a, fetch a to TOS
 a@--        fetch a to TOS, decrement a
 a--@        decrement a, fetch a to TOS
+a+          add a to TOS
+a-          subtract a from TOS
+a~          set a to 0
 
 --------
 real types - double float
@@ -59,8 +62,9 @@ a           fetch a to TOS
 a&          fetch address of a to TOS
 a@          fetch a to TOS
 a!          store TOS to a
-a+!         add TOS to a
-a-!         subtract TOS from a
+a!+         add TOS to a
+a!-         subtract TOS from a
+a~          set a to 0.0
 
 --------
 op type
@@ -75,9 +79,11 @@ string type
 
 a           fetch address of first character of a to TOS
 a&          fetch address of base field of a (max length) to TOS
-a@(i)       fetch character in a at index i to TOS, -1 if out of range
+??a@(i)       fetch character in a at index i to TOS, -1 if out of range
+a@          fetch address of first character of a to TOS
 a!          store null-terminated string on TOS to a
-a+!         append null-terminated string on TOS to a
+a!+         append null-terminated string on TOS to a
+a~          set a to empty string
 
 --------
 array of integer types - byte ubyte short ushort int uint long ulong
@@ -86,14 +92,15 @@ a(i)        fetch a(i) to TOS
 a&(i)       fetch address of a(i) to TOS
 a@(i)       fetch a(i) to TOS
 a!(i)       store TOS to a(i)
-a+!(i)      add TOS to a(i)
-a-!(i)      subtract TOS from a(i)
+a!+(i)      add TOS to a(i)
+a!-(i)      subtract TOS from a(i)
 a++(i)      increment a
 a--(i)      decrement a
 a@++(i)     fetch a(i) to TOS, increment a(i)
 a++@(i)     increment a(i), fetch a(i) to TOS
 a@--(i)     fetch a(i) to TOS, decrement a(i)
 a--@(i)     decrement a(i), fetch a(i) to TOS
+a~(i)       set a(i) to 0
 
 --------
 array of real types - float double
@@ -102,9 +109,9 @@ a(i)        fetch a(i) to TOS
 a&(i)       fetch address of a(i) to TOS
 a@(i)       fetch a(i) to TOS
 a!(i)       store TOS to a(i)
-a+!(i)      add TOS to a(i)
-a-!(i)      subtract TOS from a(i)
-
+a!+(i)      add TOS to a(i)
+a!-(i)      subtract TOS from a(i)
+a~(i)       set a(i) to 0.0
 --------
 pointer to scalar types
 
@@ -349,8 +356,6 @@ DecAtGet      --@@
 IncAtGet      ++@@  
 
 Set         !               exists  (->)
-DecSet      --!  
-IncSet      ++!  
 AtSet       @!
 DecAtSet    --@!  
 IncAtSet    ++@!  
@@ -359,7 +364,6 @@ Plus        +
 SetPlus     !+              exists (->+)
 AtSetPlus   @!+
 Inc         ++   
-SetInc      !++  
 GetInc      @++  
 AtSetInc    @!++  
 AtGetInc    @@++  
@@ -368,7 +372,6 @@ Minus       -
 SetMinus    !-              exists (->-)
 AtSetMinus  @!-
 Dec         --   
-SetDec      !--  
 GetDec      @--  
 AtSetDec    @!--  
 AtGetDec    @@--  
@@ -531,13 +534,13 @@ SetMinus    !-              exists (->-)
     SetNoRef    !o              exists (->o)  (same as ->-)
 Clear       ~               exists for objects (oclear)
     new varops for locals and members:
-DecGet      --@  
-IncGet      ++@  
 Plus        +
 Inc         ++   
-GetInc      @++  
 Minus       -
 Dec         --   
+IncGet      ++@  
+DecGet      --@  
+GetInc      @++  
 GetDec      @--  
 
     new varops for pointer locals and members:
@@ -549,8 +552,22 @@ AtSetDec    @!--
 AtGetDec    @@--  
 AtSetInc    @!++  
 AtGetInc    @@++  
-AtDecSet    --@!
-AtDecGet    --@@
-AtIncSet    ++@!
-AtIncGet    ++@@
+DecAtSet    --@!
+DecAtGet    --@@
+IncAtSet    ++@!
+IncAtGet    ++@@
 
+---------------------------
+
++ local vars
+- local ptrs
++ member vars in method defs
+- member ptrs in method defs
+- global vars
+  compile numOpCombo opcode, op is varAction!, num is varop, followed by global var opcode
+- global ptrs
+  compile ref opcode, global var opcode, field ptr + varop opcode
+- struct accessors
+  - field vars
+  - field ptrs
+new ptr varops won't support arrays, just scalars

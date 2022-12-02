@@ -19,6 +19,8 @@ ForthParseInfo::ForthParseInfo(int32_t *pBuffer, int numLongs)
 	, mFlags(0)
 	, mNumLongs(0)
 	, mNumChars(0)
+    , mpSuffix(nullptr)
+    , mSuffixVarop(VarOperation::kNumVarops)
 {
 	ASSERT(numLongs > 0);
 
@@ -36,50 +38,45 @@ ForthParseInfo::~ForthParseInfo()
 // copy string to mpToken buffer, set length, and pad with nulls to a longword boundary
 // if pSrc is null, just set length and do padding
 void
-ForthParseInfo::SetToken(const char *pSrc)
+ForthParseInfo::SetToken(const char* pSrc)
 {
-	size_t symLen, padChars;
-	char *pDst;
+    size_t symLen, padChars;
+    char* pDst;
 
-	if (pSrc != NULL)
-	{
+    if (pSrc != NULL)
+    {
+        symLen = strlen(pSrc);
+        pDst = ((char*)mpToken) + 1;
 
-		symLen = strlen(pSrc);
-		pDst = (char *)mpToken;
+        if (symLen > mMaxChars)
+        {
+            symLen = mMaxChars;
+        }
+        // make copy of symbol
+        memcpy(pDst, pSrc, symLen);
+        *(pDst + symLen) = '\0';
 
-		if (symLen > mMaxChars)
-		{
-			symLen = mMaxChars;
-		}
-        mNumChars = (int)symLen;
-		// set length byte
+    }
+    else
+    {
+        // token has already been copied to mpToken, just set length byte
+        symLen = strlen(((char*)mpToken) + 1);
+    }
+
+    UpdateLength(symLen);
+}
+
+void ForthParseInfo::UpdateLength(size_t symLen)
+{
+    // set length byte
+    char* pDst = ((char*)mpToken) + symLen + 2;
 #ifdef WIN32
-        *pDst++ = (char)(min(symLen, 255));
+    * ((char*)mpToken) = (char)(min(symLen, 255));
 #else
-        *pDst++ = std::min(symLen, (size_t)255);
+    * ((char*)mpToken) = std::min(symLen, (size_t)255);
 #endif
-
-		// make copy of symbol
-		memcpy(pDst, pSrc, symLen);
-		pDst += symLen;
-		*pDst++ = '\0';
-
-	}
-	else
-	{
-
-		// token has already been copied to mpToken, just set length byte
-		symLen = strlen(((char *)mpToken) + 1);
-        mNumChars = (int)symLen;
-#ifdef WIN32
-		*((char *)mpToken) = (char)(min(symLen, 255));
-#else
-		*((char *)mpToken) = std::min(symLen, (size_t)255);
-#endif
-		pDst = ((char *)mpToken) + symLen + 2;
-	}
-
-	// in diagram, first char is length byte, 'a' are symbol chars, '0' is terminator, '#' is padding
+    mNumChars = (int)symLen;
+    // in diagram, first char is length byte, 'a' are symbol chars, '0' is terminator, '#' is padding
 	//
 	//            symLen     padding nLongs
 	// 1a0#|        1           1       1
@@ -90,8 +87,7 @@ ForthParseInfo::SetToken(const char *pSrc)
 	//
 	mNumLongs = (int)((symLen + 4) >> 2);
 
-
-	padChars = (symLen + 2) & 3;
+    size_t padChars = (symLen + 2) & 3;
 	if (padChars > 1)
 	{
 		padChars = 4 - padChars;
@@ -301,4 +297,303 @@ ForthParseInfo::ParseDoubleQuote(const char *&pSrc, const char *pSrcLimit, bool 
 	SetToken();
 }
 
+VarOperation ForthParseInfo::CheckVaropSuffix()
+{
+    VarOperation varop = VarOperation::kVarDefaultOp;
+
+    mpSuffix = nullptr;
+    char* pToken = ((char*)mpToken) + 1;
+    char* pLastChar = pToken + (mNumChars - 1);
+
+    switch (*pLastChar)
+    {
+    case '&':
+        varop = VarOperation::kVarRef;
+        break;
+
+    case '~':
+        varop = VarOperation::kVarClear;
+        break;
+
+    case '@':
+        switch (pLastChar[-1])
+        {
+
+        case '@':
+            pLastChar--;
+            switch (pLastChar[-1])
+            {
+            case '-':
+                if (pLastChar[-2] == '-')
+                {
+                    pLastChar -= 2;
+                    varop = VarOperation::kPtrDecAtGet;     // p--@@
+                }
+                break;
+
+            case '+':
+                if (pLastChar[-2] == '+')
+                {
+                    pLastChar -= 2;
+                    varop = VarOperation::kPtrIncAtGet;     // p++@@
+                }
+                break;
+
+            default:
+                varop = VarOperation::kPtrAtGet;            // p@@
+                break;
+            }
+            break;
+
+        case '-':
+            if (pLastChar[-1] == '-')
+            {
+                pLastChar -= 2;
+                varop = VarOperation::kVarDecGet;     // v--@
+            }
+            break;
+
+        case '+':
+            if (pLastChar[-1] == '+')
+            {
+                pLastChar -= 2;
+                varop = VarOperation::kVarIncGet;     // v++@
+            }
+            break;
+
+        default:
+            varop = VarOperation::kVarGet;            // v@
+            break;
+        }
+        break;
+
+    case '!':
+        switch (pLastChar[-1])
+        {
+
+        case '@':
+            pLastChar--;
+            switch (pLastChar[-1])
+            {
+            case '-':
+                if (pLastChar[-2] == '-')
+                {
+                    pLastChar -= 2;
+                    varop = VarOperation::kPtrDecAtSet;     // p--@!
+                }
+                break;
+
+            case '+':
+                if (pLastChar[-2] == '+')
+                {
+                    pLastChar -= 2;
+                    varop = VarOperation::kPtrIncAtSet;     // p++@!
+                }
+                break;
+
+            default:
+                varop = VarOperation::kPtrAtSet;            // p@!
+                break;
+            }
+            break;
+
+        default:
+            varop = VarOperation::kVarSet;            // v!
+            break;
+        }
+        break;
+
+    case '-':
+        switch (pLastChar[-1])
+        {
+
+        case '-':
+            pLastChar--;
+            switch (pLastChar[-1])
+            {
+            case '@':
+                pLastChar--;
+                if (pLastChar[-1] == '@')
+                {
+                    pLastChar--;
+                    varop = VarOperation::kPtrAtGetDec;     // p@@--
+                }
+                else
+                {
+                    varop = VarOperation::kVarGetDec;     // v@--
+                }
+                break;
+
+            case '!':
+                if (pLastChar[-2] == '@')
+                {
+                    pLastChar -= 2;
+                    varop = VarOperation::kPtrAtSetDec;     // p@!--
+                }
+                break;
+
+            default:
+                varop = VarOperation::kVarDec;            // v--
+                break;
+            }
+            break;
+
+        case '!':
+            pLastChar--;
+            if (pLastChar[-1] == '@')
+            {
+                pLastChar--;
+                varop = VarOperation::kPtrAtSetMinus;            // p@!-
+            }
+            else
+            {
+                varop = VarOperation::kVarSetMinus;            // v!-
+            }
+            break;
+
+        default:
+            varop = VarOperation::kVarMinus;            // v-
+            break;
+        }
+        break;
+
+    case '+':
+        switch (pLastChar[-1])
+        {
+
+        case '+':
+            pLastChar--;
+            switch (pLastChar[-1])
+            {
+            case '@':
+                pLastChar--;
+                if (pLastChar[-1] == '@')
+                {
+                    pLastChar--;
+                    varop = VarOperation::kPtrAtGetDec;     // p@@++
+                }
+                else
+                {
+                    varop = VarOperation::kVarGetInc;     // v@++
+                }
+                break;
+
+            case '!':
+                if (pLastChar[-2] == '@')
+                {
+                    pLastChar -= 2;
+                    varop = VarOperation::kPtrAtSetInc;     // p@!++
+                }
+                break;
+
+            default:
+                varop = VarOperation::kVarInc;            // v++
+                break;
+            }
+            break;
+
+        case '!':
+            pLastChar--;
+            if (pLastChar[-1] == '@')
+            {
+                pLastChar--;
+                varop = VarOperation::kPtrAtSetPlus;            // p@!+
+            }
+            else
+            {
+                varop = VarOperation::kVarSetPlus;            // v!+
+            }
+            break;
+
+        default:
+            varop = VarOperation::kVarPlus;            // v+
+            break;
+        }
+        break;
+
+
+    case 'o':
+        if (pLastChar[-1] == '!')
+        {
+            pLastChar -= 2;
+            varop = VarOperation::kVarSetMinus;            // v!o - set object, don't inc refcount
+        }
+        break;
+    }
+
+    if (pLastChar == pToken)
+    {
+        varop = VarOperation::kVarDefaultOp;
+    }
+    else
+    {
+        if (varop != VarOperation::kVarDefaultOp)
+        {
+            mpSuffix = pLastChar;
+        }
+    }
+
+    return varop;
+}
+
+void ForthParseInfo::ChopVaropSuffix()
+{
+    if (mpSuffix != nullptr)
+    {
+        int newLen = mpSuffix - (((char *)mpToken) + 1);
+        if (newLen != 0)
+        {
+            mChoppedChar = *mpSuffix;
+            *mpSuffix = 0;
+            UpdateLength(newLen);
+        }
+    }
+}
+
+void ForthParseInfo::UnchopVaropSuffix()
+{
+    if (mpSuffix != nullptr)
+    {
+        *mpSuffix = mChoppedChar;
+        UpdateLength(strlen(((char*)mpToken) + 1));
+    }
+}
+
+
+const char* ForthParseInfo::GetVaropSuffix(VarOperation varop)
+{
+    const static char* varopNames[] =
+    {
+        "",     // kVarDefaultOp,
+        "@",    // kVarGet,
+        "&",    // kVarRef,
+        "!",    // kVarSet,
+        "!+",   // kVarSetPlus,
+        "!-",   // kVarSetMinus,
+        "~",    // kVarClear,
+        "+",    // kVarPlus,
+        "++",   // kVarInc,
+        "-",    // kVarMinus,
+        "--",   // kVarDec,
+        "++@",  // kVarIncGet,
+        "--@",  // kVarDecGet,
+        "@++",  // kVarGetInc,
+        "@--",  // kVarGetDec,
+        "@@",   // kPtrAtGet,
+        "@!",   // kPtrAtSet,
+        "@!+,"  // kPtrAtSetPlus,
+        "@!-",  // kPtrAtSetMinus,
+        "@@++", // kPtrAtGetInc,
+        "@@--", // kPtrAtGetDec,
+        "@!++", // kPtrAtSetInc,
+        "@!--", // kPtrAtSetDec,
+        "++@@", // kPtrIncAtGet,
+        "--@@", // kPtrDecAtGet,
+        "++@!", // kPtrIncAtSet,
+        "--@!"  // kPtrDecAtSet,
+    };
+
+    return (varop >= VarOperation::kVarDefaultOp && varop < VarOperation::kNumVarops)
+        ? varopNames[(int)varop] : "_UNKNOWN_VAROP";
+}
 

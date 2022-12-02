@@ -5,6 +5,12 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+- break outer interpreter out of ForthEngine
+
+- improve handling of ForthParseInfos -they are getting allocated multiple times
+  per token - have outer interpreter keep 2 parseInfo members, one is original token,
+  other is scratch token which can be manipulated during interpretation
+
 - allow methods to do 'returns Array of foo' instead of just 'returns Array'
   ? would 'returns Array:foo' be acceptable?
 
@@ -183,6 +189,90 @@ Double and long memory and stack layouts:
 Double has consistent layout, long is reversed on param stack.
 
 
+
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+November 30 2022
+
+I added varop suffixes over the last week.  These are intended to replace the
+prefix varop operators (-> ->+ ->- ->o oclear).  There are also some new varops
+for things like increment/decrement, add/subtract from TOS and more.  The
+new varops will be implemented in two groups:
+1) varops which act on locals, members and fields
+2) varops which act only on pointer locals/members/fields
+
+The varop suffixes are:
+    a) suffixes which correspond to existing varops:
+Get         @               exists (default, fetch)
+Address     &               exists (ref, & prefix)
+Set         !               exists  (->)
+SetPlus     !+              exists (->+)
+SetMinus    !-              exists (->-)
+SetNoRef    !o              exists (->o)  (same varop value as ->-)
+Clear       ~               exists for objects (oclear)
+    b) suffixes for new varops:
+Plus        +
+Inc         ++   
+Minus       -
+Dec         --   
+IncGet      ++@  
+DecGet      --@  
+GetInc      @++  
+GetDec      @--  
+    c) new varops for pointers only:
+AtGet       @@
+AtSet       @!
+AtSetPlus   @!+
+AtSetMinus  @!-
+AtSetDec    @!--  
+AtGetDec    @@--  
+AtSetInc    @!++  
+AtGetInc    @@++  
+DecAtSet    --@!
+DecAtGet    --@@
+IncAtSet    ++@!
+IncAtGet    ++@@
+
++ I ripped out the '&' prefix, I never used it, and the '&' suffix takes its place.
+
+The first group (a/b) is largely done, at least for the non-assembler version:
+
++ outer interpreter work for group a/b
++ local vars
++ member vars in method defs
++ struct/object fields
+- global vars
+  compile numOpCombo opcode, op is setVarop, num is varop, followed by global var opcode
+  ? I think fields of global structs are already handled
+    compile ref opcode, global var opcode, field ptr + varop opcode
+* amd64 version - done but untested
+- x86 version
+- ARM version
+
+I think the new pointer varops won't support arrays of pointers, just single pointers,
+at least in the first implementation.
+
+For both global and local variables, vocab entries save the type info, including
+base type and isPointer/isArray, in the second longword of the vocab entry.
+
+- local pointers in colon defs
+- member pointers in method defs
+- global pointers
+- struct/object field pointers
+
+This will require a large amount of new tests, which will be my next task, followed
+by debugging the existing work with the tests, then followed by x86 and ARM
+versions of the group a/b varops.
+
+The group a/b varops can also be used on pointers, like setting the value
+of pointer var pv is done with pv!.
+
+Note: currently changing pointers with non-pointer specific varops like !+ or ++
+will not take into account the size of the pointed to element, so doing ++ on a
+long pointer will just advance the pointer by one byte.  
+I will change this when I do the pointer specific varops.
+
+? does unchopping the suffix work, or will padding overwrite the chopped part
+- need to deal with things like vocabulary:globalVar!+
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 October 16 2022

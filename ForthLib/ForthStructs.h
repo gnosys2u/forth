@@ -113,7 +113,7 @@ public:
     virtual bool    ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus );
 
     // compile symbol if it is a class member variable or method
-    virtual bool    ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus );
+    virtual bool    ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus, VarOperation varop = VarOperation::kVarDefaultOp );
 
     void            AddBuiltinClasses( ForthEngine* pEngine );
     void            ShutdownBuiltinClasses(ForthEngine* pEngine);
