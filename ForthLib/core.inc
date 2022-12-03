@@ -38,6 +38,29 @@ kVarSet			    EQU		3
 kVarSetPlus		    EQU		4
 kVarSetMinus	    EQU		5
 kVarClear		    EQU		6
+kVarPlus            EQU     7
+kVarInc             EQU     8
+kVarMinus           EQU     9
+kVarDec             EQU     10
+kVarIncGet          EQU     11
+kVarDecGet          EQU     12
+kVarGetInc          EQU     13
+kVarGetDec          EQU     14
+
+; TODO: maybe have kPtr varops start at 0, not 16, since they will be encoded in ops that way
+kPtrAtGet           EQU     16
+kPtrAtSet           EQU     17
+kPtrAtSetPlus       EQU     18
+kPtrAtSetMinus      EQU     19
+kPtrAtGetInc        EQU     20
+kPtrAtGetDec        EQU     21
+kPtrAtSetInc        EQU     22
+kPtrAtSetDec        EQU     23
+kPtrIncAtGet        EQU     24
+kPtrDecAtGet        EQU     25
+kPtrIncAtSet        EQU     26
+kPtrDecAtSet        EQU     27
+
 
 kResultOk				EQU		0
 kResultDone				EQU		1

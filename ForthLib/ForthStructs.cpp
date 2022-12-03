@@ -2170,6 +2170,8 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
             // define global variable
             pEngine->AddUserOp( pToken );
             pEntry = pEngine->GetDefinitionVocabulary()->GetNewestEntry();
+            pEntry[1] = typeCode;
+
             if ( numElements )
             {
                 // define global array
@@ -2188,7 +2190,12 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                 pEngine->CompileBuiltinOpcode(OP_DO_BYTE + (uint32_t)CODE_TO_BASE_TYPE((int)baseType));
                 pHere = (char *) (pEngine->GetDP());
                 pEngine->AllotLongs( (nBytes  + 3) >> 2 );
-                if (doInitializationVarop || GET_VAR_OPERATION == VarOperation::kVarSet )
+                if (doInitializationVarop)
+                {
+                    SET_VAR_OPERATION(VarOperation::kVarSet);
+                }
+
+                if (GET_VAR_OPERATION == VarOperation::kVarSet )
                 {
                     // var definition was preceeded by "->", or name ended in '!', so initialize var
 #if 1
@@ -2239,7 +2246,6 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                     memcpy( pHere, pInitialVal, nBytes );
                 }
             }
-            pEntry[1] = typeCode;
         }
     }
     else
@@ -2291,6 +2297,8 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
         {
             pEngine->AddUserOp( pToken );
             pEntry = pEngine->GetDefinitionVocabulary()->GetNewestEntry();
+            pEntry[1] = typeCode;
+
             if ( numElements )
             {
                 // define global string array
@@ -2317,16 +2325,15 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                 *pStr = 0;
                 if (doInitializationVarop)
                 {
-                    pEngine->GetCoreState()->varMode = VarOperation::kVarSet;
-                    pEngine->ExecuteOp(pCore, pEntry[0]);
+                    SET_VAR_OPERATION(VarOperation::kVarSet);
                 }
-                else if (GET_VAR_OPERATION == VarOperation::kVarSet)
+
+                if (GET_VAR_OPERATION == VarOperation::kVarSet)
                 {
                     // var definition was preceeded by "->", so initialize var
                     pEngine->ExecuteOp(pCore,  pEntry[0] );
                 }
             }
-            pEntry[1] = typeCode;
         }
     }
 }
