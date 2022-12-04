@@ -260,6 +260,7 @@ public:
     inline void             CompileCell(cell v) { *((cell*)mDictionary.pCurrent) = v; mDictionary.pCurrent += CELL_LONGS; };
 #endif
 	void					CompileOpcode( forthOpType opType, forthop opVal );
+    bool                    CompileLocalVariableOpcode(forthop* pEntry, VarOperation varop);
     void			        PatchOpcode(forthOpType opType, forthop opVal, forthop* pOpcode);
     void                    ClearPeephole();
     void					CompileOpcode(forthop op );
@@ -336,7 +337,8 @@ public:
     void					PushConsoleOut(ForthCoreState* pCore);
     void					PushErrorOut(ForthCoreState* pCore);
     void					PushDefaultConsoleOut( ForthCoreState* pCore );
-	void					ResetConsoleOut( ForthCoreState& core );
+    void					ResetConsoleOut(ForthCoreState& core);
+    void					ResetConsoleOut();
 
     // return milliseconds since engine was created
     uint32_t           GetElapsedTime( void );

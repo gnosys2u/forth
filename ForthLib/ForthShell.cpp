@@ -727,8 +727,12 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
                 result = mpEngine->CheckStacks();
             }
         }
+
         if (result != OpResult::kOk)
         {
+            // in case console out was redirected, point it back to the user-visible console
+            mpEngine->ResetConsoleOut();
+
             bool exitingShell = (result == OpResult::kExitShell) || (result == OpResult::kShutdown);
             if (!exitingShell)
             {

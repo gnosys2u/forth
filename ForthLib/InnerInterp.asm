@@ -54,6 +54,11 @@ SECTION .text
 ; called each time an instruction is executed
 traceDebugFlags EQU	kLogProfiler + kLogStack + kLogInnerInterpreter
 
+; opcode types which include a varop specifier have it in bits 20-23
+VAROP_HIMASK    EQU     00F00000h
+VAROP_LOMASK    EQU     000FFFFFh
+VAROP_SHIFT     EQU     20
+
 ;-----------------------------------------------
 ;
 ; unaryDoubleFunc is used for dsin, dsqrt, dceil, ...
@@ -822,14 +827,14 @@ entry memberRefType
 entry localByteType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz localByteType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 localByteType1:
 	; get ptr to byte var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -842,10 +847,13 @@ localByteFetch:
 	sub	rpsp, 4
 	movsx	ebx, BYTE[eax]
 	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localByte1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarGetDec
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localByteActionTable + ebx*4]
@@ -858,18 +866,27 @@ localByteActionTable:
 	DD	localByteStore
 	DD	localBytePlusStore
 	DD	localByteMinusStore
+    DD  localByteClear
+    DD  localBytePlus
+    DD  localByteInc
+    DD  localByteMinus
+    DD  localByteDec
+    DD  localByteIncGet
+    DD  localByteDecGet
+    DD  localByteGetInc
+    DD  localByteGetDec
 
 entry localUByteType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz localUByteType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 localUByteType1:
 	; get ptr to byte var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -881,12 +898,13 @@ ubyteEntry:
 localUByteFetch:
 	sub	rpsp, 4
 	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
 	mov	bl, [eax]
 	mov	[rpsp], ebx
 	jmp	rnext
 
 localUByte1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarGetDec
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localUByteActionTable + ebx*4]
@@ -899,11 +917,20 @@ localUByteActionTable:
 	DD	localByteStore
 	DD	localBytePlusStore
 	DD	localByteMinusStore
+    DD  localByteClear
+    DD  localUBytePlus
+    DD  localByteInc
+    DD  localUByteMinus
+    DD  localByteDec
+    DD  localUByteIncGet
+    DD  localUByteDecGet
+    DD  localUByteGetInc
+    DD  localUByteGetDec
 
 localRef:
 	sub	rpsp, 4
 	mov	[rpsp], eax
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -912,92 +939,220 @@ localByteStore:
 	mov	ebx, [rpsp]
 	mov	[eax], bl
 	add	rpsp, 4
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localBytePlusStore:
 	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
 	mov	bl, [eax]
 	add	ebx, [rpsp]
 	mov	[eax], bl
 	add	rpsp, 4
-	; set var operation back to fetch
-	xor	eax, eax
-	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localByteMinusStore:
 	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
 	mov	bl, [eax]
 	sub	ebx, [rpsp]
 	mov	[eax], bl
 	add	rpsp, 4
-	; set var operation back to fetch
+	jmp	rnext
+
+localByteClear:
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+	mov	[eax], bl
+	jmp	rnext
+
+localBytePlus:
+	movsx	ebx, BYTE[eax]
+	add	ebx, [rpsp]
+	mov	[rpsp], ebx
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localByteInc:
+    inc BYTE[eax]
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localByteMinus:
+	movsx	ebx, BYTE[eax]
+    mov eax, [rpsp]
+	sub	eax, ebx
+	mov	[rpsp], eax
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localByteDec:
+    dec BYTE[eax]
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localByteIncGet:
+    inc BYTE[eax]
+	sub	rpsp, 4
+	movsx	ebx, BYTE[eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localByteDecGet:
+    dec BYTE[eax]
+	sub	rpsp, 4
+	movsx	ebx, BYTE[eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localByteGetInc:
+	sub	rpsp, 4
+	movsx	ebx, BYTE[eax]
+    inc BYTE[eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localByteGetDec:
+	sub	rpsp, 4
+	movsx	ebx, BYTE[eax]
+    dec BYTE[eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localUBytePlus:
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bl, BYTE[eax]
+	add	ebx, [rpsp]
+	mov	[rpsp], ebx
+	jmp	rnext
+
+localUByteMinus:
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bl, BYTE[eax]
+    mov eax, [rpsp]
+	sub	eax, ebx
+	mov	[rpsp], eax
+	jmp	rnext
+
+localUByteIncGet:
+    inc BYTE[eax]
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bl, BYTE[eax]
+	sub	rpsp, 4
+	mov	[rpsp], ebx
+	jmp	rnext
+
+localUByteDecGet:
+    dec BYTE[eax]
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bl, BYTE[eax]
+	sub	rpsp, 4
+	mov	[rpsp], ebx
+	jmp	rnext
+
+localUByteGetInc:
+	sub	rpsp, 4
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bl, BYTE[eax]
+    inc BYTE[eax]
+	mov	[rpsp], ebx
+	jmp	rnext
+
+localUByteGetDec:
+	sub	rpsp, 4
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bl, BYTE[eax]
+    dec BYTE[eax]
+	mov	[rpsp], ebx
 	jmp	rnext
 
 entry fieldByteType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz fieldByteType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 fieldByteType1:
 	; get ptr to byte var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	byteEntry
 
 entry fieldUByteType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz fieldUByteType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 fieldUByteType1:
 	; get ptr to byte var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	ubyteEntry
 
 entry memberByteType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz memberByteType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 memberByteType1:
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	byteEntry
 
 entry memberUByteType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz memberUByteType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 memberUByteType1:
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	ubyteEntry
 
@@ -1072,14 +1227,14 @@ entry memberUByteArrayType
 entry localShortType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz localShortType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 localShortType1:
 	; get ptr to short var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -1092,10 +1247,13 @@ localShortFetch:
 	sub	rpsp, 4
 	movsx	ebx, WORD[eax]
 	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localShort1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarGetDec
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localShortActionTable + ebx*4]
@@ -1108,18 +1266,27 @@ localShortActionTable:
 	DD	localShortStore
 	DD	localShortPlusStore
 	DD	localShortMinusStore
+    DD  localShortClear
+    DD  localShortPlus
+    DD  localShortInc
+    DD  localShortMinus
+    DD  localShortDec
+    DD  localShortIncGet
+    DD  localShortDecGet
+    DD  localShortGetInc
+    DD  localShortGetDec
 
 entry localUShortType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz localUShortType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 localUShortType1:
 	; get ptr to short var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -1132,12 +1299,13 @@ localUShortFetch:
 	sub	rpsp, 4
 	movsx	ebx, WORD[eax]
 	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
 	mov	bx, [eax]
 	mov	[rpsp], ebx
 	jmp	rnext
 
 localUShort1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarGetDec
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localShortActionTable + ebx*4]
@@ -1150,12 +1318,21 @@ localUShortActionTable:
 	DD	localShortStore
 	DD	localShortPlusStore
 	DD	localShortMinusStore
+    DD  localShortClear
+    DD  localUShortPlus
+    DD  localShortInc
+    DD  localUShortMinus
+    DD  localShortDec
+    DD  localUShortIncGet
+    DD  localUShortDecGet
+    DD  localUShortGetInc
+    DD  localUShortGetDec
 
 localShortStore:
 	mov	ebx, [rpsp]
 	mov	[eax], bx
 	add	rpsp, 4
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -1165,7 +1342,7 @@ localShortPlusStore:
 	add	ebx, [rpsp]
 	mov	[eax], bx
 	add	rpsp, 4
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -1175,70 +1352,202 @@ localShortMinusStore:
 	sub	ebx, [rpsp]
 	mov	[eax], bx
 	add	rpsp, 4
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localShortClear:
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+	mov	[eax], bx
+	jmp	rnext
+
+localShortPlus:
+	movsx	ebx, WORD[eax]
+	add	ebx, [rpsp]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localShortInc:
+    inc WORD[eax]
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localShortMinus:
+	movsx	ebx, WORD[eax]
+    mov eax, [rpsp]
+	sub	eax, ebx
+	mov	[rpsp], eax
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localShortDec:
+    dec WORD[eax]
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localShortIncGet:
+    inc WORD[eax]
+	sub	rpsp, 4
+	movsx	ebx, WORD[eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localShortDecGet:
+    dec WORD[eax]
+	sub	rpsp, 4
+	movsx	ebx, WORD[eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localShortGetInc:
+	sub	rpsp, 4
+	movsx	ebx, WORD[eax]
+    inc WORD[eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localShortGetDec:
+	sub	rpsp, 4
+	movsx	ebx, WORD[eax]
+    dec WORD[eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localUShortPlus:
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bx, WORD[eax]
+	add	ebx, [rpsp]
+	mov	[rpsp], ebx
+	jmp	rnext
+
+localUShortMinus:
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bx, WORD[eax]
+    mov eax, [rpsp]
+	sub	eax, ebx
+	mov	[rpsp], eax
+	jmp	rnext
+
+localUShortIncGet:
+    inc WORD[eax]
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bx, WORD[eax]
+	sub	rpsp, 4
+	mov	[rpsp], ebx
+	jmp	rnext
+
+localUShortDecGet:
+    dec WORD[eax]
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bx, WORD[eax]
+	sub	rpsp, 4
+	mov	[rpsp], ebx
+	jmp	rnext
+
+localUShortGetInc:
+	sub	rpsp, 4
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bx, WORD[eax]
+    inc WORD[eax]
+	mov	[rpsp], ebx
+	jmp	rnext
+
+localUShortGetDec:
+	sub	rpsp, 4
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov bx, WORD[eax]
+    dec WORD[eax]
+	mov	[rpsp], ebx
 	jmp	rnext
 
 entry fieldShortType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz fieldShortType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 fieldShortType1:
 	; get ptr to short var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	shortEntry
 
 entry fieldUShortType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz fieldUShortType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 fieldUShortType1:
 	; get ptr to unsigned short var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	ushortEntry
 
 entry memberShortType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz memberShortType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 memberShortType1:
 	; get ptr to short var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	shortEntry
 
 entry memberUShortType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz memberUShortType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 memberUShortType1:
 	; get ptr to unsigned short var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	ushortEntry
 
@@ -1322,14 +1631,14 @@ entry memberUShortArrayType
 entry localIntType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz localIntType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 localIntType1:
 	; get ptr to int var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -1342,10 +1651,13 @@ localIntFetch:
 	sub	rpsp, 4
 	mov	ebx, [eax]
 	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localInt1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarGetDec
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localIntActionTable + ebx*4]
@@ -1358,12 +1670,21 @@ localIntActionTable:
 	DD	localIntStore
 	DD	localIntPlusStore
 	DD	localIntMinusStore
+    DD  localIntClear
+    DD  localIntPlus
+    DD  localIntInc
+    DD  localIntMinus
+    DD  localIntDec
+    DD  localIntIncGet
+    DD  localIntDecGet
+    DD  localIntGetInc
+    DD  localIntGetDec
 
 localIntStore:
 	mov	ebx, [rpsp]
 	mov	[eax], ebx
 	add	rpsp, 4
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -1373,7 +1694,7 @@ localIntPlusStore:
 	add	ebx, [rpsp]
 	mov	[eax], ebx
 	add	rpsp, 4
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -1383,7 +1704,86 @@ localIntMinusStore:
 	sub	ebx, [rpsp]
 	mov	[eax], ebx
 	add	rpsp, 4
-	; set var operation back to fetch
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localIntClear:
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+	mov	[eax], ebx
+	jmp	rnext
+
+localIntPlus:
+	mov	ebx, [eax]
+	add	ebx, [rpsp]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localIntInc:
+    inc DWORD[eax]
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localIntMinus:
+	mov	ebx, [eax]
+    mov eax, [rpsp]
+	sub	eax, ebx
+	mov	[rpsp], eax
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localIntDec:
+    dec DWORD[eax]
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localIntIncGet:
+    inc DWORD[eax]
+	sub	rpsp, 4
+	mov	ebx, [eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localIntDecGet:
+    dec DWORD[eax]
+	sub	rpsp, 4
+	mov	ebx, [eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localIntGetInc:
+	sub	rpsp, 4
+	mov	ebx, [eax]
+    inc DWORD[eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localIntGetDec:
+	sub	rpsp, 4
+	mov	ebx, [eax]
+    dec DWORD[eax]
+	mov	[rpsp], ebx
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -1393,14 +1793,14 @@ entry fieldIntType
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz fieldIntType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 fieldIntType1:
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	intEntry
 
@@ -1409,13 +1809,13 @@ entry memberIntType
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz memberIntType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 memberIntType1:
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	intEntry
 
@@ -1460,14 +1860,14 @@ entry memberIntArrayType
 entry localFloatType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz localFloatType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 localFloatType1:
 	; get ptr to float var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -1480,12 +1880,15 @@ localFloatFetch:
 	sub	rpsp, 4
 	mov	ebx, [eax]
 	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localFloatRef:
 	sub	rpsp, 4
 	mov	[rpsp], eax
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -1494,14 +1897,14 @@ localFloatStore:
 	mov	ebx, [rpsp]
 	mov	[eax], ebx
 	add	rpsp, 4
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localFloatPlusStore:
 	fld	DWORD[eax]
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	ebx, ebx
 	mov	[rcore + FCore.varMode], ebx
 	fadd	DWORD[rpsp]
@@ -1511,12 +1914,30 @@ localFloatPlusStore:
 
 localFloatMinusStore:
 	fld	DWORD[eax]
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	ebx, ebx
 	mov	[rcore + FCore.varMode], ebx
 	fsub	DWORD[rpsp]
 	add	rpsp, 4
 	fstp	DWORD[eax]
+	jmp	rnext
+
+localFloatPlus:
+	movss xmm0, DWORD[eax]
+    addss xmm0, DWORD[rpsp]
+    movss DWORD[rpsp], xmm0
+	; set var operation back to default
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx
+	jmp	rnext
+
+localFloatMinus:
+	movss xmm0, DWORD[rpsp]
+    subss xmm0, DWORD[eax]
+    movss DWORD[rpsp], xmm0
+	; set var operation back to default
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx
 	jmp	rnext
 
 localFloatActionTable:
@@ -1526,9 +1947,13 @@ localFloatActionTable:
 	DD	localFloatStore
 	DD	localFloatPlusStore
 	DD	localFloatMinusStore
+    DD  localIntClear
+    DD  localFloatPlus
+    DD  badVarOperation      ; this is varop Inc, which doesn't exist for float and double
+    DD  localFloatMinus
 
 localFloat1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarGetDec
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localFloatActionTable + ebx*4]
@@ -1537,31 +1962,31 @@ localFloat1:
 entry fieldFloatType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz fieldFloatType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 fieldFloatType1:
 	; get ptr to float var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	floatEntry
 
 entry memberFloatType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz memberFloatType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 memberFloatType1:
 	; get ptr to float var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	floatEntry
 
@@ -1606,14 +2031,14 @@ entry memberFloatArrayType
 entry localDoubleType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz localDoubleType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 localDoubleType1:
 	; get ptr to double var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -1628,12 +2053,15 @@ localDoubleFetch:
 	mov	[rpsp], ebx
 	mov	ebx, [eax+4]
 	mov	[rpsp+4], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localDoubleRef:
 	sub	rpsp, 4
 	mov	[rpsp], eax
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -1644,14 +2072,14 @@ localDoubleStore:
 	mov	ebx, [rpsp+4]
 	mov	[eax+4], ebx
 	add	rpsp, 8
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localDoublePlusStore:
 	fld	QWORD[eax]
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	ebx, ebx
 	mov	[rcore + FCore.varMode], ebx
 	fadd	QWORD[rpsp]
@@ -1661,12 +2089,30 @@ localDoublePlusStore:
 
 localDoubleMinusStore:
 	fld	QWORD[eax]
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	ebx, ebx
 	mov	[rcore + FCore.varMode], ebx
 	fsub	QWORD[rpsp]
 	add	rpsp, 8
 	fstp	QWORD[eax]
+	jmp	rnext
+
+localDoublePlus:
+	movsd   xmm0, QWORD[eax]
+    addsd   xmm0, QWORD[rpsp]
+    movsd QWORD[rpsp], xmm0
+	; set var operation back to default
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx
+	jmp	rnext
+
+localDoubleMinus:
+	movsd xmm0, QWORD[rpsp]
+    subsd xmm0, [eax]
+    movsd QWORD[rpsp], xmm0
+	; set var operation back to default
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx
 	jmp	rnext
 
 localDoubleActionTable:
@@ -1676,9 +2122,13 @@ localDoubleActionTable:
 	DD	localDoubleStore
 	DD	localDoublePlusStore
 	DD	localDoubleMinusStore
+    DD  localLongClear
+	DD	localDoublePlus
+    DD  badVarOperation     ; this is varop Inc, which doesn't exist for float and double
+	DD	localDoubleMinus
 
 localDouble1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarGetDec
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localDoubleActionTable + ebx*4]
@@ -1687,31 +2137,31 @@ localDouble1:
 entry fieldDoubleType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz fieldDoubleType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 fieldDoubleType1:
 	; get ptr to double var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	doubleEntry
 
 entry memberDoubleType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz memberDoubleType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 memberDoubleType1:
 	; get ptr to double var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	doubleEntry
 
@@ -1755,18 +2205,18 @@ entry memberDoubleArrayType
 ;
 ;  string ops
 ;
-GLOBAL localStringType, stringEntry, localStringFetch, localStringStore, localStringAppend
+GLOBAL localStringType, stringEntry, localStringFetch, localStringStore, localStringAppend, localStringClear
 entry localStringType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz localStringType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 localStringType1:
 	; get ptr to string var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -1779,13 +2229,13 @@ localStringFetch:
 	sub	rpsp, 4
 	add	eax, 8		; skip maxLen & currentLen fields
 	mov	[rpsp], eax
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localString1:
-	cmp	ebx, kVarPlusStore
+	cmp	ebx, kVarSetPlus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localStringActionTable + ebx*4]
@@ -1795,7 +2245,7 @@ localString1:
 localStringRef:
 	sub	rpsp, 4
 	mov	[rpsp], eax
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -1840,7 +2290,7 @@ lsStore1:
 	xor	eax, eax
 	mov	[rnext + rip], al
 		
-	; set var operation back to fetch
+	; set var operation back to default
 	mov	[rcore + FCore.varMode], eax
 	jmp	interpFunc
 
@@ -1875,7 +2325,7 @@ lsAppend1:
 	push	eax		; push numBytes
 	push	ecx		; srcPtr
 	push	rnext		; dstPtr
-	; don't need to worry about stncat stomping registers since we jump to interpFunc
+	; don't need to worry about strncat stomping registers since we jump to interpFunc
 	xcall	strncat
 	add	esp, 12
 
@@ -1884,9 +2334,19 @@ lsAppend1:
 	mov	rip, [rnext - 4]
 	mov	[rnext + rip], al
 		
-	; set var operation back to fetch
+	; set var operation back to default
 	mov	[rcore + FCore.varMode], eax
 	jmp	interpFunc
+
+localStringClear:
+	; eax -> dest string maxLen field
+    add eax, 4              ; skip maxLen field
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
+    mov [eax], ebx          ; set curLen = 0
+    add eax, 4
+    mov [eax], bl           ; and set first byte to terminating nul
+	jmp	rnext
 
 localStringActionTable:
 	DD	localStringFetch
@@ -1894,35 +2354,37 @@ localStringActionTable:
 	DD	localStringRef
 	DD	localStringStore
 	DD	localStringAppend
+	DD	badVarOperation
+	DD	localStringClear
 
 entry fieldStringType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz fieldStringType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 fieldStringType1:
 	; get ptr to byte var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	stringEntry
 
 entry memberStringType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz memberStringType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 memberStringType1:
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	stringEntry
 
@@ -1978,14 +2440,14 @@ entry memberStringArrayType
 entry localOpType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz localOpType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 localOpType1:
 	; get ptr to op var into ebx
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch (execute for ops)
@@ -1995,6 +2457,8 @@ opEntry:
 	jnz	localOp1
 	; execute local op
 localOpExecute:
+    xor ebx, ebx
+	mov	[rcore + FCore.varMode], ebx	; set var operation back to default
 	mov	ebx, [eax]
 	mov	eax, [rcore + FCore.innerExecute]
 	jmp eax
@@ -2003,7 +2467,7 @@ localOpFetch:
 	sub	rpsp, 4
 	mov	ebx, [eax]
 	mov	[rpsp], ebx
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -2015,7 +2479,7 @@ localOpActionTable:
 	DD	localIntStore
 
 localOp1:
-	cmp	ebx, kVarStore
+	cmp	ebx, kVarSet
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localOpActionTable + ebx*4]
@@ -2024,31 +2488,31 @@ localOp1:
 entry fieldOpType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz fieldOpType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 fieldOpType1:
 	; get ptr to op var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	opEntry
 
 entry memberOpType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz memberOpType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 memberOpType1:
 	; get ptr to op var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	opEntry
 
@@ -2093,14 +2557,14 @@ entry memberOpArrayType
 entry localLongType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz localLongType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 localLongType1:
 	; get ptr to long var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -2115,10 +2579,13 @@ localLongFetch:
 	mov	[rpsp+4], ebx
 	mov	ebx, [eax+4]
 	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localLong1:
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarGetDec
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localLongActionTable + ebx*4]
@@ -2127,7 +2594,7 @@ localLong1:
 localLongRef:
 	sub	rpsp, 4
 	mov	[rpsp], eax
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -2138,7 +2605,7 @@ localLongStore:
 	mov	ebx, [rpsp+4]
 	mov	[eax], ebx
 	add	rpsp, 8
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -2150,7 +2617,7 @@ localLongPlusStore:
 	mov	ebx, [eax+4]
 	adc	ebx, [rpsp]
 	mov	[eax+4], ebx
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	ebx, ebx
 	mov	[rcore + FCore.varMode], ebx
 	add	rpsp, 8
@@ -2163,48 +2630,183 @@ localLongMinusStore:
 	mov	ebx, [eax+4]
 	sbb	ebx, [rpsp]
 	mov	[eax+4], ebx
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	ebx, ebx
 	mov	[rcore + FCore.varMode], ebx
 	add	rpsp, 8
 	jmp	rnext
 
+localLongClear:
+	xor	ebx, ebx
+	mov	[eax], ebx
+	mov	[eax+4], ebx
+	; set var operation back to default
+	mov	[rcore + FCore.varMode], ebx
+	jmp	rnext
+
+localLongPlus:
+	mov	ebx, [eax]
+	add	ebx, [rpsp+4]
+	mov	[rpsp+4], ebx
+	mov	ebx, [eax+4]
+	adc	ebx, [rpsp]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localLongInc:
+	; set var operation back to default
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx
+    inc ebx
+    add ebx, [eax]
+    mov [eax], ebx
+    jnc localLongInc1
+    inc DWORD[eax + 4]
+localLongInc1:
+    jmp	rnext
+
+localLongMinus:
+    mov ebx, [rpsp+4]
+    sub ebx, [eax]
+	mov	[rpsp+4], ebx
+    mov ebx, [rpsp]
+    sbb ebx, [eax+4]
+	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
+	jmp	rnext
+
+localLongDec:
+	; set var operation back to default
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx
+    inc ebx
+    sub ebx, [eax]
+    mov [eax], ebx
+    jnc localLongDec1
+    dec DWORD[eax + 4]
+localLongDec1:
+	jmp	rnext
+
+localLongIncGet:
+    sub rpsp, 8
+	; set var operation back to default
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx
+    inc ebx
+    add ebx, [eax]
+    mov [eax], ebx
+    mov [rpsp+4], ebx
+    mov ebx, [eax+4]
+    jnc localLongIncGet1
+    inc ebx
+localLongIncGet1:
+    mov [eax+4], ebx
+    mov [rpsp], ebx
+	jmp	rnext
+
+localLongDecGet:
+    sub rpsp, 8
+	; set var operation back to default
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx
+    inc ebx
+    sub ebx, [eax]
+    mov [eax], ebx
+    mov [rpsp+4], ebx
+    mov ebx, [eax+4]
+    jnc localLongDecGet1
+    dec ebx
+localLongDecGet1:
+    mov [eax+4], ebx
+    mov [rpsp], ebx
+	jmp	rnext
+
+localLongGetInc:
+    sub rpsp, 8
+	; set var operation back to default
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx
+    inc ebx
+    mov ecx, [eax]
+    mov [rpsp+4], ecx
+    add ecx, ebx
+    mov [eax], ecx
+    mov ecx, [eax+4]
+    mov [rpsp], ecx
+    jnc localLongGetInc1
+    inc ecx
+localLongGetInc1:
+    mov [eax+4], ecx
+	jmp	rnext
+
+localLongGetDec:
+    sub rpsp, 8
+	; set var operation back to default
+	xor	ebx, ebx
+	mov	[rcore + FCore.varMode], ebx
+    inc ebx
+    mov ecx, [eax]
+    mov [rpsp+4], ecx
+    sub ecx, ebx
+    mov [eax], ecx
+    mov ecx, [eax+4]
+    mov [rpsp], ecx
+    jnc localLongGetDec1
+    dec ecx
+localLongGetDec1:
+    mov [eax+4], ecx
+	jmp	rnext
+
 localLongActionTable:
 	DD	localLongFetch
 	DD	localLongFetch
-	DD	localLongRef
+	DD	localLongRef            ; why isn't this just localRef?
 	DD	localLongStore
 	DD	localLongPlusStore
 	DD	localLongMinusStore
+    DD  localLongClear
+    DD  localLongPlus
+    DD  localLongInc
+    DD  localLongMinus
+    DD  localLongDec
+    DD  localLongIncGet
+    DD  localLongDecGet
+    DD  localLongGetInc
+    DD  localLongGetDec
 
 entry fieldLongType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz fieldLongType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 fieldLongType1:
 	; get ptr to double var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	longEntry
 
 entry memberLongType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz memberLongType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 memberLongType1:
 	; get ptr to double var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	longEntry
 
@@ -2251,14 +2853,14 @@ entry memberLongArrayType
 entry localObjectType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz localObjectType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 localObjectType1:
 	; get ptr to Object var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -2271,10 +2873,13 @@ localObjectFetch:
 	sub	rpsp, 4
 	mov	ebx, [eax]
 	mov	[rpsp], ebx
+	; set var operation back to default
+	xor	eax, eax
+	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 
 localObject1:
-	cmp	ebx, kVarObjectClear
+	cmp	ebx, kVarClear
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localObjectActionTable + ebx*4]
@@ -2283,7 +2888,7 @@ localObject1:
 localObjectRef:
 	sub	rpsp, 4
 	mov	[rpsp], eax
-	; set var operation back to fetch
+	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
@@ -2309,7 +2914,7 @@ los0:
 	mov	ecx, 1
 	lock xadd dword[eax + Object.refCount], ecx
 %else
-	inc dword[eax + Object.refCount]
+	inc DWORD[eax + Object.refCount]
 %endif
 
 los1:
@@ -2326,7 +2931,7 @@ los1:
 	cmp	ecx, 1
 	jz los3
 %else
-	dec dword[ebx + Object.refCount]
+	dec DWORD[ebx + Object.refCount]
 	jz los3
 %endif
 
@@ -2393,7 +2998,7 @@ localObjectUnref:
 	mov	ecx, eax		; ecx -> object var
 	xor	eax, eax
 	mov	[ecx], eax
-	; set var operation back to fetch
+	; set var operation back to default
 	mov	[rcore + FCore.varMode], eax
 	; get object refcount, see if it is already 0
 
@@ -2432,31 +3037,31 @@ localObjectActionTable:
 entry fieldObjectType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz fieldObjectType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 fieldObjectType1:
 	; get ptr to Object var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	objectEntry
 
 entry memberObjectType
 	mov	eax, ebx
 	; see if a varop is specified
-	and	eax, 00E00000h
+	and	eax, VAROP_HIMASK
 	jz memberObjectType1
-	shr	eax, 21
+	shr	eax, VAROP_SHIFT
 	mov	[rcore + FCore.varMode], eax
 memberObjectType1:
 	; get ptr to Object var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, 001FFFFFh
+	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	objectEntry
 
@@ -5558,7 +6163,7 @@ entry spBop
 	mov	ebx, [rcore + FCore.varMode]
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
-	cmp	ebx, kVarMinusStore
+	cmp	ebx, kVarSetMinus
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [spActionTable + ebx*4]
@@ -6094,35 +6699,35 @@ entry fillBop
 ;========================================
 
 entry fetchVaractionBop
-	mov	eax, kVarFetch
+	mov	eax, kVarGet
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 	
 ;========================================
 
 entry intoVaractionBop
-	mov	eax, kVarStore
+	mov	eax, kVarSet
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 	
 ;========================================
 
 entry addToVaractionBop
-	mov	eax, kVarPlusStore
+	mov	eax, kVarSetPlus
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 	
 ;========================================
 
 entry subtractFromVaractionBop
-	mov	eax, kVarMinusStore
+	mov	eax, kVarSetMinus
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 	
 ;========================================
 
 entry oclearVaractionBop
-	mov	eax, kVarObjectClear
+	mov	eax, kVarClear
 	mov	[rcore + FCore.varMode], eax
 	jmp	rnext
 		
@@ -6168,7 +6773,7 @@ entry refVaractionBop
 
 ;========================================
 
-entry setVarActionBop
+entry setVaropBop
 	mov   eax, [rpsp]
 	add   rpsp, 4
 	mov	[rcore + FCore.varMode], eax
@@ -6176,7 +6781,7 @@ entry setVarActionBop
 
 ;========================================
 
-entry getVarActionBop
+entry getVaropBop
 	mov	eax, [rcore + FCore.varMode]
 	sub   rpsp, 4
 	mov   [rpsp], eax

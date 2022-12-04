@@ -43,14 +43,17 @@ a           fetch a to TOS
 a&          fetch address of a to TOS
 a@          fetch a to TOS
 a!          store TOS to a
-a+!         add TOS to a
-a-!         subtract TOS from a
+a!+         add TOS to a
+a!-         subtract TOS from a
 a++         increment a
 a--         decrement a
 a@++        fetch a to TOS, increment a
 a++@        increment a, fetch a to TOS
 a@--        fetch a to TOS, decrement a
 a--@        decrement a, fetch a to TOS
+a+          add a to TOS
+a-          subtract a from TOS
+a~          set a to 0
 
 --------
 real types - double float
@@ -59,8 +62,9 @@ a           fetch a to TOS
 a&          fetch address of a to TOS
 a@          fetch a to TOS
 a!          store TOS to a
-a+!         add TOS to a
-a-!         subtract TOS from a
+a!+         add TOS to a
+a!-         subtract TOS from a
+a~          set a to 0.0
 
 --------
 op type
@@ -75,9 +79,11 @@ string type
 
 a           fetch address of first character of a to TOS
 a&          fetch address of base field of a (max length) to TOS
-a@(i)       fetch character in a at index i to TOS, -1 if out of range
+??a@(i)       fetch character in a at index i to TOS, -1 if out of range
+a@          fetch address of first character of a to TOS
 a!          store null-terminated string on TOS to a
-a+!         append null-terminated string on TOS to a
+a!+         append null-terminated string on TOS to a
+a~          set a to empty string
 
 --------
 array of integer types - byte ubyte short ushort int uint long ulong
@@ -86,14 +92,15 @@ a(i)        fetch a(i) to TOS
 a&(i)       fetch address of a(i) to TOS
 a@(i)       fetch a(i) to TOS
 a!(i)       store TOS to a(i)
-a+!(i)      add TOS to a(i)
-a-!(i)      subtract TOS from a(i)
+a!+(i)      add TOS to a(i)
+a!-(i)      subtract TOS from a(i)
 a++(i)      increment a
 a--(i)      decrement a
 a@++(i)     fetch a(i) to TOS, increment a(i)
 a++@(i)     increment a(i), fetch a(i) to TOS
 a@--(i)     fetch a(i) to TOS, decrement a(i)
 a--@(i)     decrement a(i), fetch a(i) to TOS
+a~(i)       set a(i) to 0
 
 --------
 array of real types - float double
@@ -102,9 +109,9 @@ a(i)        fetch a(i) to TOS
 a&(i)       fetch address of a(i) to TOS
 a@(i)       fetch a(i) to TOS
 a!(i)       store TOS to a(i)
-a+!(i)      add TOS to a(i)
-a-!(i)      subtract TOS from a(i)
-
+a!+(i)      add TOS to a(i)
+a!-(i)      subtract TOS from a(i)
+a~(i)       set a(i) to 0.0
 --------
 pointer to scalar types
 
@@ -338,93 +345,229 @@ o
 ---------------------------
 Unknown     suffix hasn't been checked yet
 None        <no suffix>    
-Address     &    
-Clear       ~    
-Get         @    
+Address     &               exists (ref, & prefix)
+Clear       ~               exists for objects (oclear)
+
+Get         @               exists (default, fetch)
 DecGet      --@  
 IncGet      ++@  
-Set         !    
-DecSet      --!  
-IncSet      ++!  
-Add         +    
+AtGet       @@
+DecAtGet      --@@  
+IncAtGet      ++@@  
+
+Set         !               exists  (->)
+AtSet       @!
+DecAtSet    --@!  
+IncAtSet    ++@!  
+
+Plus        +
+SetPlus     !+              exists (->+)
+AtSetPlus   @!+
 Inc         ++   
-AddSet      !+   
-SetInc      !++  
 GetInc      @++  
-Sub         -    
+AtSetInc    @!++  
+AtGetInc    @@++  
+
+Minus       -
+SetMinus    !-              exists (->-)
+AtSetMinus  @!-
 Dec         --   
-SubSet      !-   
-SetDec      !--  
 GetDec      @--  
-SetNoRef    !o   
+AtSetDec    @!--  
+AtGetDec    @@--  
+
+SetNoRef    !o              exists (->o)
+
 ---------------------------
-None
+Unknown
+    suffix hasn't been checked yet
+
+None        <no suffix>
     valid for all types
     for operators, executes the op
     for other types returns value
+
 Address     &    
     valid for all types
+    exists (ref, & prefix)
+
 Clear       ~    
     valid for all types?
+    exists for objects (oclear)
     sets numeric types to 0 or 0.0
     for objects, decrements refcount on referenced object and clears
+
 Get         @    
     valid for all types
+    exists (default, fetch)
     for all types returns value (only really needed for operators)
+
 DecGet      --@  
     valid for pointer types and integer types (byte short int long)
     for pointer types, move pointer to previous element and return its value
     for integer types, decrement number and return it
+
 IncGet      ++@  
     valid for pointer types and integer types (byte short int long)
     for pointer types, move pointer to next element and return its value
     for integer types, increment number and return it
+
+AtGet       @@
+    valid for pointer types
+    return element pointed to
+
 Set         !    
     valid for all types
+    exists  (->)
     sets value to that on stack
     for objects also increments refcount of stored object, decrements refcount of old object
+
 DecSet      --!  
     valid for pointer types
     move pointer to previous element, then store TOS there
+
 IncSet      ++!  
     valid for pointer types
     move pointer to next element, then store TOS there
-Add         +  
+
+AtSet       @!
+    valid for pointer types
+    store TOS to element pointed to
+
+Plus        +  
     valid for numeric types
     fetch element value and add to TOS
+    
 Inc         ++   
     valid for pointer types and integer types (byte short int long)
     for pointer types, move pointer to next element
     for integer types, increment number
-AddTo       !+   
+    
+SetPlus     !+
     valid for pointer types and numeric types
+    exists (->+)
     for pointer types, move pointer ahead by TOS elements
     for numeric types, add value on TOS to element
+
+AtSetPlus   @!+
+    valid for pointer types
+    add value on TOS to pointed to element
+
 SetInc      !++  
     valid for pointer types
     store TOS to pointed element, then move pointer to next element
+    
 GetInc      @++  
     valid for pointer types
     fetch pointed element, then move pointer to next element
-Sub         -    
+    
+Minus       -    
     valid for numeric types
     fetch element value and subtract from TOS
+
 Dec         --   
     valid for pointer types and integer types (byte short int long)
     for pointer types, move pointer to previous element
     for integer types, decrement number
-SubFrom     !-   
+
+SetMinus    !-   
     valid for pointer types and numeric types
-    for pointer types, move pointer backwards by TOS elements
+    exists (->-) for numeric types
+    for pointer types, move pointer backwards by TOS elements (new)
     for numeric types, subtract value on TOS from element
+
+AtSetMinus   @!-
+    valid for pointer types
+    subtract value on TOS from pointed to element
+
 SetDec      !--  
     valid for pointer types
-    store TOS to pointed elemet, then move pointer to previous element
+    store TOS to pointed element, then move pointer to previous element
+    
 GetDec      @--  
     valid for pointer types
     fetch pointed element, then move pointer to previous element
+    
 SetNoRef    !o   
     valid for object types
+    exists (->o)
     store object on TOS to element, leave all refcounts unchanged
     
 ---------------------------
+None        <no suffix>    
+Get         @               exists (default, fetch)
+Address     &               exists (ref, & prefix)
+Set         !               exists  (->)
+
+SetPlus     !+              exists (->+)
+SetMinus    !-              exists (->-)
+Clear       ~               exists for objects (oclear)
+DecGet      --@  
+
+IncGet      ++@  
+Plus        +
+Inc         ++   
+GetInc      @++  
+
+Minus       -
+Dec         --   
+GetDec      @--  
+
+AtGet       @@
+AtSet       @!
+AtSetPlus   @!+
+AtSetMinus  @!-
+DecSet      --!  
+IncSet      ++!  
+SetInc      !++  
+SetDec      !--  
+
+SetNoRef    !o              exists (->o)
+---------------------------
+    existing varops for locals and members:
+None        <no suffix>    
+Get         @               exists (default, fetch)
+Address     &               exists (ref, & prefix)
+Set         !               exists  (->)
+SetPlus     !+              exists (->+)
+SetMinus    !-              exists (->-)
+    SetNoRef    !o              exists (->o)  (same as ->-)
+Clear       ~               exists for objects (oclear)
+    new varops for locals and members:
+Plus        +
+Inc         ++   
+Minus       -
+Dec         --   
+IncGet      ++@  
+DecGet      --@  
+GetInc      @++  
+GetDec      @--  
+
+    new varops for pointer locals and members:
+AtGet       @@
+AtSet       @!
+AtSetPlus   @!+
+AtSetMinus  @!-
+AtSetDec    @!--  
+AtGetDec    @@--  
+AtSetInc    @!++  
+AtGetInc    @@++  
+DecAtSet    --@!
+DecAtGet    --@@
+IncAtSet    ++@!
+IncAtGet    ++@@
+
+---------------------------
+
++ local vars
+- local ptrs
++ member vars in method defs
+- member ptrs in method defs
+- global vars
+  compile numOpCombo opcode, op is varAction!, num is varop, followed by global var opcode
+- global ptrs
+  compile ref opcode, global var opcode, field ptr + varop opcode
+- struct accessors
+  - field vars
+  - field ptrs
+new ptr varops won't support arrays, just scalars

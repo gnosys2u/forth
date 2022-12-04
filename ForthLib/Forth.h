@@ -220,13 +220,44 @@ typedef void (*traceOutRoutine) ( void *pData, const char* pFormat, va_list argL
 //  than their default behaviour (fetch)
 enum class VarOperation:ucell {
     kVarDefaultOp = 0,
-    kVarFetch,
+    kVarGet,
     kVarRef,
-    kVarStore,
-    kVarPlusStore,
-    kVarMinusStore,
-    kVarObjectClear,
-    kNumVarops
+    kVarSet,
+
+    kVarSetPlus,
+    kVarSetMinus,
+    kVarClear,
+    kVarPlus,
+
+    kVarInc,
+    kVarMinus,
+    kVarDec,
+    kVarIncGet,
+    
+    kVarDecGet,
+    kVarGetInc,
+    kVarGetDec,
+    kVarUnused1,
+
+    kPtrAtGet,
+    kPtrAtSet,
+    kPtrAtSetPlus,
+    kPtrAtSetMinus,
+
+    kPtrAtGetInc,
+    kPtrAtGetDec,
+    kPtrAtSetInc,
+    kPtrAtSetDec,
+
+    kPtrIncAtGet,
+    kPtrDecAtGet,
+    kPtrIncAtSet,
+    kPtrDecAtSet,
+
+    kNumVarops,
+
+    kNumBasicVarops = kVarGetDec + 1,
+    kUnchecked = kNumVarops
 };
 
 #define DEFAULT_INPUT_BUFFER_LEN   (16 * 1024)
@@ -334,6 +365,7 @@ typedef enum {
     kFFCFloatLiterals           = 0x100,
     kFFParenIsExpression        = 0x200,
     kFFAllowContinuations       = 0x400,
+    kFFAllowVaropSuffix         = 0x800
 } ForthFeatureFlags;
 
 
@@ -487,8 +519,9 @@ enum {
 	OP_INTO_PLUS,
 	OP_INTO_MINUS,
 	OP_OCLEAR,
-	OP_DO_CHECKDO,
+    OP_SETVAROP,
 
+    OP_DO_CHECKDO,
 	OP_DO_VOCAB,
 	// below this line are ops defined in C
 	OP_GET_CLASS_BY_INDEX,
@@ -497,15 +530,16 @@ enum {
 	OP_DO_STRUCT_TYPE,
 	OP_DO_CLASS_TYPE,
 	OP_DO_ENUM,
-	OP_DO_NEW,
 
-	OP_ALLOC_OBJECT, 		// 0x40
+    OP_DO_NEW,              // 0x40
+	OP_ALLOC_OBJECT,
 	OP_SUPER,
 	OP_END_BUILDS,
     OP_COMPILE,
 	OP_INIT_STRUCT_ARRAY,
 	OP_DUP,
 	OP_OVER,
+
     OP_DO_TRY,
     OP_DO_FINALLY,
     OP_DO_ENDTRY,

@@ -84,13 +84,35 @@ trace_flags     =   112
 exception_ptr	=	116
 scratch			=	120
 
-kVarDefaultOp			=		0
-kVarFetch				=		1
-kVarRef					=		2
-kVarStore				=		3
-kVarPlusStore			=		4
-kVarMinusStore			=		5
-kVarObjectClear			=		6
+kVarDefaultOp			=	0
+kVarGet				    =	1
+kVarRef					=	2
+kVarSet				    =	3
+kVarSetPlus			    =	4
+kVarSetMinus			=	5
+kVarClear			    =	6
+kVarPlus                =   7
+kVarInc                 =   8
+kVarMinus               =   9
+kVarDec                 =   10
+kVarIncGet              =   11
+kVarDecGet              =   12
+kVarGetInc              =   13
+kVarGetDec              =   14
+
+@ TODO: maybe have kPtr varops start at 0, not 16, since they will be encoded in ops that way
+kPtrAtGet               =   16
+kPtrAtSet               =   17
+kPtrAtSetPlus           =   18
+kPtrAtSetMinus          =   19
+kPtrAtGetInc            =   20
+kPtrAtGetDec            =   21
+kPtrAtSetInc            =   22
+kPtrAtSetDec            =   23
+kPtrIncAtGet            =   24
+kPtrDecAtGet            =   25
+kPtrIncAtSet            =   26
+kPtrDecAtSet            =   27
 
 kResultOk				=		0
 kResultDone				=		1
@@ -137,6 +159,11 @@ kPrintAllUnsigned		=		2
 
 kOpRelativeDefType          =       0x06000000
 
+@ opcode types which include a varop specifier have it in bits 20-23
+VAROP_HIMASK            =       0x00F00000
+VAROP_LOMASK            =       0x000FFFFF
+VAROP_SHIFT             =       20
+
 @ ForthMemorySection
 FMSCurrent				=	0	@ current pointer into section
 FMSBase					=	4	@ base of memory section
@@ -173,7 +200,7 @@ filePutString	=		48
 	.global rotBop, tuckBop, pickBop, spBop, s0Bop, fpBop, ddupBop, dswapBop, ddropBop, doverBop, drotBop
 	.global istoreBop, bstoreBop, ubfetchBop, bfetchBop, c2iBop, sstoreBop, sfetchBop, swfetchBop, w2iBop, dstoreBop
 	.global lstoreBop, lfetchBop, lstoreNextBop, lfetchNextBop, odropBop, plusStoreCellBop, plusStoreAtomicCellBop
-	.global	moveBop, memcmpBop, fillBop, setVarActionBop, getVarActionBop, strcpyBop, strncpyBop, strlenBop, strcatBop, strncatBop
+	.global	moveBop, memcmpBop, fillBop, setVaropBop, getVaropBop, strcpyBop, strncpyBop, strlenBop, strcatBop, strncatBop
 	.global	strchrBop, strrchrBop, strcmpBop, strncmpBop, stricmpBop, strstrBop, strtokBop, initStringBop, strFixupBop
 	.global doUByteBop, doUByteArrayBop, doUShortBop, doUShortArrayBop
 	.global dsinBop, dasinBop, dcosBop, dacosBop, dtanBop, datanBop, datan2Bop, dexpBop, dlnBop, dlog10Bop, dpowBop
@@ -537,10 +564,10 @@ cCodeTypeExit:
 @ local byte ops
 @
 localByteType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	localByteType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 localByteType1:
 	lsl	r1, #2
@@ -571,10 +598,10 @@ localByteFetch:
 
 @------------ unsigned byte support ----------------
 localUByteType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	localUByteType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 localUByteType1:
 	lsl	r1, #2
@@ -582,10 +609,10 @@ localUByteType1:
 	@ see if it is a fetch
 
 ubyteEntry:
-	ldr	r1, [rcore, #varmode]			@ r1 = varMode
+	ldr	r1, [rcore, #varmode]		@ r1 = varMode
 	eor	r2, r2						@ r2 = 0
 	cmp	r1, r2
-	bne	.localByte1
+	bne	.localUByte1
 
 @ fetch local unsigned byte
 localUByteFetch:
@@ -621,12 +648,138 @@ localByteMinusStore:
 	strb	r2, [r0]
 	bx	lr
 
+@ clear byte @ r0
+localByteClear:
+	strb	r2, [r0]				@ clear byte
+	bx	lr
+
+@ add byte @ r0 to TOS
+localBytePlus:
+	ldrsb	r2, [r0]
+    ldr     r0, [rsp]
+	add	r0, r2
+	str	r0, [rsp]
+	bx	lr
+	
+@ add unsigned byte @ r0 to TOS
+localUBytePlus:
+	ldrb	r2, [r0]
+    ldr     r0, [rsp]
+	add	r0, r2
+	str	r0, [rsp]
+	bx	lr
+	
+@ increment byte @ r0
+localByteInc:
+	ldrb	r2, [r0]
+    add r2, #1
+    strb    r2, [r0]
+	bx	lr
+	
+@ subtract byte @ r0 from TOS
+localByteMinus:
+	ldrsb	r2, [r0]
+    ldr     r0, [rsp]
+	sub	r0, r2
+	str	r0, [rsp]
+	bx	lr
+	
+@ subtract unsigned byte @ r0 from TOS
+localUByteMinus:
+	ldrb    r2, [r0]
+    ldr     r0, [rsp]
+	sub	r0, r2
+	str	r0, [rsp]
+	bx	lr
+	
+@ decrement byte @ r0
+localByteDec:
+	ldrb	r2, [r0]
+    sub r2, #1
+    strb    r2, [r0]
+	bx	lr
+	
+@ increment byte @ r0 and push on TOS
+localByteIncGet:
+	ldrb	r2, [r0]
+    add     r2, #1
+    strb    r2, [r0]
+	stmdb	rsp!, {r2}				@ push byte on TOS
+	bx	lr
+	
+@ increment unsigned byte @ r0 and push on TOS
+localUByteIncGet:
+	ldrsb   r2, [r0]
+    add     r2, #1
+    strb    r2, [r0]
+	stmdb	rsp!, {r2}				@ push byte on TOS
+	bx	    lr
+	
+@ decrement byte @ r0 and push on TOS
+localByteDecGet:
+	ldrb	r2, [r0]
+    sub     r2, #1
+    strb    r2, [r0]
+	stmdb	rsp!, {r2}				@ push byte on TOS
+	bx	    lr
+	
+@ decrement unsigned byte @ r0 and push on TOS
+localUByteDecGet:
+	ldrsb   r2, [r0]
+    sub     r2, #1
+    strb    r2, [r0]
+	stmdb	rsp!, {r2}				@ push byte on TOS
+	bx	    lr
+	
+@ push byte @ r0 on TOS then increment
+localByteGetInc:
+	ldrb	r2, [r0]
+	stmdb	rsp!, {r2}				@ push byte on TOS
+    add r2, #1
+    strb    r2, [r0]
+	bx	lr
+	
+@ push unsigned byte @ r0 on TOS then increment
+localUByteGetInc:
+	ldrsb	r2, [r0]
+	stmdb	rsp!, {r2}				@ push byte on TOS
+    add r2, #1
+    strb    r2, [r0]
+	bx	lr
+	
+@ push byte @ r0 on TOS then decrement
+localByteGetDec:
+	ldrb	r2, [r0]
+	stmdb	rsp!, {r2}				@ push byte on TOS
+    sub r2, #1
+    strb    r2, [r0]
+	bx	lr
+	
+@ push unsigned byte @ r0 on TOS then decrement
+localUByteGetDec:
+	ldrsb	r2, [r0]
+	stmdb	rsp!, {r2}				@ push byte on TOS
+    sub r2, #1
+    strb    r2, [r0]
+	bx	lr
+	
 .localByte1:
 	@ r0 points to the byte field
 	@ r1 is varMode
 	@ r2 is 0
-	str	r2, [rcore, #varmode]		@ set varMode back to fetch
-	cmp	r1, #kVarMinusStore
+	str	r2, [rcore, #varmode]		@ set varMode back to default
+	cmp	r1, #kVarGetDec
+	bgt	badVarOperation
+	ldr	r3, .localByte3
+	ldr	r1, [r3, r1, lsl #2]
+	bx	r1
+	
+.localUByte1:
+	@ r0 points to the byte field
+	@ r1 is varMode
+	@ r2 is 0
+	str	r2, [rcore, #varmode]		@ set varMode back to default
+	cmp	r1, #kVarGetDec
 	bgt	badVarOperation
 	ldr	r3, .localByte3
 	ldr	r1, [r3, r1, lsl #2]
@@ -643,12 +796,41 @@ localByteActionTable:
 	.word	localByteStore
 	.word	localBytePlusStore
 	.word	localByteMinusStore
+	.word	localByteClear
+	.word	localBytePlus
+	.word	localByteInc
+	.word	localByteMinus
+	.word	localByteDec
+	.word	localByteIncGet
+	.word	localByteDecGet
+	.word	localByteGetInc
+	.word	localByteGetDec
+
+.localUByte3:
+	.word	localUByteActionTable
+	
+localUByteActionTable:
+	.word	localUByteFetch
+	.word	localUByteFetch
+	.word	localByteRef
+	.word	localByteStore
+	.word	localBytePlusStore
+	.word	localByteMinusStore
+	.word	localByteClear
+	.word	localUBytePlus
+	.word	localByteInc
+	.word	localUByteMinus
+	.word	localByteDec
+	.word	localUByteIncGet
+	.word	localUByteDecGet
+	.word	localUByteGetInc
+	.word	localUByteGetDec
 
 fieldByteType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	fieldByteType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 fieldByteType1:
 	@ get ptr to byte var into r0
@@ -659,10 +841,10 @@ fieldByteType1:
 	b	byteEntry	
 
 memberByteType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	memberByteType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 memberByteType1:
 	@ get ptr to byte var into r0
@@ -701,10 +883,10 @@ memberByteArrayType:
 
 @----------------- unsigned byte ---------------------------------------
 fieldUByteType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	fieldUByteType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 fieldUByteType1:
 	@ get ptr to byte var into r0
@@ -715,10 +897,10 @@ fieldUByteType1:
 	b	ubyteEntry	
 
 memberUByteType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	memberUByteType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 memberUByteType1:
 	@ get ptr to byte var into r0
@@ -767,10 +949,10 @@ memberUByteArrayType:
 @ local short ops
 @
 localShortType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	localShortType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 localShortType1:
 	lsl	r1, #2
@@ -782,7 +964,7 @@ localShortType1:
 @	r0 -> short
 @
 shortEntry:
-	ldr	r1, [rcore, #varmode]			@ r1 = varMode
+	ldr	r1, [rcore, #varmode]		@ r1 = varMode
 	eor	r2, r2						@ r2 = 0
 	cmp	r1, r2
 	bne	.localShort1
@@ -801,10 +983,10 @@ localShortFetch:
 
 @------------ unsigned short support ----------------
 localUShortType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	localUShortType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 localUShortType1:
 	lsl	r1, #2
@@ -813,7 +995,7 @@ ushortEntry:
 	ldr	r1, [rcore, #varmode]			@ r1 = varMode
 	eor	r2, r2						@ r2 = 0
 	cmp	r1, r2
-	bne	.localShort1
+	bne	.localUShort1
 @ fetch local unsigned short
 localUShortFetch:
 	ldrh	r2, [r0]
@@ -844,14 +1026,140 @@ localShortMinusStore:
 	strh	r2, [r0]
 	bx	lr
 
+@ clear short @ r0
+localShortClear:
+	strh	r2, [r0]				@ clear short
+	bx	lr
+
+@ add short @ r0 to TOS
+localShortPlus:
+	ldrsh	r2, [r0]
+    ldr     r0, [rsp]
+	add	r0, r2
+	str	r0, [rsp]
+	bx	lr
+	
+@ add unsigned short @ r0 to TOS
+localUShortPlus:
+	ldrh	r2, [r0]
+    ldr     r0, [rsp]
+	add	r0, r2
+	str	r0, [rsp]
+	bx	lr
+	
+@ increment short @ r0
+localShortInc:
+	ldrh	r2, [r0]
+    add r2, #1
+    strh    r2, [r0]
+	bx	lr
+	
+@ subtract short @ r0 from TOS
+localShortMinus:
+	ldrsh	r2, [r0]
+    ldr     r0, [rsp]
+	sub	r0, r2
+	str	r0, [rsp]
+	bx	lr
+	
+@ subtract unsigned short @ r0 from TOS
+localUShortMinus:
+	ldrh    r2, [r0]
+    ldr     r0, [rsp]
+	sub	r0, r2
+	str	r0, [rsp]
+	bx	lr
+	
+@ decrement short @ r0
+localShortDec:
+	ldrh	r2, [r0]
+    sub r2, #1
+    strh    r2, [r0]
+	bx	lr
+	
+@ increment short @ r0 and push on TOS
+localShortIncGet:
+	ldrsh	r2, [r0]
+    add     r2, #1
+    strh    r2, [r0]
+	stmdb	rsp!, {r2}				@ push short on TOS
+	bx	lr
+	
+@ increment unsigned short @ r0 and push on TOS
+localUShortIncGet:
+	ldrh   r2, [r0]
+    add     r2, #1
+    strh    r2, [r0]
+	stmdb	rsp!, {r2}				@ push short on TOS
+	bx	    lr
+	
+@ decrement short @ r0 and push on TOS
+localShortDecGet:
+	ldrsh	r2, [r0]
+    sub     r2, #1
+    strh    r2, [r0]
+	stmdb	rsp!, {r2}				@ push short on TOS
+	bx	    lr
+	
+@ decrement unsigned short @ r0 and push on TOS
+localUShortDecGet:
+	ldrh   r2, [r0]
+    sub     r2, #1
+    strh    r2, [r0]
+	stmdb	rsp!, {r2}				@ push short on TOS
+	bx	    lr
+	
+@ push short @ r0 on TOS then increment
+localShortGetInc:
+	ldrsh	r2, [r0]
+	stmdb	rsp!, {r2}				@ push short on TOS
+    add r2, #1
+    strh    r2, [r0]
+	bx	lr
+	
+@ push unsigned short @ r0 on TOS then increment
+localUShortGetInc:
+	ldrh	r2, [r0]
+	stmdb	rsp!, {r2}				@ push short on TOS
+    add r2, #1
+    strh    r2, [r0]
+	bx	lr
+	
+@ push short @ r0 on TOS then decrement
+localShortGetDec:
+	ldrsh	r2, [r0]
+	stmdb	rsp!, {r2}				@ push short on TOS
+    sub r2, #1
+    strh    r2, [r0]
+	bx	lr
+	
+@ push unsigned short @ r0 on TOS then decrement
+localUShortGetDec:
+	ldrh	r2, [r0]
+	stmdb	rsp!, {r2}				@ push short on TOS
+    sub r2, #1
+    strb    r2, [r0]
+	bx	lr
+	
 .localShort1:
 	@ r0 points to the short field
 	@ r1 is varMode
 	@ r2 is 0
-	str	r2, [rcore, #varmode]		@ set varMode back to fetch
-	cmp	r1, #kVarMinusStore
+	str	r2, [rcore, #varmode]		@ set varMode back to default
+	cmp	r1, #kVarGetDec
 	bgt	badVarOperation
 	ldr	r3, .localShort3
+	ldr	r1, [r3, r1, lsl #2]
+	bx	r1
+
+.localUShort1:
+	@ r0 points to the unsigned short field
+	@ r1 is varMode
+	@ r2 is 0
+	str	r2, [rcore, #varmode]		@ set varMode back to default
+	cmp	r1, #kVarGetDec
+	bgt	badVarOperation
+	ldr	r3, .localUShort3
 	ldr	r1, [r3, r1, lsl #2]
 	bx	r1
 
@@ -866,12 +1174,41 @@ localShortActionTable:
 	.word	localShortStore
 	.word	localShortPlusStore
 	.word	localShortMinusStore
+	.word	localShortClear
+	.word	localShortPlus
+	.word	localShortInc
+	.word	localShortMinus
+	.word	localShortDec
+	.word	localShortIncGet
+	.word	localShortDecGet
+	.word	localShortGetInc
+	.word	localShortGetDec
+
+.localUShort3:
+	.word	localUShortActionTable
+	
+localUShortActionTable:
+	.word	localUShortFetch
+	.word	localUShortFetch
+	.word	localShortRef
+	.word	localShortStore
+	.word	localShortPlusStore
+	.word	localShortMinusStore
+	.word	localShortClear
+	.word	localUShortPlus
+	.word	localShortInc
+	.word	localUShortMinus
+	.word	localShortDec
+	.word	localUShortIncGet
+	.word	localUShortDecGet
+	.word	localUShortGetInc
+	.word	localUShortGetDec
 
 fieldShortType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	fieldShortType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 fieldShortType1:
 	@ get ptr to short var into r0
@@ -882,10 +1219,10 @@ fieldShortType1:
 	b	shortEntry	
 
 memberShortType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	memberShortType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 memberShortType1:
 	@ get ptr to short var into r0
@@ -928,10 +1265,10 @@ memberShortArrayType:
 @----------------- unsigned short ---------------------------------------
 
 fieldUShortType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	fieldUShortType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 fieldUShortType1:
 	@ get ptr to short var into r0
@@ -942,10 +1279,10 @@ fieldUShortType1:
 	b	ushortEntry	
 
 memberUShortType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	memberUShortType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 memberUShortType1:
 	@ get ptr to short var into r0
@@ -997,10 +1334,10 @@ memberUShortArrayType:
 @ local int ops
 @
 localIntType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	localIntType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 localIntType1:
 	lsl	r1, #2
@@ -1052,12 +1389,79 @@ localIntMinusStore:
 	str	r2, [r0]
 	bx	lr
 
+@ clear int @ r0
+localIntClear:
+	str	r2, [r0]				@ clear int
+	bx	lr
+
+@ add int @ r0 to TOS
+localIntPlus:
+	ldr	r2, [r0]
+    ldr     r0, [rsp]
+	add	r0, r2
+	str	r0, [rsp]
+	bx	lr
+	
+@ increment int @ r0
+localIntInc:
+	ldr	r2, [r0]
+    add r2, #1
+    str    r2, [r0]
+	bx	lr
+	
+@ subtract int @ r0 from TOS
+localIntMinus:
+	ldr	r2, [r0]
+    ldr     r0, [rsp]
+	sub	r0, r2
+	str	r0, [rsp]
+	bx	lr
+	
+@ decrement int @ r0
+localIntDec:
+	ldr	r2, [r0]
+    sub r2, #1
+    str    r2, [r0]
+	bx	lr
+	
+@ increment int @ r0 and push on TOS
+localIntIncGet:
+	ldr	r2, [r0]
+    add     r2, #1
+    str    r2, [r0]
+	stmdb	rsp!, {r2}				@ push int on TOS
+	bx	lr
+	
+@ decrement int @ r0 and push on TOS
+localIntDecGet:
+	ldr	r2, [r0]
+    sub     r2, #1
+    str    r2, [r0]
+	stmdb	rsp!, {r2}				@ push int on TOS
+	bx	    lr
+	
+@ push int @ r0 on TOS then increment
+localIntGetInc:
+	ldr	r2, [r0]
+	stmdb	rsp!, {r2}				@ push int on TOS
+    add r2, #1
+    strh    r2, [r0]
+	bx	lr
+	
+@ push int @ r0 on TOS then decrement
+localIntGetDec:
+	ldr	r2, [r0]
+	stmdb	rsp!, {r2}				@ push int on TOS
+    sub r2, #1
+    str    r2, [r0]
+	bx	lr
+	
 .localInt1:
 	@ r0 points to the int field
 	@ r1 is varMode
 	@ r2 is 0
-	str	r2, [rcore, #varmode]		@ set varMode back to fetch
-	cmp	r1, #kVarMinusStore
+	str	r2, [rcore, #varmode]		@ set varMode back to default
+	cmp	r1, #kVarGetDec
 	bgt	badVarOperation
 	ldr	r3, .localInt3
 	ldr	r1, [r3, r1, lsl #2]
@@ -1078,12 +1482,21 @@ localIntActionTable:
 	.word	localIntStore
 	.word	localIntPlusStore
 	.word	localIntMinusStore
+	.word	localIntClear
+	.word	localIntPlus
+	.word	localIntInc
+	.word	localIntMinus
+	.word	localIntDec
+	.word	localIntIncGet
+	.word	localIntDecGet
+	.word	localIntGetInc
+	.word	localIntGetDec
 
 fieldIntType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	fieldIntType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 fieldIntType1:
 	@ get ptr to int var into r0
@@ -1094,10 +1507,10 @@ fieldIntType1:
 	b	intEntry	
 
 memberIntType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	memberIntType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 memberIntType1:
 	@ get ptr to int var into r0
@@ -1148,10 +1561,10 @@ memberIntArrayType:
 @ local float ops
 @
 localFloatType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	localFloatType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 localFloatType1:
 	lsl	r1, #2
@@ -1197,7 +1610,6 @@ localFloatPlusStore:
 	fsts	s15, [r0]
 	bx	lr
 	
-	
 localFloatMinusStore:
 	flds	s14, [rsp]
 	add	rsp, #4
@@ -1206,12 +1618,27 @@ localFloatMinusStore:
 	fsts	s15, [r0]
 	bx	lr
 
+localFloatPlus:
+	flds	s14, [r0]
+	flds	s15, [rsp]
+	fadds	s15, s15, s14
+	fsts	s15, [rsp]
+	bx	lr
+	
+localFloatMinus:
+	flds	s14, [rsp]
+	flds	s15, [r0]
+	fsubs	s14, s14, s15
+	fsts	s14, [rsp]
+	bx	lr
+
+
 .localFloat1:
 	@ r0 points to the float field
 	@ r1 is varMode
 	@ r2 is 0
-	str	r2, [rcore, #varmode]		@ set varMode back to fetch
-	cmp	r1, #kVarMinusStore
+	str	r2, [rcore, #varmode]		@ set varMode back to default
+	cmp	r1, #kVarMinus
 	bgt	badVarOperation
 	ldr	r3, .localFloat3
 	ldr	r1, [r3, r1, lsl #2]
@@ -1228,12 +1655,16 @@ localFloatActionTable:
 	.word	localFloatStore
 	.word	localFloatPlusStore
 	.word	localFloatMinusStore
+	.word	localIntClear
+	.word	localFloatPlus
+	.word	badVarOperation
+	.word	localFloatMinus
 
 fieldFloatType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	fieldFloatType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 fieldFloatType1:
 	@ get ptr to float var into r0
@@ -1244,10 +1675,10 @@ fieldFloatType1:
 	b	floatEntry	
 
 memberFloatType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	memberFloatType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 memberFloatType1:
 	@ get ptr to float var into r0
@@ -1298,10 +1729,10 @@ memberFloatArrayType:
 @ local double ops
 @
 localDoubleType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	localDoubleType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 localDoubleType1:
 	lsl	r1, #2
@@ -1355,12 +1786,27 @@ localDoubleMinusStore:
 	fstd	d7, [r0]
 	bx	lr
 
+localDoublePlus:
+	fldd	d6, [r0]
+	fldd	d7, [rsp]
+	faddd	d7, d7, d6
+	fstd	d7, [rsp]
+	bx	lr
+	
+localDoubleMinus:
+	fldd	d6, [r0]
+	fldd	d7, [rsp]
+	fsubd	d7, d7, d6
+	fstd	d7, [rsp]
+	bx	lr
+
+
 .localDouble1:
 	@ r0 points to the double field
 	@ r1 is varMode
 	@ r2 is 0
-	str	r2, [rcore, #varmode]		@ set varMode back to fetch
-	cmp	r1, #kVarMinusStore
+	str	r2, [rcore, #varmode]		@ set varMode back to default
+	cmp	r1, #kVarMinus
 	bgt	badVarOperation
 	ldr	r3, .localDouble3
 	ldr	r1, [r3, r1, lsl #2]
@@ -1377,12 +1823,16 @@ localDoubleActionTable:
 	.word	localDoubleStore
 	.word	localDoublePlusStore
 	.word	localDoubleMinusStore
+	.word	localLongClear
+	.word	localDoublePlus
+	.word	badVarOperation
+	.word	localDoubleMinus
 
 fieldDoubleType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	fieldDoubleType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 fieldDoubleType1:
 	@ get ptr to double var into r0
@@ -1393,10 +1843,10 @@ fieldDoubleType1:
 	b	doubleEntry	
 
 memberDoubleType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	memberDoubleType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 memberDoubleType1:
 	@ get ptr to double var into r0
@@ -1447,10 +1897,10 @@ memberDoubleArrayType:
 @ local long ops
 @
 localLongType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	localLongType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 localLongType1:
 	lsl	r1, #2
@@ -1486,36 +1936,127 @@ localLongRef:
 	
 localLongStore:
 	ldmia	rsp!, {r1,r2}			@ pop TOS long value into r2,r3
-	mov	r3, r1
+	mov	r3, r1						@ r2 is lo, r3 is hi
 	strd	r2, [r0]				@ store long
 	bx	lr
 	
 localLongPlusStore:
 	ldmia	rsp!, {r2,r3}			@ pop TOS long value into r2,r3
-	push	{rcore, rip}
-	ldm	r0, {rcore, rip}
-	adds rip, r2, rip
-	adc	rcore, r3, rcore
-	stm	r0!, {rcore,rip}
-	pop	{rcore, rip}
+	push	{r4,r5}
+	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
+	adds r4, r3, r4
+	adc	r5, r2, r5
+	stm	r0!, {r4,r5}
+	pop	{r4,r5}
 	bx	lr
 	
 localLongMinusStore:
 	ldmia	rsp!, {r2,r3}			@ pop TOS long value into r2,r3
-	push	{rcore, rip}
-	ldm	r0, {rcore, rip}
-	subs	rip, rip, r2
-	sbc	rcore, rcore, r3
-	stm	r0!, {rcore,rip}
-	pop	{rcore, rip}
+	push	{r4,r5}
+	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
+	subs r4, r4, r3
+	sbc	r5, r5, r2
+	stm	r0!, {r4,r5}
+	pop	{r4,r5}
 	bx	lr
+
+@ clear long @ r0
+localLongClear:
+    mov r3, r2
+	strd	r2, [r0]				@ clear long
+	bx	lr
+
+@ add long @ r0 to TOS
+localLongPlus:
+	ldm	rsp, {r2,r3}			@ load TOS long value into r2,r3
+	push	{r4,r5}
+	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
+	adds r3, r3, r4
+	adc	r2, r2, r5
+	stm	rsp, {r2,r3}
+	pop	{r4,r5}
+	bx	lr
+	
+@ increment long @ r0
+localLongInc:
+	ldrd	r2, [r0]
+    adds r2, #1
+    addeq r3, #1
+    strd    r2, [r0]
+	bx	lr
+	
+@ subtract long @ r0 from TOS
+localLongMinus:
+	ldm	rsp, {r2,r3}			@ load TOS long value into r2,r3
+	push	{r4,r5}
+	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
+	subs r3, r3, r4
+	sbc	r2, r2, r5
+	stm	rsp, {r2,r3}
+	pop	{r4,r5}
+	bx	lr
+	
+@ decrement long @ r0
+localLongDec:
+	ldrd	r2, [r0]
+	eor r1, r1
+	cmp r2, r1
+	subeq r3, #1
+    sub r2, #1
+    strd    r2, [r0]
+	bx	lr
+	
+@ increment long @ r0 and push on TOS
+localLongIncGet:
+	ldrd	r2, [r0]
+    adds r2, #1
+    addeq r3, #1
+    strd    r2, [r0]
+    mov	r1, r3
+	stmdb	rsp!, {r1,r2}				@ push long on TOS
+	bx	lr
+	
+@ decrement long @ r0 and push on TOS
+localLongDecGet:
+	ldrd	r2, [r0]
+	eor r1, r1
+	cmp r2, r1
+	subeq r3, #1
+    sub r2, #1
+    strd    r2, [r0]
+    mov	r1, r3
+	stmdb	rsp!, {r1,r2}				@ push long on TOS
+	bx	    lr
+	
+@ push long @ r0 on TOS then increment
+localLongGetInc:
+	ldrd	r2, [r0]
+    mov	r1, r3
+	stmdb	rsp!, {r1,r2}				@ push long on TOS
+    adds r2, #1
+    addeq r3, #1
+    strd    r2, [r0]
+	bx	lr
+	
+@ push long @ r0 on TOS then decrement
+localLongGetDec:
+	ldrd	r2, [r0]
+    mov	r1, r3
+	stmdb	rsp!, {r1,r2}				@ push long on TOS
+	eor r1, r1
+	cmp r2, r1
+	subeq r3, #1
+    sub r2, #1
+    strd    r2, [r0]
+	bx	lr
+	
 
 .localLong1:
 	@ r0 points to the long field
 	@ r1 is varMode
 	@ r2 is 0
-	str	r2, [rcore, #varmode]		@ set varMode back to fetch
-	cmp	r1, #kVarMinusStore
+	str	r2, [rcore, #varmode]		@ set varMode back to default
+	cmp	r1, #kVarGetDec
 	bgt	badVarOperation
 	ldr	r3, .localLong3
 	ldr	r1, [r3, r1, lsl #2]
@@ -1532,12 +2073,22 @@ localLongActionTable:
 	.word	localLongStore
 	.word	localLongPlusStore
 	.word	localLongMinusStore
+	.word	localLongClear
+	.word	localLongPlus
+	.word	localLongInc
+	.word	localLongMinus
+	.word	localLongDec
+	.word	localLongIncGet
+	.word	localLongDecGet
+	.word	localLongGetInc
+	.word	localLongGetDec
+
 
 fieldLongType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	fieldLongType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 fieldLongType1:
 	@ get ptr to long var into r0
@@ -1548,10 +2099,10 @@ fieldLongType1:
 	b	longEntry	
 
 memberLongType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	memberLongType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 memberLongType1:
 	@ get ptr to long var into r0
@@ -1602,10 +2153,10 @@ memberLongArrayType:
 @ local string ops
 @
 localStringType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	localStringType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 localStringType1:
 	lsl	r1, #2
@@ -1673,13 +2224,20 @@ localStringPlusStore:
 	blt	.lss1
 	pop	{rcore}
 	bx	lr
+
+localStringClear:
+	add	r0, #4						@ skip maxLen field
+    str r2, [r0]                    @ set curlen to 0
+    add r0, #4
+    strb r2, [r0]                   @ set first byte to nul
+	bx	lr
 	
 .localString1:
 	@ r0 points to the string field
 	@ r1 is varMode
 	@ r2 is 0
-	str	r2, [rcore, #varmode]		@ set varMode back to fetch
-	cmp	r1, #kVarPlusStore
+	str	r2, [rcore, #varmode]		@ set varMode back to default
+	cmp	r1, #kVarClear
 	bgt	badVarOperation
 	ldr	r3, .localString3
 	ldr	r1, [r3, r1, lsl #2]
@@ -1695,12 +2253,14 @@ localStringActionTable:
 	.word	localStringRef
 	.word	localStringStore
 	.word	localStringPlusStore
+    .word   badVarOperation
+    .word   localStringClear
 
 fieldStringType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	fieldStringType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 fieldStringType1:
 	@ get ptr to string var into r0
@@ -1711,10 +2271,10 @@ fieldStringType1:
 	b	stringEntry	
 
 memberStringType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	memberStringType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 memberStringType1:
 	@ get ptr to string var into r0
@@ -1765,10 +2325,10 @@ memberStringArrayType:
 @ local op ops
 @
 localOpType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	localOpType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 localOpType1:
 	lsl	r1, #2
@@ -1805,8 +2365,8 @@ localOpFetch:
 	@ r0 points to the op field
 	@ r1 is varMode
 	@ r2 is 0
-	str	r2, [rcore, #varmode]		@ set varMode back to fetch
-	cmp	r1, #kVarStore
+	str	r2, [rcore, #varmode]		@ set varMode back to default
+	cmp	r1, #kVarSet
 	bgt	badVarOperation
 	ldr	r3, .localOp3
 	ldr	r1, [r3, r1, lsl #2]
@@ -1824,10 +2384,10 @@ localOpActionTable:
 	.word	localIntStore
 
 fieldOpType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	fieldOpType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 fieldOpType1:
 	@ get ptr to op var opo r0
@@ -1838,10 +2398,10 @@ fieldOpType1:
 	b	opEntry	
 
 memberOpType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	memberOpType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 memberOpType1:
 	@ get ptr to op var opo r0
@@ -1892,10 +2452,10 @@ memberOpArrayType:
 @ local object ops
 @
 localObjectType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	localObjectType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 localObjectType1:
 	lsl	r1, #2
@@ -2001,8 +2561,8 @@ localObjectStore:
 	@ r0 points to the object field
 	@ r1 is varMode
 	@ r2 is 0
-	str	r2, [rcore, #varmode]		@ set varMode back to fetch
-	cmp	r1, #kVarObjectClear
+	str	r2, [rcore, #varmode]		@ set varMode back to default
+	cmp	r1, #kVarClear
 	bgt	badVarOperation
 	ldr	r3, .localObject3
 	ldr	r1, [r3, r1, lsl #2]
@@ -2108,10 +2668,10 @@ localObjectActionTable:
 
 	
 fieldObjectType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	fieldObjectType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 fieldObjectType1:
 	@ get ptr to object var into r0
@@ -2122,10 +2682,10 @@ fieldObjectType1:
 	b	objectEntry	
 
 memberObjectType:
-	lsrs	r0, r1, #21
+	lsrs	r0, r1, #VAROP_SHIFT
 	beq	memberObjectType1
 	str	r0, [rcore, #varmode]
-	mvn	r2,#0x00E00000
+	mvn	r2, #VAROP_HIMASK
 	and	r1, r2
 memberObjectType1:
 	@ get ptr to object var into r0
@@ -2593,35 +3153,35 @@ refVaractionBop:
 @@@@@@@@@@@@@@@@@  fetch  @@@@@@@@@@@@@@@@@
 
 fetchVaractionBop:
-	mov	r0, #kVarFetch
+	mov	r0, #kVarGet
 	str	r0, [rcore, #varmode]
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  ->  @@@@@@@@@@@@@@@@@
 
 intoVaractionBop:
-	mov	r0, #kVarStore
+	mov	r0, #kVarSet
 	str	r0, [rcore, #varmode]
 	bx	lr
 
 @@@@@@@@@@@@@@@@@ ->+   @@@@@@@@@@@@@@@@@
 
 addToVaractionBop:
-	mov	r0, #kVarPlusStore
+	mov	r0, #kVarSetPlus
 	str	r0, [rcore, #varmode]
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  ->-  @@@@@@@@@@@@@@@@@
 
 subtractFromVaractionBop:
-	mov	r0, #kVarMinusStore
+	mov	r0, #kVarSetMinus
 	str	r0, [rcore, #varmode]
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  oclear  @@@@@@@@@@@@@@@@@
 
 oclearVaractionBop:
-	mov	r0, #kVarObjectClear
+	mov	r0, #kVarClear
 	str	r0, [rcore, #varmode]
 	bx	lr
 	
@@ -5432,16 +5992,16 @@ fillBop:
 	bx	lr
 	
 	
-@@@@@@@@@@@@@@@@@  varAction!  @@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@  setVarop  @@@@@@@@@@@@@@@@@
 
-setVarActionBop:
+setVaropBop:
 	ldmia	rsp!, {r0}
 	str	r0, [rcore, #varmode]
 	bx	lr
 
-@@@@@@@@@@@@@@@@@  varAction@  @@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@  getVarop  @@@@@@@@@@@@@@@@@
 
-getVarActionBop:
+getVaropBop:
 	ldr	r0, [rcore, #varmode]
 	stmdb	rsp!, {r0}
 	bx	lr

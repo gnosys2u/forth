@@ -320,7 +320,8 @@ ForthEngine::ForthEngine()
 , mpTraceOutData( NULL )
 , mpOpcodeCompiler( NULL )
 , mFeatures( kFFCCharacterLiterals | kFFMultiCharacterLiterals | kFFCStringLiterals
-            | kFFCHexLiterals | kFFDoubleSlashComment | kFFCFloatLiterals | kFFParenIsExpression)
+            | kFFCHexLiterals | kFFDoubleSlashComment | kFFCFloatLiterals | kFFParenIsExpression
+            | kFFAllowVaropSuffix)
 , mBlockFileManager( NULL )
 , mIsServer(false)
 , mContinuationIx(0)
@@ -1611,10 +1612,10 @@ ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
             case kOpFieldUShort:        case kOpFieldUShortArray:
             case kOpFieldUInt:          case kOpFieldUIntArray:
             {
-                if ((opVal & 0xE00000) != 0)
+                if ((opVal & 0xF00000) != 0)
                 {
-                    int varOp = opVal >> 21;
-                    SNPRINTF(pBuffer, buffSize, "%s %s_%x", gOpNames[(OP_FETCH - 1) + varOp], opTypeName, (opVal & 0x1FFFFF));
+                    VarOperation varOp = (VarOperation)(opVal >> 20);
+                    SNPRINTF(pBuffer, buffSize, "%s_%x%s", opTypeName, (opVal & 0xFFFFF), ForthParseInfo::GetVaropSuffix(varOp));
                 }
                 else
                 {
@@ -2863,6 +2864,11 @@ void ForthEngine::ResetConsoleOut( ForthCoreState& core )
     OBJECT_ASSIGN(&core, core.consoleOutStream, mDefaultConsoleOutStream);
 }
 
+void ForthEngine::ResetConsoleOut()
+{
+    ResetConsoleOut(*mpCore);
+}
+
 
 void ForthEngine::ConsoleOut( const char* pBuff )
 {
@@ -3437,12 +3443,24 @@ void ForthEngine::RaiseException(ForthCoreState *pCore, cell newExceptionNum)
     }
 }
 
+// return true IFF compilation occured
+bool ForthEngine::CompileLocalVariableOpcode(forthop* pEntry, VarOperation varop)
+{
+    if (varop < VarOperation::kNumBasicVarops)
+    {
+        CompileOpcode(*pEntry | (((int)varop) << 20));
+        return true;
+    }
+
+    // TODO: handle pointer varops
+    return false;
+}
+
 //############################################################################
 //
 //          O U T E R    I N T E R P R E T E R  (sort of)
 //
 //############################################################################
-
 
 // return true to exit forth shell
 OpResult ForthEngine::ProcessToken( ForthParseInfo   *pInfo )
@@ -3552,23 +3570,6 @@ OpResult ForthEngine::ProcessToken( ForthParseInfo   *pInfo )
             SPEW_OUTER_INTERPRETER( "Local variable {%s}\n", pToken );
             CompileOpcode( *pEntry );
             return OpResult::kOk;
-        }
-
-        if ( (pToken[0] == '&') && (pToken[1] != '\0') )
-        {
-            pEntry = mpLocalVocab->FindSymbol( pToken + 1 );
-            if ( pEntry )
-            {
-                ////////////////////////////////////
-                //
-                // symbol is a reference to a local variable
-                //
-                ////////////////////////////////////
-                SPEW_OUTER_INTERPRETER( "Local variable reference {%s}\n", pToken + 1);
-                int32_t varOffset = FORTH_OP_VALUE( *pEntry );
-                CompileOpcode( COMPILED_OP( kOpLocalRef, varOffset ) );
-                return OpResult::kOk;
-            }
         }
     }
 
@@ -3814,9 +3815,84 @@ OpResult ForthEngine::ProcessToken( ForthParseInfo   *pInfo )
         }
         mNextEnum++;
     }
-    else
+    else if (CheckFeature(kFFAllowVaropSuffix))
     {
-		SPEW_ENGINE( "Unknown symbol %s\n", pToken );
+        ////////////////////////////////////
+        //
+        // last chance - is it something with a varop suffix?
+        //
+        ////////////////////////////////////
+        VarOperation varop = pInfo->CheckVaropSuffix();
+        if (varop != VarOperation::kVarDefaultOp)
+        {
+            pInfo->ChopVaropSuffix();
+
+            if (mCompileState)
+            {
+                pEntry = mpLocalVocab->FindSymbol(pToken);
+                if (pEntry)
+                {
+                    ////////////////////////////////////
+                    //
+                    // symbol is a local variable with a varop suffix
+                    //
+                    ////////////////////////////////////
+                    SPEW_OUTER_INTERPRETER("Local variable with varop {%s%s}\n", pToken, ForthParseInfo::GetVaropSuffix(varop));
+                    if (CompileLocalVariableOpcode(pEntry, varop))
+                    {
+                        return OpResult::kOk;
+                    }
+                }
+                else
+                {
+                    if (CheckFlag(kEngineFlagInClassDefinition))
+                    {
+                        if (mpTypesManager->ProcessMemberSymbol(pInfo, exitStatus, varop))
+                        {
+                            ////////////////////////////////////
+                            //
+                            // symbol is a member variable with a varop suffix
+                            //
+                            ////////////////////////////////////
+                            return exitStatus;
+                        }
+                    }
+                }
+            }
+
+            // TODO: handle compile-mode global var with varop suffix
+#ifdef MAP_LOOKUP
+            pEntry = mpVocabStack->FindSymbol(pToken, &pFoundVocab);
+#else
+            pEntry = mpVocabStack->FindSymbol(pInfo, &pFoundVocab);
+#endif
+            if (pEntry != NULL && pEntry[1] <= (uint32_t) BaseType::kObject)
+            {
+                ////////////////////////////////////
+                //
+                // symbol is a global variable with varop suffix
+                //
+                ////////////////////////////////////
+                SPEW_OUTER_INTERPRETER("Global variable with varop {%s%s}\n", pToken, ForthParseInfo::GetVaropSuffix(varop));
+
+                if (mCompileState)
+                {
+                    // compile NumOpCombo, op is setVarop, num is varop
+                    uint32_t opVal = (OP_SETVAROP << 13) | ((uint32_t)varop);
+                    CompileOpcode(kOpNOCombo, opVal);
+                }
+                else
+                {
+                    mpCore->varMode = varop;
+                }
+
+                return pFoundVocab->ProcessEntry(pEntry);
+            }
+
+            pInfo->UnchopVaropSuffix();
+        }
+
+        SPEW_ENGINE( "Unknown symbol %s\n", pToken );
 		mpCore->error = ForthError::kUnknownSymbol;
 		exitStatus = OpResult::kError;
     }

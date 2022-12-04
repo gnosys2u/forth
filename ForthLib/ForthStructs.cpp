@@ -484,7 +484,7 @@ ForthTypesManager::ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus )
 
 // compile symbol if it is a member variable or method
 bool
-ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus )
+ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus, VarOperation varop)
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
     forthop *pDst = &(mCode[0]);
@@ -499,13 +499,7 @@ ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitSta
     }
 
     const char* pToken = pInfo->GetToken();
-    bool isRef = false;
     forthop* pEntry = pVocab->FindSymbol( pToken );
-    if ( (pEntry == NULL) && (pToken[0] == '&') && (pToken[1] != '\0') )
-    {
-        pEntry = pVocab->FindSymbol( pToken + 1);
-        isRef = (pEntry != NULL);
-    }
     if ( pEntry )
     {
         int32_t offset = *pEntry;
@@ -531,38 +525,32 @@ ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitSta
         else
         {
             // this is a member variable of current object
-            if ( isRef )
+            if ( isPtr )
             {
-                opType = kOpMemberRef;
+                SPEW_STRUCTS( (isArray) ? " array of pointers\n" : " pointer\n" );
+                opType = (isArray) ? kOpMemberCellArray : kOpMemberCell;
             }
             else
             {
-                if ( isPtr )
+                if ( baseType == BaseType::kStruct )
                 {
-                    SPEW_STRUCTS( (isArray) ? " array of pointers\n" : " pointer\n" );
-                    opType = (isArray) ? kOpMemberCellArray : kOpMemberCell;
-                }
-                else
-                {
-                    if ( baseType == BaseType::kStruct )
+                    if ( isArray )
                     {
-                        if ( isArray )
-                        {
-                            *pDst++ = COMPILED_OP( kOpMemberRef, offset );
-                            opType = kOpArrayOffset;
-                            offset = pEntry[2];
-                        }
-                        else
-                        {
-                            opType = kOpMemberRef;
-                        }
+                        *pDst++ = COMPILED_OP( kOpMemberRef, offset );
+                        opType = kOpArrayOffset;
+                        offset = pEntry[2];
                     }
                     else
                     {
-                        opType = (uint32_t)((isArray) ? kOpMemberByteArray : kOpMemberByte) + (uint32_t)CODE_TO_BASE_TYPE( typeCode );
+                        opType = kOpMemberRef;
                     }
                 }
+                else
+                {
+                    opType = (uint32_t)((isArray) ? kOpMemberByteArray : kOpMemberByte) + (uint32_t)CODE_TO_BASE_TYPE( typeCode );
+                }
             }
+            offset |= (((int)varop) << 20);
             SPEW_STRUCTS( " opcode 0x%x\n", COMPILED_OP( opType, offset ) );
             *pDst++ = COMPILED_OP( opType, offset );
         }
@@ -798,7 +786,7 @@ ForthStructVocabulary::DefineInstance( void )
             pHere = (char *) (mpEngine->GetDP());
             mpEngine->AllotLongs( (nBytes  + 3) >> 2 );
             memset( pHere, 0, nBytes );
-            if ( isPtr && (GET_VAR_OPERATION == VarOperation::kVarStore) )
+            if ( isPtr && (GET_VAR_OPERATION == VarOperation::kVarSet) )
             {
                 // var definition was preceeded by "->", so initialize var
 				mpEngine->FullyExecuteOp(pCore, pEntry[0]);
@@ -1501,7 +1489,7 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
                 mpEngine->AddGlobalObjectVariable(pHere, this, pInstanceName);
             }
 
-            if ( GET_VAR_OPERATION == VarOperation::kVarStore )
+            if ( GET_VAR_OPERATION == VarOperation::kVarSet )
             {
                 ForthObject srcObj = (ForthObject)SPOP;
                 if ( isPtr )
@@ -2069,6 +2057,16 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
     char *pStr;
     ForthCoreState *pCore = pEngine->GetCoreState();        // so we can SPOP maxbytes
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    int tokenLen = (int)strlen(pToken);
+
+    // if new instance name ends in '!', chop the '!' and initialize the new instance
+    bool doInitializationVarop = false;
+    if (tokenLen > 1 && pToken[tokenLen - 1] == '!' && pEngine->CheckFeature(kFFAllowVaropSuffix))
+    {
+        tokenLen--;
+        pToken[tokenLen] = '\0';
+        doInitializationVarop = true;
+    }
 
     bool isString = (baseType == BaseType::kString);
 
@@ -2151,7 +2149,14 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                 pHere = (char *) (pEngine->GetDP());
                 bool bCompileInstanceOp = pEngine->GetLastCompiledIntoPtr() == (((forthop *)pHere) - 1);
                 pEngine->AddLocalVar(pToken, typeCode, nBytes);
-                if (bCompileInstanceOp)
+                if (doInitializationVarop)
+                {
+                    // local var name ended with '!', so compile op for this local var with varop Set
+                    //  so it will be initialized
+                    forthop* pEntry = pVocab->GetNewestEntry();
+                    pEngine->CompileOpcode(pEntry[0] | ((forthop) VarOperation::kVarSet) << 20);
+                }
+                else if (bCompileInstanceOp)
                 {
                     // local var definition was preceeded by "->", so compile the op for this local var
                     //  so it will be initialized
@@ -2165,6 +2170,8 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
             // define global variable
             pEngine->AddUserOp( pToken );
             pEntry = pEngine->GetDefinitionVocabulary()->GetNewestEntry();
+            pEntry[1] = typeCode;
+
             if ( numElements )
             {
                 // define global array
@@ -2183,9 +2190,14 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                 pEngine->CompileBuiltinOpcode(OP_DO_BYTE + (uint32_t)CODE_TO_BASE_TYPE((int)baseType));
                 pHere = (char *) (pEngine->GetDP());
                 pEngine->AllotLongs( (nBytes  + 3) >> 2 );
-                if ( GET_VAR_OPERATION == VarOperation::kVarStore )
+                if (doInitializationVarop)
                 {
-                    // var definition was preceeded by "->", so initialize var
+                    SET_VAR_OPERATION(VarOperation::kVarSet);
+                }
+
+                if (GET_VAR_OPERATION == VarOperation::kVarSet )
+                {
+                    // var definition was preceeded by "->", or name ended in '!', so initialize var
 #if 1
                     if (nBytes == 8)
                     {
@@ -2195,13 +2207,13 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
 #else
                         if (baseType == BaseType::kDouble)
                         {
-                            *((int64_t *)pHere) = DPOP;
+                            *((double*)pHere) = DPOP;
                         }
                         else
                         {
                             stackInt64 sval;
                             LPOP(sval);
-                            *((int64_t *)pHere) = sval.s64;
+                            *((int64_t*)pHere) = sval.s64;
                         }
 #endif
                     }
@@ -2234,7 +2246,6 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                     memcpy( pHere, pInitialVal, nBytes );
                 }
             }
-            pEntry[1] = typeCode;
         }
     }
     else
@@ -2265,15 +2276,20 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                 varOffset = pEngine->AddLocalVar( pToken, typeCode, storageLen );
                 // compile initLocalString op
                 varOffset = (varOffset << 12) | len;
-                // NOTE: do not use CompileOpcode here - it would screw up the OP_INTO check just below
                 pEngine->CompileOpcode( kOpLocalStringInit, varOffset );
-                forthop* pLastIntoOp = pEngine->GetLastCompiledIntoPtr();
-                if (bCompileInstanceOp)
+                if (doInitializationVarop)
+                {
+                    // local var name ended with '!', so compile op for this local var with varop Set
+                    //  so it will be initialized
+                    forthop* pEntry = pVocab->GetNewestEntry();
+                    pEngine->CompileOpcode(pEntry[0] | ((forthop)VarOperation::kVarSet) << 20);
+                }
+                else if (bCompileInstanceOp)
                 {
                     // local var definition was preceeded by "->", so compile the op for this local var
                     //  so it will be initialized
                     forthop* pEntry = pVocab->GetNewestEntry();
-                    pEngine->CompileOpcode( pEntry[0] );
+                    pEngine->CompileOpcode(pEntry[0]);
                 }
             }
         }
@@ -2281,6 +2297,8 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
         {
             pEngine->AddUserOp( pToken );
             pEntry = pEngine->GetDefinitionVocabulary()->GetNewestEntry();
+            pEntry[1] = typeCode;
+
             if ( numElements )
             {
                 // define global string array
@@ -2305,13 +2323,17 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
                 // a length of 4 means room for 4 chars plus a terminating null
                 pEngine->AllotLongs( ((len  + 4) & ~3) >> 2 );
                 *pStr = 0;
-                if ( GET_VAR_OPERATION == VarOperation::kVarStore )
+                if (doInitializationVarop)
+                {
+                    SET_VAR_OPERATION(VarOperation::kVarSet);
+                }
+
+                if (GET_VAR_OPERATION == VarOperation::kVarSet)
                 {
                     // var definition was preceeded by "->", so initialize var
                     pEngine->ExecuteOp(pCore,  pEntry[0] );
                 }
             }
-            pEntry[1] = typeCode;
         }
     }
 }

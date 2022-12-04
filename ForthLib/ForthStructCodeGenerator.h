@@ -45,6 +45,7 @@ protected:
 	uint32_t mOffset;
 	char mErrorMsg[ 512 ];
     bool mUsesSuper;
+    VarOperation mSuffixVarop;
 };
 
 
