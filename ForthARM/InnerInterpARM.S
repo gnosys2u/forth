@@ -100,7 +100,7 @@ kVarDecGet              =   12
 kVarGetInc              =   13
 kVarGetDec              =   14
 
-; TODO: maybe have kPtr varops start at 0, not 16, since they will be encoded in ops that way
+@ TODO: maybe have kPtr varops start at 0, not 16, since they will be encoded in ops that way
 kPtrAtGet               =   16
 kPtrAtSet               =   17
 kPtrAtSetPlus           =   18
@@ -1936,28 +1936,28 @@ localLongRef:
 	
 localLongStore:
 	ldmia	rsp!, {r1,r2}			@ pop TOS long value into r2,r3
-	mov	r3, r1
+	mov	r3, r1						@ r2 is lo, r3 is hi
 	strd	r2, [r0]				@ store long
 	bx	lr
 	
 localLongPlusStore:
 	ldmia	rsp!, {r2,r3}			@ pop TOS long value into r2,r3
-	push	{rcore, rip}
-	ldm	r0, {rcore, rip}
-	adds rip, r2, rip
-	adc	rcore, r3, rcore
-	stm	r0!, {rcore,rip}
-	pop	{rcore, rip}
+	push	{r4,r5}
+	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
+	adds r4, r3, r4
+	adc	r5, r2, r5
+	stm	r0!, {r4,r5}
+	pop	{r4,r5}
 	bx	lr
 	
 localLongMinusStore:
 	ldmia	rsp!, {r2,r3}			@ pop TOS long value into r2,r3
-	push	{rcore, rip}
-	ldm	r0, {rcore, rip}
-	subs	rip, rip, r2
-	sbc	rcore, rcore, r3
-	stm	r0!, {rcore,rip}
-	pop	{rcore, rip}
+	push	{r4,r5}
+	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
+	subs r4, r4, r3
+	sbc	r5, r5, r2
+	stm	r0!, {r4,r5}
+	pop	{r4,r5}
 	bx	lr
 
 @ clear long @ r0
@@ -1969,99 +1969,85 @@ localLongClear:
 @ add long @ r0 to TOS
 localLongPlus:
 	ldm	rsp, {r2,r3}			@ load TOS long value into r2,r3
-	push	{rcore, rip}
-	ldm	r0, {rcore, rip}
-	adds rip, r2, rip
-	adc	rcore, r3, rcore
-	stm	rsp, {rcore,rip}
-	pop	{rcore, rip}
+	push	{r4,r5}
+	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
+	adds r3, r3, r4
+	adc	r2, r2, r5
+	stm	rsp, {r2,r3}
+	pop	{r4,r5}
 	bx	lr
 	
 @ increment long @ r0
 localLongInc:
-    push    {rip}
 	ldrd	r2, [r0]
     adds r2, #1
-    bne .localLongInc1
-    add r3, #1
-.localLongInc1:
+    addeq r3, #1
     strd    r2, [r0]
-    pop     {rip}
 	bx	lr
 	
 @ subtract long @ r0 from TOS
 localLongMinus:
 	ldm	rsp, {r2,r3}			@ load TOS long value into r2,r3
-	push	{rcore, rip}
-	ldm	r0, {rcore, rip}
-	subs rip, r2, rip
-	sbb	rcore, r3, rcore
-	stm	rsp, {rcore,rip}
-	pop	{rcore, rip}
+	push	{r4,r5}
+	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
+	subs r3, r3, r4
+	sbc	r2, r2, r5
+	stm	rsp, {r2,r3}
+	pop	{r4,r5}
 	bx	lr
 	
 @ decrement long @ r0
 localLongDec:
-    push    {rip}
 	ldrd	r2, [r0]
-    subs r2, #1
-    bne .localLongDec1
-    sub r3, #1
-.localLongDec1:
+	eor r1, r1
+	cmp r2, r1
+	subeq r3, #1
+    sub r2, #1
     strd    r2, [r0]
-    pop     {rip}
 	bx	lr
 	
 @ increment long @ r0 and push on TOS
 localLongIncGet:
-    push    {rip}
 	ldrd	r2, [r0]
     adds r2, #1
-    bne .localLongIncGet1
-    add r3, #1
-.localLongIncGet1:
+    addeq r3, #1
     strd    r2, [r0]
-    pop     {rip}
-	stmdb	rsp!, {r2}				@ push long on TOS
+    mov	r1, r3
+	stmdb	rsp!, {r1,r2}				@ push long on TOS
 	bx	lr
 	
 @ decrement long @ r0 and push on TOS
 localLongDecGet:
-    push    {rip}
 	ldrd	r2, [r0]
-    subs r2, #1
-    bne .localLongDecGet1
-    sub r3, #1
-.localLongDecGet1:
+	eor r1, r1
+	cmp r2, r1
+	subeq r3, #1
+    sub r2, #1
     strd    r2, [r0]
-    pop     {rip}
-	stmdb	rsp!, {r2}				@ push long on TOS
+    mov	r1, r3
+	stmdb	rsp!, {r1,r2}				@ push long on TOS
 	bx	    lr
 	
 @ push long @ r0 on TOS then increment
 localLongGetInc:
-    push    {rip}
 	ldrd	r2, [r0]
-	stmdb	rsp!, {r2}				@ push long on TOS
+    mov	r1, r3
+	stmdb	rsp!, {r1,r2}				@ push long on TOS
     adds r2, #1
-    bne .localLongGetInc1
-    add r3, #1
-.localLongGetInc1:
+    addeq r3, #1
     strd    r2, [r0]
-    pop     {rip}
 	bx	lr
 	
 @ push long @ r0 on TOS then decrement
 localLongGetDec:
-    push    {rip}
 	ldrd	r2, [r0]
-	stmdb	rsp!, {r2}				@ push long on TOS
-    adds r2, #1
-    bne .localLongIncGet1
-    add r3, #1
-.localLongIncGet1:
+    mov	r1, r3
+	stmdb	rsp!, {r1,r2}				@ push long on TOS
+	eor r1, r1
+	cmp r2, r1
+	subeq r3, #1
+    sub r2, #1
     strd    r2, [r0]
-    pop     {rip}
 	bx	lr
 	
 
@@ -2242,7 +2228,7 @@ localStringPlusStore:
 localStringClear:
 	add	r0, #4						@ skip maxLen field
     str r2, [r0]                    @ set curlen to 0
-    add r4, #4
+    add r0, #4
     strb r2, [r0]                   @ set first byte to nul
 	bx	lr
 	
