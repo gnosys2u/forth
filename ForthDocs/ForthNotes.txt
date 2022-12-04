@@ -191,6 +191,14 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+December 4 2022
+
+I did the x86 and ARM versions of the new varops, there is a lot more testing
+that should be done.  I'm merging and deleting the varopSuffix branch, the
+work on the pointer specific varops will be done on main.
+
+I also renamed the 'master' branch to 'main'.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 November 30 2022
 
 I added varop suffixes over the last week.  These are intended to replace the
