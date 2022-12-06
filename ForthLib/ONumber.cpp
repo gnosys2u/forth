@@ -390,7 +390,7 @@ namespace ONumber
 	};
 
 
-	void AddClasses(ForthOuterInterpreter* pOuter)
+	void AddClasses(OuterInterpreter* pOuter)
 	{
 		pOuter->AddBuiltinClass("Int", kBCIInt, kBCIObject, oIntMembers);
 		pOuter->AddBuiltinClass("Long", kBCILong, kBCIObject, oLongMembers);

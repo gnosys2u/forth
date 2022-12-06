@@ -1339,7 +1339,7 @@ namespace OThread
 	};
 
 
-	void AddClasses(ForthOuterInterpreter* pOuter)
+	void AddClasses(OuterInterpreter* pOuter)
 	{
 		gpFiberVocabulary = pOuter->AddBuiltinClass("Fiber", kBCIFiber, kBCIObject, oFiberMembers);
 		gpThreadVocabulary = pOuter->AddBuiltinClass("Thread", kBCIThread, kBCIObject, oThreadMembers);
@@ -1966,7 +1966,7 @@ namespace OLock
     };
    
     
-    void AddClasses(ForthOuterInterpreter* pOuter)
+    void AddClasses(OuterInterpreter* pOuter)
 	{
 		gpAsyncLockVocabulary = pOuter->AddBuiltinClass("AsyncLock", kBCIAsyncLock, kBCIObject, oAsyncLockMembers);
         pOuter->AddBuiltinClass("Lock", kBCILock, kBCIObject, oLockMembers);

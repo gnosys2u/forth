@@ -22,6 +22,6 @@ namespace OSystem
         ForthObject     shellStack;
     };
 
-    void AddClasses(ForthOuterInterpreter* pOuter);
+    void AddClasses(OuterInterpreter* pOuter);
     void Shutdown(ForthEngine* pEngine);
 }

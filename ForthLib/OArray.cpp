@@ -6663,7 +6663,7 @@ namespace OArray
 	};
 
 
-    void AddClasses(ForthOuterInterpreter* pOuter)
+    void AddClasses(OuterInterpreter* pOuter)
 	{
 		gpArrayClassVocab = pOuter->AddBuiltinClass("Array", kBCIArray, kBCIIterable, oArrayMembers);
         gpArrayClassVocab->SetCustomObjectReader(customArrayReader);

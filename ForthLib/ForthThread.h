@@ -18,7 +18,7 @@
 class ForthEngine;
 class ForthShowContext;
 class ForthThread;
-class ForthOuterInterpreter;
+class OuterInterpreter;
 
 #define DEFAULT_PSTACK_SIZE 128
 #define DEFAULT_RSTACK_SIZE 128
@@ -169,7 +169,7 @@ protected:
 
 namespace OThread
 {
-	void AddClasses(ForthOuterInterpreter* pOuter);
+	void AddClasses(OuterInterpreter* pOuter);
 
 	void CreateThreadObject(ForthObject& outThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
 	void FixupThread(ForthThread* pThread);
@@ -179,7 +179,7 @@ namespace OThread
 
 namespace OLock
 {
-	void AddClasses(ForthOuterInterpreter* pOuter);
+	void AddClasses(OuterInterpreter* pOuter);
 
 	void CreateAsyncLockObject(ForthObject& outAsyncLock, ForthEngine *pEngine);
     void CreateAsyncSemaphoreObject(ForthObject& outSemaphore, ForthEngine *pEngine);

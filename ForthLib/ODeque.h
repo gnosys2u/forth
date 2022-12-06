@@ -10,5 +10,5 @@ class ForthClassVocabulary;
 
 namespace ODeque
 {
-    void AddClasses(ForthOuterInterpreter* pOuter);
+    void AddClasses(OuterInterpreter* pOuter);
 }

@@ -1243,7 +1243,7 @@ namespace OStream
     {
         GET_THIS(oOutStreamStruct, pOutStream);
         ForthEngine* pEngine = GET_ENGINE;
-        ForthOuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+        OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
         // NOTE: this could lock your thread until temp buffer is available
         char* pBuffer = pOuter->GrabTempBuffer();
         int numChars = oStringFormatSub(pCore, pBuffer, pOuter->GetTempBufferSize() - 1);
@@ -1850,7 +1850,7 @@ namespace OStream
     {
         GET_THIS(oSplitOutStreamStruct, pOutStream);
         ForthEngine* pEngine = GET_ENGINE;
-        ForthOuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+        OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
         // NOTE: this could lock your thread until temp buffer is available
         char* pBuffer = pOuter->GrabTempBuffer();
         int numChars = oStringFormatSub(pCore, pBuffer, pOuter->GetTempBufferSize() - 1);
@@ -1898,7 +1898,7 @@ namespace OStream
     };
 
 
-    void AddClasses(ForthOuterInterpreter* pOuter)
+    void AddClasses(OuterInterpreter* pOuter)
 	{
 		pOuter->AddBuiltinClass("InStream", kBCIInStream, kBCIObject, oInStreamMembers);
 		pOuter->AddBuiltinClass("FileInStream", kBCIFileInStream, kBCIInStream, oFileInStreamMembers);

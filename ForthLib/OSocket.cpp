@@ -364,7 +364,7 @@ namespace OSocket
         END_MEMBERS
     };
 
-    void AddClasses(ForthOuterInterpreter* pOuter)
+    void AddClasses(OuterInterpreter* pOuter)
     {
         pOuter->AddBuiltinClass("Socket", kBCISocket, kBCIObject, oSocketMembers);
     }

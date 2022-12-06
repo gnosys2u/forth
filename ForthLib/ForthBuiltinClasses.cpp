@@ -504,7 +504,7 @@ ForthTypesManager::GetTypeName( void )
 forthop gObjectShowInnerOpcode = 0;
 forthop gObjectDeleteOpcode = 0;
 
-void ForthTypesManager::AddBuiltinClasses(ForthOuterInterpreter* pOuter)
+void ForthTypesManager::AddBuiltinClasses(OuterInterpreter* pOuter)
 {
     ForthClassVocabulary* pObjectClassVocab = pOuter->AddBuiltinClass("Object", kBCIObject, kBCIInvalid, objectMembers);
     gObjectShowInnerOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodShowInner);

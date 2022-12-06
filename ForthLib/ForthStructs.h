@@ -115,7 +115,7 @@ public:
     // compile symbol if it is a class member variable or method
     virtual bool    ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus, VarOperation varop = VarOperation::kVarDefaultOp );
 
-    void            AddBuiltinClasses(ForthOuterInterpreter* pOuter);
+    void            AddBuiltinClasses(OuterInterpreter* pOuter);
     void            ShutdownBuiltinClasses(ForthEngine* pEngine);
 
     // add a new structure type

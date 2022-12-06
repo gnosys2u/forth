@@ -10,7 +10,7 @@ class ForthClassVocabulary;
 
 namespace OArray
 {
-	void AddClasses(ForthOuterInterpreter* pOuter);
+	void AddClasses(OuterInterpreter* pOuter);
 
     oArrayStruct* createArrayObject(ForthClassVocabulary *pClassVocab);
 

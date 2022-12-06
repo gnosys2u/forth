@@ -18,5 +18,5 @@ namespace OList
 		oListElement*	cursor;
 	};
 
-	void AddClasses(ForthOuterInterpreter* pOuter);
+	void AddClasses(OuterInterpreter* pOuter);
 }

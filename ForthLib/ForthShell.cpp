@@ -667,7 +667,7 @@ static bool gbCatchExceptions = false;
 //
 OpResult ForthShell::InterpretLine( const char *pSrcLine )
 {
-    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     OpResult  result = OpResult::kOk;
     bool bLineEmpty;
     ForthParseInfo parseInfo( mTokenBuffer, sizeof(mTokenBuffer) >> 2 );
@@ -776,7 +776,7 @@ ForthShell::ReportError( void )
     const char *pLastInputToken;
 
     mpEngine->GetErrorString( errorBuf1, sizeof(errorBuf1) );
-    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     pLastInputToken = pOuter->GetLastInputToken();
 	ForthCoreState* pCore = mpEngine->GetCoreState();
 
@@ -835,7 +835,7 @@ void ForthShell::ReportWarning(const char* pMessage)
     char errorBuf1[512];
     char errorBuf2[512];
     const char *pLastInputToken;
-    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
 
     pLastInputToken = pOuter->GetLastInputToken();
     ForthCoreState* pCore = mpEngine->GetCoreState();
@@ -891,7 +891,7 @@ void ForthShell::ReportWarning(const char* pMessage)
 bool
 ForthShell::ParseString( ForthParseInfo *pInfo )
 {
-    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     const char *pSrc;
     const char *pEndSrc = nullptr;
     char *pDst;
@@ -986,7 +986,7 @@ ForthShell::ParseString( ForthParseInfo *pInfo )
 bool
 ForthShell::ParseToken( ForthParseInfo *pInfo )
 {
-    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     const char *pSrc;
     const char *pEndSrc = nullptr;
     char *pDst;
@@ -1828,7 +1828,7 @@ void ForthShell::PoundIf()
 
 void ForthShell::PoundIfdef( bool isDefined )
 {
-    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     ForthVocabulary* pVocab = pOuter->GetSearchVocabulary();
     char* pToken = GetNextSimpleToken();
     if ( (pToken == NULL) || (pVocab == NULL) || ((pVocab->FindSymbol( pToken ) != NULL) != isDefined) )

@@ -74,7 +74,7 @@ namespace OSystem
 		SNPRINTF(buff, sizeof(buff), "%d builtins    %d userops @ %p\n", pCore->numBuiltinOps, pCore->numOps, pCore->ops);
 		CONSOLE_STRING_OUT(buff);
 
-        ForthOuterInterpreter* pOuter = GET_ENGINE->GetOuterInterpreter();
+        OuterInterpreter* pOuter = GET_ENGINE->GetOuterInterpreter();
         pOuter->ShowSearchInfo();
 
 		METHOD_RETURN;
@@ -488,7 +488,7 @@ namespace OSystem
     };
 
 
-    void AddClasses(ForthOuterInterpreter* pOuter)
+    void AddClasses(OuterInterpreter* pOuter)
 	{
         gpShellStackVocab = pOuter->AddBuiltinClass("ShellStack", kBCIShellStack, kBCIObject, oShellStackMembers);
         pOuter->AddBuiltinClass("System", kBCISystem, kBCIObject, oSystemMembers);

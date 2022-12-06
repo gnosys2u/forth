@@ -960,7 +960,7 @@ namespace OList
     }
 
 
-	void AddClasses(ForthOuterInterpreter* pOuter)
+	void AddClasses(OuterInterpreter* pOuter)
 	{
 		ForthClassVocabulary* pListVoc = pOuter->AddBuiltinClass("List", kBCIList, kBCIIterable, oListMembers);
         pListVoc->SetCustomObjectReader(customListReader);

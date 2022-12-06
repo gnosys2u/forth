@@ -213,10 +213,10 @@ static const char *pErrorStrings[] =
 //////////////////////////////////////////////////////////////////////
 ////
 ///
-//                     ForthEngineTokenStack
+//                     TokenStack
 // 
 
-ForthEngineTokenStack::ForthEngineTokenStack()
+TokenStack::TokenStack()
 	: mpCurrent(nullptr)
 	, mpBase(nullptr)
 	, mpLimit(nullptr)
@@ -224,7 +224,7 @@ ForthEngineTokenStack::ForthEngineTokenStack()
 {
 }
 
-ForthEngineTokenStack::~ForthEngineTokenStack()
+TokenStack::~TokenStack()
 {
 	if (mpCurrent != nullptr)
 	{
@@ -232,7 +232,7 @@ ForthEngineTokenStack::~ForthEngineTokenStack()
 	}
 }
 
-void ForthEngineTokenStack::Initialize(uint32_t numBytes)
+void TokenStack::Initialize(uint32_t numBytes)
 {
 	mpBase = (char *)__MALLOC(numBytes);
 	mpLimit = mpBase + numBytes;
@@ -240,7 +240,7 @@ void ForthEngineTokenStack::Initialize(uint32_t numBytes)
 	mNumBytes = numBytes;
 }
 
-void ForthEngineTokenStack::Push(const char* pToken)
+void TokenStack::Push(const char* pToken)
 {
 	size_t newTokenBytes = strlen(pToken) + 1;
 	char* newCurrent = mpCurrent - newTokenBytes;
@@ -260,7 +260,7 @@ void ForthEngineTokenStack::Push(const char* pToken)
 	memcpy(mpCurrent, pToken, newTokenBytes);
 }
 
-char* ForthEngineTokenStack::Pop()
+char* TokenStack::Pop()
 {
 	char* pResult = nullptr;
 	if (mpCurrent != mpLimit)
@@ -273,7 +273,7 @@ char* ForthEngineTokenStack::Pop()
 	return pResult;
 }
 
-char* ForthEngineTokenStack::Peek()
+char* TokenStack::Peek()
 {
 	char* pResult = nullptr;
 	if (mpCurrent != mpLimit)
@@ -284,7 +284,7 @@ char* ForthEngineTokenStack::Peek()
 	return pResult;
 }
 
-void ForthEngineTokenStack::Clear()
+void TokenStack::Clear()
 {
 	mpCurrent = mpLimit;
 }
@@ -293,10 +293,10 @@ void ForthEngineTokenStack::Clear()
 //////////////////////////////////////////////////////////////////////
 ////
 ///
-//                     ForthOuterInterpreter
+//                     OuterInterpreter
 // 
 
-ForthOuterInterpreter::ForthOuterInterpreter(ForthEngine* pEngine)
+OuterInterpreter::OuterInterpreter(ForthEngine* pEngine)
     : mpEngine(pEngine)
     , mpForthVocab(nullptr)
     , mpLiteralsVocab(nullptr)
@@ -349,7 +349,7 @@ ForthOuterInterpreter::ForthOuterInterpreter(ForthEngine* pEngine)
     mpDefinitionVocab = mpForthVocab;
 }
 
-void ForthOuterInterpreter::Initialize()
+void OuterInterpreter::Initialize()
 {
     mpVocabStack = new ForthVocabularyStack;
     mpVocabStack->Initialize();
@@ -357,7 +357,7 @@ void ForthOuterInterpreter::Initialize()
 
 }
 
-ForthOuterInterpreter::~ForthOuterInterpreter()
+OuterInterpreter::~OuterInterpreter()
 {
     delete mpForthVocab;
     delete mpLiteralsVocab;
@@ -434,7 +434,7 @@ ForthEngine::ForthEngine()
     // At this point, the main thread does not exist, it will be created later in Initialize, this
     // is fairly screwed up, it is becauses originally ForthEngine was the center of the universe,
     // and it created the shell, but now the shell is created first, and the shell or the main app
-    // can create the engine, and then the shell calls ForthOuterInterpreter::Initialize to hook the two up.
+    // can create the engine, and then the shell calls OuterInterpreter::Initialize to hook the two up.
     // The main thread needs to get the file interface from the shell, so it can't be created until
     // after the engine is connected to the shell.  Did I mention its screwed up?
 }
@@ -549,7 +549,7 @@ void ForthEngine::Initialize(
     mpCore->maxOps = MAX_BUILTIN_OPS;
 	mpCore->ops = (forthop **) __MALLOC(sizeof(forthop *) * mpCore->maxOps);
 
-    mpOuter = new ForthOuterInterpreter(this);
+    mpOuter = new OuterInterpreter(this);
     mpOuter->Initialize();
 
     //
@@ -601,7 +601,7 @@ ForthEngine::SetFastMode( bool goFast )
     mFastMode = goFast;
 }
 
-void ForthOuterInterpreter::Reset(void)
+void OuterInterpreter::Reset(void)
 {
     mpVocabStack->Clear();
 
@@ -673,7 +673,7 @@ cell ForthEngine::IsCompiling(void)
 
 
 // add an op to engine dispatch table
-forthop ForthOuterInterpreter::AddOp( const void *pOp )
+forthop OuterInterpreter::AddOp( const void *pOp )
 {
     forthop newOp = (forthop)(mpCore->numOps);
 
@@ -694,7 +694,7 @@ forthop ForthOuterInterpreter::AddOp( const void *pOp )
 
 
 // add an op to dictionary and corresponding symbol to current vocabulary
-forthop ForthOuterInterpreter::AddUserOp( const char *pSymbol, forthop** pEntryOut, bool smudgeIt )
+forthop OuterInterpreter::AddUserOp( const char *pSymbol, forthop** pEntryOut, bool smudgeIt )
 {
     mpEngine->AlignDP();
     forthop newestOp = AddOp(mpDictionary->pCurrent);
@@ -713,16 +713,16 @@ forthop ForthOuterInterpreter::AddUserOp( const char *pSymbol, forthop** pEntryO
     return newestOp;
 }
 
-void ForthOuterInterpreter::AddBuiltinClasses()
+void OuterInterpreter::AddBuiltinClasses()
 {
     mpTypesManager->AddBuiltinClasses(this);
 }
 
-forthop* ForthOuterInterpreter::AddBuiltinOp(const char* name, uint32_t flags, void* value)
+forthop* OuterInterpreter::AddBuiltinOp(const char* name, uint32_t flags, void* value)
 {
     forthop newestOp = AddOp(value);
     newestOp = COMPILED_OP(flags, newestOp);
-    // AddSymbol will call ForthOuterInterpreter::AddOp to add the operators to op table
+    // AddSymbol will call OuterInterpreter::AddOp to add the operators to op table
     forthop *pEntry = mpDefinitionVocab->AddSymbol(name, newestOp);
 
 //#ifdef TRACE_INNER_INTERPRETER
@@ -739,7 +739,7 @@ forthop* ForthOuterInterpreter::AddBuiltinOp(const char* name, uint32_t flags, v
 
 
 void
-ForthOuterInterpreter::AddBuiltinOps( baseDictionaryEntry *pEntries )
+OuterInterpreter::AddBuiltinOps( baseDictionaryEntry *pEntries )
 {
     // I think this assert is a holdover from when userOps and builtinOps were in a single dispatch table
     // assert if this is called after any user ops have been defined
@@ -756,7 +756,7 @@ ForthOuterInterpreter::AddBuiltinOps( baseDictionaryEntry *pEntries )
 
 
 ForthClassVocabulary*
-ForthOuterInterpreter::StartClassDefinition(const char* pClassName, eBuiltinClassIndex classIndex)
+OuterInterpreter::StartClassDefinition(const char* pClassName, eBuiltinClassIndex classIndex)
 {
     SetFlag( kEngineFlagInStructDefinition );
     SetFlag( kEngineFlagInClassDefinition );
@@ -775,7 +775,7 @@ ForthOuterInterpreter::StartClassDefinition(const char* pClassName, eBuiltinClas
 }
 
 void
-ForthOuterInterpreter::EndClassDefinition()
+OuterInterpreter::EndClassDefinition()
 {
 	ClearFlag( kEngineFlagInStructDefinition );
     ClearFlag( kEngineFlagInClassDefinition );
@@ -786,7 +786,7 @@ ForthOuterInterpreter::EndClassDefinition()
 }
 
 ForthClassVocabulary*
-ForthOuterInterpreter::AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex, eBuiltinClassIndex parentClassIndex, baseMethodEntry *pEntries)
+OuterInterpreter::AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex, eBuiltinClassIndex parentClassIndex, baseMethodEntry *pEntries)
 {
     // do "class:" - define class subroutine
 	ForthClassVocabulary* pVocab = StartClassDefinition(pClassName, classIndex);
@@ -891,7 +891,7 @@ ForthOuterInterpreter::AddBuiltinClass(const char* pClassName, eBuiltinClassInde
 
 // forget the specified op and all higher numbered ops, and free the memory where those ops were stored
 void
-ForthOuterInterpreter::ForgetOp(forthop opNumber, bool quietMode )
+OuterInterpreter::ForgetOp(forthop opNumber, bool quietMode )
 {
     if ( opNumber < mpCore->numOps )
     {
@@ -904,8 +904,8 @@ ForthOuterInterpreter::ForgetOp(forthop opNumber, bool quietMode )
     {
         if ( !quietMode )
         {
-            SPEW_ENGINE( "ForthOuterInterpreter::ForgetOp error - attempt to forget bogus op # %d, only %d ops exist\n", opNumber, (int)mpCore->numOps );
-            printf( "ForthOuterInterpreter::ForgetOp error - attempt to forget bogus op # %d, only %d ops exist\n", opNumber, (int)mpCore->numOps );
+            SPEW_ENGINE( "OuterInterpreter::ForgetOp error - attempt to forget bogus op # %d, only %d ops exist\n", opNumber, (int)mpCore->numOps );
+            printf( "OuterInterpreter::ForgetOp error - attempt to forget bogus op # %d, only %d ops exist\n", opNumber, (int)mpCore->numOps );
         }
     }
 
@@ -917,7 +917,7 @@ ForthOuterInterpreter::ForgetOp(forthop opNumber, bool quietMode )
 }
 
 // return true if symbol was found
-bool ForthOuterInterpreter::ForgetSymbol( const char *pSym, bool quietMode )
+bool OuterInterpreter::ForgetSymbol( const char *pSym, bool quietMode )
 {
     forthop *pEntry = nullptr;
     forthop op;
@@ -978,7 +978,7 @@ bool ForthOuterInterpreter::ForgetSymbol( const char *pSym, bool quietMode )
 }
 
 void
-ForthOuterInterpreter::ShowSearchInfo()
+OuterInterpreter::ShowSearchInfo()
 {
 	ForthVocabularyStack* pVocabStack = GetVocabularyStack();
 	int depth = 0;
@@ -1088,13 +1088,13 @@ void ForthEngine::DestroyThread(ForthThread *pThread)
             pCurrent = pNext;
         }
 
-        SPEW_ENGINE( "ForthOuterInterpreter::DestroyThread tried to destroy unknown thread 0x%x!\n", pThread );
+        SPEW_ENGINE( "OuterInterpreter::DestroyThread tried to destroy unknown thread 0x%x!\n", pThread );
         // TODO: raise the alarm
     }
 }
 
 
-char * ForthOuterInterpreter::GetNextSimpleToken( void )
+char * OuterInterpreter::GetNextSimpleToken( void )
 {
 	return mTokenStack.IsEmpty() ? mpShell->GetNextSimpleToken() : mTokenStack.Pop();
 }
@@ -1130,7 +1130,7 @@ ForthEngine::PopInputStream( void )
 
 
 forthop *
-ForthOuterInterpreter::StartOpDefinition(const char *pName, bool smudgeIt, forthOpType opType, ForthVocabulary* pDefinitionVocab)
+OuterInterpreter::StartOpDefinition(const char *pName, bool smudgeIt, forthOpType opType, ForthVocabulary* pDefinitionVocab)
 {
     mpLocalVocab->Empty();
     mpLocalVocab->ClearFrame();
@@ -1163,7 +1163,7 @@ ForthOuterInterpreter::StartOpDefinition(const char *pName, bool smudgeIt, forth
 
 
 void
-ForthOuterInterpreter::EndOpDefinition( bool unsmudgeIt )
+OuterInterpreter::EndOpDefinition( bool unsmudgeIt )
 {
     forthop* pLocalAllocOp = mpLocalVocab->GetFrameAllocOpPointer();
     if ( pLocalAllocOp != nullptr )
@@ -1183,14 +1183,14 @@ ForthOuterInterpreter::EndOpDefinition( bool unsmudgeIt )
 
 
 forthop*
-ForthOuterInterpreter::FindSymbol( const char *pSymName )
+OuterInterpreter::FindSymbol( const char *pSymName )
 {
     ForthVocabulary* pFoundVocab = nullptr;
     return GetVocabularyStack()->FindSymbol( pSymName, &pFoundVocab );
 }
 
 void
-ForthOuterInterpreter::DescribeOp( const char* pSymName, forthop op, int32_t auxData )
+OuterInterpreter::DescribeOp( const char* pSymName, forthop op, int32_t auxData )
 {
     char buff[256];
     char buff2[128];
@@ -1268,7 +1268,7 @@ ForthOuterInterpreter::DescribeOp( const char* pSymName, forthop op, int32_t aux
 }
 
 void
-ForthOuterInterpreter::DescribeSymbol( const char *pSymName )
+OuterInterpreter::DescribeSymbol( const char *pSymName )
 {
     forthop *pEntry = nullptr;
     char buff[256];
@@ -1288,7 +1288,7 @@ ForthOuterInterpreter::DescribeSymbol( const char *pSymName )
 }
 
 forthop*
-ForthOuterInterpreter::NextOp(forthop *pOp )
+OuterInterpreter::NextOp(forthop *pOp )
 {
     forthop op = *pOp++;
     int32_t opType = FORTH_OP_TYPE( op );
@@ -1319,19 +1319,19 @@ ForthOuterInterpreter::NextOp(forthop *pOp )
 }
 
 void
-ForthOuterInterpreter::StartStructDefinition( void )
+OuterInterpreter::StartStructDefinition( void )
 {
     mCompileFlags |= kEngineFlagInStructDefinition;
 }
 
 void
-ForthOuterInterpreter::EndStructDefinition( void )
+OuterInterpreter::EndStructDefinition( void )
 {
     mCompileFlags &= (~kEngineFlagInStructDefinition);
 }
 
 int32_t
-ForthOuterInterpreter::AddLocalVar( const char        *pVarName,
+OuterInterpreter::AddLocalVar( const char        *pVarName,
                           int32_t              typeCode,
                           int32_t              varSize )
 {
@@ -1371,7 +1371,7 @@ ForthOuterInterpreter::AddLocalVar( const char        *pVarName,
 }
 
 int32_t
-ForthOuterInterpreter::AddLocalArray( const char          *pArrayName,
+OuterInterpreter::AddLocalArray( const char          *pArrayName,
                             int32_t                typeCode,
                             int32_t                elementSize )
 {
@@ -1420,7 +1420,7 @@ ForthOuterInterpreter::AddLocalArray( const char          *pArrayName,
 }
 
 bool
-ForthOuterInterpreter::HasLocalVariables()
+OuterInterpreter::HasLocalVariables()
 {
 	return mpLocalVocab->GetFrameCells() != 0;
 }
@@ -2022,7 +2022,7 @@ void ForthEngine::ResetExecutionProfile()
 
 
 bool
-ForthOuterInterpreter::AddOpType( forthOpType opType, optypeActionRoutine opAction )
+OuterInterpreter::AddOpType( forthOpType opType, optypeActionRoutine opAction )
 {
 
     if ( (opType >= kOpLocalUserDefined) && (opType <= kOpMaxLocalUserDefined) )
@@ -2039,7 +2039,7 @@ ForthOuterInterpreter::AddOpType( forthOpType opType, optypeActionRoutine opActi
 
 
 char *
-ForthOuterInterpreter::GetLastInputToken( void )
+OuterInterpreter::GetLastInputToken( void )
 {
     return mpLastToken;
 }
@@ -2049,7 +2049,7 @@ ForthOuterInterpreter::GetLastInputToken( void )
 // sets isOffset if token ended with a + or -
 // NOTE: temporarily modifies string @pToken
 bool
-ForthOuterInterpreter::ScanIntegerToken( char         *pToken,
+OuterInterpreter::ScanIntegerToken( char         *pToken,
                                int64_t      &value,
                                int          base,
                                bool         &isOffset,
@@ -2203,7 +2203,7 @@ ForthOuterInterpreter::ScanIntegerToken( char         *pToken,
 // return true IFF token is a real literal
 // sets isSingle to tell if result is a float or double
 // NOTE: temporarily modifies string @pToken
-bool ForthOuterInterpreter::ScanFloatToken( char *pToken, float& fvalue, double& dvalue, bool& isSingle, bool& isApproximate )
+bool OuterInterpreter::ScanFloatToken( char *pToken, float& fvalue, double& dvalue, bool& isSingle, bool& isApproximate )
 {
    bool retVal = false;
    double dtemp;
@@ -2273,7 +2273,7 @@ bool ForthOuterInterpreter::ScanFloatToken( char *pToken, float& fvalue, double&
 // squish float down to 24-bits, returns true IFF number can be represented exactly
 //   OR approximateOkay==true and number is within range of squished float
 bool
-ForthOuterInterpreter::SquishFloat( float fvalue, bool approximateOkay, uint32_t& squishedFloat )
+OuterInterpreter::SquishFloat( float fvalue, bool approximateOkay, uint32_t& squishedFloat )
 {
 	// single precision format is 1 sign, 8 exponent, 23 mantissa
 	uint32_t inVal = *(reinterpret_cast<uint32_t *>( &fvalue ));
@@ -2300,7 +2300,7 @@ ForthOuterInterpreter::SquishFloat( float fvalue, bool approximateOkay, uint32_t
 // squish double down to 24-bits, returns true IFF number can be represented exactly
 //   OR approximateOkay==true and number is within range of squished float
 bool
-ForthOuterInterpreter::SquishDouble( double dvalue, bool approximateOkay, uint32_t& squishedDouble )
+OuterInterpreter::SquishDouble( double dvalue, bool approximateOkay, uint32_t& squishedDouble )
 {
 	// double precision format is 1 sign, 11 exponent, 52 mantissa
 	uint32_t* pInVal = reinterpret_cast<uint32_t *>( &dvalue );
@@ -2326,7 +2326,7 @@ ForthOuterInterpreter::SquishDouble( double dvalue, bool approximateOkay, uint32
 }
 
 float
-ForthOuterInterpreter::UnsquishFloat( uint32_t squishedFloat )
+OuterInterpreter::UnsquishFloat( uint32_t squishedFloat )
 {
 	uint32_t unsquishedFloat;
 
@@ -2339,7 +2339,7 @@ ForthOuterInterpreter::UnsquishFloat( uint32_t squishedFloat )
 }
 
 double
-ForthOuterInterpreter::UnsquishDouble( uint32_t squishedDouble )
+OuterInterpreter::UnsquishDouble( uint32_t squishedDouble )
 {
 	uint32_t unsquishedDouble[2];
 
@@ -2353,7 +2353,7 @@ ForthOuterInterpreter::UnsquishDouble( uint32_t squishedDouble )
 }
 
 bool
-ForthOuterInterpreter::SquishLong( int64_t lvalue, uint32_t& squishedLong )
+OuterInterpreter::SquishLong( int64_t lvalue, uint32_t& squishedLong )
 {
 	bool isValid = false;
 	int32_t* pLValue = reinterpret_cast<int32_t*>( &lvalue );
@@ -2384,7 +2384,7 @@ ForthOuterInterpreter::SquishLong( int64_t lvalue, uint32_t& squishedLong )
 }
 
 int64_t
-ForthOuterInterpreter::UnsquishLong( uint32_t squishedLong )
+OuterInterpreter::UnsquishLong( uint32_t squishedLong )
 {
 	int32_t unsquishedLong[2];
 
@@ -2406,26 +2406,26 @@ ForthOuterInterpreter::UnsquishLong( uint32_t squishedLong )
 // remember the last opcode compiled so someday we can do optimizations
 //   like combining "->" followed by a local var name into one opcode
 void
-ForthOuterInterpreter::CompileOpcode(forthOpType opType, forthop opVal)
+OuterInterpreter::CompileOpcode(forthOpType opType, forthop opVal)
 {
     SPEW_COMPILATION("Compiling 0x%08x @ 0x%08x\n", COMPILED_OP(opType, opVal), mpDictionary->pCurrent);
     mpOpcodeCompiler->CompileOpcode(opType, opVal);
 }
 
 #if defined(DEBUG)
-void ForthOuterInterpreter::CompileInt(int32_t v)
+void OuterInterpreter::CompileInt(int32_t v)
 {
     SPEW_COMPILATION("Compiling 0x%08x @ 0x%08x\n", v, mpDictionary->pCurrent);
     *mpDictionary->pCurrent++ = v;
 }
 
-void ForthOuterInterpreter::CompileDouble(double v)
+void OuterInterpreter::CompileDouble(double v)
 {
     SPEW_COMPILATION("Compiling double %g @ 0x%08x\n", v, mpDictionary->pCurrent);
     *((double *)mpDictionary->pCurrent) = v; mpDictionary->pCurrent += 2;
 }
 
-void ForthOuterInterpreter::CompileCell(cell v)
+void OuterInterpreter::CompileCell(cell v)
 {
     SPEW_COMPILATION("Compiling cell 0x%p @ 0x%p\n", v, mpDictionary->pCurrent);
     *((cell*)mpDictionary->pCurrent) = v; mpDictionary->pCurrent += CELL_LONGS;
@@ -2433,25 +2433,25 @@ void ForthOuterInterpreter::CompileCell(cell v)
 #endif
 
 // patch an opcode - fill in the branch destination offset
-void ForthOuterInterpreter::PatchOpcode(forthOpType opType, forthop opVal, forthop* pOpcode)
+void OuterInterpreter::PatchOpcode(forthOpType opType, forthop opVal, forthop* pOpcode)
 {
     SPEW_COMPILATION("Patching 0x%08x @ 0x%08x\n", COMPILED_OP(opType, opVal), pOpcode);
     mpOpcodeCompiler->PatchOpcode(opType, opVal, pOpcode);
 }
 
-void ForthOuterInterpreter::ClearPeephole()
+void OuterInterpreter::ClearPeephole()
 {
     mpOpcodeCompiler->ClearPeephole();
 }
 
 void
-ForthOuterInterpreter::CompileOpcode(forthop op )
+OuterInterpreter::CompileOpcode(forthop op )
 {
 	CompileOpcode( FORTH_OP_TYPE( op ), FORTH_OP_VALUE( op ) );
 }
 
 void
-ForthOuterInterpreter::CompileBuiltinOpcode(forthop op )
+OuterInterpreter::CompileBuiltinOpcode(forthop op )
 {
 	if ( op < NUM_COMPILED_OPS )
 	{
@@ -2464,7 +2464,7 @@ ForthOuterInterpreter::CompileBuiltinOpcode(forthop op )
     }
 }
 
-void ForthOuterInterpreter::UncompileLastOpcode( void )
+void OuterInterpreter::UncompileLastOpcode( void )
 {
     forthop *pLastCompiledOpcode = mpOpcodeCompiler->GetLastCompiledOpcodePtr();
     if ( pLastCompiledOpcode != nullptr )
@@ -2474,25 +2474,25 @@ void ForthOuterInterpreter::UncompileLastOpcode( void )
     }
     else
     {
-        SPEW_ENGINE( "ForthOuterInterpreter::UncompileLastOpcode called with no previous opcode\n" );
+        SPEW_ENGINE( "OuterInterpreter::UncompileLastOpcode called with no previous opcode\n" );
         mpEngine->SetError( ForthError::kMissingSize, "UncompileLastOpcode called with no previous opcode" );
     }
 }
 
-forthop* ForthOuterInterpreter::GetLastCompiledOpcodePtr( void )
+forthop* OuterInterpreter::GetLastCompiledOpcodePtr( void )
 {
 	return mpOpcodeCompiler->GetLastCompiledOpcodePtr();
 }
 
 forthop*
-ForthOuterInterpreter::GetLastCompiledIntoPtr( void )
+OuterInterpreter::GetLastCompiledIntoPtr( void )
 {
 	return mpOpcodeCompiler->GetLastCompiledIntoPtr();
 }
 
 // interpret/compile a constant value/offset
 void
-ForthOuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
+OuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
 {
     if ( mCompileState )
     {
@@ -2578,7 +2578,7 @@ ForthOuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSing
 
 // return true IFF the last compiled opcode was an integer literal
 bool
-ForthOuterInterpreter::GetLastConstant( int32_t& constantValue )
+OuterInterpreter::GetLastConstant( int32_t& constantValue )
 {
     forthop *pLastCompiledOpcode = mpOpcodeCompiler->GetLastCompiledOpcodePtr();
     if ( pLastCompiledOpcode != nullptr )
@@ -2595,7 +2595,7 @@ ForthOuterInterpreter::GetLastConstant( int32_t& constantValue )
 }
 
 //
-// FullyExecuteOp is used by the Outer Interpreter (ForthOuterInterpreter::ProcessToken) to
+// FullyExecuteOp is used by the Outer Interpreter (OuterInterpreter::ProcessToken) to
 // execute forth ops, and is also how systems external to forth execute ops
 //
 OpResult ForthEngine::FullyExecuteOp(ForthCoreState* pCore, forthop opCode)
@@ -2929,7 +2929,7 @@ void ForthEngine::SetTraceFlags( int32_t flags )
 // enumerated type support
 //
 void
-ForthOuterInterpreter::StartEnumDefinition( void )
+OuterInterpreter::StartEnumDefinition( void )
 {
     SetFlag( kEngineFlagInEnumDefinition );
     mNextEnum = 0;
@@ -2940,7 +2940,7 @@ ForthOuterInterpreter::StartEnumDefinition( void )
 }
 
 void
-ForthOuterInterpreter::EndEnumDefinition( void )
+OuterInterpreter::EndEnumDefinition( void )
 {
     ClearFlag( kEngineFlagInEnumDefinition );
 }
@@ -3093,7 +3093,7 @@ void ForthEngine::DisplayUserDefCrash( forthop *pRVal, char* buff, int buffSize 
 	ConsoleOut( buff );
 }
 
-forthop * ForthOuterInterpreter::FindUserDefinition( ForthVocabulary* pVocab, forthop*& pClosestIP, forthop* pIP, forthop*& pBase  )
+forthop * OuterInterpreter::FindUserDefinition( ForthVocabulary* pVocab, forthop*& pClosestIP, forthop* pIP, forthop*& pBase  )
 {
     forthop* pClosest = nullptr;
 	forthop* pEntry = pVocab->GetNewestEntry();
@@ -3169,9 +3169,9 @@ ForthClassVocabulary* ForthEngine::AddBuiltinClass(const char* pClassName, eBuil
     return mpOuter->AddBuiltinClass(pClassName, classIndex, parentClassIndex, pEntries);
 }
 
-void ForthOuterInterpreter::DefineLabel(const char* inLabelName, forthop* inLabelIP)
+void OuterInterpreter::DefineLabel(const char* inLabelName, forthop* inLabelIP)
 {
-	for (ForthLabel& label : mLabels)
+	for (Label& label : mLabels)
 	{
 		if (label.name == inLabelName)
 		{
@@ -3179,12 +3179,12 @@ void ForthOuterInterpreter::DefineLabel(const char* inLabelName, forthop* inLabe
 			return;
 		}
 	}
-	mLabels.emplace_back(ForthLabel(inLabelName, inLabelIP));
+	mLabels.emplace_back(Label(inLabelName, inLabelIP));
 }
 
-void ForthOuterInterpreter::AddGoto(const char* inLabelName, int inBranchType, forthop* inBranchIP)
+void OuterInterpreter::AddGoto(const char* inLabelName, int inBranchType, forthop* inBranchIP)
 {
-	for (ForthLabel& label : mLabels)
+	for (Label& label : mLabels)
 	{
 		if (label.name == inLabelName)
 		{
@@ -3192,7 +3192,7 @@ void ForthOuterInterpreter::AddGoto(const char* inLabelName, int inBranchType, f
 			return;
 		}
 	}
-	ForthLabel newLabel(inLabelName);
+	Label newLabel(inLabelName);
 	newLabel.AddReference(inBranchIP, inBranchType);
 	mLabels.push_back(newLabel);
 }
@@ -3200,7 +3200,7 @@ void ForthOuterInterpreter::AddGoto(const char* inLabelName, int inBranchType, f
 // if inText is null, string is not copied, an uninitialized space of size inNumChars+1 is allocated
 // if inNumChars is -1 and inText is not null, length of input string is used for temp string size
 // if both inText is null and inNumChars is -1, an uninitialized space of 255 chars is allocated
-char* ForthOuterInterpreter::AddTempString(const char* inText, cell inNumChars)
+char* OuterInterpreter::AddTempString(const char* inText, cell inNumChars)
 {
 	// this hooha turns mpStringBufferA into multiple string buffers
 	//   so that you can use multiple interpretive string buffers
@@ -3234,12 +3234,12 @@ char* ForthOuterInterpreter::AddTempString(const char* inText, cell inNumChars)
 //          Continue statement support
 //
 //############################################################################
-void ForthOuterInterpreter::PushContinuationType(cell val)
+void OuterInterpreter::PushContinuationType(cell val)
 {
     PushContinuationAddress((forthop*)val);
 }
 
-void ForthOuterInterpreter::PushContinuationAddress(forthop* pOp)
+void OuterInterpreter::PushContinuationAddress(forthop* pOp)
 {
     if ((size_t)mContinuationIx >= mContinuations.size())
     {
@@ -3248,7 +3248,7 @@ void ForthOuterInterpreter::PushContinuationAddress(forthop* pOp)
     mContinuations[mContinuationIx++] = pOp;
 }
 
-forthop* ForthOuterInterpreter::PopContinuationAddress()
+forthop* OuterInterpreter::PopContinuationAddress()
 {
     forthop* result = nullptr;
     if (mContinuationIx > 0)
@@ -3263,12 +3263,12 @@ forthop* ForthOuterInterpreter::PopContinuationAddress()
     return result;
 }
 
-cell ForthOuterInterpreter::PopContinuationType()
+cell OuterInterpreter::PopContinuationType()
 {
     return (cell) PopContinuationAddress();
 }
 
-void ForthOuterInterpreter::ResetContinuations()
+void OuterInterpreter::ResetContinuations()
 {
     mContinuations.clear();
     mContinuationIx = 0;
@@ -3276,24 +3276,24 @@ void ForthOuterInterpreter::ResetContinuations()
     mContinueCount = 0;
 }
 
-forthop* ForthOuterInterpreter::GetContinuationDestination()
+forthop* OuterInterpreter::GetContinuationDestination()
 {
     return mContinueDestination;
 }
 
-void ForthOuterInterpreter::SetContinuationDestination(forthop* pDest)
+void OuterInterpreter::SetContinuationDestination(forthop* pDest)
 {
     mContinueDestination = pDest;
 }
 
-void ForthOuterInterpreter::AddContinuationBranch(forthop* pAddr, cell opType)
+void OuterInterpreter::AddContinuationBranch(forthop* pAddr, cell opType)
 {
     PushContinuationAddress(pAddr);
     PushContinuationType(opType);
     ++mContinueCount;
 }
 
-void ForthOuterInterpreter::AddBreakBranch(forthop* pAddr, cell opType)
+void OuterInterpreter::AddBreakBranch(forthop* pAddr, cell opType)
 {
     // set low bit of address to flag that this is a break branch
     PushContinuationAddress((forthop *)(((cell)pAddr) + 1));
@@ -3301,7 +3301,7 @@ void ForthOuterInterpreter::AddBreakBranch(forthop* pAddr, cell opType)
     ++mContinueCount;
 }
 
-void ForthOuterInterpreter::StartLoopContinuations()
+void OuterInterpreter::StartLoopContinuations()
 {
     PushContinuationAddress(mContinueDestination);
     PushContinuationType(mContinueCount);
@@ -3309,7 +3309,7 @@ void ForthOuterInterpreter::StartLoopContinuations()
     mContinueCount = 0;
 }
 
-void ForthOuterInterpreter::EndLoopContinuations(int controlFlowType)  // actually takes a eShellTag
+void OuterInterpreter::EndLoopContinuations(int controlFlowType)  // actually takes a eShellTag
 {
     // fixup pending continue branches for current loop
     if (mContinueCount > 0)
@@ -3370,19 +3370,19 @@ void ForthOuterInterpreter::EndLoopContinuations(int controlFlowType)  // actual
     mContinueDestination = PopContinuationAddress();
 }
 
-bool ForthOuterInterpreter::HasPendingContinuations()
+bool OuterInterpreter::HasPendingContinuations()
 {
     return mContinueCount != 0;
 }
 
 
-void ForthOuterInterpreter::AddGlobalObjectVariable(ForthObject* pObject, ForthVocabulary* pVocab, const char* pName)
+void OuterInterpreter::AddGlobalObjectVariable(ForthObject* pObject, ForthVocabulary* pVocab, const char* pName)
 {
     mpEngine->TraceOut("Adding %s global object [%d] @%p of class %s\n", pName, mGlobalObjectVariables.size(), pObject, pVocab->GetName());
     mGlobalObjectVariables.push_back(pObject);
 }
 
-void ForthOuterInterpreter::CleanupGlobalObjectVariables(forthop* pNewDP)
+void OuterInterpreter::CleanupGlobalObjectVariables(forthop* pNewDP)
 {
     cell objectIndex = mGlobalObjectVariables.size() - 1;
     while (objectIndex >= 0)
@@ -3406,7 +3406,7 @@ void ForthOuterInterpreter::CleanupGlobalObjectVariables(forthop* pNewDP)
     mGlobalObjectVariables.resize(objectIndex + 1);
 }
 
-char* ForthOuterInterpreter::GrabTempBuffer()
+char* OuterInterpreter::GrabTempBuffer()
 {
 #ifdef WIN32
     EnterCriticalSection(mpTempBufferLock);
@@ -3417,7 +3417,7 @@ char* ForthOuterInterpreter::GrabTempBuffer()
     return mpTempBuffer;
 }
 
-void ForthOuterInterpreter::UngrabTempBuffer()
+void OuterInterpreter::UngrabTempBuffer()
 {
 #ifdef WIN32
     EnterCriticalSection(mpTempBufferLock);
@@ -3482,7 +3482,7 @@ void ForthEngine::RaiseException(ForthCoreState *pCore, cell newExceptionNum)
 }
 
 // return true IFF compilation occured
-bool ForthOuterInterpreter::CompileLocalVariableOpcode(forthop* pEntry, VarOperation varop)
+bool OuterInterpreter::CompileLocalVariableOpcode(forthop* pEntry, VarOperation varop)
 {
     if (varop < VarOperation::kNumBasicVarops)
     {
@@ -3501,7 +3501,7 @@ bool ForthOuterInterpreter::CompileLocalVariableOpcode(forthop* pEntry, VarOpera
 //############################################################################
 
 // return true to exit forth shell
-OpResult ForthOuterInterpreter::ProcessToken( ForthParseInfo   *pInfo )
+OpResult OuterInterpreter::ProcessToken( ForthParseInfo   *pInfo )
 {
     forthop* pEntry;
     int64_t lvalue;

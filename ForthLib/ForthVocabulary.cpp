@@ -1526,7 +1526,7 @@ namespace OVocabulary
 		END_MEMBERS
 	};
 
-	void AddClasses(ForthOuterInterpreter* pOuter)
+	void AddClasses(OuterInterpreter* pOuter)
 	{
 		pOuter->AddBuiltinClass("Vocabulary", kBCIVocabulary, kBCIObject, oVocabularyMembers);
 		pOuter->AddBuiltinClass("VocabularyIter", kBCIVocabularyIter, kBCIObject, oVocabularyIterMembers);

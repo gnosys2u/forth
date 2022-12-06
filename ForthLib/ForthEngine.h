@@ -28,7 +28,7 @@ class ForthShell;
 class ForthExtension;
 class ForthOpcodeCompiler;
 class ForthBlockFileManager;
-class ForthOuterInterpreter;
+class OuterInterpreter;
 
 #define DEFAULT_USER_STORAGE 16384
 
@@ -54,11 +54,11 @@ typedef enum {
     //int32_t                *DBase;         // base of dictionary
     //uint32_t               DLen;           // max size of dictionary memory segment
 
-class ForthEngineTokenStack
+class TokenStack
 {
 public:
-	ForthEngineTokenStack();
-	~ForthEngineTokenStack();
+	TokenStack();
+	~TokenStack();
 	void Initialize(uint32_t numBytes);
 	inline bool IsEmpty() const { return mpCurrent == mpLimit; };
 	void Push(const char* pToken);
@@ -73,9 +73,9 @@ private:
 	size_t              mNumBytes;
 };
 
-struct ForthLabelReference
+struct LabelReference
 {
-	ForthLabelReference(forthop *inBranchIP, cell inBranchType)
+	LabelReference(forthop *inBranchIP, cell inBranchType)
 		: branchIP(inBranchIP)
 		, branchType(inBranchType)
 	{
@@ -85,16 +85,16 @@ struct ForthLabelReference
 	cell branchType;		//  kOpBranch, kOpBranchNZ or kOpBranchZ
 };
 
-class ForthLabel
+class Label
 {
 public:
-	ForthLabel(const char* pName)
+	Label(const char* pName)
 		: name(pName)
 		, labelIP(nullptr)
 	{
 	}
 
-	ForthLabel(const char* pName, forthop* inLabelIP)
+	Label(const char* pName, forthop* inLabelIP)
 		: name(pName)
 		, labelIP(inLabelIP)
 	{
@@ -110,7 +110,7 @@ public:
 	{
 		if (labelIP == nullptr)
 		{
-			references.emplace_back(ForthLabelReference(inBranchIP, inBranchType));
+			references.emplace_back(LabelReference(inBranchIP, inBranchType));
 		}
 		else
 		{
@@ -123,7 +123,7 @@ public:
 		labelIP = inLabelIP;
 		if (references.size() > 0)
 		{
-			for (ForthLabelReference& labelReference : references)
+			for (LabelReference& labelReference : references)
 			{
 				CompileBranch(labelReference.branchIP, labelReference.branchType);
 			}
@@ -132,7 +132,7 @@ public:
 	}
 
 	std::string name;
-	std::vector<ForthLabelReference> references;
+	std::vector<LabelReference> references;
     forthop *labelIP;
 };
 
@@ -267,10 +267,10 @@ public:
     ForthClassVocabulary* AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex,
         eBuiltinClassIndex parentClassIndex, baseMethodEntry* pEntries);
 
-    inline ForthOuterInterpreter* GetOuterInterpreter() { return mpOuter; }
+    inline OuterInterpreter* GetOuterInterpreter() { return mpOuter; }
 
 private:
-    ForthOuterInterpreter* mpOuter;
+    OuterInterpreter* mpOuter;
     ForthBlockFileManager* mBlockFileManager;
 
     ForthCoreState* mpCore;             // core inner interpreter state
@@ -318,11 +318,11 @@ private:
 
 };
 
-class ForthOuterInterpreter
+class OuterInterpreter
 {
 public:
-    ForthOuterInterpreter(ForthEngine* pEngine);
-    virtual         ~ForthOuterInterpreter();
+    OuterInterpreter(ForthEngine* pEngine);
+    virtual         ~OuterInterpreter();
     void            Initialize();
 
     void            Reset( void );
@@ -401,7 +401,7 @@ public:
     forthop*				GetLastCompiledOpcodePtr( void );
     forthop*				GetLastCompiledIntoPtr( void );
     void                    ProcessConstant( int64_t value, bool isOffset=false, bool isSingle=true );
-	inline ForthEngineTokenStack* GetTokenStack() { return &mTokenStack; };
+	inline TokenStack* GetTokenStack() { return &mTokenStack; };
 
     inline ForthVocabulary  *GetSearchVocabulary( void )   { return mpVocabStack->GetTop(); };
     inline void             SetSearchVocabulary( ForthVocabulary* pVocab )  { mpVocabStack->SetTop( pVocab ); };
@@ -473,7 +473,7 @@ private:
     ForthCoreState* mpCore;             // core inner interpreter state of main thread first fiber
     ForthMemorySection* mpDictionary;
 
-    ForthEngineTokenStack mTokenStack;		// contains tokens which will be gotten by GetNextSimpleToken instead of from input stream
+    TokenStack mTokenStack;		// contains tokens which will be gotten by GetNextSimpleToken instead of from input stream
 
     ForthVocabulary * mpForthVocab;              // main forth vocabulary
     ForthVocabulary * mpLiteralsVocab;            // user-defined literals vocabulary
@@ -512,7 +512,7 @@ private:
     cell*           mpEnumStackBase;
     cell            mNextEnum;
 
-	std::vector<ForthLabel> mLabels;
+	std::vector<Label> mLabels;
 
 public:
     void                    PushContinuationAddress(forthop* pOP);

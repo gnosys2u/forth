@@ -14,7 +14,7 @@
 
 class ForthBlockInputStream;
 class ForthEngine;
-class ForthOuterInterpreter;
+class OuterInterpreter;
 
 class ForthBlockFileManager
 {
@@ -54,5 +54,5 @@ private:
 
 namespace OBlockFile
 {
-    void AddClasses(ForthOuterInterpreter* pOuter);
+    void AddClasses(OuterInterpreter* pOuter);
 } // namespace OBlockFile

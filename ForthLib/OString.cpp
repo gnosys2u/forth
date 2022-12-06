@@ -1564,7 +1564,7 @@ namespace OString
         return false;
     }
 
-    void AddClasses(ForthOuterInterpreter* pOuter)
+    void AddClasses(OuterInterpreter* pOuter)
 	{
         gpStringClassVocab = pOuter->AddBuiltinClass("String", kBCIString, kBCIObject, oStringMembers);
         gpStringClassVocab->SetCustomObjectReader(customStringReader);

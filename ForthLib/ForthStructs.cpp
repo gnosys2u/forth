@@ -165,7 +165,7 @@ ForthTypesManager::DefineInitOpcode()
 	if (mFieldInitInfos.size() > 0)
 	{
 		ForthEngine *pEngine = ForthEngine::GetInstance();
-        ForthOuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+        OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
 
 		ForthVocabulary* pOldDefinitionsVocab = pOuter->GetDefinitionVocabulary();
         pOuter->SetDefinitionVocabulary(pVocab);
@@ -274,7 +274,7 @@ ForthClassVocabulary*
 ForthTypesManager::StartClassDefinition(const char *pName, int classIndex)
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
-    ForthOuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     ForthVocabulary* pDefinitionsVocab = pOuter->GetDefinitionVocabulary();
 	ForthTypeInfo *pInfo = NULL;
 
@@ -302,7 +302,7 @@ ForthTypesManager::EndClassDefinition()
 {
     SPEW_STRUCTS( "EndClassDefinition\n" );
     ForthEngine *pEngine = ForthEngine::GetInstance();
-    ForthOuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     pOuter->EndOpDefinition( false );
 	DefineInitOpcode();
 	pOuter->SetDefinitionVocabulary(mpSavedDefinitionVocab);
@@ -455,7 +455,7 @@ bool
 ForthTypesManager::ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus )
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
-    ForthOuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     ForthCoreState* pCore = pEngine->GetCoreState();
     ForthVocabulary *pFoundVocab = NULL;
     // ProcessSymbol will compile opcodes into temporary buffer mCode
@@ -491,7 +491,7 @@ bool
 ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus, VarOperation varop)
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
-    ForthOuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     forthop *pDst = &(mCode[0]);
     ForthVocabulary *pFoundVocab = NULL;
     ForthCoreState* pCore = pEngine->GetCoreState();
@@ -671,7 +671,7 @@ ForthStructVocabulary::DefineInstance( void )
     // - define a global instance of this struct type
     // - define a local instance of this struct type
     // - define a field of this struct type
-    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     char *pToken = pOuter->GetNextSimpleToken();
     int nBytes = mMaxNumBytes;
     char *pHere;
@@ -1361,7 +1361,7 @@ ForthClassVocabulary::~ForthClassVocabulary()
 void
 ForthClassVocabulary::DefineInstance( void )
 {
-    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     char* pInstanceName = pOuter->GetNextSimpleToken();
     char* pContainedClassName = nullptr;
     if (::strcmp(pInstanceName, "of") == 0)
@@ -1388,7 +1388,7 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
     bool isPtr = false;
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
     ForthCoreState *pCore = mpEngine->GetCoreState();
-    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     int32_t typeIndex = mTypeIndex;
 
     if (pContainedClassName != nullptr)
@@ -2053,7 +2053,7 @@ ForthNativeType::~ForthNativeType()
 void
 ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_t flags )
 {
-    ForthOuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     char *pToken = pOuter->GetNextSimpleToken();
     int nBytes = mNumBytes;
     char *pHere;

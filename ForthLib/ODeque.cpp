@@ -256,7 +256,7 @@ namespace ODeque
         END_MEMBERS
     };
 
-    void AddClasses(ForthOuterInterpreter* pOuter)
+    void AddClasses(OuterInterpreter* pOuter)
     {
         ForthClassVocabulary* pVocab = pOuter->AddBuiltinClass("Deque", kBCIDeque, kBCIObject, oDequeMembers);
         pVocab->SetCustomObjectReader(customDequeReader);

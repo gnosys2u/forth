@@ -3733,7 +3733,7 @@ namespace OMap
 
     // TODO: string-double map iter, it can just be string-int32_t map iter, but parent member should be type kBCIStringDoubleMap
 
-	void AddClasses(ForthOuterInterpreter* pOuter)
+	void AddClasses(OuterInterpreter* pOuter)
 	{
 		ForthClassVocabulary* pVocab = pOuter->AddBuiltinClass("Map", kBCIMap, kBCIIterable, oMapMembers);
         pVocab->SetCustomObjectReader(customMapReader);
