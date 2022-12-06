@@ -40,7 +40,7 @@ namespace OString
 	extern void stringBlockOut( ForthCoreState* pCore, void *pData, const char *pBuffer, int numChars );
 	extern void stringStringOut( ForthCoreState* pCore, void *pData, const char *pBuffer );
     
-	void AddClasses(ForthEngine* pEngine);
+	void AddClasses(ForthOuterInterpreter* pOuter);
     oStringMapStruct* createStringMapObject(ForthClassVocabulary *pClassVocab);
 
 

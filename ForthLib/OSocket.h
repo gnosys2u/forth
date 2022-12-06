@@ -7,5 +7,5 @@
 
 namespace OSocket
 {
-    void AddClasses(ForthEngine* pEngine);
+    void AddClasses(ForthOuterInterpreter* pOuter);
 }

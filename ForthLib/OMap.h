@@ -10,7 +10,7 @@ class ForthClassVocabulary;
 
 namespace OMap
 {
-	void AddClasses(ForthEngine* pEngine);
+	void AddClasses(ForthOuterInterpreter* pOuter);
 
     oLongMapStruct* createLongMapObject(ForthClassVocabulary *pClassVocab);
 

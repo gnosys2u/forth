@@ -667,6 +667,7 @@ static bool gbCatchExceptions = false;
 //
 OpResult ForthShell::InterpretLine( const char *pSrcLine )
 {
+    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     OpResult  result = OpResult::kOk;
     bool bLineEmpty;
     ForthParseInfo parseInfo( mTokenBuffer, sizeof(mTokenBuffer) >> 2 );
@@ -703,7 +704,7 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
 			{
 				try
 				{
-					result = mpEngine->ProcessToken( &parseInfo );
+					result = pOuter->ProcessToken( &parseInfo );
 					CHECK_STACKS( mpEngine->GetMainFiber() );
 				}
 				catch(...)
@@ -715,7 +716,7 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
 			}
 			else
 			{
-                result = mpEngine->ProcessToken( &parseInfo );
+                result = pOuter->ProcessToken( &parseInfo );
                 CHECK_STACKS( mpEngine->GetMainFiber() );
 			}
 #else
@@ -740,7 +741,7 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
                 if (mpEngine->GetError() == ForthError::kUnknownSymbol)
                 {
                     ForthConsoleCharOut(mpEngine->GetCoreState(), '\n');
-                    mpEngine->ShowSearchInfo();
+                    pOuter->ShowSearchInfo();
                 }
                 mpEngine->DumpCrashState();
             }
@@ -775,7 +776,8 @@ ForthShell::ReportError( void )
     const char *pLastInputToken;
 
     mpEngine->GetErrorString( errorBuf1, sizeof(errorBuf1) );
-    pLastInputToken = mpEngine->GetLastInputToken();
+    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+    pLastInputToken = pOuter->GetLastInputToken();
 	ForthCoreState* pCore = mpEngine->GetCoreState();
 
 	if ( pLastInputToken != NULL )
@@ -833,8 +835,9 @@ void ForthShell::ReportWarning(const char* pMessage)
     char errorBuf1[512];
     char errorBuf2[512];
     const char *pLastInputToken;
+    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
 
-    pLastInputToken = mpEngine->GetLastInputToken();
+    pLastInputToken = pOuter->GetLastInputToken();
     ForthCoreState* pCore = mpEngine->GetCoreState();
 
     if (pLastInputToken != NULL)
@@ -888,6 +891,7 @@ void ForthShell::ReportWarning(const char* pMessage)
 bool
 ForthShell::ParseString( ForthParseInfo *pInfo )
 {
+    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     const char *pSrc;
     const char *pEndSrc = nullptr;
     char *pDst;
@@ -916,7 +920,7 @@ ForthShell::ParseString( ForthParseInfo *pInfo )
         }
 
         // support C++ end-of-line style comments
-        if ( (*pSrc == '/') && (pSrc[1] == '/') && mpEngine->CheckFeature( kFFDoubleSlashComment ) )
+        if ( (*pSrc == '/') && (pSrc[1] == '/') && pOuter->CheckFeature( kFFDoubleSlashComment ) )
         {
             return true;
         }
@@ -926,7 +930,7 @@ ForthShell::ParseString( ForthParseInfo *pInfo )
         {
            case '\"':
               // support C-style quoted strings...
-              if ( mpEngine->CheckFeature( kFFCStringLiterals ) )
+              if (pOuter->CheckFeature( kFFCStringLiterals ) )
               {
                   pEndSrc = pSrc;
                   pInfo->ParseDoubleQuote(pEndSrc, pSrcLimit);
@@ -982,6 +986,7 @@ ForthShell::ParseString( ForthParseInfo *pInfo )
 bool
 ForthShell::ParseToken( ForthParseInfo *pInfo )
 {
+    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     const char *pSrc;
     const char *pEndSrc = nullptr;
     char *pDst;
@@ -1034,7 +1039,7 @@ ForthShell::ParseToken( ForthParseInfo *pInfo )
 
     while ( !gotAToken )
     {
-		bool advanceInputBuffer = true;
+        bool advanceInputBuffer = true;
 
 		const char* pSrcLimit = mpInput->GetBufferBasePointer() + mpInput->GetWriteOffset();
 		pSrc = mpInput->GetBufferPointer();
@@ -1054,7 +1059,7 @@ ForthShell::ParseToken( ForthParseInfo *pInfo )
         }
 
         // support C++ end-of-line style comments
-        if ( (*pSrc == '/') && (pSrc[1] == '/') && mpEngine->CheckFeature( kFFDoubleSlashComment ) )
+        if ( (*pSrc == '/') && (pSrc[1] == '/') && pOuter->CheckFeature( kFFDoubleSlashComment ) )
         {
             return true;
         }
@@ -1064,7 +1069,7 @@ ForthShell::ParseToken( ForthParseInfo *pInfo )
         {
            case '\"':
               // support C-style quoted strings...
-              if ( mpEngine->CheckFeature( kFFCStringLiterals ) )
+              if ( pOuter->CheckFeature( kFFCStringLiterals ) )
               {
                   pEndSrc = pSrc;
                   pInfo->ParseDoubleQuote(pEndSrc, pSrcLimit);
@@ -1074,7 +1079,7 @@ ForthShell::ParseToken( ForthParseInfo *pInfo )
 
            case '`':
               // support C-style quoted characters like `a` or `\n`
-              if ( mpEngine->CheckFeature( kFFCCharacterLiterals ) )
+              if ( pOuter->CheckFeature( kFFCCharacterLiterals ) )
               {
 				  pEndSrc = pInfo->ParseSingleQuote(pSrc, pSrcLimit, mpEngine);
                   gotAToken = true;
@@ -1107,16 +1112,16 @@ ForthShell::ParseToken( ForthParseInfo *pInfo )
                      break;
 
                   case '(':
-                     if ((pEndSrc == pSrc) || mpEngine->CheckFeature(kFFParenIsComment))
+                     if ((pEndSrc == pSrc) || pOuter->CheckFeature(kFFParenIsComment))
                      {
                          // paren at start of token is part of token (allows old forth-style inline comments to work)
-                         if (mpEngine->CheckFeature(kFFParenIsComment) == 0)
+                         if (pOuter->CheckFeature(kFFParenIsComment) == 0)
                          {
                              ReportWarning("Possibly misplaced parentheses");
                          }
                          *pDst++ = *pEndSrc++;
                      }
-                     else if (mpEngine->CheckFeature(kFFParenIsExpression))
+                     else if (pOuter->CheckFeature(kFFParenIsExpression))
                      {
                          // push accumulated token (if any) onto shell stack
 						 advanceInputBuffer = false;
@@ -1157,11 +1162,11 @@ ForthShell::ParseToken( ForthParseInfo *pInfo )
                      break;
 
                   case ')':
-                     if ( mpEngine->CheckFeature( kFFParenIsComment ) )
+                     if ( pOuter->CheckFeature( kFFParenIsComment ) )
                      {
                         *pDst++ = *pEndSrc++;
                      }
-					 else if (mpEngine->CheckFeature(kFFParenIsExpression))
+					 else if (pOuter->CheckFeature(kFFParenIsExpression))
 					 {
                         // process accumulated token (if any), pop shell stack, compile/interpret if not empty
                         pEndSrc++;
@@ -1823,7 +1828,8 @@ void ForthShell::PoundIf()
 
 void ForthShell::PoundIfdef( bool isDefined )
 {
-    ForthVocabulary* pVocab = mpEngine->GetSearchVocabulary();
+    ForthOuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+    ForthVocabulary* pVocab = pOuter->GetSearchVocabulary();
     char* pToken = GetNextSimpleToken();
     if ( (pToken == NULL) || (pVocab == NULL) || ((pVocab->FindSymbol( pToken ) != NULL) != isDefined) )
     {

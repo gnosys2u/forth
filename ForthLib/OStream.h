@@ -10,7 +10,7 @@ class ForthClassVocabulary;
 
 namespace OStream
 {
-	void AddClasses(ForthEngine* pEngine);
+	void AddClasses(ForthOuterInterpreter* pOuter);
 
 	ForthObject getStdoutObject();
 	ForthObject getStderrObject();

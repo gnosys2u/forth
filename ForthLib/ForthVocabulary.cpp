@@ -614,7 +614,7 @@ OpResult ForthVocabulary::ProcessEntry( forthop* pEntry )
     }
     if ( compileIt )
     {
-        mpEngine->CompileOpcode( *pEntry );
+        mpEngine->GetOuterInterpreter()->CompileOpcode( *pEntry );
     }
     else
     {
@@ -668,7 +668,7 @@ ForthVocabulary::DoOp( ForthCoreState *pCore )
 {
     ForthVocabularyStack* pVocabStack;
 
-	pVocabStack = mpEngine->GetVocabularyStack();
+	pVocabStack = mpEngine->GetOuterInterpreter()->GetVocabularyStack();
 	pVocabStack->SetTop(this);
 }
 
@@ -967,7 +967,7 @@ forthop * ForthDLLVocabulary::AddEntry( const char *pFuncName, const char* pEntr
 #endif
     if (pFunc )
     {
-        forthop dllOp = mpEngine->AddOp(pFunc);
+        forthop dllOp = mpEngine->GetOuterInterpreter()->AddOp(pFunc);
         dllOp = COMPILED_OP(kOpDLLEntryPoint, dllOp) | ((numArgs << 19) | mDLLFlags);
         pEntry = AddSymbol(pEntryName, dllOp);
     }
@@ -1049,7 +1049,7 @@ bool ForthVocabularyStack::DropTop( void )
 void ForthVocabularyStack::Clear( void )
 {
     mTop = 0;
-    mStack[0] = mpEngine->GetForthVocabulary();
+    mStack[0] = mpEngine->GetOuterInterpreter()->GetForthVocabulary();
 //    mStack[1] = mpEngine->GetPrecedenceVocabulary();
 }
 
@@ -1087,7 +1087,7 @@ forthop* ForthVocabularyStack::FindSymbol( const char *pSymName, ForthVocabulary
             break;
         }
     }
-    if ( (pEntry == NULL) && mpEngine->CheckFeature( kFFIgnoreCase ) )
+    if ( (pEntry == NULL) && mpEngine->GetOuterInterpreter()->CheckFeature( kFFIgnoreCase ) )
     {
         // if symbol wasn't found, convert it to lower case and try again
         char buffer[128];
@@ -1162,7 +1162,7 @@ forthop * ForthVocabularyStack::FindSymbol( ForthParseInfo *pInfo, ForthVocabula
         }
     }
 
-    if ( (pEntry == NULL) && mpEngine->CheckFeature( kFFIgnoreCase ) )
+    if ( (pEntry == NULL) && mpEngine->GetOuterInterpreter()->CheckFeature( kFFIgnoreCase ) )
     {
         // if symbol wasn't found, convert it to lower case and try again
         char buffer[128];
@@ -1335,7 +1335,7 @@ namespace OVocabulary
             if (addToEngineOps)
             {
                 ForthEngine *pEngine = ForthEngine::GetInstance();
-                opVal = pEngine->AddOp(reinterpret_cast<void *>(opVal));
+                opVal = pEngine->GetOuterInterpreter()->AddOp(reinterpret_cast<void *>(opVal));
             }
             opVal = COMPILED_OP(opType, opVal);
 
@@ -1526,10 +1526,10 @@ namespace OVocabulary
 		END_MEMBERS
 	};
 
-	void AddClasses(ForthEngine* pEngine)
+	void AddClasses(ForthOuterInterpreter* pOuter)
 	{
-		pEngine->AddBuiltinClass("Vocabulary", kBCIVocabulary, kBCIObject, oVocabularyMembers);
-		pEngine->AddBuiltinClass("VocabularyIter", kBCIVocabularyIter, kBCIObject, oVocabularyIterMembers);
+		pOuter->AddBuiltinClass("Vocabulary", kBCIVocabulary, kBCIObject, oVocabularyMembers);
+		pOuter->AddBuiltinClass("VocabularyIter", kBCIVocabularyIter, kBCIObject, oVocabularyIterMembers);
 	}
 
 } // namespace OVocabulary 

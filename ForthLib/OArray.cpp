@@ -6663,49 +6663,49 @@ namespace OArray
 	};
 
 
-    void AddClasses(ForthEngine* pEngine)
+    void AddClasses(ForthOuterInterpreter* pOuter)
 	{
-		gpArrayClassVocab = pEngine->AddBuiltinClass("Array", kBCIArray, kBCIIterable, oArrayMembers);
+		gpArrayClassVocab = pOuter->AddBuiltinClass("Array", kBCIArray, kBCIIterable, oArrayMembers);
         gpArrayClassVocab->SetCustomObjectReader(customArrayReader);
-        pEngine->AddBuiltinClass("ArrayIter", kBCIArrayIter, kBCIIter, oArrayIterMembers);
+        pOuter->AddBuiltinClass("ArrayIter", kBCIArrayIter, kBCIIter, oArrayIterMembers);
 
-        ForthClassVocabulary* pVocab = pEngine->AddBuiltinClass("Bag", kBCIBag, kBCIIterable, oBagMembers);
+        ForthClassVocabulary* pVocab = pOuter->AddBuiltinClass("Bag", kBCIBag, kBCIIterable, oBagMembers);
         pVocab->SetCustomObjectReader(customBagReader);
-        pEngine->AddBuiltinClass("BagIter", kBCIBagIter, kBCIIter, oBagIterMembers);
+        pOuter->AddBuiltinClass("BagIter", kBCIBagIter, kBCIIter, oBagIterMembers);
 
-        pVocab = pEngine->AddBuiltinClass("ByteArray", kBCIByteArray, kBCIIterable, oByteArrayMembers);
+        pVocab = pOuter->AddBuiltinClass("ByteArray", kBCIByteArray, kBCIIterable, oByteArrayMembers);
         pVocab->SetCustomObjectReader(customByteArrayReader);
-        pEngine->AddBuiltinClass("ByteArrayIter", kBCIByteArrayIter, kBCIIter, oByteArrayIterMembers);
+        pOuter->AddBuiltinClass("ByteArrayIter", kBCIByteArrayIter, kBCIIter, oByteArrayIterMembers);
 
-        pVocab = pEngine->AddBuiltinClass("ShortArray", kBCIShortArray, kBCIIterable, oShortArrayMembers);
+        pVocab = pOuter->AddBuiltinClass("ShortArray", kBCIShortArray, kBCIIterable, oShortArrayMembers);
         pVocab->SetCustomObjectReader(customShortArrayReader);
-        pEngine->AddBuiltinClass("ShortArrayIter", kBCIShortArrayIter, kBCIIter, oShortArrayIterMembers);
+        pOuter->AddBuiltinClass("ShortArrayIter", kBCIShortArrayIter, kBCIIter, oShortArrayIterMembers);
 
-        pVocab = pEngine->AddBuiltinClass("IntArray", kBCIIntArray, kBCIIterable, oIntArrayMembers);
+        pVocab = pOuter->AddBuiltinClass("IntArray", kBCIIntArray, kBCIIterable, oIntArrayMembers);
         pVocab->SetCustomObjectReader(customIntArrayReader);
-        pEngine->AddBuiltinClass("IntArrayIter", kBCIIntArrayIter, kBCIIter, oIntArrayIterMembers);
+        pOuter->AddBuiltinClass("IntArrayIter", kBCIIntArrayIter, kBCIIter, oIntArrayIterMembers);
 
-        pVocab = pEngine->AddBuiltinClass("FloatArray", kBCIFloatArray, kBCIIterable, oFloatArrayMembers);
+        pVocab = pOuter->AddBuiltinClass("FloatArray", kBCIFloatArray, kBCIIterable, oFloatArrayMembers);
         pVocab->SetCustomObjectReader(customFloatArrayReader);
-        pEngine->AddBuiltinClass("FloatArrayIter", kBCIFloatArrayIter, kBCIIter, oIntArrayIterMembers);
+        pOuter->AddBuiltinClass("FloatArrayIter", kBCIFloatArrayIter, kBCIIter, oIntArrayIterMembers);
 
-        pVocab = pEngine->AddBuiltinClass("LongArray", kBCILongArray, kBCIIterable, oLongArrayMembers);
+        pVocab = pOuter->AddBuiltinClass("LongArray", kBCILongArray, kBCIIterable, oLongArrayMembers);
         pVocab->SetCustomObjectReader(customLongArrayReader);
-        pEngine->AddBuiltinClass("LongArrayIter", kBCILongArrayIter, kBCIIter, oLongArrayIterMembers);
+        pOuter->AddBuiltinClass("LongArrayIter", kBCILongArrayIter, kBCIIter, oLongArrayIterMembers);
 
-        pVocab = pEngine->AddBuiltinClass("DoubleArray", kBCIDoubleArray, kBCIIterable, oDoubleArrayMembers);
+        pVocab = pOuter->AddBuiltinClass("DoubleArray", kBCIDoubleArray, kBCIIterable, oDoubleArrayMembers);
         pVocab->SetCustomObjectReader(customDoubleArrayReader);
-        pEngine->AddBuiltinClass("DoubleArrayIter", kBCIDoubleArrayIter, kBCIIter, oLongArrayIterMembers);
+        pOuter->AddBuiltinClass("DoubleArrayIter", kBCIDoubleArrayIter, kBCIIter, oLongArrayIterMembers);
 
-        pVocab = pEngine->AddBuiltinClass("StructArray", kBCIStructArray, kBCIIterable, oStructArrayMembers);
+        pVocab = pOuter->AddBuiltinClass("StructArray", kBCIStructArray, kBCIIterable, oStructArrayMembers);
         pVocab->SetCustomObjectReader(customStructArrayReader);
-        pEngine->AddBuiltinClass("StructArrayIter", kBCIStructArrayIter, kBCIIter, oStructArrayIterMembers);
+        pOuter->AddBuiltinClass("StructArrayIter", kBCIStructArrayIter, kBCIIter, oStructArrayIterMembers);
 
-        pEngine->AddBuiltinClass("Pair", kBCIPair, kBCIIterable, oPairMembers);
-		pEngine->AddBuiltinClass("PairIter", kBCIPairIter, kBCIIter, oPairIterMembers);
+        pOuter->AddBuiltinClass("Pair", kBCIPair, kBCIIterable, oPairMembers);
+		pOuter->AddBuiltinClass("PairIter", kBCIPairIter, kBCIIter, oPairIterMembers);
 
-		pEngine->AddBuiltinClass("Triple", kBCITriple, kBCIIterable, oTripleMembers);
-		pEngine->AddBuiltinClass("TripleIter", kBCITripleIter, kBCIIter, oTripleIterMembers);
+		pOuter->AddBuiltinClass("Triple", kBCITriple, kBCIIterable, oTripleMembers);
+		pOuter->AddBuiltinClass("TripleIter", kBCITripleIter, kBCIIter, oTripleIterMembers);
 	}
 
 } // namespace OArray

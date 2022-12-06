@@ -3885,24 +3885,24 @@ OPTYPE_ACTION(OpNZBranchComboAction)
 
 OPTYPE_ACTION( SquishedFloatAction )
 {
-	float fval = ((ForthEngine *)pCore->pEngine)->UnsquishFloat( opVal );
+	float fval = ((ForthEngine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishFloat( opVal );
 	FPUSH( fval );
 }
 
 OPTYPE_ACTION( SquishedDoubleAction )
 {
-	double dval = ((ForthEngine *)pCore->pEngine)->UnsquishDouble( opVal );
+	double dval = ((ForthEngine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishDouble( opVal );
 	DPUSH( dval );
 }
 
 OPTYPE_ACTION( SquishedLongAction )
 {
 #if defined(FORTH64)
-    int64_t lval = ((ForthEngine *)pCore->pEngine)->UnsquishLong(opVal);
+    int64_t lval = ((ForthEngine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishLong(opVal);
     SPUSH(lval);
 #else
     stackInt64 lval;
-    lval.s64 = ((ForthEngine *)pCore->pEngine)->UnsquishLong(opVal);
+    lval.s64 = ((ForthEngine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishLong(opVal);
     LPUSH(lval);
 #endif
 }

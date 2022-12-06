@@ -1339,10 +1339,10 @@ namespace OThread
 	};
 
 
-	void AddClasses(ForthEngine* pEngine)
+	void AddClasses(ForthOuterInterpreter* pOuter)
 	{
-		gpFiberVocabulary = pEngine->AddBuiltinClass("Fiber", kBCIFiber, kBCIObject, oFiberMembers);
-		gpThreadVocabulary = pEngine->AddBuiltinClass("Thread", kBCIThread, kBCIObject, oThreadMembers);
+		gpFiberVocabulary = pOuter->AddBuiltinClass("Fiber", kBCIFiber, kBCIObject, oFiberMembers);
+		gpThreadVocabulary = pOuter->AddBuiltinClass("Thread", kBCIThread, kBCIObject, oThreadMembers);
 	}
 
 } // namespace OThread
@@ -1966,12 +1966,12 @@ namespace OLock
     };
    
     
-    void AddClasses(ForthEngine* pEngine)
+    void AddClasses(ForthOuterInterpreter* pOuter)
 	{
-		gpAsyncLockVocabulary = pEngine->AddBuiltinClass("AsyncLock", kBCIAsyncLock, kBCIObject, oAsyncLockMembers);
-        pEngine->AddBuiltinClass("Lock", kBCILock, kBCIObject, oLockMembers);
-        gpSemaphoreVocabulary = pEngine->AddBuiltinClass("AsyncSemaphore", kBCIAsyncSemaphore, kBCIObject, oAsyncSemaphoreMembers);
-        pEngine->AddBuiltinClass("Semaphore", kBCISemaphore, kBCIObject, oSemaphoreMembers);
+		gpAsyncLockVocabulary = pOuter->AddBuiltinClass("AsyncLock", kBCIAsyncLock, kBCIObject, oAsyncLockMembers);
+        pOuter->AddBuiltinClass("Lock", kBCILock, kBCIObject, oLockMembers);
+        gpSemaphoreVocabulary = pOuter->AddBuiltinClass("AsyncSemaphore", kBCIAsyncSemaphore, kBCIObject, oAsyncSemaphoreMembers);
+        pOuter->AddBuiltinClass("Semaphore", kBCISemaphore, kBCIObject, oSemaphoreMembers);
     }
 
 } // namespace OLock

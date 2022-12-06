@@ -960,12 +960,12 @@ namespace OList
     }
 
 
-	void AddClasses(ForthEngine* pEngine)
+	void AddClasses(ForthOuterInterpreter* pOuter)
 	{
-		ForthClassVocabulary* pListVoc = pEngine->AddBuiltinClass("List", kBCIList, kBCIIterable, oListMembers);
+		ForthClassVocabulary* pListVoc = pOuter->AddBuiltinClass("List", kBCIList, kBCIIterable, oListMembers);
         pListVoc->SetCustomObjectReader(customListReader);
 
-		pEngine->AddBuiltinClass("ListIter", kBCIListIter, kBCIIter, oListIterMembers);
+		pOuter->AddBuiltinClass("ListIter", kBCIListIter, kBCIIter, oListIterMembers);
 	}
 
 } // namespace OList

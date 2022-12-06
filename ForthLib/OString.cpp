@@ -1564,15 +1564,15 @@ namespace OString
         return false;
     }
 
-    void AddClasses(ForthEngine* pEngine)
+    void AddClasses(ForthOuterInterpreter* pOuter)
 	{
-        gpStringClassVocab = pEngine->AddBuiltinClass("String", kBCIString, kBCIObject, oStringMembers);
+        gpStringClassVocab = pOuter->AddBuiltinClass("String", kBCIString, kBCIObject, oStringMembers);
         gpStringClassVocab->SetCustomObjectReader(customStringReader);
 
-        gpStringMapClassVocab = pEngine->AddBuiltinClass("StringMap", kBCIStringMap, kBCIIterable, oStringMapMembers);
+        gpStringMapClassVocab = pOuter->AddBuiltinClass("StringMap", kBCIStringMap, kBCIIterable, oStringMapMembers);
         gpStringMapClassVocab->SetCustomObjectReader(customStringMapReader);
 
-        pEngine->AddBuiltinClass("StringMapIter", kBCIStringMapIter, kBCIIter, oStringMapIterMembers);
+        pOuter->AddBuiltinClass("StringMapIter", kBCIStringMapIter, kBCIIter, oStringMapIterMembers);
 	}
 
 } // namespace oString

@@ -390,12 +390,12 @@ namespace ONumber
 	};
 
 
-	void AddClasses(ForthEngine* pEngine)
+	void AddClasses(ForthOuterInterpreter* pOuter)
 	{
-		pEngine->AddBuiltinClass("Int", kBCIInt, kBCIObject, oIntMembers);
-		pEngine->AddBuiltinClass("Long", kBCILong, kBCIObject, oLongMembers);
-		pEngine->AddBuiltinClass("Float", kBCIFloat, kBCIObject, oFloatMembers);
-		pEngine->AddBuiltinClass("Double", kBCIDouble, kBCIObject, oDoubleMembers);
+		pOuter->AddBuiltinClass("Int", kBCIInt, kBCIObject, oIntMembers);
+		pOuter->AddBuiltinClass("Long", kBCILong, kBCIObject, oLongMembers);
+		pOuter->AddBuiltinClass("Float", kBCIFloat, kBCIObject, oFloatMembers);
+		pOuter->AddBuiltinClass("Double", kBCIDouble, kBCIObject, oDoubleMembers);
     }
 
 } // namespace ONumber

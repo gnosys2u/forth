@@ -468,9 +468,9 @@ namespace OBlockFile
     };
 
 
-    void AddClasses(ForthEngine* pEngine)
+    void AddClasses(ForthOuterInterpreter* pOuter)
     {
-        pEngine->AddBuiltinClass("Block", kBCIBlockFile, kBCIObject, oBlockFileMembers);
+        pOuter->AddBuiltinClass("Block", kBCIBlockFile, kBCIObject, oBlockFileMembers);
     }
 
 }

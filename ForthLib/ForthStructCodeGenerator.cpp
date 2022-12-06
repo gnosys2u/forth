@@ -63,7 +63,7 @@ bool ForthStructCodeGenerator::Generate( ForthParseInfo *pInfo, forthop*& pDst, 
     ForthEngine* pEngine = ForthEngine::GetInstance();
 
     mSuffixVarop = VarOperation::kVarDefaultOp;
-    if (pEngine->CheckFeature(kFFAllowVaropSuffix))
+    if (pEngine->GetOuterInterpreter()->CheckFeature(kFFAllowVaropSuffix))
     {
         mSuffixVarop = mpParseInfo->CheckVaropSuffix();
         if (mSuffixVarop != VarOperation::kVarDefaultOp)
@@ -131,7 +131,7 @@ void ForthStructCodeGenerator::HandlePreceedingVarop()
 	mCompileVarop = 0;
     if ( pEngine->IsCompiling() )
     {
-        forthop *pLastOp = pEngine->GetLastCompiledOpcodePtr();
+        forthop *pLastOp = pEngine->GetOuterInterpreter()->GetLastCompiledOpcodePtr();
         if ( pLastOp && ((pLastOp + 1) == GET_DP)
             && (*pLastOp >= gCompiledOps[OP_FETCH]) && (*pLastOp <= gCompiledOps[OP_OCLEAR]) )
         {
@@ -253,12 +253,12 @@ bool ForthStructCodeGenerator::HandleFirst()
         //
         if ( pEntry == NULL && pEngine->IsCompiling())
         {
-            pEntry = pEngine->GetLocalVocabulary()->FindSymbol( mpToken );
+            pEntry = pEngine->GetOuterInterpreter()->GetLocalVocabulary()->FindSymbol( mpToken );
         }
 
         if ( pEntry == NULL )
         {
-            pEntry = pEngine->GetVocabularyStack()->FindSymbol( mpToken, &pFoundVocab );
+            pEntry = pEngine->GetOuterInterpreter()->GetVocabularyStack()->FindSymbol( mpToken, &pFoundVocab );
             if ( pEntry != NULL )
             {
                 // see if mToken is a class name

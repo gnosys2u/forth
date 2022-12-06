@@ -504,15 +504,13 @@ ForthTypesManager::GetTypeName( void )
 forthop gObjectShowInnerOpcode = 0;
 forthop gObjectDeleteOpcode = 0;
 
-void
-ForthTypesManager::AddBuiltinClasses(ForthEngine* pEngine)
+void ForthTypesManager::AddBuiltinClasses(ForthOuterInterpreter* pOuter)
 {
-
-    ForthClassVocabulary* pObjectClassVocab = pEngine->AddBuiltinClass("Object", kBCIObject, kBCIInvalid, objectMembers);
+    ForthClassVocabulary* pObjectClassVocab = pOuter->AddBuiltinClass("Object", kBCIObject, kBCIInvalid, objectMembers);
     gObjectShowInnerOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodShowInner);
 	gObjectDeleteOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodDelete);
 
-    ForthClassVocabulary* pClassClassVocab = pEngine->AddBuiltinClass("Class", kBCIClass, kBCIObject, classMembers);
+    ForthClassVocabulary* pClassClassVocab = pOuter->AddBuiltinClass("Class", kBCIClass, kBCIObject, classMembers);
     mpClassMethods = pClassClassVocab->GetMethods();
 
     // set the methods for class objects "Class" and "Object", they were created
@@ -521,24 +519,24 @@ ForthTypesManager::AddBuiltinClasses(ForthEngine* pEngine)
     pObjectClassVocab->FixClassObjectMethods();
     pClassClassVocab->FixClassObjectMethods();
 
-    pEngine->AddBuiltinClass("ContainedType", kBCIContainedType, kBCIObject, containedTypeMembers);
+    pOuter->AddBuiltinClass("ContainedType", kBCIContainedType, kBCIObject, containedTypeMembers);
 
-	pEngine->AddBuiltinClass("Iter", kBCIIter, kBCIObject, oIterMembers);
-    pEngine->AddBuiltinClass("Iterable", kBCIIterable, kBCIObject, oIterableMembers);
+	pOuter->AddBuiltinClass("Iter", kBCIIter, kBCIObject, oIterMembers);
+    pOuter->AddBuiltinClass("Iterable", kBCIIterable, kBCIObject, oIterableMembers);
 
-    OArray::AddClasses(pEngine);
-    ODeque::AddClasses(pEngine);
-    OList::AddClasses(pEngine);
-	OMap::AddClasses(pEngine);
-	OString::AddClasses(pEngine);
-	OStream::AddClasses(pEngine);
-    OBlockFile::AddClasses(pEngine);
-    ONumber::AddClasses(pEngine);
-	OVocabulary::AddClasses(pEngine);
-	OThread::AddClasses(pEngine);
-	OLock::AddClasses(pEngine);
-    OSystem::AddClasses(pEngine);
-    OSocket::AddClasses(pEngine);
+    OArray::AddClasses(pOuter);
+    ODeque::AddClasses(pOuter);
+    OList::AddClasses(pOuter);
+	OMap::AddClasses(pOuter);
+	OString::AddClasses(pOuter);
+	OStream::AddClasses(pOuter);
+    OBlockFile::AddClasses(pOuter);
+    ONumber::AddClasses(pOuter);
+	OVocabulary::AddClasses(pOuter);
+	OThread::AddClasses(pOuter);
+	OLock::AddClasses(pOuter);
+    OSystem::AddClasses(pOuter);
+    OSocket::AddClasses(pOuter);
 }
 
 void

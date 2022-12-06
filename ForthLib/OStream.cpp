@@ -1243,9 +1243,10 @@ namespace OStream
     {
         GET_THIS(oOutStreamStruct, pOutStream);
         ForthEngine* pEngine = GET_ENGINE;
+        ForthOuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
         // NOTE: this could lock your thread until temp buffer is available
-        char* pBuffer = pEngine->GrabTempBuffer();
-        int numChars = oStringFormatSub(pCore, pBuffer, pEngine->GetTempBufferSize() - 1);
+        char* pBuffer = pOuter->GrabTempBuffer();
+        int numChars = oStringFormatSub(pCore, pBuffer, pOuter->GetTempBufferSize() - 1);
         if (pOutStream->pOutFuncs == NULL)
         {
             ForthObject obj = GET_TP;
@@ -1263,7 +1264,7 @@ namespace OStream
         {
             streamStringOut(pCore, pOutStream, pBuffer);
         }
-        pEngine->UngrabTempBuffer();
+        pOuter->UngrabTempBuffer();
         METHOD_RETURN;
     }
 
@@ -1849,9 +1850,10 @@ namespace OStream
     {
         GET_THIS(oSplitOutStreamStruct, pOutStream);
         ForthEngine* pEngine = GET_ENGINE;
+        ForthOuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
         // NOTE: this could lock your thread until temp buffer is available
-        char* pBuffer = pEngine->GrabTempBuffer();
-        int numChars = oStringFormatSub(pCore, pBuffer, pEngine->GetTempBufferSize() - 1);
+        char* pBuffer = pOuter->GrabTempBuffer();
+        int numChars = oStringFormatSub(pCore, pBuffer, pOuter->GetTempBufferSize() - 1);
 
         if (pOutStream->streamA)
         {
@@ -1865,7 +1867,7 @@ namespace OStream
             pEngine->FullyExecuteMethod(pCore, pOutStream->streamB, kOutStreamPutStringMethod);
         }
 
-        pEngine->UngrabTempBuffer();
+        pOuter->UngrabTempBuffer();
         METHOD_RETURN;
     }
 
@@ -1896,20 +1898,20 @@ namespace OStream
     };
 
 
-    void AddClasses(ForthEngine* pEngine)
+    void AddClasses(ForthOuterInterpreter* pOuter)
 	{
-		pEngine->AddBuiltinClass("InStream", kBCIInStream, kBCIObject, oInStreamMembers);
-		pEngine->AddBuiltinClass("FileInStream", kBCIFileInStream, kBCIInStream, oFileInStreamMembers);
-		pEngine->AddBuiltinClass("ConsoleInStream", kBCIConsoleInStream, kBCIFileInStream, oConsoleInStreamMembers);
+		pOuter->AddBuiltinClass("InStream", kBCIInStream, kBCIObject, oInStreamMembers);
+		pOuter->AddBuiltinClass("FileInStream", kBCIFileInStream, kBCIInStream, oFileInStreamMembers);
+		pOuter->AddBuiltinClass("ConsoleInStream", kBCIConsoleInStream, kBCIFileInStream, oConsoleInStreamMembers);
 
-		pEngine->AddBuiltinClass("OutStream", kBCIOutStream, kBCIObject, oOutStreamMembers);
-		pEngine->AddBuiltinClass("FileOutStream", kBCIFileOutStream, kBCIOutStream, oFileOutStreamMembers);
-		pEngine->AddBuiltinClass("StringOutStream", kBCIStringOutStream, kBCIOutStream, oStringOutStreamMembers);
-        pEngine->AddBuiltinClass("ConsoleOutStream", kBCIConsoleOutStream, kBCIFileOutStream, oConsoleOutStreamMembers);
-        pEngine->AddBuiltinClass("ErrorOutStream", kBCIErrorOutStream, kBCIFileOutStream, oErrorOutStreamMembers);
-        pEngine->AddBuiltinClass("FunctionOutStream", kBCIFunctionOutStream, kBCIOutStream, oFunctionOutStreamMembers);
-		pEngine->AddBuiltinClass("TraceOutStream", kBCITraceOutStream, kBCIOutStream, oTraceOutStreamMembers);
-        pEngine->AddBuiltinClass("SplitOutStream", kBCISplitOutStream, kBCIOutStream, oSplitOutStreamMembers);
+		pOuter->AddBuiltinClass("OutStream", kBCIOutStream, kBCIObject, oOutStreamMembers);
+		pOuter->AddBuiltinClass("FileOutStream", kBCIFileOutStream, kBCIOutStream, oFileOutStreamMembers);
+		pOuter->AddBuiltinClass("StringOutStream", kBCIStringOutStream, kBCIOutStream, oStringOutStreamMembers);
+        pOuter->AddBuiltinClass("ConsoleOutStream", kBCIConsoleOutStream, kBCIFileOutStream, oConsoleOutStreamMembers);
+        pOuter->AddBuiltinClass("ErrorOutStream", kBCIErrorOutStream, kBCIFileOutStream, oErrorOutStreamMembers);
+        pOuter->AddBuiltinClass("FunctionOutStream", kBCIFunctionOutStream, kBCIOutStream, oFunctionOutStreamMembers);
+		pOuter->AddBuiltinClass("TraceOutStream", kBCITraceOutStream, kBCIOutStream, oTraceOutStreamMembers);
+        pOuter->AddBuiltinClass("SplitOutStream", kBCISplitOutStream, kBCIOutStream, oSplitOutStreamMembers);
     }
 } // namespace OStream
 

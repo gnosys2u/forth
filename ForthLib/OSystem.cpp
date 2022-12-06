@@ -74,8 +74,8 @@ namespace OSystem
 		SNPRINTF(buff, sizeof(buff), "%d builtins    %d userops @ %p\n", pCore->numBuiltinOps, pCore->numOps, pCore->ops);
 		CONSOLE_STRING_OUT(buff);
 
-        ForthEngine *pEngine = GET_ENGINE;
-        pEngine->ShowSearchInfo();
+        ForthOuterInterpreter* pOuter = GET_ENGINE->GetOuterInterpreter();
+        pOuter->ShowSearchInfo();
 
 		METHOD_RETURN;
 	}
@@ -83,7 +83,7 @@ namespace OSystem
 
 	FORTHOP(oSystemGetDefinitionsVocabMethod)
 	{
-		ForthVocabulary* pVocab = GET_ENGINE->GetDefinitionVocabulary();
+        ForthVocabulary* pVocab = GET_ENGINE->GetOuterInterpreter()->GetDefinitionVocabulary();
 		if (pVocab != NULL)
 		{
 			PUSH_OBJECT(pVocab->GetVocabularyObject());
@@ -104,14 +104,14 @@ namespace OSystem
 		ForthVocabulary* pVocab = pVocabStruct->vocabulary;
 		if (pVocab != NULL)
 		{
-            GET_ENGINE->SetDefinitionVocabulary(pVocab);
+            GET_ENGINE->GetOuterInterpreter()->SetDefinitionVocabulary(pVocab);
 		}
 		METHOD_RETURN;
 	}
 
     FORTHOP(oSystemClearSearchVocabMethod)
     {
-        ForthVocabularyStack* pVocabStack = GET_ENGINE->GetVocabularyStack();
+        ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
         pVocabStack->Clear();
 
         METHOD_RETURN;
@@ -119,7 +119,7 @@ namespace OSystem
 
     FORTHOP(oSystemGetSearchVocabDepthMethod)
 	{
-		ForthVocabularyStack* pVocabStack = GET_ENGINE->GetVocabularyStack();
+        ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
 		SPUSH(pVocabStack->GetDepth());
 
 		METHOD_RETURN;
@@ -129,7 +129,7 @@ namespace OSystem
 	{
 		int vocabStackIndex = (int) SPOP;
 
-		ForthVocabularyStack* pVocabStack = GET_ENGINE->GetVocabularyStack();
+        ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
 		ForthVocabulary* pVocab = pVocabStack->GetElement(vocabStackIndex);
 		if (pVocab != NULL)
 		{
@@ -144,7 +144,7 @@ namespace OSystem
 
 	FORTHOP(oSystemGetSearchVocabTopMethod)
 	{
-		ForthVocabularyStack* pVocabStack = GET_ENGINE->GetVocabularyStack();
+        ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
 		ForthVocabulary* pVocab = pVocabStack->GetTop();
 		if (pVocab != NULL)
 		{
@@ -167,7 +167,7 @@ namespace OSystem
 		ForthVocabulary* pVocab = pVocabStruct->vocabulary;
 		if (pVocab != NULL)
 		{
-			ForthVocabularyStack* pVocabStack = GET_ENGINE->GetVocabularyStack();
+			ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
 			pVocabStack->SetTop(pVocab);
 		}
 		METHOD_RETURN;
@@ -182,7 +182,7 @@ namespace OSystem
 		ForthVocabulary* pVocab = pVocabStruct->vocabulary;
 		if (pVocab != NULL)
 		{
-			ForthVocabularyStack* pVocabStack = GET_ENGINE->GetVocabularyStack();
+			ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
 			pVocabStack->DupTop();
 			pVocabStack->SetTop(pVocab);
 		}
@@ -488,10 +488,10 @@ namespace OSystem
     };
 
 
-    void AddClasses(ForthEngine* pEngine)
+    void AddClasses(ForthOuterInterpreter* pOuter)
 	{
-        gpShellStackVocab = pEngine->AddBuiltinClass("ShellStack", kBCIShellStack, kBCIObject, oShellStackMembers);
-        pEngine->AddBuiltinClass("System", kBCISystem, kBCIObject, oSystemMembers);
+        gpShellStackVocab = pOuter->AddBuiltinClass("ShellStack", kBCIShellStack, kBCIObject, oShellStackMembers);
+        pOuter->AddBuiltinClass("System", kBCISystem, kBCIObject, oSystemMembers);
 	}
 
     void Shutdown(ForthEngine* pEngine)

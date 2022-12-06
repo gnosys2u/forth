@@ -364,9 +364,9 @@ namespace OSocket
         END_MEMBERS
     };
 
-    void AddClasses(ForthEngine* pEngine)
+    void AddClasses(ForthOuterInterpreter* pOuter)
     {
-        pEngine->AddBuiltinClass("Socket", kBCISocket, kBCIObject, oSocketMembers);
+        pOuter->AddBuiltinClass("Socket", kBCISocket, kBCIObject, oSocketMembers);
     }
 
 } // namespace OSocket

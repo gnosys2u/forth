@@ -11,6 +11,7 @@
 
 class ForthParseInfo;
 class ForthEngine;
+class ForthOuterInterpreter;
 
 // default initial vocab size in bytes
 #define DEFAULT_VOCAB_STORAGE 512
@@ -328,5 +329,5 @@ private:
 
 namespace OVocabulary
 {
-	void AddClasses(ForthEngine* pEngine);
+	void AddClasses(ForthOuterInterpreter* pOuter);
 }

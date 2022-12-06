@@ -176,7 +176,7 @@ ForthParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, Fort
 	{
 		const char *pSrc = pSrcIn + 1;
 		int iDst = 0;
-		int maxChars = pEngine->CheckFeature(kFFMultiCharacterLiterals) ? 8 : 1;
+		int maxChars = pEngine->GetOuterInterpreter()->CheckFeature(kFFMultiCharacterLiterals) ? 8 : 1;
 		while ((iDst < maxChars) && (pSrc < pSrcLimit))
 		{
 			char ch = *pSrc++;
