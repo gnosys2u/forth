@@ -23,6 +23,7 @@
 
 #include "Forth.h"
 #include "ForthEngine.h"
+#include "OuterInterpreter.h"
 #include "ForthThread.h"
 #include "ForthVocabulary.h"
 #include "ForthShell.h"

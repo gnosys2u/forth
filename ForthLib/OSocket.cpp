@@ -23,6 +23,7 @@
 #endif
 
 #include "ForthEngine.h"
+#include "OuterInterpreter.h"
 #include "ForthVocabulary.h"
 #include "ForthObject.h"
 #include "ForthBuiltinClasses.h"

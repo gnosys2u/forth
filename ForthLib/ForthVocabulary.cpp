@@ -7,6 +7,7 @@
 #include "pch.h"
 #include "ForthVocabulary.h"
 #include "ForthEngine.h"
+#include "OuterInterpreter.h"
 #include "ForthShell.h"
 #include "ForthForgettable.h"
 #include "ForthParseInfo.h"

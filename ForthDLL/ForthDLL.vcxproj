@@ -521,6 +521,7 @@
     <ClInclude Include="..\ForthLib\OStream.h" />
     <ClInclude Include="..\ForthLib\OString.h" />
     <ClInclude Include="..\ForthLib\OSystem.h" />
+    <ClInclude Include="..\ForthLib\OuterInterpreter.h" />
     <ClInclude Include="..\ForthLib\sys\dirent.h" />
     <ClInclude Include="ForthDLL.h" />
     <ClInclude Include="framework.h" />
@@ -757,6 +758,7 @@
     <ClCompile Include="..\ForthLib\OStream.cpp" />
     <ClCompile Include="..\ForthLib\OString.cpp" />
     <ClCompile Include="..\ForthLib\OSystem.cpp" />
+    <ClCompile Include="..\ForthLib\OuterInterpreter.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="ForthDLL.cpp" />
     <ClCompile Include="pch.cpp">

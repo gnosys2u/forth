@@ -7,6 +7,7 @@
 #include "pch.h"
 #include "ForthBlockFileManager.h"
 #include "ForthEngine.h"
+#include "OuterInterpreter.h"
 
 // TODO:
 //

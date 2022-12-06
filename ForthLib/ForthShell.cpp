@@ -22,6 +22,7 @@
 #include "sys/dirent.h"
 #endif
 #include "ForthEngine.h"
+#include "OuterInterpreter.h"
 #include "ForthThread.h"
 #include "ForthShell.h"
 #include "ForthInput.h"

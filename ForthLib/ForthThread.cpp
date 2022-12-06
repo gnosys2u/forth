@@ -17,6 +17,7 @@
 #include <deque>
 #include "ForthThread.h"
 #include "ForthEngine.h"
+#include "OuterInterpreter.h"
 #include "ForthShowContext.h"
 #include "ForthBuiltinClasses.h"
 

@@ -6,6 +6,7 @@
 
 #include "pch.h"
 #include "ForthEngine.h"
+#include "OuterInterpreter.h"
 #include "ForthVocabulary.h"
 #include "ForthStructs.h"
 #include "ForthStructCodeGenerator.h"

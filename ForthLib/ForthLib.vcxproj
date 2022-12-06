@@ -956,6 +956,7 @@
     <ClCompile Include="OStream.cpp" />
     <ClCompile Include="OString.cpp" />
     <ClCompile Include="OSystem.cpp" />
+    <ClCompile Include="OuterInterpreter.cpp" />
     <ClCompile Include="pch.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">Disabled</Optimization>
@@ -1192,6 +1193,7 @@
     <ClInclude Include="OStream.h" />
     <ClInclude Include="OString.h" />
     <ClInclude Include="OSystem.h" />
+    <ClInclude Include="OuterInterpreter.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="sys\dirent.h" />
   </ItemGroup>
