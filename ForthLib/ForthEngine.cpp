@@ -664,7 +664,7 @@ void ForthEngine::TraceStack( ForthCoreState* pCore )
 	for (i = 0; i < numToDisplay; i++)
 	{
 #if defined(FORTH64)
-        mpEngine->TraceOut(" %llx", *pSP++);
+        TraceOut(" %llx", *pSP++);
 #else
         TraceOut( " %x", *pSP++ );
 #endif
@@ -687,7 +687,7 @@ void ForthEngine::TraceStack( ForthCoreState* pCore )
     for (i = 0; i < numToDisplay; i++)
     {
 #if defined(FORTH64)
-        mpEngine->TraceOut(" %llx", *pRP++);
+        TraceOut(" %llx", *pRP++);
 #else
         TraceOut(" %x", *pRP++);
 #endif

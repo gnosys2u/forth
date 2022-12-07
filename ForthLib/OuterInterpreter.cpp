@@ -2166,7 +2166,7 @@ OpResult OuterInterpreter::ProcessToken( ForthParseInfo   *pInfo )
 #else
             pEntry = mpVocabStack->FindSymbol(pInfo, &pFoundVocab);
 #endif
-            if (pEntry != nullptr && pEntry[1] <= (uint32_t) BaseType::kObject)
+            if (pEntry != nullptr && CODE_TO_BASE_TYPE(pEntry[1]) <= BaseType::kObject)
             {
                 ////////////////////////////////////
                 //

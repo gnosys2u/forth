@@ -2941,7 +2941,7 @@ VAR_ACTION( doLongSetMinus )
 
 VAR_ACTION(doLongClear)
 {
-    long* pA = (long*)(SPOP);
+    int64_t* pA = (int64_t*)(SPOP);
     *pA = 0L;
 }
 

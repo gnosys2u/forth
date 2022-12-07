@@ -2535,7 +2535,7 @@ localStringFetch:
 	jmp	rnext
 
 localString1:
-	cmp	rbx, kVarSetPlus
+	cmp	rbx, kVarClear
 	jg	badVarOperation
 	; dispatch based on value in rbx
 	mov rcx, localStringActionTable
@@ -2625,37 +2625,40 @@ localStringAppend:
 	; rbx -> dest string maxLen field
     ; TOS -> src string
 	; figure how many chars to copy
-    mov r8, [rbx]
-    mov rcx, [rbx + 4]
-    sub r8, rcx       ; r8 is max bytes to copy
-	cmp	rax, r8
+    mov r8d, DWORD[rbx]
+    mov ecx, DWORD[rbx + 4]
+    sub r8d, ecx       ; r8d is max bytes to copy (space left at end of string)
+	cmp	eax, r8d
 	jg lsAppend1
     mov r8, rax
 lsAppend1:
     ; r8 is #bytes to copy
     ; rcx is current length
+    mov rdx, rcx                ; rdx = old current length 
     
 	; set current length field
-    add rcx, r8
-    mov [rbx + 4], rcx
+    add rcx, r8                 ; rcx = new current length
+    mov DWORD[rbx + 4], ecx
 	
 	; do the copy
+; Windows: first four non-FP args are in rcx, rdx, r8, r9, rest are on stack
+; Linux: first 6 non-FP args are in rdi, rsi, rdx, rcx, r8, r9, rest are on stack
 %ifdef LINUX
-    lea rdi, [rbx + 8]      ; 1st param - dest pointer
-    add rdi, [rbx + 4]      ;   at end of current dest string
-    mov rsi, [rpsp]         ; 2nd param - src pointer
-    ; 3rd param - num chars to copy - already in r8
-    mov rbx, rdi
+    lea rdi, [rbx + 8]          ; 1st param - dest pointer
+    add rdi, rdx                ;   at end of current dest string
+    mov rsi, [rpsp]             ; 2nd param - src pointer
+    mov rdx, r8                 ; 3rd param - num chars to copy
+    mov rbx, rdi                ; save dest pointer in non-volatile register
 %else
-    lea rcx, [rbx + 8]      ; 1st param - dest pointer
-    add rcx, [rbx + 4]      ;   at end of current dest string
-    mov rdx, [rpsp]         ; 2nd param - src pointer
+    lea rcx, [rbx + 8]          ; 1st param - dest pointer
+    add rcx, rdx                ;   at end of current dest string
+    mov rdx, [rpsp]             ; 2nd param - src pointer
     ; 3rd param - num chars to copy - already in r8
-    mov rbx, rcx
+    mov rbx, rcx                ; save dest pointer in non-volatile register
 %endif
     add rpsp, 8
-    add rbx, r8            ; rbx -> end of dest string
-	sub rsp, kShadowSpace			; shadow space (usually 32, but we have 8 bytes from src pointer we didn't pop above
+    add rbx, r8                 ; rbx -> new end of dest string (for stuffing null after memcpy)
+	sub rsp, kShadowSpace		; shadow space
 	xcall	memcpy
 	add rsp, kShadowSpace
     
@@ -2676,9 +2679,9 @@ localStringClear:
     add rax, 4              ; skip maxLen field
     xor rbx, rbx
 	mov	[rcore + FCore.varMode], rbx	; set var operation back to default
-    mov [rax], rbx          ; set curLen = 0
+    mov DWORD[rax], ebx          ; set curLen = 0
     add rax, 4
-    mov [rax], bl           ; and set first byte to terminating nul
+    mov BYTE[rax], bl           ; and set first byte to terminating nul
 	jmp	rnext
 
 localStringActionTable:
@@ -2898,13 +2901,12 @@ longEntry:
 	or	rbx, rbx
 	jnz	localLong1
 	; fetch local long
-localLongFetch:
+entry localLongFetch
 	sub	rpsp, 8
 	mov	rbx, [rax]
 	mov	[rpsp], rbx
-	; set var operation back to default
 	xor	rax, rax
-	mov	[rcore + FCore.varMode], rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
 localLong1:
@@ -2915,56 +2917,50 @@ localLong1:
 	mov	rbx, [rcx + rbx*8]
 	jmp	rbx
 
-localLongStore:
+entry localLongStore
 	mov	rbx, [rpsp]
 	mov	[rax], rbx
 	add	rpsp, 8
-	; set var operation back to default
 	xor	rax, rax
-	mov	[rcore + FCore.varMode], rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
-localLongPlusStore:
+entry localLongPlusStore
 	mov	rbx, [rax]
 	add	rbx, [rpsp]
-	mov	[rax], rbx
-	; set var operation back to default
-	xor	rbx, rbx
-	mov	[rcore + FCore.varMode], rbx
 	add	rpsp, 8
+	mov	[rax], rbx
+	xor	rax, rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
-localLongMinusStore:
+entry localLongMinusStore
 	mov	rbx, [rax]
 	sub	rbx, [rpsp]
-	mov	[rax], rbx
-	; set var operation back to default
-	xor	rbx, rbx
-	mov	[rcore + FCore.varMode], rbx
 	add	rpsp, 8
+	mov	[rax], rbx
+	xor	rax, rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
-localLongClear:
+entry localLongClear
 	xor	rbx, rbx
 	mov	[rax], rbx
-	; set var operation back to default
-	mov	[rcore + FCore.varMode], rbx
+	mov	[rcore + FCore.varMode], rbx	; set var operation back to default
 	jmp	rnext
 
 localLongPlus:
 	mov	rbx, QWORD[rax]
 	add	rbx, [rpsp]
 	mov	[rpsp], rbx
-	; set var operation back to default
 	xor	rax, rax
-	mov	[rcore + FCore.varMode], rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
 localLongInc:
     inc QWORD[rax]
-	; set var operation back to default
 	xor	rax, rax
-	mov	[rcore + FCore.varMode], rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
 localLongMinus:
@@ -2972,16 +2968,14 @@ localLongMinus:
     mov rax, [rpsp]
 	sub	rax, rbx
 	mov	[rpsp], rax
-	; set var operation back to default
 	xor	rax, rax
-	mov	[rcore + FCore.varMode], rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
 localLongDec:
     dec QWORD[rax]
-	; set var operation back to default
 	xor	rax, rax
-	mov	[rcore + FCore.varMode], rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
 localLongIncGet:
@@ -2989,6 +2983,8 @@ localLongIncGet:
 	sub	rpsp, 8
 	mov	rbx, QWORD[rax]
 	mov	[rpsp], rbx
+	xor	rax, rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
 localLongDecGet:
@@ -2996,20 +2992,26 @@ localLongDecGet:
 	sub	rpsp, 8
 	mov	rbx, QWORD[rax]
 	mov	[rpsp], rbx
+	xor	rax, rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
-localLongGetInc:
+entry localLongGetInc
 	sub	rpsp, 8
 	mov	rbx, QWORD[rax]
+	mov	[rpsp], rbx
     inc QWORD[rax]
-	mov	[rpsp], rbx
+	xor	rax, rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
-localLongGetDec:
+entry localLongGetDec
 	sub	rpsp, 8
 	mov	rbx, QWORD[rax]
-    dec QWORD[rax]
 	mov	[rpsp], rbx
+    dec QWORD[rax]
+	xor	rax, rax
+	mov	[rcore + FCore.varMode], rax	; set var operation back to default
 	jmp	rnext
 
 localLongActionTable:
@@ -5759,32 +5761,64 @@ maxBop1:
 ;========================================
 
 entry icmpBop
-	mov	rbx, [rpsp]		; rbx = b
+	mov	ebx, DWORD[rpsp]		; ebx = b
 	add	rpsp, 8
 	xor	rax, rax
-	cmp	[rpsp], rbx
-	jz	cmpBop3
-	jl	cmpBop2
+	cmp	DWORD[rpsp], ebx
+	jz	icmpBop3
+	jl	icmpBop2
 	add	rax, 2
-cmpBop2:
+icmpBop2:
 	dec	rax
-cmpBop3:
+icmpBop3:
 	mov	[rpsp], rax
 	jmp	rnext
 
 ;========================================
 
 entry uicmpBop
+	mov	ebx, DWORD[rpsp]
+	add	rpsp, 8
+	xor	rax, rax
+	cmp	DWORD[rpsp], ebx
+	jz	uicmpBop3
+	jb	uicmpBop2
+	add	rax, 2
+uicmpBop2:
+	dec	rax
+uicmpBop3:
+	mov	[rpsp], rax
+	jmp	rnext
+	
+;========================================
+
+entry lcmpBop
+	mov	rbx, [rpsp]		; rbx = b
+	add	rpsp, 8
+	xor	rax, rax
+	cmp	[rpsp], rbx
+	jz	lcmpBop3
+	jl	lcmpBop2
+	add	rax, 2
+lcmpBop2:
+	dec	rax
+lcmpBop3:
+	mov	[rpsp], rax
+	jmp	rnext
+
+;========================================
+
+entry ulcmpBop
 	mov	rbx, [rpsp]
 	add	rpsp, 8
 	xor	rax, rax
 	cmp	[rpsp], rbx
-	jz	ucmpBop3
-	jb	ucmpBop2
+	jz	ulcmpBop3
+	jb	ulcmpBop2
 	add	rax, 2
-ucmpBop2:
+ulcmpBop2:
 	dec	rax
-ucmpBop3:
+ulcmpBop3:
 	mov	[rpsp], rax
 	jmp	rnext
 	

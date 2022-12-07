@@ -209,11 +209,27 @@ alias l= =
 alias 2rotate rotate
 alias l+ +
 alias l0<> 0<>
+alias l= =
+alias l<> <>
+alias l> >
+alias l>= >=
+alias l< <
+alias l<= <=
+alias l0= 0=
+alias l0< 0<
+alias l0<= 0<=
+alias lwithin within
+alias lmin min
+alias lmax max
+alias cmp lcmp
+alias ucmp ulcmp
 #else
 : land rot and >r and r> ;
 : lor rot or >r and r> ;
 : lxor rot xor >r and r> ;
 alias ucell uint
+alias cmp icmp
+alias ucmp uicmp
 #endif
 
 : time&date splitTime(time) ;
@@ -1120,6 +1136,7 @@ addHelp outToScreen   restore output to the normal console
 //  having garbled output - don't put anything inside p[...]p that could block
 //  your thread, or you will get a deadlock
 AsyncLock printLock
+system.createAsyncLock -> printLock
 : p[ printLock.grab ;
 : ]p printLock.ungrab ;
 

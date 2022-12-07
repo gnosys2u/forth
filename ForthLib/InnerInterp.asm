@@ -2235,7 +2235,7 @@ localStringFetch:
 	jmp	rnext
 
 localString1:
-	cmp	ebx, kVarSetPlus
+	cmp	ebx, kVarClear
 	jg	badVarOperation
 	; dispatch based on value in ebx
 	mov	ebx, [localStringActionTable + ebx*4]
@@ -2684,12 +2684,13 @@ localLongDec:
 	; set var operation back to default
 	xor	ebx, ebx
 	mov	[rcore + FCore.varMode], ebx
-    inc ebx
-    sub ebx, [eax]
-    mov [eax], ebx
-    jnc localLongDec1
+    mov ebx, [eax]
+    or  ebx, ebx
+    jnz localLongDec1
     dec DWORD[eax + 4]
 localLongDec1:
+    dec ebx
+    mov [eax], ebx
 	jmp	rnext
 
 localLongIncGet:
@@ -2714,16 +2715,17 @@ localLongDecGet:
 	; set var operation back to default
 	xor	ebx, ebx
 	mov	[rcore + FCore.varMode], ebx
-    inc ebx
-    sub ebx, [eax]
+    mov ebx, [eax]
+    mov ecx, [eax+4]
+    or  ebx, ebx
+    jnz localLongDecGet1
+    dec ecx
+localLongDecGet1:
+    dec ebx
     mov [eax], ebx
     mov [rpsp+4], ebx
-    mov ebx, [eax+4]
-    jnc localLongDecGet1
-    dec ebx
-localLongDecGet1:
-    mov [eax+4], ebx
-    mov [rpsp], ebx
+    mov [eax+4], ecx
+    mov [rpsp], ecx
 	jmp	rnext
 
 localLongGetInc:
@@ -2749,16 +2751,16 @@ localLongGetDec:
 	; set var operation back to default
 	xor	ebx, ebx
 	mov	[rcore + FCore.varMode], ebx
-    inc ebx
-    mov ecx, [eax]
-    mov [rpsp+4], ecx
-    sub ecx, ebx
-    mov [eax], ecx
+    mov ebx, [eax]
     mov ecx, [eax+4]
+    mov [rpsp+4], ebx
     mov [rpsp], ecx
-    jnc localLongGetDec1
+    or  ebx, ebx
+    jnz localLongGetDec1
     dec ecx
 localLongGetDec1:
+    dec ebx
+    mov [eax], ebx
     mov [eax+4], ecx
 	jmp	rnext
 

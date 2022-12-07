@@ -400,23 +400,6 @@ FORTHOP(lLessEquals0Bop)
     SPUSH( ( a.s64 <= 0L ) ? -1L : 0 );
 }
 
-FORTHOP(lcmpBop)
-{
-    stackInt64 a;
-    stackInt64 b;
-    LPOP( b );
-    LPOP( a );
-    SPUSH( ( a.s64 == b.s64 ) ? 0 : ((a.s64 > b.s64) ? 1 : -1L) );
-}
-    
-FORTHOP(ulcmpBop)
-{
-    stackInt64 a;
-    stackInt64 b;
-    LPOP( b );
-    LPOP( a );
-    SPUSH( ( a.u64 == b.u64 ) ? 0 : ((a.u64 > b.u64) ? 1 : -1L) );
-}
 #endif
 
 
@@ -7652,18 +7635,50 @@ FORTHOP(maxBop)
 
 FORTHOP(icmpBop)
 {
-	NEEDS(2);
-	cell b = SPOP;
-	cell a = SPOP;
-	SPUSH( (a == b) ? 0 : (( a > b ) ? 1 : -1 ) );
+    NEEDS(2);
+    int32_t b = (int)(SPOP);
+    int32_t a = (int)(SPOP);
+    SPUSH((a == b) ? 0 : ((a > b) ? 1 : -1));
 }
 
 FORTHOP(uicmpBop)
 {
+    NEEDS(2);
+    uint32_t b = (int)(SPOP);
+    uint32_t a = (int)(SPOP);
+    SPUSH((a == b) ? 0 : ((a > b) ? 1 : -1));
+}
+
+FORTHOP(lcmpBop)
+{
 	NEEDS(2);
-	ucell b = (ucell) SPOP;
-	ucell a = (ucell) SPOP;
-	SPUSH( (a == b) ? 0 : (( a > b ) ? 1 : -1 ) );
+#if defined(FORTH64)
+    cell b = SPOP;
+    cell a = SPOP;
+    SPUSH((a == b) ? 0 : ((a > b) ? 1 : -1));
+#else
+    stackInt64 a;
+    stackInt64 b;
+    LPOP(b);
+    LPOP(a);
+    SPUSH((a.s64 == b.s64) ? 0 : ((a.s64 > b.s64) ? 1 : -1));
+#endif
+}
+
+FORTHOP(ulcmpBop)
+{
+	NEEDS(2);
+#if defined(FORTH64)
+    ucell b = (ucell)SPOP;
+    ucell a = (ucell)SPOP;
+    SPUSH((a == b) ? 0 : ((a > b) ? 1 : -1));
+#else
+    stackInt64 a;
+    stackInt64 b;
+    LPOP(b);
+    LPOP(a);
+    SPUSH((a.u64 == b.u64) ? 0 : ((a.u64 > b.u64) ? 1 : -1));
+#endif
 }
 
 
@@ -9361,9 +9376,9 @@ OPREF( invertBop );         OPREF( lshiftBop );         OPREF( rshiftBop );
 #if !defined(FORTH64)
 OPREF(lplusBop);            OPREF(lminusBop);           OPREF(ltimesBop);
 OPREF(lshift64Bop);         OPREF(rshift64Bop);         OPREF(rotate64Bop);
-OPREF(lcmpBop);			    OPREF(ulcmpBop);
 #endif
 OPREF(icmpBop);             OPREF(uicmpBop);
+OPREF(lcmpBop);			    OPREF(ulcmpBop);
 OPREF( arshiftBop );        OPREF( rotateBop );         OPREF( trueBop );
 OPREF( falseBop );          OPREF( nullBop );           OPREF( dnullBop );
 OPREF( equalsBop );         OPREF( notEqualsBop );      OPREF( greaterThanBop );
@@ -9714,9 +9729,9 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    lWithinOp,               "lwithin" ),
     OP_DEF(    lMinOp,                  "lmin" ),
     OP_DEF(    lMaxOp,                  "lmax" ),
-	NATIVE_DEF(lcmpBop, "lcmp"),
-	NATIVE_DEF(ulcmpBop, "ulcmp"),
 #endif
+    NATIVE_DEF(lcmpBop, "lcmp"),
+    NATIVE_DEF(ulcmpBop, "ulcmp"),
 
     ///////////////////////////////////////////
     //  stack manipulation

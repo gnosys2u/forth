@@ -5,9 +5,22 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
-- break outer interpreter out of ForthEngine
+- fix Linux 64-bit hang on startup when logger isn't running
 
-- improve handling of ForthParseInfos -they are getting allocated multiple times
+- change icmp and uicmp to cmp and ucmp for consitency, add lcmp and ulcmp aliases for non-64 to autoload
+
+- debug 64 bit varopSuffix changes
+
+- test Linux 32-bit build
+
+- make a ReadMe.md file for github
+  - document how to build on each supported platform
+  
+? try out OSX builds
+
++ break outer interpreter out of ForthEngine
+
+- improve handling of ForthParseInfos - they are getting allocated multiple times
   per token - have outer interpreter keep 2 parseInfo members, one is original token,
   other is scratch token which can be manipulated during interpretation
 
