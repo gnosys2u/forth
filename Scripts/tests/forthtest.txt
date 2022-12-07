@@ -482,7 +482,7 @@ test[ sscanf("1 b 10 " "%d %c %x " ref a ref b ref c 3) 3 =  c 16 =  b 98 =  a 1
 // test fscanf
 ptrTo int tfile
 test[ fopen("__test.txt" "w" ) -> tfile   tfile 0<>]
-test[ fputs("1 b 10 " tfile ) 0=]
+test[ fputs("1 b 10 " tfile ) 0>=]
 test[ fclose(tfile) 0=]
 test[ fopen("__test.txt" "r" ) -> tfile   tfile 0<>]
 test[ fscanf(tfile "%d %c %x " ref a ref b ref c 3) 3 =  c 16 =  b 98 =  a 1 =]
