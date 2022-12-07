@@ -721,7 +721,7 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
                 CHECK_STACKS( mpEngine->GetMainFiber() );
 			}
 #else
-            result = mpEngine->ProcessToken( &parseInfo );
+            result = pOuter->ProcessToken( &parseInfo );
             CHECK_STACKS( mpEngine->GetMainFiber() );
 #endif
             if ( result == OpResult::kOk )

@@ -20,7 +20,7 @@ CDEBUG = -g
 DEFINES = -DLINUX -DASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -DFORTH64 -DINCLUDE_TRACE
 #DEFINES = -DLINUX -DNOASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -DFORTH64 -DINCLUDE_TRACE
 
-CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -std=c++11 -m64
+CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -std=c++11 -m64 -fno-stack-protector
 # CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -std=c++11 -m64
 
 WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wno-sign-compare -Wno-conversion-null -Wno-pointer-arith
@@ -35,6 +35,7 @@ LD_LIBRARIES = -L ForthLib -lforth -lm -lc -lstdc++ -ldl -lpthread -lreadline
 SRCS = \
 	ForthShell.cpp \
 	ForthEngine.cpp \
+	OuterInterpreter.cpp \
 	ForthInner.cpp \
 	ForthInput.cpp \
 	ForthVocabulary.cpp \
