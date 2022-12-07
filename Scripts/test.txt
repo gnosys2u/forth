@@ -59,6 +59,7 @@ runtest rctest   test   cleanup   forget RCTEST
 runtest structtest   forget STRUCTTEST
 runtest misctest   forget MISCTEST
 runtest forthtest
+runtest vartest
 //runtest ansitest
 
 dumpTestSummary
