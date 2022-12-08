@@ -38,6 +38,7 @@ LD_LIBRARIES = -L ../ForthLib -lforth -lm -lc -lstdc++ -ldl -lpthread -lreadline
 SRCS = \
 	ForthShell.cpp \
 	ForthEngine.cpp \
+	OuterInterpreter.cpp \
 	ForthInner.cpp \
 	ForthInput.cpp \
 	ForthVocabulary.cpp \

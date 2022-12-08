@@ -6932,22 +6932,20 @@ compareMemoryBop:
 @	r2 holds the opcode type field
 @
 extOpType:
-	str	r1, [rcore, #scratch]
 	push {lr}
+	str	r1, [rcore, #scratch]
 	bl checkOptypeTable
-	pop {lr}
 	add	r0, rcore, #ipsave			@ r0 -> IP
 	stmia	r0!, {rip-rrp}			@ save IP, SP, RP in core
 	bl	.extOp1
 
 @ this will be executed after C++ routine returns
-	push {lr}
 	bl checkOptypeTable
-	pop {lr}
 	add	r0, rcore, #ipsave
 	ldmia	r0!, {rip-rfp}			@ load IP, SP, RP, FP from core
 	ldr	rops, [rcore, #ops]			@ rops = table of ops
 	ldr	rnumops, [rcore, #n_ops]	@ rnumops = number of ops implemented in assembler
+	pop {lr}
 	bx	lr
 
 .extOp1:
@@ -7578,7 +7576,6 @@ lroComboType:
 @ MEMBERREF OP combo ops
 mroComboType:
 	@ r1: bits 0..11 are member offset in bytes, bits 12-23 are op
-	@ r1: bits 0..11 are frame offset in longs, bits 12-23 are op
 	ldr	r0, =0x0FFF
 	and	r0, r1
 	ldr	r2, [rcore, #tp]
@@ -7588,6 +7585,92 @@ mroComboType:
 	lsr	r1, #12
 	ldr	r0, =0x0FFF
 	and	r0, r1				@ opcode is in r0
+	ldr	r1, [rcore, #inner_execute]
+	bx	r1
+
+@ NUM VAROP OP combo ops
+nvoComboType:
+	@ r1: bits 0..10 are signed integer, bits 11..12 are varop-2, bit 13..23 are opcode
+	@ extract the signed integer and push on TOS
+	ldr r2, =0x3FF
+	and r2, r1
+	ands r0, r1, #0x400
+	beq .nvo1
+	@ integer is negative
+	ldr r0, =0xFFFFFC00			@ sign extend bits 10-31
+	orr r2, r0	
+.nvo1:
+	stmdb	rsp!, {r2}
+
+	@ set the varop from bits 11-12
+	lsr r2, r1, #11
+	and r2, #3
+	add r2, #2
+	str r2, [rcore, #varmode]
+
+	@ extract the opcode and execute it
+	ldr r2, =0x7FF
+	lsr r0, r1, #13
+	and	r0, r2					@ r0 is 11 bit opcode
+	ldr	r1, [rcore, #inner_execute]
+	bx	r1
+
+@ NUM VAROP combo ops
+nvComboType:
+	@ r1: bits 0..21 are signed integer, bits 22-23 are varop-2
+	@ r1: bits 0..10 are signed integer, bits 11..12 are varop-2, bit 13..23 are opcode
+	@ extract the signed integer and push on TOS
+	ldr r2, =0xFFFFF
+	and r2, r1
+	ands r0, r1, #0x100000
+	beq .nv1
+	@ integer is negative
+	ldr r0, =0xFFF00000			@ sign extend bits 21-31
+	orr r2, r0	
+.nv1:
+	stmdb	rsp!, {r2}
+
+	@ set the varop from bits 22-23
+	lsr r2, r1, #22
+	and r2, #3
+	add r2, #2
+	str r2, [rcore, #varmode]
+
+	bx lr
+
+@ NUM OP combo ops
+noComboType:
+	@ r1: bits 0..12 are signed integer, bits 13..23 are opcode
+	@ extract the signed integer and push on TOS
+	ldr r2, =0xFFF
+	and r2, r1
+	ands r0, r1, #0x1000
+	beq .no1
+	@ integer is negative
+	ldr r0, =0xFFFFF000			@ sign extend bits 12-31
+	orr r2, r0	
+.no1:
+	stmdb	rsp!, {r2}
+
+	@ extract the opcode and execute it
+	ldr r2, =0x7FF
+	lsr r0, r1, #13
+	and	r0, r2					@ r0 is 11 bit opcode
+	ldr	r1, [rcore, #inner_execute]
+	bx	r1
+
+@ VAROP OP combo ops
+voComboType:
+	@ r1: bits 0-1 are varop-2, bits 2-23 are opcode
+	@ set the varop from bits 0-1
+	and r2, r1, #3
+	add r2, #2
+	str r2, [rcore, #varmode]
+
+	@ extract the opcode and execute it
+	ldr r2, =0xFFFFFC
+	lsr r0, r1, #2
+	and	r0, r2					@ r0 is 22 bit opcode
 	ldr	r1, [rcore, #inner_execute]
 	bx	r1
 
@@ -7734,10 +7817,10 @@ opTypesTable:
 	
 @	110 - 119
 	.word	memberStringInitType
-	.word	extOpType @ nvoComboType
-	.word	extOpType @ nvComboType
-	.word	extOpType @ noComboType
-	.word	extOpType @ voComboType
+	.word	nvoComboType
+	.word	nvComboType
+	.word	noComboType
+	.word	voComboType
 	.word	ozbComboType
 	.word	onzbComboType
 
