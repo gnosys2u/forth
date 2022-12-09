@@ -5,17 +5,22 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+- make a ReadMe.md file for github
+  - document how to build on each supported platform
+
+- add copyright notices/disclaimers to all files
+  ? use MIT license or some other?
+
+- add unicode/utf8 handling - a string iterator that gives back code points for one thing
+
 - fix Linux 64-bit hang on startup when logger isn't running
 
-- change icmp and uicmp to cmp and ucmp for consitency, add lcmp and ulcmp aliases for non-64 to autoload
++ change icmp and uicmp to cmp and ucmp for consitency, add lcmp and ulcmp aliases for non-64 to autoload
 
-- debug 64 bit varopSuffix changes
++ debug 64 bit varopSuffix changes
 
 - test Linux 32-bit build
 
-- make a ReadMe.md file for github
-  - document how to build on each supported platform
-  
 ? try out OSX builds
 
 + break outer interpreter out of ForthEngine
@@ -203,6 +208,23 @@ Double has consistent layout, long is reversed on param stack.
 
 
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+December 9 2022
+
+I've been busy over the past week or so.
+o I broke the outer interpreter out of ForthEngine
+o I debugged the Linux 64-bit version of varop suffixes
+o I debugged the ARM 32-bit version of varop suffixes
+o I changed the script file suffixes from .txt to .fs
+
+The ARM varop changes were a pain to get working.  The problem there was with
+global variables with varop suffixes.  When I compile a global variable varop
+I do it with a NumberOpCombo opcode which does a setVarop(varop), on ARM I
+never implemented an assembler version of NumberOpCombo, it used extOpType for
+that and several other combo optypes.  It turns out that extOpType doesn't work,
+it somehow leaves the stacks trashed.  I could swear that it worked in the distant
+past.  I didn't fix extOpType, I just implemented ARM assembler versions of the
+combo optypes that had been using it as a fallback.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 December 4 2022
 
