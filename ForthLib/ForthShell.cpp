@@ -448,11 +448,11 @@ ForthShell::Run( ForthInputStream *pInStream )
 
     mpInput->PushInputStream( pInStream );
 
-    const char* autoloadFilename = "app_autoload.txt";
+    const char* autoloadFilename = "app_autoload.fs";
 	FILE* pFile = OpenInternalFile( autoloadFilename );
 	if ( pFile == NULL )
 	{
-		// no internal file found, try opening app_autoload.txt as a standard file
+		// no internal file found, try opening app_autoload.fs as a standard file
 		pFile = fopen( autoloadFilename, "r" );
 	}
 
@@ -464,7 +464,7 @@ ForthShell::Run( ForthInputStream *pInStream )
     else
     {
         // no app autload, try using the normal autoload file
-        autoloadFilename = "forth_autoload.txt";
+        autoloadFilename = "forth_autoload.fs";
     }
     mpEngine->PushInputFile( autoloadFilename );
 

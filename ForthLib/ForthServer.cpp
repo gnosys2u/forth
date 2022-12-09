@@ -723,7 +723,7 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
 
     if ( mDoAutoload )
     {
-        mpEngine->PushInputFile( "forth_autoload.txt" );
+        mpEngine->PushInputFile( "forth_autoload.fs" );
     }
 
     while ( !bQuit )

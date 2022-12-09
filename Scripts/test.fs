@@ -9,7 +9,7 @@ decimal
 scSetShowID(false)
 
 cd tests
-lf testbase.txt
+lf testbase
 cd ..
 
 : runtest
@@ -17,7 +17,7 @@ cd ..
   mko String testName
   mko String testScriptName
   testName.set(blword)
-  testScriptName.set(testName.get) testScriptName.append(".txt")
+  testScriptName.set(testName.get) testScriptName.append(".fs")
   "##################### run " %s testScriptName.get %s " #####################\n" %s
   $runFile(testScriptName.get)
   0 $word $evaluate
@@ -42,7 +42,7 @@ runtest sort_examples   go   forget SORT_EXAMPLES
 runtest tree_examples   go   forget TREE_EXAMPLES
 runtest directory   mko Directory dd   test[ dd.openHere -1 = ]  dd.listFilenames
    oclear dd   forget Directory
-cd newadv runtest adv   forget ADV   cd ..
+cd adv runtest adv   forget ADV   cd ..
 cd atc runtest atc   forget ATC   cd ..
 
 : _TEST_ ;

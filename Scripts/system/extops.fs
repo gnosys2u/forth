@@ -2,19 +2,19 @@
 
 FORTH64 [if]
 
-lf extops_amd64.txt
+lf extops_amd64
 
 [else]
 
 ARCH_X86 [if]
 
-lf extops_x86.txt
+lf extops_x86
 
 [else]
 
 ARCH_ARM [if]
 
-lf extops_arm.txt
+lf extops_arm
 
 [endif]
 [endif]

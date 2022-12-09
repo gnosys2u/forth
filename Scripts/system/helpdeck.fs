@@ -1,6 +1,6 @@
 : HELPDECK ;
 
-lf notedeck.txt
+lf notedeck.fs
 
 autoforget HelpDeck
 

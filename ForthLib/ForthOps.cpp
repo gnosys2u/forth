@@ -3097,19 +3097,37 @@ FORTHOP( precedenceOp )
 
 FORTHOP(strLoadOp)
 {
-	char *pFileName = ((char *)(SPOP));
+    char* pFileName = ((char*)(SPOP));
 
-	if (pFileName != NULL)
-	{
-		ForthEngine *pEngine = GET_ENGINE;
-		if (pEngine->PushInputFile(pFileName) == false)
-		{
-			CONSOLE_STRING_OUT("!!!! Failure opening source file ");
-			CONSOLE_STRING_OUT(pFileName);
-			CONSOLE_STRING_OUT(" !!!!\n");
-			SPEW_ENGINE("!!!! Failure opening source file %s !!!!\n", pFileName);
-		}
-	}
+    if (pFileName != NULL)
+    {
+        ForthEngine* pEngine = GET_ENGINE;
+        if (pEngine->PushInputFile(pFileName) == false)
+        {
+            CONSOLE_STRING_OUT("!!!! Failure opening source file ");
+            CONSOLE_STRING_OUT(pFileName);
+            CONSOLE_STRING_OUT(" !!!!\n");
+            SPEW_ENGINE("!!!! Failure opening source file %s !!!!\n", pFileName);
+        }
+    }
+}
+
+FORTHOP(strLoadQOp)
+{
+    char* pFileName = ((char*)(SPOP));
+
+    if (pFileName != NULL)
+    {
+        ForthEngine* pEngine = GET_ENGINE;
+        if (pEngine->PushInputFile(pFileName) == false)
+        {
+            SPUSH(0);
+        }
+        else
+        {
+            SPUSH(-1);
+        }
+    }
 }
 
 FORTHOP(strRunFileOp)
@@ -3150,10 +3168,10 @@ FORTHOP( requiresOp )
 
 	if ( pVocabStack->FindSymbol( pSymbolName ) == NULL )
     {
-        // symbol not found - load symbol.txt
+        // symbol not found - load symbol.fs
 		int buffLen = strlen( pSymbolName ) + 8;
         char *pFileName = (char *) __MALLOC( buffLen );
-		SNPRINTF( pFileName, buffLen, "%s.txt", pSymbolName );
+		SNPRINTF( pFileName, buffLen, "%s.fs", pSymbolName );
         if ( pEngine->PushInputFile( pFileName ) == false )
         {
             CONSOLE_STRING_OUT( "!!!! Failure opening source file " );
@@ -10082,6 +10100,7 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    precedenceOp,           "precedence" ),
     OP_DEF(    strRunFileOp,           "$runFile" ),
     OP_DEF(    strLoadOp,              "$load" ),
+    OP_DEF(    strLoadQOp,             "$load?" ),
     OP_DEF(    loadDoneOp,             "loaddone" ),
     OP_DEF(    requiresOp,             "requires" ),
     OP_DEF(    evaluateOp,             "evaluate" ),

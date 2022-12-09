@@ -131,7 +131,26 @@ MAXUINT -> cell MAXUCELL
 #endif
 
 : ' blword $' ;
-: lf blword $load ;
+
+: lf
+  makeObject String srcName
+  srcName.set(blword)
+  if($load?(srcName.get) not)
+    makeObject String altName
+    altName.set(srcName.get)
+    altName.append(".fs")
+    if($load?(altName.get) not)
+      altName.set(srcName.get)
+      altName.append(".txt")
+      if($load?(altName.get) not)
+        addErrorText("Can't find ")
+        error(srcName.get)
+      endif
+    endif
+  endif
+;
+    
+
 : forget
   blword dup
   if( not( $forget ) )
