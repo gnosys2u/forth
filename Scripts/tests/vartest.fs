@@ -25,8 +25,8 @@ test[ 55L gvl l= 12l gvul l= 7.5f gvf f= -100.25l gvd d= ]
 
 test[ 0x1ffffffffl gvl! gvl++ gvl 0x200000000l l= ]
 test[ gvl-- gvl 0x1ffffffffl l= ]
-test[ 1l gvl+   0x200000000l l= ]
-test[ 0x200000000l gvl- 1l l= ]
+test[ 1l gvl@+   0x200000000l l= ]
+test[ 0x200000000l gvl@- 1l l= ]
 test[ 1l gvl!+ gvl 0x200000000l l= ]
 test[ 0x200000000l gvl!- gvl l0= ]
 
@@ -39,8 +39,8 @@ test[ 0x200000000l gvl!- gvl l0= ]
   vv-- vv-- vv %2d %bl
   vv~ vv %2d %bl
   0x1ffffffffl vv! vv++ vv %2x %bl
-  5l vv+ %2x %bl
-  0x3fffffffal vv- %2x %bl
+  5l vv@+ %2x %bl
+  0x3fffffffal vv@- %2x %bl
 ;
 test[ longtest1 checkResult( "0 1 -1 0 200000000 200000005 1fffffffa " ) ]
 

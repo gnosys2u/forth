@@ -448,12 +448,16 @@ VarOperation ForthParseInfo::CheckVaropSuffix()
             }
             else
             {
-                varop = VarOperation::kVarSetMinus;            // v!-
+                varop = VarOperation::kVarSetMinus;             // v!-
             }
             break;
 
+        case'@':
+            pLastChar--;
+            varop = VarOperation::kVarMinus;                    // v@-
+            break;
+
         default:
-            varop = VarOperation::kVarMinus;            // v-
             break;
         }
         break;
@@ -506,8 +510,12 @@ VarOperation ForthParseInfo::CheckVaropSuffix()
             }
             break;
 
+        case'@':
+            pLastChar--;
+            varop = VarOperation::kVarPlus;                    // v@+
+            break;
+
         default:
-            varop = VarOperation::kVarPlus;            // v+
             break;
         }
         break;
@@ -572,9 +580,9 @@ const char* ForthParseInfo::GetVaropSuffix(VarOperation varop)
         "!+",   // kVarSetPlus,
         "!-",   // kVarSetMinus,
         "~",    // kVarClear,
-        "+",    // kVarPlus,
+        "@+",   // kVarPlus,
         "++",   // kVarInc,
-        "-",    // kVarMinus,
+        "@-",   // kVarMinus,
         "--",   // kVarDec,
         "++@",  // kVarIncGet,
         "--@",  // kVarDecGet,
