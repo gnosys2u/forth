@@ -1465,25 +1465,43 @@ ForthShell::SetEnvironmentVars( const char ** envp )
         {
             *pValue++ = '\0';
             mpEnvVarValues[i] = pValue;
+            size_t valueLen = strlen(pValue);
             if (strcmp(mpEnvVarNames[i], "FORTH_ROOT") == 0)
             {
-                mSystemDir = new char[strlen(pValue) + 1];
+                mSystemDir = new char[valueLen + 1];
                 strcpy(mSystemDir, pValue);
             }
             else if (strcmp(mpEnvVarNames[i], "FORTH_DLL") == 0)
             {
-                mDLLDir = new char[strlen(pValue) + 1];
+                mDLLDir = new char[valueLen + 1];
                 strcpy(mDLLDir, pValue);
             }
             else if (strcmp(mpEnvVarNames[i], "FORTH_TEMP") == 0)
             {
-                mTempDir = new char[strlen(pValue) + 1];
+                mTempDir = new char[valueLen + 1];
                 strcpy(mTempDir, pValue);
             }
             else if (strcmp(mpEnvVarNames[i], "FORTH_BLOCKFILE") == 0)
             {
-                mBlockfilePath = new char[strlen(pValue) + 1];
+                mBlockfilePath = new char[valueLen + 1];
                 strcpy(mBlockfilePath, pValue);
+            }
+            else if (strcmp(mpEnvVarNames[i], "FORTH_SCRIPTS") == 0)
+            {
+                char* pToken = strtok(pValue, ";");
+                if (pToken == nullptr)
+                {
+                    // scripts path has just one entry
+                    mScriptPaths.emplace_back(pValue);
+                }
+                else
+                {
+                    while (pValue != nullptr)
+                    {
+                        mScriptPaths.emplace_back(pValue);
+                        pValue = strtok(nullptr, ";");
+                    }
+                }
             }
             else if (strcmp(mpEnvVarNames[i], "TMP") == 0)
             {
@@ -1510,6 +1528,25 @@ ForthShell::SetEnvironmentVars( const char ** envp )
         strcpy(mpEnvVarNames[mNumEnvVars], "FORTH_ROOT");
         mpEnvVarValues[mNumEnvVars] = mSystemDir;
         mNumEnvVars++;
+    }
+
+    if (mScriptPaths.size() == 0)
+    {
+        std::string path(mSystemDir);
+        mScriptPaths.push_back(path);
+        path.append("system/");
+        mScriptPaths.push_back(path);
+    }
+    else
+    {
+        for (std::string& path : mScriptPaths)
+        {
+            char delim = *PATH_SEPARATOR;
+            if (path.at(path.length() - 1) != delim)
+            {
+                path.append(PATH_SEPARATOR);
+            }
+        }
     }
 
     if (mDLLDir == nullptr)
@@ -1914,16 +1951,16 @@ FILE* ForthShell::OpenForthFile( const char* pPath )
 #endif
     if ( (pFile == NULL) && pathIsRelative )
     {
-		char* pSysPath = new char[ strlen(mSystemDir) + strlen(pPath) + 16 ];
-		strcpy(pSysPath, mSystemDir);
-#if defined( WIN32 )
-		strcat( pSysPath, "\\system\\" );
-#elif defined(LINUX) || defined(MACOSX)
-		strcat( pSysPath, "/system/" );
-#endif
-		strcat( pSysPath, pPath );
-		pFile = fopen( pSysPath, "r" );
-		delete [] pSysPath;
+        for (std::string& path : mScriptPaths)
+        {
+            std::string leaf(path);
+            leaf.append(pPath);
+            pFile = fopen(leaf.c_str(), "r");
+            if (pFile != nullptr)
+            {
+                break;
+            }
+        }
     }
 	return pFile;
 }

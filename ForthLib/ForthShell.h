@@ -11,6 +11,8 @@
 #include <limits.h>
 #define MAX_PATH PATH_MAX
 #endif
+#include <vector>
+#include <string>
 
 class ForthInputStack;
 class ForthExtension;
@@ -234,6 +236,8 @@ protected:
     char*                   mDLLDir;
     char*                   mBlockfilePath;
     int                     mPoundIfDepth;
+
+    std::vector<std::string> mScriptPaths;
 
 #if defined(LINUX) || defined(MACOSX)
 #else
