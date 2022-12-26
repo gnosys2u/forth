@@ -84,7 +84,7 @@ class: AsyncPizzaDriver
     new AsyncPizzaDriver -> izzy
     i -> izzy.id
     drivers.push(izzy)
-    izzy.init(system.createThread(lit asyncDeliveryLoop 1000 1000) pizzaReadyToDeliver i pizzasToDeliverEach)
+    izzy.init(system.createThread(['] asyncDeliveryLoop 1000 1000) pizzaReadyToDeliver i pizzasToDeliverEach)
     izzy.deliverThread.startWithArgs(r[ izzy ]r) drop
     oclear izzy
   loop
@@ -202,7 +202,7 @@ class: PizzaDriver
     new PizzaDriver -> izzy
     i -> izzy.id
     drivers.push(izzy)
-    izzy.init(thisThread.createFiber(lit deliveryLoop 1000 1000) pizzaReadyToDeliver i pizzasToDeliverEach)
+    izzy.init(thisThread.createFiber(['] deliveryLoop 1000 1000) pizzaReadyToDeliver i pizzasToDeliverEach)
     izzy.deliverFiber.startWithArgs(r[ izzy ]r) drop
     oclear izzy
   loop

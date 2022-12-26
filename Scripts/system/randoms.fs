@@ -92,7 +92,7 @@ class: RandomIntGenerator
   
   m: init
     randomize
-    lit _randParkMiller -> generatorOp
+    ['] _randParkMiller -> generatorOp
   ;m
   
   m: getSeed

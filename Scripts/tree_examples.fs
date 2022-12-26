@@ -704,11 +704,11 @@ class: Tree
   ;m
   
   m: extractMinHeapValue
-    _extractHeapTopValue(lit >)
+    _extractHeapTopValue(['] >)
   ;m  
   
   m: extractMaxHeapValue
-    _extractHeapTopValue(lit <)
+    _extractHeapTopValue(['] <)
   ;m  
   
   // create a binary tree, not sorted, not necessarily balanced

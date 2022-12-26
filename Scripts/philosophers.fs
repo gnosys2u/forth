@@ -100,7 +100,7 @@ class: Philosopher
     endif
     
     philosophers.get(i) ->o phil
-    phil.init(thisThread.createFiber(lit philosopherLoop 1000 1000) i forks.get(firstFork) forks.get(secondFork))
+    phil.init(thisThread.createFiber(['] philosopherLoop 1000 1000) i forks.get(firstFork) forks.get(secondFork))
     //"philosopher " %s i %d %bl phil.eatingFiber.__fiber %x %nl
     phil.eatingFiber.startWithArgs(r[ phil ]r) drop
     
@@ -219,7 +219,7 @@ class: AsyncPhilosopher
       0 -> firstFork
     endif
     asyncPhilosophers.get(i) ->o phil
-    phil.init(system.createThread(lit asyncPhilosopherLoop 1000 1000) i asyncForks.get(firstFork) asyncForks.get(secondFork))
+    phil.init(system.createThread(['] asyncPhilosopherLoop 1000 1000) i asyncForks.get(firstFork) asyncForks.get(secondFork))
     //p[ "philosopher " %s i %d %bl phil.eatingThread.__thread %x %nl ]p
     phil.eatingThread.startWithArgs(r[ phil ]r) drop
   loop
