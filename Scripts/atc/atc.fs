@@ -324,21 +324,21 @@ class: iAtcInputHandler
 // debugging aid
 : sh setConsoleCursor(90 0) "                                    " %s setConsoleCursor(90 0) %s ;
   
-lf atcPortal.txt
+lf atcPortal
 
-lf atcConsoleDisplay.txt
+lf atcConsoleDisplay
 
-lf atcAirplane.txt
+lf atcAirplane
 
-lf atcAirport.txt
+lf atcAirport
 
-lf atcRegion.txt
+lf atcRegion
 
-lf atcInputHandler.txt
+lf atcInputHandler
 
-lf atcGame.txt
+lf atcGame
 
-lf atcFileReader.txt
+lf atcFileReader
 
 : listATCGames
   getFilesInDirectory("games") -> Array gameFilenames
