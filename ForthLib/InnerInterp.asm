@@ -420,11 +420,41 @@ externalBuiltin:
 	
 ;-----------------------------------------------
 ;
+; combos which push an immediate literal, then execute a builtin op defined in assembler
+;
+entry native32Type
+    mov	eax, [rip]
+    add rip, 4
+    sub rpsp, 4
+    mov [rpsp], eax
+	and	ebx, 00FFFFFFh
+	cmp	ebx, [rcore + FCore.numOps]
+	jae	badOpcode
+	mov eax, [rcore + FCore.ops]
+	mov	ecx, [eax+ebx*4]
+	jmp	ecx
+
+entry native64Type
+    mov	eax, [rip]
+    sub rpsp, 8
+    mov [rpsp], eax
+    mov	eax, [rip + 4]
+    add rip, 8
+    mov [rpsp + 4], eax
+	and	ebx, 00FFFFFFh
+	cmp	ebx, [rcore + FCore.numOps]
+	jae	badOpcode
+	mov eax, [rcore + FCore.ops]
+	mov	ecx, [eax+ebx*4]
+	jmp	ecx
+
+;-----------------------------------------------
+;
 ; cCodeType is used by "builtin" ops which are only defined in C++
 ;
 ;	ebx holds the opcode
 ;
-cCodeType:
+entry cCodeType
 	and	ebx, 00FFFFFFh
 	; dispatch to C version if valid
 	cmp	ebx, [rcore + FCore.numOps]
@@ -467,6 +497,26 @@ cCodeType:
 
 ;-----------------------------------------------
 ;
+; combos which push an immediate literal, then execute a builtin op defined in C++
+;
+entry cCode32Type
+    mov	eax, [rip]
+    add rip, 4
+    sub rpsp, 4
+    mov [rpsp], eax
+    jmp cCodeType
+
+entry cCode64Type
+    mov	eax, [rip]
+    sub rpsp, 8
+    mov [rpsp], eax
+    mov	eax, [rip + 4]
+    add rip, 8
+    mov [rpsp + 4], eax
+    jmp cCodeType
+
+;-----------------------------------------------
+;
 ; user-defined ops (forth words defined with colon)
 ;
 entry userDefType
@@ -487,6 +537,26 @@ entry userDefType
 badUserDef:
 	mov	eax, kForthErrorBadOpcode
 	jmp	interpLoopErrorExit
+
+;-----------------------------------------------
+;
+; combos which push an immediate literal, then execute a builtin op defined in C++
+;
+entry userDef32Type
+    mov	eax, [rip]
+    add rip, 4
+    sub rpsp, 4
+    mov [rpsp], eax
+    jmp userDefType
+
+entry userDef64Type
+    mov	eax, [rip]
+    sub rpsp, 8
+    mov [rpsp], eax
+    mov	eax, [rip + 4]
+    add rip, 8
+    mov [rpsp + 4], eax
+    jmp userDefType
 
 ;-----------------------------------------------
 ;
@@ -7116,6 +7186,7 @@ entry strtokBop
 
 entry litBop
 entry flitBop
+entry ulitBop
 	mov	eax, [rip]
 	add	rip, 4
 	sub	rpsp, 4
@@ -8345,9 +8416,29 @@ entry opTypesTable
 	DD	mroComboType
 	DD	methodWithSuperType
 	
-;	123 - 149
-	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
-	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
+;	123 - 127
+    DD  native32Type
+    DD  native32Type
+    DD  native32Type
+    DD  native64Type
+    DD  native64Type
+
+;	128 - 132
+    DD  cCode32Type
+    DD  cCode32Type
+    DD  cCode32Type
+    DD  cCode64Type
+    DD  cCode64Type
+
+;	133 - 137
+    DD  userDef32Type
+    DD  userDef32Type
+    DD  userDef32Type
+    DD  userDef64Type
+    DD  userDef64Type
+
+;	138 - 149
+	DD	extOpType,extOpType
 	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 ;	150 - 199
 	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType

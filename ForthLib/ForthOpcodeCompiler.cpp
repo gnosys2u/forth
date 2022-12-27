@@ -22,7 +22,7 @@ enum
     kCEVaropVar       = 16          // enables all varop local/member/field var combos
 };
 //#define ENABLED_COMBO_OPS  (kCENumVarop | kCENumOp | kCEOpBranch | kCERefOp | kCEVaropVar)
-#define ENABLED_COMBO_OPS  (kCEOpBranch | kCEVaropVar | kCERefOp)
+#define ENABLED_COMBO_OPS  (kCEOpBranch | kCEVaropVar | kCERefOp | kCENumOp)
 
 //////////////////////////////////////////////////////////////////////
 ////
@@ -65,35 +65,155 @@ void ForthOpcodeCompiler::Reset()
 void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
 {
     forthop* pOpcode = mpDictionarySection->pCurrent;
+    forthop* pPreviousOpcode = GetPreviousOpcodeAddress();
+    int previousOpcodeSize = pPreviousOpcode == nullptr ? 0 : pOpcode - pPreviousOpcode;
 	forthop op = COMPILED_OP( opType, opVal );
     forthOpType previousOpType = kOpUserDef;
     forthop previousOpVal = 0;
-	
+    bool bClearPeephole = false;
+
     forthop newOpVal = opVal & OPCODE_VALUE_MASK;
     switch( opType )
 	{
 	case NATIVE_OPTYPE:
 		{
             forthop lastOp = op;
-
-			if (((mCompileComboOpFlags & kCERefOp) != 0)
-                && GetPreviousOpcode(previousOpType, previousOpVal)
-                && ((previousOpType == kOpMemberRef) || (previousOpType == kOpLocalRef))
-                && FITS_IN_BITS(previousOpVal, 12) && FITS_IN_BITS(newOpVal, 12) )
-			{
-                // LOCALREF OP combo - bits 0:11 are frame offset, bits 12:23 are opcode
-                // MEMBERREF OP combo - bits 0:11 are member offset, bits 12:23 are opcode
-                UncompileLastOpcode();
-                pOpcode--;
-                if (previousOpType == kOpMemberRef)
+            if (GetPreviousOpcode(previousOpType, previousOpVal))
+            {
+                if (previousOpType == kOpMemberRef || previousOpType == kOpLocalRef)
                 {
-                    op = COMPILED_OP(kOpMemberRefOpCombo, previousOpVal | (newOpVal << 12));
+                    if ((mCompileComboOpFlags & kCERefOp) != 0
+                        && FITS_IN_BITS(previousOpVal, 12) && FITS_IN_BITS(newOpVal, 12))
+                    {
+                        // LOCALREF OP combo - bits 0:11 are frame offset, bits 12:23 are opcode
+                        // MEMBERREF OP combo - bits 0:11 are member offset, bits 12:23 are opcode
+                        UncompileLastOpcode();
+                        pOpcode--;
+                        if (previousOpType == kOpMemberRef)
+                        {
+                            op = COMPILED_OP(kOpMemberRefOpCombo, previousOpVal | (newOpVal << 12));
+                        }
+                        else
+                        {
+                            op = COMPILED_OP(kOpLocalRefOpCombo, previousOpVal | (newOpVal << 12));
+                        }
+                        //printf("compiling 0x%x @ %p  previousOpType %0x\n", op, pOpcode, previousOpType);
+                    }
                 }
-                else
+                else if ((mCompileComboOpFlags & kCENumOp) != 0
+                        && lastOp != gCompiledOps[OP_INTO])     // don't combine 'NNN ->', it breaks var initialization
                 {
-                    op = COMPILED_OP(kOpLocalRefOpCombo, previousOpVal | (newOpVal << 12));
+                    if (previousOpType == kOpNative)
+                    {
+                        // uncompile the literal value opcode, stuff the kOpNativeXXX opcode in its place with the new op,
+                        // 
+                        if (previousOpVal == OP_INT_VAL)
+                        {
+                            UncompileLastOpcode();
+                            pOpcode -= 2;
+                            *pOpcode++ = COMPILED_OP(kOpNativeS32, opVal);
+                            op = *pOpcode;
+                            bClearPeephole = true;
+                            SPEW_COMPILATION("Replaced int32 literal with native combo 0x%08x @ 0x%08x\n", pOpcode[-1], pOpcode-1);
+                        }
+                        else if (previousOpVal == OP_UINT_VAL)
+                        {
+                            UncompileLastOpcode();
+                            pOpcode -= 2;
+                            *pOpcode++ = COMPILED_OP(kOpNativeU32, opVal);
+                            op = *pOpcode;
+                            bClearPeephole = true;
+                            SPEW_COMPILATION("Replaced uint32 literal with native combo 0x%08x @ 0x%08x\n", pOpcode[-1], pOpcode - 1);
+                        }
+                        else if (previousOpVal == OP_FLOAT_VAL)
+                        {
+                            UncompileLastOpcode();
+                            pOpcode -= 2;
+                            *pOpcode++ = COMPILED_OP(kOpNativeF32, opVal);
+                            op = *pOpcode;
+                            bClearPeephole = true;
+                            SPEW_COMPILATION("Replaced float literal with native combo 0x%08x @ 0x%08x\n", pOpcode[-1], pOpcode - 1);
+                        }
+                        else if (previousOpVal == OP_DOUBLE_VAL)
+                        {
+                            UncompileLastOpcode();
+                            pOpcode -= 3;
+                            *pOpcode = COMPILED_OP(kOpNativeF64, opVal);
+                            pOpcode += 2;
+                            op = *pOpcode;
+                            bClearPeephole = true;
+                            SPEW_COMPILATION("Replaced double literal with native combo 0x%08x @ 0x%08x\n", pOpcode[-2], pOpcode - 2);
+                        }
+                        else if (previousOpVal == OP_LONG_VAL)
+                        {
+                            UncompileLastOpcode();
+                            pOpcode -= 3;
+                            *pOpcode = COMPILED_OP(kOpNativeS64, opVal);
+                            pOpcode += 2;
+                            op = *pOpcode;
+                            bClearPeephole = true;
+                            SPEW_COMPILATION("Replaced int64 literal with native combo 0x%08x @ 0x%08x\n", pOpcode[-2], pOpcode - 2);
+                        }
+                    }
+                    else if (previousOpType == kOpCCode)
+                    {
+                        // uncompile the literal value opcode, stuff the kOpCCodeXXX opcode in its place with the new op,
+                        // 
+                        if (previousOpVal == OP_INT_VAL)
+                        {
+                            UncompileLastOpcode();
+                            pOpcode -= 2;
+                            *pOpcode++ = COMPILED_OP(kOpCCodeS32, opVal);
+                            op = *pOpcode;
+                            bClearPeephole = true;
+                            SPEW_COMPILATION("Replaced int32 literal with ccode combo 0x%08x @ 0x%08x\n", pOpcode[-1], pOpcode - 1);
+                        }
+                        else if (previousOpVal == OP_UINT_VAL)
+                        {
+                            UncompileLastOpcode();
+                            pOpcode -= 2;
+                            *pOpcode++ = COMPILED_OP(kOpCCodeU32, opVal);
+                            op = *pOpcode;
+                            bClearPeephole = true;
+                            SPEW_COMPILATION("Replaced uint32 literal with ccode combo 0x%08x @ 0x%08x\n", pOpcode[-1], pOpcode - 1);
+                        }
+                        else if (previousOpVal == OP_FLOAT_VAL)
+                        {
+                            UncompileLastOpcode();
+                            pOpcode -= 2;
+                            *pOpcode++ = COMPILED_OP(kOpCCodeF32, opVal);
+                            op = *pOpcode;
+                            bClearPeephole = true;
+                            SPEW_COMPILATION("Replaced float literal with ccode combo 0x%08x @ 0x%08x\n", pOpcode[-1], pOpcode - 1);
+                        }
+                        else if (previousOpVal == OP_DOUBLE_VAL)
+                        {
+                            UncompileLastOpcode();
+                            pOpcode -= 3;
+                            *pOpcode = COMPILED_OP(kOpCCodeF64, opVal);
+                            pOpcode += 2;
+                            op = *pOpcode;
+                            bClearPeephole = true;
+                            SPEW_COMPILATION("Replaced double literal with ccode combo 0x%08x @ 0x%08x\n", pOpcode[-2], pOpcode - 2);
+                        }
+                        else if (previousOpVal == OP_LONG_VAL)
+                        {
+                            UncompileLastOpcode();
+                            pOpcode -= 3;
+                            *pOpcode = COMPILED_OP(kOpCCodeS64, opVal);
+                            pOpcode += 2;
+                            op = *pOpcode;
+                            bClearPeephole = true;
+                            SPEW_COMPILATION("Replaced int64 literal with ccode combo 0x%08x @ 0x%08x\n", pOpcode[-2], pOpcode - 2);
+                        }
+                    }
+                    else if (previousOpType == kOpUserDef)
+                    {
+                    // TODO - is this even a good idea?  we don't have control of
+                    //  what user defs are going to do, if a user is compiling some
+                    //  new type of control structure, this could fail horribly
+                    }
                 }
-                //printf("compiling 0x%x @ %p  previousOpType %0x\n", op, pOpcode, previousOpType);
             }
 
             if ((lastOp == gCompiledOps[OP_INTO]) || (lastOp == gCompiledOps[OP_INTO_PLUS]))
@@ -108,6 +228,7 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
 		{
 			if (((mCompileComboOpFlags & kCEOpBranch) != 0)
                 && GetPreviousOpcode( previousOpType, previousOpVal )
+                && previousOpcodeSize == 1      // only combine with simple opcodes with no immediate data
                 && (previousOpType == NATIVE_OPTYPE)
 				&& FITS_IN_BITS(previousOpVal, 12) && FITS_IN_SIGNED_BITS(newOpVal, 12) )
 			{
@@ -115,7 +236,9 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
 				UncompileLastOpcode();
                 pOpcode--;
 				op = COMPILED_OP(kOpOZBCombo, previousOpVal | (newOpVal << 12));
-			}
+                SPEW_COMPILATION("Compiling 0x%08x @ 0x%08x   opZBranchCombo\n", op, pOpcode);
+                bClearPeephole = true;
+            }
 		}
 		break;
 
@@ -123,6 +246,7 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
     {
         if (((mCompileComboOpFlags & kCEOpBranch) != 0)
             && GetPreviousOpcode(previousOpType, previousOpVal)
+            && previousOpcodeSize == 1      // only combine with simple opcodes with no immediate data
             && (previousOpType == NATIVE_OPTYPE)
             && FITS_IN_BITS(previousOpVal, 12) && FITS_IN_SIGNED_BITS(newOpVal, 12))
         {
@@ -130,6 +254,8 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
             UncompileLastOpcode();
             pOpcode--;
             op = COMPILED_OP(kOpONZBCombo, previousOpVal | (newOpVal << 12));
+            SPEW_COMPILATION("Compiling 0x%08x @ 0x%08x   opNZBranchCombo\n", op, pOpcode);
+            bClearPeephole = true;
         }
     }
     break;
@@ -160,18 +286,28 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
                         forthop varOpBits = (previousOp - (gCompiledOps[OP_FETCH] - 1)) << 20;
                         op = COMPILED_OP(opType, varOpBits | opVal);
                     }
-                    SPEW_COMPILATION("Compiling 0x%08x @ 0x%08x\n", op, pOpcode);
+                    SPEW_COMPILATION("Compiling 0x%08x @ 0x%08x   varop\n", op, pOpcode);
+                    bClearPeephole = true;
                 }
             }
         }
         break;
 	}
 
-	mPeepholeIndex = (mPeepholeIndex + 1) & PEEPHOLE_PTR_MASK;
-	mPeephole[mPeepholeIndex] = pOpcode;
-	*pOpcode++ = op;
-	mpDictionarySection->pCurrent = pOpcode;
-	mPeepholeValidCount++;
+    if (bClearPeephole)
+    {
+        // the just compiled op has made the peephole invalid
+        ClearPeephole();
+        *pOpcode++ = op;
+    }
+    else
+    {
+        mPeepholeIndex = (mPeepholeIndex + 1) & PEEPHOLE_PTR_MASK;
+        mPeephole[mPeepholeIndex] = pOpcode;
+        *pOpcode++ = op;
+        mPeepholeValidCount++;
+    }
+    mpDictionarySection->pCurrent = pOpcode;
 }
 
 void ForthOpcodeCompiler::PatchOpcode(forthOpType opType, forthop opVal, forthop* pOpcode)
@@ -251,7 +387,7 @@ forthop* ForthOpcodeCompiler::GetLastCompiledIntoPtr( void )
 
 bool ForthOpcodeCompiler::GetPreviousOpcode( forthOpType& opType, forthop& opVal, uint32_t index )
 {
-    // index of 0 means most recently opcode
+    // index of 0 means most recent opcode
 	if ( mPeepholeValidCount > index )
 	{
 		forthop op = *(mPeephole[(mPeepholeIndex - index) & PEEPHOLE_PTR_MASK]);
@@ -263,4 +399,14 @@ bool ForthOpcodeCompiler::GetPreviousOpcode( forthOpType& opType, forthop& opVal
 	return false;
 }
 
+forthop* ForthOpcodeCompiler::GetPreviousOpcodeAddress(uint32_t index)
+{
+    // index of 0 means most recent opcode
+    if (mPeepholeValidCount > index)
+    {
+        return mPeephole[(mPeepholeIndex - index) & PEEPHOLE_PTR_MASK];
+    }
+
+    return nullptr;
+}
 

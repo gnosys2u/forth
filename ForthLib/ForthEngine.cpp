@@ -169,8 +169,12 @@ static const char *opTypeNames[] =
 	"MemberFloat", "MemberDouble", "MemberString", "MemberOp", "MemberObject", "MemberByteArray", "MemberUByteArray", "MemberShortArray", "MemberUShortArray", "MemberIntArray",
 	"MemberUIntArray", "MemberLongArray", "MemberULongArray", "MemberFloatArray", "MemberDoubleArray", "MemberStringArray", "MemberOpArray", "MemberObjectArray", "MethodWithThis", "MethodWithTOS",
 	"MemberStringInit", "NumVaropOpCombo", "NumVaropCombo", "NumOpCombo", "VaropOpCombo", "OpBranchFalseCombo", "OpBranchTrueCombo", "SquishedFloat", "SquishedDouble", "SquishedLong",
-	"LocalRefOpCombo", "MemberRefOpCombo", "MethodWithSuper", "LocalUserDefined"
+	"LocalRefOpCombo", "MemberRefOpCombo", "MethodWithSuper",
+    "NativeU32", "NativeS32", "NativeF32", "NativeS64", "NativeF64",
+    "CCodeU32", "CCodeS32", "CCodeF32", "CCodeS64", "CCodeF64",
+    "UserDefU32", "UserDefS32", "UserDefF32", "UserDefS64", "UserDefF64",
 };
+
 
 ///////////////////////////////////////////////////////////////////////
 //
@@ -582,7 +586,7 @@ ForthEngine::PopInputStream( void )
 const char *
 ForthEngine::GetOpTypeName( int32_t opType )
 {
-    return (opType < kOpLocalUserDefined) ? opTypeNames[opType] : "unknown";
+    return (opType <= kOpLastBaseDefined) ? opTypeNames[opType] : "unknown";
 }
 
 static bool lookupUserTraces = true;
@@ -715,6 +719,7 @@ void ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool loo
 	}
 
     SNPRINTF( pBuffer, buffSize, preamble, opType, opVal );
+    // TODO - this is broken!  preambleSize is size of formatting specifier, not size of formatted string!
     pBuffer += preambleSize;
 	buffSize -= preambleSize;
     if ( opType >= (sizeof(opTypeNames) / sizeof(char *)) )
@@ -740,11 +745,16 @@ void ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool loo
 					{
 						SNPRINTF( pBuffer, buffSize, "%s 0x%x", gOpNames[opVal], pOp[1] );
 					}
-					else if ( opVal == gCompiledOps[OP_FLOAT_VAL] )
-					{
-						SNPRINTF( pBuffer, buffSize, "%s %f", gOpNames[opVal], *((float *)(&(pOp[1]))) );
-					}
-					else if ( opVal == gCompiledOps[OP_DOUBLE_VAL] )
+                    else if (opVal == gCompiledOps[OP_UINT_VAL])
+                    {
+                        // TODO - differentiate between signed and unsigned
+                        SNPRINTF(pBuffer, buffSize, "%s U0x%x", gOpNames[opVal], pOp[1]);
+                    }
+                    else if (opVal == gCompiledOps[OP_FLOAT_VAL])
+                    {
+                        SNPRINTF(pBuffer, buffSize, "%s %f", gOpNames[opVal], *((float*)(&(pOp[1]))));
+                    }
+                    else if ( opVal == gCompiledOps[OP_DOUBLE_VAL] )
 					{
 						SNPRINTF( pBuffer, buffSize, "%s %g", gOpNames[opVal], *((double *)(&(pOp[1]))) );
 					}
@@ -763,6 +773,48 @@ void ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool loo
                 }
                 break;
             
+            case kOpNativeU32:
+            case kOpCCodeU32:
+            case kOpNativeS32:
+            case kOpCCodeS32:
+            case kOpNativeF32:
+            case kOpCCodeF32:
+            {
+                SNPRINTF(pBuffer, buffSize, "0x%x ", pOp[1]);
+                size_t immediateValSize = strlen(pBuffer);
+                pBuffer += immediateValSize;
+                buffSize -= immediateValSize;
+                if ((opVal < NUM_TRACEABLE_OPS) && (gOpNames[opVal] != nullptr))
+                {
+                    SNPRINTF(pBuffer, buffSize, "%s", gOpNames[opVal]);
+                }
+                else
+                {
+                    searchVocabsForOp = true;
+                }
+                break;
+            }
+
+            case kOpNativeS64:
+            case kOpCCodeS64:
+            case kOpNativeF64:
+            case kOpCCodeF64:
+            {
+                SNPRINTF(pBuffer, buffSize, "0x%llx ", *((int64_t*)(&(pOp[1]))));
+                size_t immediateValSize = strlen(pBuffer);
+                pBuffer += immediateValSize;
+                buffSize -= immediateValSize;
+                if ((opVal < NUM_TRACEABLE_OPS) && (gOpNames[opVal] != nullptr))
+                {
+                    SNPRINTF(pBuffer, buffSize, "%s", gOpNames[opVal]);
+                }
+                else
+                {
+                    searchVocabsForOp = true;
+                }
+                break;
+            }
+
             case kOpUserDef:
             case kOpUserDefImmediate:
             case kOpDLLEntryPoint:
@@ -771,6 +823,35 @@ void ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool loo
                     searchVocabsForOp = true;
                 }
                 break;
+
+            case kOpUserDefU32:
+            case kOpUserDefS32:
+            case kOpUserDefF32:
+            {
+                SNPRINTF(pBuffer, buffSize, "0x%x ", pOp[1]);
+                size_t immediateValSize = strlen(pBuffer);
+                pBuffer += immediateValSize;
+                buffSize -= immediateValSize;
+                if (lookupUserDefs)
+                {
+                    searchVocabsForOp = true;
+                }
+                break;
+            }
+
+            case kOpUserDefS64:
+            case kOpUserDefF64:
+            {
+                SNPRINTF(pBuffer, buffSize, "0x%llx ", *((int64_t*)(&(pOp[1]))));
+                size_t immediateValSize = strlen(pBuffer);
+                pBuffer += immediateValSize;
+                buffSize -= immediateValSize;
+                if (lookupUserDefs)
+                {
+                    searchVocabsForOp = true;
+                }
+                break;
+            }
 
             case kOpLocalByte:          case kOpLocalByteArray:
             case kOpLocalShort:         case kOpLocalShortArray:

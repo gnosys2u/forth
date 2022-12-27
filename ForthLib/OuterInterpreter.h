@@ -206,11 +206,13 @@ public:
     void                    ClearPeephole();
     void					CompileOpcode(forthop op );
     void                    CompileBuiltinOpcode(forthop v );
+    // use CompileDummyOpcode when building control structures to avoid peephole optimizer breaking things
+    void                    CompileDummyOpcode();
     void                    UncompileLastOpcode( void );
     forthop*				GetLastCompiledOpcodePtr( void );
     forthop*				GetLastCompiledIntoPtr( void );
     void                    ProcessConstant( int64_t value, bool isOffset=false, bool isSingle=true );
-	inline TokenStack* GetTokenStack() { return &mTokenStack; };
+	inline TokenStack*      GetTokenStack() { return &mTokenStack; };
 
     inline ForthVocabulary  *GetSearchVocabulary( void )   { return mpVocabStack->GetTop(); };
     inline void             SetSearchVocabulary( ForthVocabulary* pVocab )  { mpVocabStack->SetTop( pVocab ); };

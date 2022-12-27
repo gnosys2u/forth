@@ -32,7 +32,7 @@ struct ForthFileInterface
     int                 (*fileExists)( const char* pPath );
     int                 (*fileSeek)( FILE* pFile, long offset, int ctrl );
     long                (*fileTell) ( FILE* pFile );
-    int32_t                (*fileGetLength)( FILE* pFile );
+    int32_t             (*fileGetLength)( FILE* pFile );
     char*               (*fileGetString)( char* buffer, int bufferLength, FILE* pFile );
     int                 (*filePutString)( const char* buffer, FILE* pFile );
     int                 (*fileRemove)( const char* buffer );
@@ -42,7 +42,8 @@ struct ForthFileInterface
     int                 (*fileFlush)( FILE* pFile );
     int                 (*renameFile)( const char* pOldName, const char* pNewName );
     int                 (*runSystem)( const char* pCmdline );
-    int                 (*changeDir)( const char* pPath );
+    int                 (*setWorkDir)(const char* pPath);
+    int                 (*getWorkDir)(char* pDstPath, int dstPathMax);
     int                 (*makeDir)( const char* pPath, int mode );
     int                 (*removeDir)( const char* pPath );
 	FILE*				(*getStdIn)();

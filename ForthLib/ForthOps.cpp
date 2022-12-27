@@ -529,7 +529,7 @@ FORTHOP(doOp)
     pShellStack->PushAddress( GET_DP );
     pShellStack->PushTag( kShellTagDo );
     // this will be fixed by loop/+loop
-    pOuter->CompileBuiltinOpcode( OP_ABORT );
+    pOuter->CompileDummyOpcode();
     pOuter->CompileInt( 0 );
     pOuter->StartLoopContinuations();
     pOuter->ClearPeephole();
@@ -547,7 +547,7 @@ FORTHOP(checkDoOp)
     pShellStack->PushAddress(GET_DP);
     pShellStack->PushTag( kShellTagDo );
     // this will be fixed by loop/+loop
-    pOuter->CompileBuiltinOpcode( OP_ABORT );
+    pOuter->CompileDummyOpcode();
     pOuter->CompileInt( 0 );
     pOuter->StartLoopContinuations();
     pOuter->ClearPeephole();
@@ -736,7 +736,7 @@ FORTHOP(elseOp)
     // flag that this is the "else" branch
     pShellStack->PushTag(kShellTagElse);
     // this will be fixed by endif
-    pOuter->CompileBuiltinOpcode( OP_ABORT );
+    pOuter->CompileDummyOpcode();
 }
 
 
@@ -948,7 +948,7 @@ FORTHOP( ofOp )
     pShellStack->PushAddress(GET_DP);
     pShellStack->PushTag( kShellTagOf );
     // this will be set to a caseBranch by endof
-    pOuter->CompileBuiltinOpcode( OP_ABORT );
+    pOuter->CompileDummyOpcode();
 }
 
 
@@ -964,7 +964,7 @@ FORTHOP( ofifOp )
     pShellStack->PushAddress(GET_DP);
     pShellStack->PushTag( kShellTagOfIf );
     // this will be set to a zBranch by endof
-    pOuter->CompileBuiltinOpcode( OP_ABORT );
+    pOuter->CompileDummyOpcode();
 	// if the ofif test succeeded, we need to dispose of the switch input value
     pOuter->CompileBuiltinOpcode( OP_DROP );
     pOuter->ClearPeephole();
@@ -982,7 +982,7 @@ FORTHOP( endofOp )
     forthop* pDP = GET_DP;
 
     // this will be fixed by endcase
-    pOuter->CompileBuiltinOpcode( OP_ABORT );
+    pOuter->CompileDummyOpcode();
     bool isLastCase = true;
     forthop* pCaseBody = nullptr;
 
@@ -1074,7 +1074,7 @@ FORTHOP(gotoOp)
     forthop* pHere = GET_DP;
 	char* labelName = pOuter->GetNextSimpleToken();
 	// this will be fixed when label is defined
-	pOuter->CompileBuiltinOpcode(OP_ABORT);
+	pOuter->CompileDummyOpcode();
     pOuter->AddGoto(labelName, kOpBranch, pHere);
 }
 
@@ -1085,7 +1085,7 @@ FORTHOP(gotoIfOp)
     forthop* pHere = GET_DP;
 	char* labelName = pOuter->GetNextSimpleToken();
 	// this will be fixed when label is defined
-	pOuter->CompileBuiltinOpcode(OP_ABORT);
+	pOuter->CompileDummyOpcode();
     pOuter->AddGoto(labelName, kOpBranchNZ, pHere);
 }
 
@@ -1096,7 +1096,7 @@ FORTHOP(gotoIfNotOp)
     forthop* pHere = GET_DP;
 	char* labelName = pOuter->GetNextSimpleToken();
 	// this will be fixed when label is defined
-	pOuter->CompileBuiltinOpcode(OP_ABORT);
+	pOuter->CompileDummyOpcode();
     pOuter->AddGoto(labelName, kOpBranchZ, pHere);
 }
 
@@ -1113,7 +1113,7 @@ FORTHOP(continueOp)
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     pOuter->AddContinuationBranch(GET_DP, kOpBranch);
     // this will be fixed when surrounding loop is finished
-    pOuter->CompileBuiltinOpcode(OP_ABORT);
+    pOuter->CompileDummyOpcode();
 }
 
 FORTHOP(continueIfOp)
@@ -1122,7 +1122,7 @@ FORTHOP(continueIfOp)
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     pOuter->AddContinuationBranch(GET_DP, kOpBranchNZ);
     // this will be fixed when surrounding loop is finished
-    pOuter->CompileBuiltinOpcode(OP_ABORT);
+    pOuter->CompileDummyOpcode();
 }
 
 FORTHOP(continueIfNotOp)
@@ -1131,7 +1131,7 @@ FORTHOP(continueIfNotOp)
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     pOuter->AddContinuationBranch(GET_DP, kOpBranchZ);
     // this will be fixed when surrounding loop is finished
-    pOuter->CompileBuiltinOpcode(OP_ABORT);
+    pOuter->CompileDummyOpcode();
 }
 
 FORTHOP(breakOp)
@@ -1140,7 +1140,7 @@ FORTHOP(breakOp)
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     pOuter->AddBreakBranch(GET_DP, kOpBranch);
     // this will be fixed when surrounding loop is finished
-    pOuter->CompileBuiltinOpcode(OP_ABORT);
+    pOuter->CompileDummyOpcode();
 }
 
 FORTHOP(breakIfOp)
@@ -1149,7 +1149,7 @@ FORTHOP(breakIfOp)
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     pOuter->AddBreakBranch(GET_DP, kOpBranchNZ);
     // this will be fixed when surrounding loop is finished
-    pOuter->CompileBuiltinOpcode(OP_ABORT);
+    pOuter->CompileDummyOpcode();
 }
 
 FORTHOP(breakIfNotOp)
@@ -1158,7 +1158,7 @@ FORTHOP(breakIfNotOp)
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     pOuter->AddBreakBranch(GET_DP, kOpBranchZ);
     // this will be fixed when surrounding loop is finished
-    pOuter->CompileBuiltinOpcode(OP_ABORT);
+    pOuter->CompileDummyOpcode();
 }
 
 // align (upwards) DP to longword boundary
@@ -1666,7 +1666,7 @@ FORTHOP( funcOp )
 	{
 		pOuter->GetLocalVocabulary()->Push();
 		// this op will be replaced by ;func
-		pOuter->CompileBuiltinOpcode(OP_ABORT);
+		pOuter->CompileDummyOpcode();
 		// flag that previous state was compiling
 		pShellStack->Push(1);
 	}
@@ -1991,6 +1991,7 @@ FORTHOP( dconstantOp )
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     forthop* pEntry = pOuter->StartOpDefinition();
     pEntry[1] = (forthop)BASE_TYPE_TO_CODE( BaseType::kUserDefinition );
+    // TODO: this is wrong for 32-bit!
     pOuter->CompileBuiltinOpcode( OP_DO_DCONSTANT );
     double d = DPOP;
     pOuter->CompileDouble( d );
@@ -3138,7 +3139,8 @@ FORTHOP(strRunFileOp)
 	{
 		ForthEngine *pEngine = GET_ENGINE;
 		ForthShell* pShell = pEngine->GetShell();
-		FILE *pInFile = pShell->OpenForthFile(pFileName);
+        std::string containingDir;
+		FILE *pInFile = pShell->OpenForthFile(pFileName, containingDir);
 		if (pInFile != NULL)
 		{
 			ForthFileInputStream* pInputStream = new ForthFileInputStream(pInFile, pFileName);
@@ -4437,7 +4439,7 @@ FORTHOP( shellRunOp )
 FORTHOP( chdirOp )
 {
     NEEDS(1);
-    int result = pCore->pFileFuncs->changeDir( (const char *) SPOP );
+    int result = pCore->pFileFuncs->setWorkDir( (const char *) SPOP );
     SPUSH( result );
 }
 
@@ -8764,13 +8766,23 @@ FORTHOP( strFixupBop )
     }
 }
 
-// push the immediately following literal 32-bit constant
+// push the immediately following literal signed 32-bit constant
 FORTHOP(litBop)
 {
-    forthop*pV = GET_IP;
-    SET_IP( pV + 1 );
-    SPUSH( *pV );
+    int32_t* pV = (int32_t*)(GET_IP);
+    SPUSH(*pV);
+    SET_IP( (forthop*)(pV + 1));
 }
+
+#if defined(FORTH64)
+// push the immediately following literal unsigned 32-bit constant
+FORTHOP(ulitBop)
+{
+    uint32_t* pV = (uint32_t*)(GET_IP);
+    SPUSH(*pV);
+    SET_IP((forthop*)(pV + 1));
+}
+#endif
 
 // push the immediately following literal 64-bit constant
 FORTHOP(dlitBop)
@@ -9340,8 +9352,8 @@ extern GFORTHOP( doObjectArrayBop );
 #define OPREF extern GFORTHOP
 
 OPREF( abortBop );          OPREF( dropBop );           OPREF( doDoesBop );
-OPREF( litBop );            OPREF( dlitBop );           OPREF( doVariableBop );
-OPREF( doConstantBop );     OPREF( doneBop );
+OPREF( litBop );            OPREF( dlitBop );           OPREF( ulitBop );
+OPREF(doVariableBop);       OPREF( doConstantBop );     OPREF( doneBop );
 OPREF( doByteBop );         OPREF( doUByteBop );        OPREF( doShortBop );
 OPREF( doUShortBop );       OPREF( doIntBop );          OPREF( doLongBop );
 OPREF( doFloatBop );        OPREF( doDoubleBop );       OPREF( doStringBop );
@@ -9474,10 +9486,15 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
 	OP_COMPILED_DEF(    abortOp,                     "abort",			OP_ABORT ),
     NATIVE_COMPILED_DEF(    dropBop,                 "drop",			OP_DROP ),
     NATIVE_COMPILED_DEF(    doDoesBop,               "_doDoes",			OP_DO_DOES ),
-    NATIVE_COMPILED_DEF(    litBop,                  "lit",				OP_INT_VAL ),
+    NATIVE_COMPILED_DEF(    litBop,                  "ilit",			OP_INT_VAL ),
+#if defined(FORTH64)
+    NATIVE_COMPILED_DEF(    ulitBop,                  "uilit",			OP_UINT_VAL),
+#else
+    NATIVE_COMPILED_DEF(    litBop,                   "uilit",			OP_UINT_VAL),
+#endif
     NATIVE_COMPILED_DEF(    litBop,                  "flit",			OP_FLOAT_VAL ),
     NATIVE_COMPILED_DEF(    dlitBop,                 "dlit",			OP_DOUBLE_VAL ),
-    NATIVE_COMPILED_DEF(    dlitBop,                 "2lit",			OP_LONG_VAL ),
+    NATIVE_COMPILED_DEF(    dlitBop,                 "llit",			OP_LONG_VAL ),
     NATIVE_COMPILED_DEF(    doVariableBop,           "_doVariable",		OP_DO_VAR ),
     NATIVE_COMPILED_DEF(    doConstantBop,           "_doConstant",		OP_DO_CONSTANT ),
 #if defined(FORTH64)

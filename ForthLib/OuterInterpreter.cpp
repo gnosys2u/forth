@@ -5,6 +5,8 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
+// use stdint.h for INT_MAX instead of C++ <limits> because windows always defines max(A,B) macro
+#include <stdint.h>
 
 #if defined(LINUX) || defined(MACOSX)
 #include <ctype.h>
@@ -724,7 +726,9 @@ forthop* OuterInterpreter::NextOp(forthop *pOp )
     switch ( opType )
     {
         case kOpNative:
-			if ( (opVal == gCompiledOps[OP_INT_VAL]) || (opVal == gCompiledOps[OP_FLOAT_VAL])
+        case kOpCCode:
+			if ( (opVal == gCompiledOps[OP_INT_VAL]) || (opVal == gCompiledOps[OP_UINT_VAL])
+                || (opVal == gCompiledOps[OP_FLOAT_VAL])
 				|| (opVal == gCompiledOps[OP_DO_DO]) ||  (opVal == gCompiledOps[OP_DO_STRUCT_ARRAY]) )
 			{
 				pOp++;
@@ -737,6 +741,18 @@ forthop* OuterInterpreter::NextOp(forthop *pOp )
 
         case kOpConstantString:
             pOp += opVal;
+            break;
+
+        case kOpNativeU32: case kOpNativeS32: case kOpNativeF32:
+        case kOpCCodeU32: case kOpCCodeS32: case kOpCCodeF32:
+        case kOpUserDefU32: case kOpUserDefS32: case kOpUserDefF32:
+            pOp++;
+            break;
+
+        case kOpNativeS64: case kOpNativeF64:
+        case kOpCCodeS64: case kOpCCodeF64:
+        case kOpUserDefS64: case kOpUserDefF64:
+            pOp += 2;
             break;
 
         default:
@@ -1042,20 +1058,6 @@ bool OuterInterpreter::ScanFloatToken( char *pToken, float& fvalue, double& dval
    }
 
    ucell len = (ucell)strlen( pToken );
-   if ( CheckFeature( kFFCFloatLiterals ) )
-   {
-       if ( strchr( pToken, '.' ) == nullptr )
-       {
-          return false;
-       }
-   }
-   else
-   {
-       if ( (strchr( pToken, 'e' ) == nullptr) && (strchr( pToken, 'E' ) == nullptr) )
-       {
-          return false;
-       }
-   }
    char *pLastChar = pToken + (len - 1);
    char lastChar = tolower(*pLastChar);
    switch ( lastChar )
@@ -1240,7 +1242,7 @@ OuterInterpreter::CompileOpcode(forthOpType opType, forthop opVal)
 #if defined(DEBUG)
 void OuterInterpreter::CompileInt(int32_t v)
 {
-    SPEW_COMPILATION("Compiling 0x%08x @ 0x%08x\n", v, mpDictionary->pCurrent);
+    SPEW_COMPILATION("Compiling int 0x%08x @ 0x%08x\n", v, mpDictionary->pCurrent);
     *mpDictionary->pCurrent++ = v;
 }
 
@@ -1275,18 +1277,20 @@ OuterInterpreter::CompileOpcode(forthop op )
 	CompileOpcode( FORTH_OP_TYPE( op ), FORTH_OP_VALUE( op ) );
 }
 
-void
-OuterInterpreter::CompileBuiltinOpcode(forthop op )
+void OuterInterpreter::CompileBuiltinOpcode(forthop op )
 {
 	if ( op < NUM_COMPILED_OPS )
 	{
 		CompileOpcode( gCompiledOps[op] );
 	}
+}
 
-    if (op == OP_ABORT)
-    {
-        ClearPeephole();
-    }
+void OuterInterpreter::CompileDummyOpcode()
+{
+    // compile an ABORT opcode, with no peephole optimizations allowed
+    ClearPeephole();
+    CompileOpcode(gCompiledOps[OP_ABORT]);
+    ClearPeephole();
 }
 
 void OuterInterpreter::UncompileLastOpcode( void )
@@ -1294,7 +1298,7 @@ void OuterInterpreter::UncompileLastOpcode( void )
     forthop *pLastCompiledOpcode = mpOpcodeCompiler->GetLastCompiledOpcodePtr();
     if ( pLastCompiledOpcode != nullptr )
     {
-		SPEW_COMPILATION("Uncompiling from 0x%08x to 0x%08x\n", mpDictionary->pCurrent, pLastCompiledOpcode);
+		SPEW_COMPILATION("Uncompiling from %p to %p\n", mpDictionary->pCurrent, pLastCompiledOpcode);
 		mpOpcodeCompiler->UncompileLastOpcode();
     }
     else
@@ -1322,45 +1326,40 @@ OuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
     if ( mCompileState )
     {
         // compile the literal value
-        if (isSingle)
+        int32_t lvalue = (int32_t)value;
+        if (isOffset)
         {
-            int32_t lvalue = (int32_t)value;
+            // TODO: throw error if isSingle is false
             if ((lvalue < (1 << 23)) && (lvalue >= -(1 << 23)))
             {
                 // value fits in opcode immediate field
-                CompileOpcode((isOffset ? kOpOffset : kOpConstant), lvalue & 0xFFFFFF);
+                CompileOpcode(kOpOffset, lvalue & 0xFFFFFF);
             }
             else
             {
                 // value too big, must go in next longword
-                if (isOffset)
-                {
-                    CompileBuiltinOpcode(OP_INT_VAL);
-                    *mpDictionary->pCurrent++ = lvalue;
-                    CompileBuiltinOpcode(OP_PLUS);
-                }
-                else
-                {
-                    CompileBuiltinOpcode(OP_INT_VAL);
-                    *mpDictionary->pCurrent++ = lvalue;
-                }
+                ClearPeephole();
+                CompileBuiltinOpcode(OP_INT_VAL);
+                *mpDictionary->pCurrent++ = lvalue;
+                CompileBuiltinOpcode(OP_PLUS);
             }
         }
         else
         {
-            // compile the literal value
-            // TODO: support 64-bit offsets?
-            uint32_t squishedLong;
-            if (SquishLong(value, squishedLong))
+            ClearPeephole();
+#if defined(FORTH64)
+            if (value < INT_MIN || value > UINT_MAX)
+#else
+            // on 32-bit system, user specifying 'L' forces a 64-bit value, even
+            //  if it can be represented in 32-bits
+            if (!isSingle || value < INT_MIN || value > UINT_MAX)
+#endif
             {
-                CompileOpcode(kOpSquishedLong, squishedLong);
-            }
-            else
-            {
-                CompileBuiltinOpcode(OP_DOUBLE_VAL);
+                // too big for 32-bits, must compile as 64-bit
+                CompileBuiltinOpcode(OP_LONG_VAL);
                 forthop* pDP = mpDictionary->pCurrent;
 #if defined(FORTH64)
-                *(int64_t*)pDP = value;
+                * (int64_t*)pDP = value;
                 pDP += 2;
 #else
                 stackInt64 val;
@@ -1369,6 +1368,18 @@ OuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
                 *pDP++ = val.s32[0];
 #endif
                 mpDictionary->pCurrent = pDP;
+            }
+            else if (value <= INT_MAX)
+            {
+                // value fits in 32-bit signed value
+                CompileBuiltinOpcode(OP_INT_VAL);
+                *mpDictionary->pCurrent++ = lvalue;
+            }
+            else
+            {
+                // value fits in 32-bit unsigned value
+                CompileBuiltinOpcode(OP_UINT_VAL);
+                *mpDictionary->pCurrent++ = lvalue;
             }
         }
     }
@@ -1409,10 +1420,17 @@ OuterInterpreter::GetLastConstant( int32_t& constantValue )
     if ( pLastCompiledOpcode != nullptr )
 	{
         forthop op = *pLastCompiledOpcode;
-        if ( ((pLastCompiledOpcode + 1) == mpDictionary->pCurrent)
-            && (FORTH_OP_TYPE( op ) == kOpConstant) )
+        forthop opType = FORTH_OP_TYPE(op);
+        forthop opValue = FORTH_OP_VALUE(op);
+        int dpOffset = mpDictionary->pCurrent - pLastCompiledOpcode;
+        if (opType == kOpConstant && dpOffset == 1)
         {
-            constantValue = FORTH_OP_VALUE( op );
+            constantValue = opValue;
+            return true;
+        }
+        else if (op == gCompiledOps[OP_INT_VAL] && dpOffset == 2)
+        {
+            constantValue = pLastCompiledOpcode[1];
             return true;
         }
     }

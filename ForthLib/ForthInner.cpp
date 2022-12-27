@@ -3929,6 +3929,174 @@ OPTYPE_ACTION( MemberRefOpComboAction )
     ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore,  op );
 }
 
+OPTYPE_ACTION(NativeU32Action)
+{
+    if (opVal < GET_NUM_OPS)
+    {
+        forthop* IP = GET_IP;
+        uint32_t val = *(uint32_t*)IP++;
+        SET_IP(IP);
+        SPUSH(val);
+        NativeAction(pCore, opVal);
+    }
+    else
+    {
+        SET_ERROR(ForthError::kBadOpcode);
+    }
+}
+
+OPTYPE_ACTION(NativeS32Action)
+{
+    if (opVal < GET_NUM_OPS)
+    {
+        forthop* IP = GET_IP;
+        int32_t val = *(int32_t*)IP++;
+        SET_IP(IP);
+        SPUSH(val);
+        NativeAction(pCore, opVal);
+    }
+    else
+    {
+        SET_ERROR(ForthError::kBadOpcode);
+    }
+}
+
+OPTYPE_ACTION(Native64Action)
+{
+    if (opVal < GET_NUM_OPS)
+    {
+        int64_t* IP = (int64_t*)(GET_IP);
+        int64_t val = *IP++;
+        SET_IP((forthop*)IP);
+#ifdef FORTH64
+        SPUSH(val);
+#else
+        PUSH64(val);
+#endif
+        NativeAction(pCore, opVal);
+    }
+    else
+    {
+        SET_ERROR(ForthError::kBadOpcode);
+    }
+}
+
+OPTYPE_ACTION(UserDefU32Action)
+{
+    // op is normal user-defined, push IP on rstack, lookup new IP
+    //  in table of user-defined ops
+    if (opVal < GET_NUM_OPS)
+    {
+        forthop* IP = GET_IP;
+        uint32_t val = *(uint32_t*)IP++;
+        SET_IP(IP);
+        SPUSH(val);
+        RPUSH((cell)IP);
+        SET_IP(OP_TABLE[opVal]);
+    }
+    else
+    {
+        SET_ERROR(ForthError::kBadOpcode);
+    }
+}
+
+OPTYPE_ACTION(UserDefS32Action)
+{
+    // op is normal user-defined, push IP on rstack, lookup new IP
+    //  in table of user-defined ops
+    if (opVal < GET_NUM_OPS)
+    {
+        forthop* IP = GET_IP;
+        int32_t val = *(int32_t*)IP++;
+        SET_IP(IP);
+        SPUSH(val);
+        RPUSH((cell)IP);
+        SET_IP(OP_TABLE[opVal]);
+    }
+    else
+    {
+        SET_ERROR(ForthError::kBadOpcode);
+    }
+}
+
+OPTYPE_ACTION(UserDef64Action)
+{
+    // op is normal user-defined, push IP on rstack, lookup new IP
+    //  in table of user-defined ops
+    if (opVal < GET_NUM_OPS)
+    {
+        int64_t* IP = (int64_t*)(GET_IP);
+        int64_t val = *IP++;
+        SET_IP((forthop*)IP);
+#ifdef FORTH64
+        SPUSH(val);
+#else
+        PUSH64(val);
+#endif
+        RPUSH((cell)IP);
+        SET_IP(OP_TABLE[opVal]);
+    }
+    else
+    {
+        SET_ERROR(ForthError::kBadOpcode);
+    }
+}
+
+OPTYPE_ACTION(CCodeU32Action)
+{
+    if (opVal < GET_NUM_OPS)
+    {
+        forthop* IP = GET_IP;
+        uint32_t val = *(uint32_t*)IP++;
+        SET_IP(IP);
+        SPUSH(val);
+        ForthCOp opRoutine = (ForthCOp)(pCore->ops[opVal]);
+        opRoutine(pCore);
+    }
+    else
+    {
+        SET_ERROR(ForthError::kBadOpcode);
+    }
+}
+
+OPTYPE_ACTION(CCodeS32Action)
+{
+    if (opVal < GET_NUM_OPS)
+    {
+        forthop* IP = GET_IP;
+        int32_t val = *(int32_t*)IP++;
+        SET_IP(IP);
+        SPUSH(val);
+        ForthCOp opRoutine = (ForthCOp)(pCore->ops[opVal]);
+        opRoutine(pCore);
+    }
+    else
+    {
+        SET_ERROR(ForthError::kBadOpcode);
+    }
+}
+
+OPTYPE_ACTION(CCode64Action)
+{
+    if (opVal < GET_NUM_OPS)
+    {
+        int64_t* IP = (int64_t*)(GET_IP);
+        int64_t val = *IP++;
+        SET_IP((forthop*)IP);
+#ifdef FORTH64
+        SPUSH(val);
+#else
+        PUSH64(val);
+#endif
+        ForthCOp opRoutine = (ForthCOp)(pCore->ops[opVal]);
+        opRoutine(pCore);
+    }
+    else
+    {
+        SET_ERROR(ForthError::kBadOpcode);
+    }
+}
+
 OPTYPE_ACTION( IllegalOptypeAction )
 {
     SET_ERROR( ForthError::kBadOpcodeType );
@@ -4143,10 +4311,27 @@ optypeActionRoutine builtinOptypeAction[] =
 	SquishedDoubleAction,
 	SquishedLongAction,
 
-	// 120 - 122
+	// 120 - 129    78 - 81
 	LocalRefOpComboAction,		// 0x78
 	MemberRefOpComboAction,
     MethodWithSuperAction,
+    NativeU32Action,            // uint32
+    NativeS32Action,            // int32
+    NativeU32Action,            // float
+    Native64Action,             // int64
+    Native64Action,             // double
+    CCodeU32Action,             // uint32
+    CCodeS32Action,             // int32
+
+    // 130 - 137    82 - 89
+    CCodeU32Action,             // float
+    CCode64Action,              // int64
+    CCode64Action,              // double
+    UserDefU32Action,           // uint32
+    UserDefS32Action,           // int32
+    UserDefU32Action,           // float
+    UserDef64Action,            // int64
+    UserDef64Action,            // double
 
     NULL            // this must be last to end the list
 };

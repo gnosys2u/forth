@@ -5,15 +5,26 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
-- make a ReadMe.md file for github
+- get a consistent strategy for handling things like 2lit/lit/ilit/llit
+
+- replace ForthShell environment variable arrays with a simple map
+? do internal files still work?
+
+- make a README.md file for github
   - document how to build on each supported platform
 
 - add copyright notices/disclaimers to all files
   ? use MIT license or some other?
 
 - add unicode/utf8 handling - a string iterator that gives back code points for one thing
+  -> not as simple as it sounds...
 
 - fix Linux 64-bit hang on startup when logger isn't running
+
+- have script file search check for "./" or "../" at start of script path, if so don't use
+  search path directories, just use the raw specified script path
+
++ add a FORTH_SCRIPTS environment variable which allows multiple directories to be searched
 
 + change icmp and uicmp to cmp and ucmp for consitency, add lcmp and ulcmp aliases for non-64 to autoload
 
@@ -41,7 +52,7 @@ TBDs:
 
 - have verbose describe of a class or struct shows its typeIndex
 
-- add general immediate ops, so 'N op' would compile into just the op plus an immediate operand
++ add general immediate ops, so 'N op' would compile into just the op plus an immediate operand
   - there would need to be new optypes for each of native, C and userDefs
   - there would need to be 32 and 64 bit variants, maybe signed and unsigned for 32-bits
 
@@ -79,7 +90,7 @@ TBDs:
   o zeros object variable
   o does nothing if object variable is already null (leaves dnull on TOS)
   o decrements object refcount, but DOES NOT delete object if refcount is 0
-  ? what should happen if object already has refcount 0
+    -> should throw error if object already has refcount 0
 - add unref method to object containers to do unref for elements
   - add unref methods to iterators
 - it looks like OListRemoveHead and OListRemoveTail didn't do a release
@@ -208,6 +219,56 @@ Double has consistent layout, long is reversed on param stack.
 
 
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+December 25 2022
+
+I added the general immediate ops feature, where things like "55 *" gets turned
+into a single opcode which pushes 55 and executes *.
+
++ native combo compilation
++ ccode combo compilation
+- userDef combo compilation
++ ia32 native support
++ amd64 native support
+- arm native support
+- put back in compiling small constants with kOpConstant - this is important for
+  cases where the op/immediate combo op can't be compiled, like '0 do', which used
+  to be a kOpConstant(0) and the _do opcode, now it is ilit, 0, _do, which is a
+  longword bigger.
+
+I'm not sure that the userDef/immediate combos are worth implementing, it does
+save a long in space, but the perf improvement probably isn't noticeable with
+a high level definition, and I'm also not sure that it wont cause problems if
+users make defining words which shouldn't be combined with immediate literals.
+Maybe defining a way for users to clear the peephole would give them a way to
+solve this potential problem.
+
+I also added changing the working directory to the directory containing a script
+file when it is loaded, and restoring the old working directory when the script
+is finished.  This makes the multiple script search path change work much better.
+
+I had to introduce a small backwards compatability failure.  Initializing a
+local string variable when declaring it could be done like this:
+    "some string" -> 100 string str
+now it must be done like this:
+    "some string" 100 string str!
+The change was needed because I added clearing the peephole just before compiling
+any literal with lit/dlit/flit/llit, which made the copying of the initial string
+not happen.  This was necessary because if you had multiple consecutive literals
+the native/immediate combo code would combine multiple literals together, which
+was wierd.  It appears to work for 2 consecutive literals, but screws up tracing,
+and I don't know what would be generated for more than 2 literals in a row.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+December 10 2022
+
+I added the FORTH_SCRIPTS environment variable, that specifies multiple directories
+which will be searched for script files.
+I wanted to get rid of the duplicate files in Sandbox and Scripts, but I ran into
+one problem - when running test.fs, when it tries to run the atc script, the
+'cd atc' fails, because the current directory was Sandbox, and I had deleted the
+atc directory from there.
+? Maybe when running a script, the current working directory will be changed to
+  the directory where the script resides, and cwd is restored when exiting?
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 December 9 2022
 

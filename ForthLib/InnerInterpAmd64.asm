@@ -554,11 +554,49 @@ externalBuiltin:
 	
 ;-----------------------------------------------
 ;
+; combos which push an immediate literal, then execute a builtin op defined in assembler
+;
+entry nativeU32Type
+    xor rax, rax
+    mov	eax, DWORD[rip]
+    add rip, 4
+    sub rpsp, 8
+    mov [rpsp], rax
+	and	rbx, 0x00FFFFFF
+	cmp	rbx, rnumops
+	jae badOpcode
+	mov	rcx, [roptab + rbx*8]
+	jmp	rcx
+
+entry nativeS32Type
+    movsx	rax, DWORD[rip]
+    add rip, 4
+    sub rpsp, 8
+    mov [rpsp], rax
+	and	rbx, 0x00FFFFFF
+	cmp	rbx, rnumops
+	jae badOpcode
+	mov	rcx, [roptab + rbx*8]
+	jmp	rcx
+
+entry native64Type
+    mov	rax, [rip]
+    add rip, 8
+    sub rpsp, 8
+    mov [rpsp], rax
+	and	rbx, 0x00FFFFFF
+	cmp	rbx, rnumops
+	jae badOpcode
+	mov	rcx, [roptab + rbx*8]
+	jmp	rcx
+
+;-----------------------------------------------
+;
 ; cCodeType is used by "builtin" ops which are only defined in C++
 ;
 ;	rbx holds the opcode
 ;
-cCodeType:
+entry cCodeType
 	and	rbx, 00FFFFFFh
 	; dispatch to C version if valid
 	cmp	rbx, rnumops
@@ -605,6 +643,31 @@ cCodeType:
 	;mov	rpsp, [rcore + FCore.SPtr]
 	;jmp	interpFuncExit	; if something went wrong
 	
+;-----------------------------------------------
+;
+; combos which push an immediate literal, then execute a builtin op defined in C++
+;
+entry cCodeU32Type
+    xor rax, rax
+    mov	eax, DWORD[rip]
+    add rip, 4
+    sub rpsp, 8
+    mov [rpsp], rax
+    jmp cCodeType
+
+entry cCodeS32Type
+    movsx	rax, WORD[rip]
+    add rip, 4
+    sub rpsp, 8
+    mov [rpsp], rax
+    jmp cCodeType
+
+entry cCode64Type
+    mov	rax, [rip]
+    add rip, 8
+    sub rpsp, 8
+    mov [rpsp], rax
+    jmp cCodeType
 
 ;-----------------------------------------------
 ;
@@ -625,6 +688,32 @@ entry userDefType
 badUserDef:
 	mov	rax, kForthErrorBadOpcode
 	jmp	interpFuncErrorExit
+
+;-----------------------------------------------
+;
+; combos which push an immediate literal, then execute a user-defined op
+;
+entry userDefU32Type
+    xor rax, rax
+    mov	eax, DWORD[rip]
+    add rip, 4
+    sub rpsp, 8
+    mov [rpsp], rax
+    jmp userDefType
+
+entry userDefS32Type
+    movsx	rax, WORD[rip]
+    add rip, 4
+    sub rpsp, 8
+    mov [rpsp], rax
+    jmp userDefType
+
+entry userDef64Type
+    mov	rax, [rip]
+    add rip, 8
+    sub rpsp, 8
+    mov [rpsp], rax
+    jmp userDefType
 
 ;-----------------------------------------------
 ;
@@ -6886,7 +6975,15 @@ entry strtokBop
 ;========================================
 
 entry litBop
+	movsx	rax, DWORD[rip]
+	add	rip, 4
+	sub	rpsp, 8
+	mov	[rpsp], rax
+	jmp	rnext
+	
+entry ulitBop
 entry flitBop
+    xor rax, rax            ; is this necessary?
 	mov	eax, DWORD[rip]
 	add	rip, 4
 	sub	rpsp, 8
@@ -8275,11 +8372,31 @@ entry opTypesTable
 ;	120 - 122
 	DQ	lroComboType
 	DQ	mroComboType
-	DQ	methodWithSuperType
+	DQ  methodWithSuperType
 	
-;	123 - 149
-	DQ	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
-	DQ	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
+;	123 - 127
+    DQ  nativeU32Type
+    DQ  nativeS32Type
+    DQ  nativeU32Type
+    DQ  native64Type
+    DQ  native64Type
+
+;	128 - 132
+    DQ  cCodeU32Type
+    DQ  cCodeS32Type
+    DQ  cCodeU32Type
+    DQ  cCode64Type
+    DQ  cCode64Type
+
+;	133 - 137
+    DQ  userDefU32Type
+    DQ  userDefS32Type
+    DQ  userDefU32Type
+    DQ  userDef64Type
+    DQ  userDef64Type
+
+;	138 - 149
+	DQ	extOpType,extOpType
 	DQ	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 ;	150 - 199
 	DQ	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType

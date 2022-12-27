@@ -177,8 +177,30 @@ typedef enum
 
     kOpMethodWithSuper,                     // low 24 bits is method number
 
-    kOpLocalUserDefined = 123,             // user can add more optypes starting with this one
-    kOpMaxLocalUserDefined = 127,    // maximum user defined optype
+    // 123 - 127
+    kOpNativeU32,                           // low 24 bits is native op number, next longword is 32-bit unsigned int immediate value
+    kOpNativeS32,                           // low 24 bits is native op number, next longword is 32-bit signed int immediate value
+    kOpNativeF32,                           // low 24 bits is native op number, next longword is 32-bit float immediate value
+    kOpNativeS64,                           // low 24 bits is native op number, next 2 longwords is 64-bit signed int immediate value
+    kOpNativeF64,                           // low 24 bits is native op number, next 2 longwords is 64-bit float immediate value
+
+    // 128 - 132
+    kOpCCodeU32,                            // low 24 bits is CCode op number, next longword is 32-bit unsigned int immediate value
+    kOpCCodeS32,                            // low 24 bits is CCode op number, next longword is 32-bit signed intimmediate value
+    kOpCCodeF32,                            // low 24 bits is CCode op number, next longword is 32-bit float immediate value
+    kOpCCodeS64,                            // low 24 bits is CCode op number, next 2 longwords is 64-bit signed int immediate value
+    kOpCCodeF64,                            // low 24 bits is CCode op number, next 2 longwords is 64-bit float immediate value
+
+    // 133 - 137
+    kOpUserDefU32,                          // low 24 bits is UserDef op number, next longword is 32-bit unsigned int immediate value
+    kOpUserDefS32,                          // low 24 bits is UserDef op number, next longword is 32-bit signed intimmediate value
+    kOpUserDefF32,                          // low 24 bits is UserDef op number, next longword is 32-bit float immediate value
+    kOpUserDefS64,                          // low 24 bits is UserDef op number, next 2 longwords is 64-bit signed int immediate value
+    kOpUserDefF64,                          // low 24 bits is UserDef op number, next 2 longwords is 64-bit float immediate value
+
+    kOpLastBaseDefined = kOpCCodeF64,
+    kOpLocalUserDefined = 192,              // user can add more optypes starting with this one
+    kOpMaxLocalUserDefined = 255,           // maximum user defined optype
 
 #if defined(FORTH64)
     kOpLocalCell = kOpLocalLong,
@@ -462,11 +484,12 @@ enum {
 	OP_DROP,
 	OP_DO_DOES,
 	OP_INT_VAL,
-	OP_FLOAT_VAL,
+    OP_UINT_VAL,
+    OP_FLOAT_VAL,
 	OP_DOUBLE_VAL,
 	OP_LONG_VAL,
-	OP_DO_VAR,
 
+	OP_DO_VAR,
 	OP_DO_CONSTANT,
 	OP_DO_DCONSTANT,
 	OP_DONE,
@@ -474,66 +497,64 @@ enum {
 	OP_DO_UBYTE,
 	OP_DO_SHORT,
 	OP_DO_USHORT,
-	OP_DO_INT,
 
-	OP_DO_UINT,			// 0x10
+    OP_DO_INT,			// 0x10
+	OP_DO_UINT,
 	OP_DO_LONG,
 	OP_DO_ULONG,
 	OP_DO_FLOAT,
 	OP_DO_DOUBLE,
 	OP_DO_STRING,
 	OP_DO_OP,
-	OP_DO_OBJECT,
 
+	OP_DO_OBJECT,
 	OP_DO_EXIT,
-	OP_DO_EXIT_L,
+    OP_DO_EXIT_L,
 	OP_DO_EXIT_M,
 	OP_DO_EXIT_ML,
 	OP_DO_BYTE_ARRAY,
 	OP_DO_UBYTE_ARRAY,
 	OP_DO_SHORT_ARRAY,
-	OP_DO_USHORT_ARRAY,
 
-	OP_DO_INT_ARRAY,	// 0x20
-	OP_DO_UINT_ARRAY,
+    OP_DO_USHORT_ARRAY,	// 0x20
+	OP_DO_INT_ARRAY,
+    OP_DO_UINT_ARRAY,
 	OP_DO_LONG_ARRAY,
 	OP_DO_ULONG_ARRAY,
 	OP_DO_FLOAT_ARRAY,
 	OP_DO_DOUBLE_ARRAY,
 	OP_DO_STRING_ARRAY,
-	OP_DO_OP_ARRAY,
 
+	OP_DO_OP_ARRAY,
 	OP_DO_OBJECT_ARRAY,
-	OP_INIT_STRING,
+    OP_INIT_STRING,
 	OP_PLUS,
 	OP_IFETCH,
 	OP_DO_STRUCT,
 	OP_DO_STRUCT_ARRAY,
 	OP_DO_DO,
-	OP_DO_LOOP,
 
-	OP_DO_LOOPN,		// 0x30
+	OP_DO_LOOP,		// 0x30
+	OP_DO_LOOPN,
 	OP_FETCH,
 	OP_REF,
 	OP_INTO,
 	OP_INTO_PLUS,
 	OP_INTO_MINUS,
 	OP_OCLEAR,
-    OP_SETVAROP,
 
+    OP_SETVAROP,
     OP_DO_CHECKDO,
 	OP_DO_VOCAB,
-	// below this line are ops defined in C
 	OP_GET_CLASS_BY_INDEX,
 	OP_INIT_STRING_ARRAY,
 	OP_BAD_OP,
 	OP_DO_STRUCT_TYPE,
 	OP_DO_CLASS_TYPE,
-	OP_DO_ENUM,
 
-    OP_DO_NEW,              // 0x40
+	OP_DO_ENUM,              // 0x40
+    OP_DO_NEW,
 	OP_ALLOC_OBJECT,
-	OP_SUPER,
 	OP_END_BUILDS,
     OP_COMPILE,
 	OP_INIT_STRUCT_ARRAY,
