@@ -66,12 +66,13 @@ autoforget make_archive
 
 // r[ ...SOURCEFILES... ]r EXE_FILENAME makeExe
 : makeExe
-  -> 128 string exeName
-  -> int fileCount
+  int fileCount!
+
+  128 string exeName!
   128 string srcName
   200 string errMsg
-  null -> int srcFile
-  null -> int exeFile
+  null int srcFile!
+  null int exeFile!
   int buff
   int srcLen
   
@@ -107,12 +108,13 @@ loaddone
 ;
 
 : makeExe
-  -> 128 string exeName
-  -> int fileCount
+  int fileCount!
+
+  128 string exeName!
   128 string srcName
   200 string errMsg
-  null -> int srcFile
-  null -> int exeFile
+  null int srcFile!
+  null int exeFile!
   int buff
   int srcLen
   

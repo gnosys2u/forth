@@ -28,8 +28,7 @@ enum: atcTileType  byte
 //  6   2    a   d    270        90
 //  5 4 3    z x c    225  180  135
 
-9 string directionChars
-"wedcxzaq" -> directionChars
+"wedcxzaq" 9 string directionChars!
 
 enum: atcDirection  byte
   kADNorth

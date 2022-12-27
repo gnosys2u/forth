@@ -6,7 +6,7 @@ int _testfile
 // "good_test_output.txt" "w" fopen -> _testfile _testfile outToFile load forthtest.txt outToScreen _testfile fclose drop
 
 : checktest
-  -> 100 string fname
+  100 string fname!
   fname "good_test_output.txt" compareTextFiles
   not if
     fname %s " didn't match known good output!\n" %s

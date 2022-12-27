@@ -95,7 +95,7 @@ Object oldErrorOut
 // LINE_OF_STUFF must evaluate to one or more true (-1) values
 : test[
   sp -> ptrTo int oldSP
-  `]` $word -> string( 250 ) ops
+  `]` $word string( 250 ) ops!
   //ops %s %nl
   ops $evaluate
   sp oldSP swap - cell/ -> int numItems
