@@ -5,6 +5,9 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
+#include <filesystem>
+#include <iostream>
+
 #if defined(LINUX) || defined(MACOSX)
 #include <unistd.h>
 #include <sys/types.h>
@@ -169,6 +172,14 @@ namespace
         rewinddir((DIR*)pDir);
     }
 
+    int getWorkDir(char* pDstPath, int dstPathMax)
+    {
+        std::filesystem::path workDir = std::filesystem::current_path();
+        memcpy(pDstPath, workDir.string().c_str(), (size_t)dstPathMax - 1);
+        pDstPath[dstPathMax - 1] = '\0';
+        return workDir.string().length();
+    }
+
 }
 
 #if defined(WIN32)
@@ -230,11 +241,12 @@ ForthShell::ForthShell(int argc, const char ** argv, const char ** envp, ForthEn
 	mFileInterface.fileFlush = fflush;
 	mFileInterface.renameFile = rename;
 	mFileInterface.runSystem = system;
+    mFileInterface.getWorkDir = getWorkDir;
 #ifdef WIN32
-    mFileInterface.changeDir = _chdir;
+    mFileInterface.setWorkDir = _chdir;
     mFileInterface.removeDir = _rmdir;
 #else
-    mFileInterface.changeDir = chdir;
+    mFileInterface.setWorkDir = chdir;
     mFileInterface.removeDir = rmdir;
 #endif
     mFileInterface.makeDir = makeDir;
@@ -336,10 +348,18 @@ ForthShell::~ForthShell()
 bool
 ForthShell::PushInputFile( const char *pFilename )
 {
-    FILE *pInFile = OpenForthFile( pFilename );
+    std::string containingDir;
+    FILE *pInFile = OpenForthFile( pFilename, containingDir);
     if ( pInFile != NULL )
     {
-        mpInput->PushInputStream( new ForthFileInputStream( pInFile, pFilename ) );
+        //printf("%s is contained in {%s}\n", pFilename, containingDir.c_str());
+        ForthFileInputStream* newStream = new ForthFileInputStream(pInFile, pFilename);
+        std::string curWorkDir;
+        GetWorkDir(curWorkDir);
+        newStream->SetSavedWorkDir(curWorkDir);
+        SetWorkDir(containingDir);
+
+        mpInput->PushInputStream(newStream);
         return true;
     }
     return false;
@@ -366,6 +386,15 @@ ForthShell::PushInputBlocks(ForthBlockFileManager* pManager, uint32_t firstBlock
 bool
 ForthShell::PopInputStream( void )
 {
+    ForthInputStream* curStream = mpInput->InputStream();
+    if (curStream->IsFile())
+    {
+        ForthFileInputStream* fileStream = dynamic_cast<ForthFileInputStream*>(curStream);
+        if (!fileStream->GetSavedWorkDir().empty())
+        {
+            mFileInterface.setWorkDir(fileStream->GetSavedWorkDir().c_str());
+        }
+    }
     return mpInput->PopInputStream();
 }
 
@@ -1929,14 +1958,29 @@ FILE* ForthShell::OpenInternalFile( const char* pFilename )
 }
 
 
-FILE* ForthShell::OpenForthFile( const char* pPath )
+FILE* ForthShell::OpenForthFile(const char* pPath, std::string& containingDir)
 {
+    containingDir.clear();
+
     // see if file is an internal file, and if so use it
     FILE *pFile = OpenInternalFile( pPath );
-    if ( pFile == NULL )
+    if (pFile != nullptr)
     {
-		pFile = fopen( pPath, "r" );
+        return pFile;
     }
+
+    pFile = fopen( pPath, "r" );
+    if (pFile != nullptr)
+    {
+        std::string path(pPath);
+        auto pathEnd = path.find_last_of("/\\");
+        if (pathEnd != std::string::npos)
+        {
+            containingDir = path.substr(0, pathEnd);
+        }
+        return pFile;
+    }
+
 	bool pathIsRelative = true;
 #if defined( WIN32 )
 	if ( strchr( pPath, ':' ) != NULL )
@@ -1949,7 +1993,7 @@ FILE* ForthShell::OpenForthFile( const char* pPath )
 		pathIsRelative = false;
 	}
 #endif
-    if ( (pFile == NULL) && pathIsRelative )
+    if (pathIsRelative)
     {
         for (std::string& path : mScriptPaths)
         {
@@ -1958,6 +2002,13 @@ FILE* ForthShell::OpenForthFile( const char* pPath )
             pFile = fopen(leaf.c_str(), "r");
             if (pFile != nullptr)
             {
+                containingDir = path;
+                std::string inPath(pPath);
+                auto pathEnd = inPath.find_last_of("/\\");
+                if (pathEnd != std::string::npos)
+                {
+                    containingDir.append(inPath.substr(0, pathEnd));
+                }
                 break;
             }
         }
@@ -1971,6 +2022,25 @@ int32_t ForthShell::FourCharToLong(const char* pFourCC)
 	int32_t retVal = 0;
 	memcpy(&retVal, pFourCC, sizeof(retVal));
 	return retVal;
+}
+
+void ForthShell::GetWorkDir(std::string& dstString)
+{
+//#define INITIAL_BUFFER_SIZE 128
+#define INITIAL_BUFFER_SIZE 4
+    char* pBuffer = (char *) malloc(INITIAL_BUFFER_SIZE);
+    int actualLen = mFileInterface.getWorkDir(pBuffer, INITIAL_BUFFER_SIZE);
+    if (actualLen >= INITIAL_BUFFER_SIZE)
+    {
+        pBuffer = (char*)realloc(pBuffer, actualLen + 4);
+        mFileInterface.getWorkDir(pBuffer, actualLen + 1);
+    }
+    dstString.assign(pBuffer);
+}
+
+void ForthShell::SetWorkDir(const std::string& workDir)
+{
+    mFileInterface.setWorkDir(workDir.c_str());
 }
 
 //////////////////////////////////////////////////////////////////////

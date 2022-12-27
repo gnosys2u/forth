@@ -20,6 +20,7 @@
 
 #include "OSystem.h"
 #include "OStream.h"
+#include "OString.h"
 
 namespace OSystem
 {
@@ -303,6 +304,36 @@ namespace OSystem
         METHOD_RETURN;
     }
 
+    FORTHOP(oSystemSetWorkDirMethod)
+    {
+        ForthEngine* pEngine = GET_ENGINE;
+        ForthObject newWorkDirObj;
+
+        POP_OBJECT(newWorkDirObj);
+        oStringStruct* newWorkDirStr = reinterpret_cast<oStringStruct*>(newWorkDirObj);
+        pEngine->GetShell()->GetFileInterface()->setWorkDir(newWorkDirStr->str->data);
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oSystemGetWorkDirMethod)
+    {
+        ForthEngine* pEngine = GET_ENGINE;
+        ForthObject workDirObj;
+
+        POP_OBJECT(workDirObj);
+        oStringStruct* workDirStr = reinterpret_cast<oStringStruct*>(workDirObj);
+        int maxLen = workDirStr->str->maxLen;
+        int len = pEngine->GetShell()->GetFileInterface()->getWorkDir(workDirStr->str->data, maxLen);
+        if (len >= maxLen)
+        {
+            len += 4;
+            oString* newString = OString::resizeOString(workDirStr, len);
+            pEngine->GetShell()->GetFileInterface()->getWorkDir(newString->data, len);
+        }
+        METHOD_RETURN;
+    }
+
+
     baseMethodEntry oSystemMembers[] =
     {
         METHOD("__newOp", oSystemNew),
@@ -327,6 +358,8 @@ namespace OSystem
         METHOD_RET("getInputInfo", oSystemGetInputInfoMethod, RETURNS_NATIVE(BaseType::kCell)),
         METHOD_RET("getStdOut", oSystemGetConsoleOutMethod, RETURNS_OBJECT(kBCIConsoleOutStream)),
         METHOD_RET("getErrOut", oSystemGetErrorOutMethod, RETURNS_OBJECT(kBCIErrorOutStream)),
+        METHOD("setWorkDir", oSystemSetWorkDirMethod),
+        METHOD("getWorkDir", oSystemGetWorkDirMethod),
 
         MEMBER_VAR("namedObjects", OBJECT_TYPE_TO_CODE(0, kBCIStringMap)),
         MEMBER_VAR("args", OBJECT_TYPE_TO_CODE(0, kBCIArray)),

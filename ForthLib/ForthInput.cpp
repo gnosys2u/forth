@@ -567,6 +567,16 @@ bool ForthFileInputStream::IsFile(void)
     return true;
 }
 
+const std::string& ForthFileInputStream::GetSavedWorkDir() const
+{
+    return mSavedDir;
+}
+
+void ForthFileInputStream::SetSavedWorkDir(const std::string& s)
+{
+    mSavedDir = s;
+}
+
 //////////////////////////////////////////////////////////////////////
 ////
 ///

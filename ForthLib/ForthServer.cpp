@@ -4,6 +4,9 @@
 //
 //////////////////////////////////////////////////////////////////////
 #include "pch.h"
+#include <filesystem>
+#include <iostream>
+
 #ifdef WIN32
 //#include <winsock2.h>
 //#include <windows.h>
@@ -177,10 +180,16 @@ namespace
         return pShell->RunSystem( pCmdline );
     }
 
-	int changeDir( const char* pPath )
+	int setWorkDir( const char* pPath )
     {
         ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
-        return pShell->ChangeDir( pPath );
+        return pShell->SetWorkDir( pPath );
+    }
+
+    int getWorkDir(char* pDstPath, int dstPathMax)
+    {
+        ForthServerShell* pShell = (ForthServerShell*)(ForthEngine::GetInstance()->GetShell());
+        return pShell->GetWorkDir(pDstPath, dstPathMax);
     }
 
 	int makeDir( const char* pPath, int mode )
@@ -613,8 +622,9 @@ ForthServerShell::ForthServerShell( bool doAutoload, ForthEngine *pEngine, Forth
 	mFileInterface.fileFlush = fileFlush;
 	mFileInterface.renameFile = renameFile;
 	mFileInterface.runSystem = runSystem;
-	mFileInterface.changeDir = changeDir;
-	mFileInterface.makeDir = makeDir;
+	mFileInterface.setWorkDir = setWorkDir;
+    mFileInterface.getWorkDir = getWorkDir;
+    mFileInterface.makeDir = makeDir;
 	mFileInterface.removeDir = removeDir;
 	mFileInterface.getStdIn = getStdIn;
 	mFileInterface.getStdOut = getStdOut;
@@ -673,10 +683,10 @@ void ForthServerShell::setupFileInterface(bool useLocalFiles)
         mFileInterface.renameFile = rename;
         mFileInterface.runSystem = system;
 #ifdef WIN32
-        mFileInterface.changeDir = _chdir;
+        mFileInterface.setWorkDir = _chdir;
         mFileInterface.removeDir = _rmdir;
 #else
-        mFileInterface.changeDir = chdir;
+        mFileInterface.setWorkDir = chdir;
         mFileInterface.removeDir = rmdir;
 #endif
     }
@@ -700,7 +710,7 @@ void ForthServerShell::setupFileInterface(bool useLocalFiles)
         mFileInterface.fileFlush = fileFlush;
         mFileInterface.renameFile = renameFile;
         mFileInterface.runSystem = runSystem;
-        mFileInterface.changeDir = changeDir;
+        mFileInterface.setWorkDir = setWorkDir;
         mFileInterface.removeDir = removeDir;
     }
 }
@@ -1382,13 +1392,12 @@ ForthServerShell::RunSystem( const char* pCmdline )
     return result;
 }
 
-int
-ForthServerShell::ChangeDir( const char* pPath )
+int ForthServerShell::SetWorkDir( const char* pPath )
 {
     int msgType, msgLen;
     int result = -1;
 
-    mpMsgPipe->StartMessage( kClientMsgChangeDir );
+    mpMsgPipe->StartMessage( kClientMsgSetWorkDir );
     mpMsgPipe->WriteString( pPath );
     mpMsgPipe->SendMessage();
 
@@ -1400,13 +1409,54 @@ ForthServerShell::ChangeDir( const char* pPath )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::ChangeDir unexpected message type %d\n", msgType );
+        printf( "ForthServerShell::SetWorkDir unexpected message type %d\n", msgType );
     }
     return result;
 }
 
-int
-ForthServerShell::MakeDir( const char* pPath, int mode )
+// return actual size of working directory path (including terminating null)
+int ForthServerShell::GetWorkDir(char* pDstPath, int dstPathMax)
+{
+    if (mUseLocalFiles)
+    {
+        std::filesystem::path workDir = std::filesystem::current_path();
+        memcpy(pDstPath, workDir.string().c_str(), (size_t)dstPathMax - 1);
+        pDstPath[dstPathMax - 1] = '\0';
+        return workDir.string().length();
+    }
+
+    int msgType, msgLen;
+    int result = -1;
+
+    mpMsgPipe->StartMessage(kClientMsgGetWorkDir);
+    mpMsgPipe->SendMessage();
+
+    mpMsgPipe->GetMessage(msgType, msgLen);
+    if (msgType == kServerMsgFileGetStringResult)
+    {
+        int numBytes;
+        const char* pData;
+        mpMsgPipe->ReadCountedData(pData, numBytes);
+        result = numBytes;
+        if (numBytes != 0)
+        {
+            if (numBytes >= dstPathMax)
+            {
+                numBytes = dstPathMax - 1;
+            }
+            memcpy(pDstPath, pData, numBytes);
+            pDstPath[numBytes] = '\0';
+        }
+    }
+    else
+    {
+        // TODO: report error
+        printf("ForthServerShell::GetWorkDir unexpected message type %d\n", msgType);
+    }
+    return result;
+}
+
+int ForthServerShell::MakeDir( const char* pPath, int mode )
 {
     if (mUseLocalFiles)
     {

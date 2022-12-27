@@ -165,7 +165,7 @@ public:
     virtual char            GetChar();
 
 	virtual FILE*			OpenInternalFile( const char* pFilename );
-	virtual FILE*			OpenForthFile( const char* pFilename );
+	virtual FILE*			OpenForthFile(const char* pFilename, std::string& containingDir);
 
     virtual ForthFileInterface* GetFileInterface();
 
@@ -189,7 +189,11 @@ public:
     virtual void            PoundElse();
     virtual void            PoundEndif();
 
-	static int32_t				FourCharToLong(const char* pFourCC);
+	static int32_t			FourCharToLong(const char* pFourCC);
+
+    virtual void            GetWorkDir(std::string& dstString);
+    virtual void            SetWorkDir(const std::string& workDir);
+
 protected:
 
     void                    SetCommandLine(int argc, const char ** argv);

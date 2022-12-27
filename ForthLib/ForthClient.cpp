@@ -620,7 +620,7 @@ int ForthClientMainLoop( ForthEngine *pEngine, const char* pServerStr, unsigned 
                 }
                 break;
 
-            case kClientMsgChangeDir:
+            case kClientMsgSetWorkDir:
                 {
                     const char* pString;
                     pMsgPipe->ReadString( pString );
@@ -631,6 +631,21 @@ int ForthClientMainLoop( ForthEngine *pEngine, const char* pServerStr, unsigned 
                     pMsgPipe->SendMessage();
                 }
                 break;
+
+            case kClientMsgGetWorkDir:
+            {
+                // TODO!
+                /*
+                const char* pString;
+                pMsgPipe->ReadString(pString);
+                int result = chdir(pString);
+
+                pMsgPipe->StartMessage(kServerMsgFileOpResult);
+                pMsgPipe->WriteInt(result);
+                pMsgPipe->SendMessage();
+                */
+            }
+            break;
 
             case kClientMsgMakeDir:
                 {

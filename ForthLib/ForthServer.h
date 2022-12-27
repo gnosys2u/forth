@@ -84,8 +84,9 @@ public:
 	virtual int				FileFlush( FILE* pFile );
 	virtual int				RenameFile( const char* pOldName, const char* pNewName );
 	virtual int				RunSystem( const char* pCmdline );
-	virtual int				ChangeDir( const char* pPath );
-	virtual int				MakeDir( const char* pPath, int mode );
+	virtual int				SetWorkDir( const char* pPath );
+    virtual int             GetWorkDir(char* pDstPath, int dstPathMax);
+    virtual int				MakeDir( const char* pPath, int mode );
 	virtual int				RemoveDir( const char* pPath );
 	virtual FILE*			GetStdIn();
 	virtual FILE*			GetStdOut();
