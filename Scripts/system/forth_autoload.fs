@@ -70,8 +70,9 @@ $forget("_initSystemObject") drop
 : blword? word?(` `) ;
 
 : $alias
-  -> ptrTo byte oldSymbol
-  -> ptrTo byte newSymbol
+  ptrTo byte oldSymbol!
+  ptrTo byte newSymbol!
+  
   system.getDefinitionsVocab -> Vocabulary vocab
   vocab.findEntryByName(oldSymbol) -> ptrTo int oldEntry
   if(oldEntry)
@@ -92,7 +93,11 @@ $forget("_initSystemObject") drop
   oclear vocab
 ;
 
-: alias blword -> 250 string aa  aa blword $alias ;
+: alias
+  blword 250 string aa!
+  aa blword $alias
+;
+
 alias ->o ->+    // ->o stores to an object variable without changing refcounts
 alias mko makeObject
 alias bool int
@@ -242,6 +247,7 @@ alias lmin min
 alias lmax max
 alias cmp lcmp
 alias ucmp ulcmp
+alias lit llit
 #else
 : land rot and >r and r> ;
 : lor rot or >r and r> ;
@@ -249,7 +255,9 @@ alias ucmp ulcmp
 alias ucell uint
 alias cmp icmp
 alias ucmp uicmp
+alias lit ilit
 #endif
+alias 2lit llit
 
 : time&date splitTime(time) ;
 
