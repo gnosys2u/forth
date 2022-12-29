@@ -1347,12 +1347,18 @@ OuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
         else
         {
             ClearPeephole();
+
+            if (isSingle && (lvalue < (1 << 23)) && (lvalue >= -(1 << 23)))
+            {
+                // value fits in opcode immediate field
+                CompileOpcode((isOffset ? kOpOffset : kOpConstant), lvalue & 0xFFFFFF);
+            }
 #if defined(FORTH64)
-            if (value < INT_MIN || value > UINT_MAX)
+            else if (value < INT_MIN || value > UINT_MAX)
 #else
             // on 32-bit system, user specifying 'L' forces a 64-bit value, even
             //  if it can be represented in 32-bits
-            if (!isSingle || value < INT_MIN || value > UINT_MAX)
+            else if (!isSingle || value < INT_MIN || value > UINT_MAX)
 #endif
             {
                 // too big for 32-bits, must compile as 64-bit
