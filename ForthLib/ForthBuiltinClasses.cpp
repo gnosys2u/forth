@@ -353,7 +353,36 @@ namespace
 	};
 
 
-	//////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    ///
+    //                 Interface
+    //
+    FORTHOP(oInterfaceNew)
+    {
+        GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create an Interface object");
+    }
+
+    FORTHOP(oInterfaceDeleteMethod)
+    {
+        // go through all elements and release any which are not null
+        GET_THIS(oInterfaceObjectStruct, pWrapper);
+        SAFE_RELEASE(pCore, pWrapper->pWrappedObject);
+        METHOD_RETURN;
+    }
+
+
+    baseMethodEntry interfaceMembers[] =
+    {
+        METHOD("delete", oInterfaceDeleteMethod),
+        METHOD("__newOp", oInterfaceNew),
+
+        MEMBER_VAR("wrappedObject", OBJECT_TYPE_TO_CODE(0, kBCIObject)),
+        // following must be last in table
+        END_MEMBERS
+    };
+
+
+    //////////////////////////////////////////////////////////////////////
 	///
 	//                 oIter
 	//
@@ -519,6 +548,8 @@ void ForthTypesManager::AddBuiltinClasses(OuterInterpreter* pOuter)
     // no classes defined after this will need to call FixClassObjectMethods
     pObjectClassVocab->FixClassObjectMethods();
     pClassClassVocab->FixClassObjectMethods();
+
+    pOuter->AddBuiltinClass("Interface", kBCIInterface, kBCIObject, interfaceMembers);
 
     pOuter->AddBuiltinClass("ContainedType", kBCIContainedType, kBCIObject, containedTypeMembers);
 

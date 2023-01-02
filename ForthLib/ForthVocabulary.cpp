@@ -57,6 +57,7 @@ ForthVocabulary::ForthVocabulary( const char    *pName,
 , mpName( NULL )
 , mValueLongs( valueLongs )
 , mLastSerial( 0 )
+, mType(VocabularyType::kBasic)
 {
     mStorageLongs = ((storageBytes + 3) & ~3) >> 2;
     mpStorageBase = new forthop[mStorageLongs];
@@ -657,8 +658,7 @@ ForthVocabulary::GetVocabularyObject(void)
 	return mVocabObject;
 }
 
-const char*
-ForthVocabulary::GetType( void )
+const char* ForthVocabulary::GetDescription( void )
 {
     return "userOp";
 }
@@ -754,13 +754,19 @@ ForthVocabulary* ForthVocabulary::FindVocabulary( const char* pName )
 bool
 ForthVocabulary::IsStruct()
 {
-	return false;
+    // TODO: eliminate this and IsClass, just use GetType
+	return (mType == VocabularyType::kStruct || mType == VocabularyType::kClass);
 }
 
 bool
 ForthVocabulary::IsClass()
 {
-	return false;
+    return (mType == VocabularyType::kClass || mType == VocabularyType::kInterface);
+}
+
+VocabularyType ForthVocabulary::GetType()
+{
+    return mType;
 }
 
 void
@@ -794,14 +800,14 @@ ForthLocalVocabulary::ForthLocalVocabulary( const char    *pName,
 , mFrameCells( 0 )
 , mpAllocOp( NULL )
 {
+    mType = VocabularyType::kLocalVariables;
 }
 
 ForthLocalVocabulary::~ForthLocalVocabulary()
 {
 }
 
-const char*
-ForthLocalVocabulary::GetType( void )
+const char* ForthLocalVocabulary::GetDescription( void )
 {
     return "local";
 }
@@ -896,6 +902,7 @@ ForthDLLVocabulary::ForthDLLVocabulary(const char      *pName,
     mpDLLName = new char[len];
     strcpy(mpDLLName, pDLLName);
     LoadDLL();
+    mType = VocabularyType::kDLL;
 }
 
 ForthDLLVocabulary::~ForthDLLVocabulary()
@@ -983,7 +990,7 @@ forthop * ForthDLLVocabulary::AddEntry( const char *pFuncName, const char* pEntr
 }
 
 const char*
-ForthDLLVocabulary::GetType( void )
+ForthDLLVocabulary::GetDescription( void )
 {
     return "dllOp";
 }

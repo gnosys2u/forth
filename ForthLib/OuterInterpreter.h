@@ -29,6 +29,8 @@ typedef enum {
     kEngineFlagInClassDefinition         = 0x20,
     //kEngineFlagAnsiMode                = 0x40,
     kEngineFlagNoNameDefinition          = 0x80,
+    kEngineFlagInInterfaceImplementation = 0x100,       // in implements: ... ;implements
+    kEngineFlagInInterfaceDeclaration    = 0x200,       // in interface: ... ;interface
 } FECompileFlags;
 
     //int32_t                *DP;            // dictionary pointer
@@ -143,9 +145,11 @@ public:
     forthop*        AddBuiltinOp( const char* name, uint32_t flags, void* value );
     void            AddBuiltinOps( baseDictionaryEntry *pEntries );
 
-	ForthClassVocabulary*   StartClassDefinition(const char* pClassName, eBuiltinClassIndex classIndex = kNumBuiltinClasses);
-	void					EndClassDefinition();
-	ForthClassVocabulary*   AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex, eBuiltinClassIndex parentClassIndex, baseMethodEntry *pEntries);
+    ForthClassVocabulary* StartClassDefinition(const char* pClassName, eBuiltinClassIndex classIndex = kNumBuiltinClasses);
+    void					EndClassDefinition();
+    ForthClassVocabulary* StartInterfaceDefinition(const char* pInterfaceName, eBuiltinClassIndex classIndex = kNumBuiltinClasses);
+    void					EndInterfaceDefinition();
+    ForthClassVocabulary*   AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex, eBuiltinClassIndex parentClassIndex, baseMethodEntry *pEntries);
 
     // forget the specified op and all higher numbered ops, and free the memory where those ops were stored
     void            ForgetOp(forthop opNumber, bool quietMode=true );

@@ -42,6 +42,16 @@ struct oVocabularyIterStruct
 	ForthVocabulary*	vocabulary;
 };
 
+enum class VocabularyType :ucell
+{
+    kBasic,
+    kDLL,
+    kLocalVariables,
+    kStruct,
+    kClass,
+    kInterface
+};
+
 class ForthVocabulary : public ForthForgettable
 {
 public:
@@ -105,7 +115,7 @@ public:
     virtual OpResult ProcessEntry(forthop* pEntry );
 
     // return a string telling the type of library
-    virtual const char* GetType( void );
+    virtual const char* GetDescription( void );
 
     virtual void        PrintEntry(forthop*   pEntry );
 
@@ -198,8 +208,9 @@ public:
         return &(mNewestSymbol[0]);
     };
 
-	virtual bool IsStruct();
-	virtual bool IsClass();
+	bool IsStruct();
+	bool IsClass();
+    VocabularyType GetType();
 
     virtual void AfterStart();
     virtual int Save( FILE* pOutFile );
@@ -230,6 +241,7 @@ protected:
     int                 mStartStorageLongs;
 	oVocabularyStruct	mVocabStruct;
 	ForthObject			mVocabObject;
+    VocabularyType      mType;
 #ifdef MAP_LOOKUP
     CMapStringToPtr     mLookupMap;
 #endif
@@ -245,7 +257,7 @@ public:
     virtual ~ForthLocalVocabulary();
 
     // return a string telling the type of library
-    virtual const char* GetType( void );
+    virtual const char* GetDescription( void );
 
 	void				Push();
 	void				Pop();
@@ -274,7 +286,7 @@ public:
     virtual ~ForthDLLVocabulary();
 
     // return a string telling the type of library
-    virtual const char* GetType( void );
+    virtual const char* GetDescription( void );
 
     void *              LoadDLL( void );
     void                UnloadDLL( void );

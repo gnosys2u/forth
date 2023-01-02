@@ -122,7 +122,7 @@ public:
     ForthStructVocabulary*          StartStructDefinition( const char *pName );
     void                            EndStructDefinition( void );
 	// default classIndex value means assign next available classIndex
-	ForthClassVocabulary*           StartClassDefinition(const char *pName, int classIndex = kNumBuiltinClasses);
+	ForthClassVocabulary*           StartClassDefinition(const char *pName, int classIndex = kNumBuiltinClasses, bool isInterface = false);
     void                            EndClassDefinition( void );
     static ForthTypesManager*       GetInstance( void );
 
@@ -182,15 +182,13 @@ public:
 
     virtual const char* GetTypeName();
 
-    virtual const char* GetType( void );
+    virtual const char* GetDescription( void );
 
     virtual void        PrintEntry(forthop*   pEntry);
     static void         TypecodeToString( int32_t typeCode, char* outBuff, size_t outBuffSize );
 
     // handle invocation of a struct op - define a local/global struct or struct array, or define a field
     virtual void	    DefineInstance( void );
-
-	virtual bool		IsStruct( void );
 
     void                AddField( const char* pName, int32_t fieldType, int numElements );
     int                 GetAlignment( void );
@@ -241,9 +239,10 @@ public:
 	int32_t				GetClassId( void )		{ return mTypeIndex; }
 
 	ForthInterface*		GetInterface( int32_t index );
+    ForthInterface*     GetCurrentInterface();
+
     forthop*            GetMethods();
     int32_t                FindInterfaceIndex( int32_t classId );
-	virtual bool		IsClass( void );
 	int32_t				GetNumInterfaces( void );
     virtual void        Extends( ForthClassVocabulary *pParentClass );
     ForthClassObject*   GetClassObject(void);
@@ -261,6 +260,12 @@ protected:
     ForthClassObject*           mpClassObject;
     CustomObjectReader          mCustomReader;
 	static ForthClassVocabulary* smpObjectClass;
+};
+
+class InterfaceVocabulary : public ForthClassVocabulary
+{
+public:
+    InterfaceVocabulary(const char* pName, int typeIndex);
 };
 
 class ForthNativeType

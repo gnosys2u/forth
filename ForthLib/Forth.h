@@ -404,7 +404,7 @@ typedef struct {
 #define REFCOUNTER      ucell
 #endif
 
-// this is what is placed on the stack to represent a forth object
+// this is the beginning of each Forth object
 // this points to a number of longwords, the first longword is the methods pointer,
 // the second longword is the reference count, followed by class dependant data
 struct oObjectStruct
@@ -414,6 +414,20 @@ struct oObjectStruct
 };
 
 typedef oObjectStruct* ForthObject;
+
+// oInterfaceStruct is a wrapper around a Forth object, which is used to implement
+// all the non-primary interfaces an object supports.
+// When you do getInterface on an object, it creates and returns an Interface.
+// The first instruction of all non-primary interface methods is _devo, which takes
+// the object pointer in pWrappedObject and overwrites the current this pointer.
+struct oInterfaceObjectStruct
+{
+    forthop* pMethods;
+    REFCOUNTER refCount;
+    ForthObject pWrappedObject;
+};
+
+typedef oInterfaceObjectStruct* InterfaceObject;
 
 // this godawful mess is here because the ANSI Forth standard defines that the top item
 // on the parameter stack for 64-bit ints is the highword, which is opposite to the c++/c
@@ -568,6 +582,8 @@ enum {
     OP_UNSUPER,
     OP_RDROP,
     OP_NOOP,
+    OP_DEVOLVE,
+    OP_UNIMPLEMENTED,
 
 	NUM_COMPILED_OPS,
 

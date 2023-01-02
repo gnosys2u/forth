@@ -19,6 +19,7 @@ typedef enum
     kBCIContainedType,
     kBCIObject,
     kBCIClass,
+    kBCIInterface,
 	kBCIIter,
 	kBCIIterable,
 	kBCIArray,

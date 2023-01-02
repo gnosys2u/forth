@@ -7114,6 +7114,14 @@ entry thisBop
 	
 ;========================================
 
+entry devolveBop
+	mov	rax, [rcore + FCore.TPtr]
+    mov rbx, [rax + 16]             ; rbx is wrapped object this ptr
+	mov	[rcore + FCore.TPtr], rbx   ; set this to point to wrapped object
+	jmp	rnext
+	
+;========================================
+
 entry unsuperBop
 	; pop original pMethods off rstack
 	mov	rbx, [rrp]

@@ -348,6 +348,39 @@ void OuterInterpreter::EndClassDefinition()
 	mpVocabStack->DropTop();
 }
 
+
+ForthClassVocabulary* OuterInterpreter::StartInterfaceDefinition(const char* pInterfaceName, eBuiltinClassIndex classIndex)
+{
+    SetFlag(kEngineFlagInClassDefinition);
+    SetFlag(kEngineFlagInInterfaceDeclaration);
+
+    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    ForthClassVocabulary* pVocab = pManager->StartClassDefinition(pInterfaceName, classIndex, true);
+
+    // add new  vocab to top of search order
+    //mpVocabStack->DupTop();
+    //mpVocabStack->SetTop(pVocab);
+
+    CompileBuiltinOpcode(OP_DO_CLASS_TYPE);
+    CompileCell((cell)pVocab);
+
+    ForthClassVocabulary* pInterfaceClassVocab = pManager->GetClassVocabulary(kBCIInterface);
+    pVocab->Extends(pInterfaceClassVocab);
+
+    return pVocab;
+}
+
+void OuterInterpreter::EndInterfaceDefinition()
+{
+    ClearFlag(kEngineFlagInInterfaceDeclaration);
+    ClearFlag(kEngineFlagInClassDefinition);
+
+    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    pManager->EndClassDefinition();
+    //mpVocabStack->DropTop();
+}
+
+
 ForthClassVocabulary* OuterInterpreter::AddBuiltinClass(
     const char* pClassName,
     eBuiltinClassIndex classIndex,
@@ -383,7 +416,7 @@ ForthClassVocabulary* OuterInterpreter::AddBuiltinClass(
             {
                 // this entry is a member method
                 // add method routine to builtinOps table
-                int32_t methodOp = gCompiledOps[OP_BAD_OP];
+                int32_t methodOp = gCompiledOps[OP_UNIMPLEMENTED];
                 // do "method:"
                 int32_t methodIndex = pVocab->FindMethod( pMemberName );
                 StartOpDefinition( pMemberName, false );
@@ -583,8 +616,13 @@ forthop* OuterInterpreter::StartOpDefinition(const char *pName, bool smudgeIt,
         pName = GetNextSimpleToken();
     }
 
-    forthop newestOp = AddOp(mpDictionary->pCurrent);
-    newestOp = COMPILED_OP(opType, newestOp);
+    forthop newestOp = gCompiledOps[OP_UNIMPLEMENTED];
+    if (pDefinitionVocab->GetType() != VocabularyType::kInterface)
+    {
+        newestOp = AddOp(mpDictionary->pCurrent);
+        newestOp = COMPILED_OP(opType, newestOp);
+    }
+
     forthop* pEntry = pDefinitionVocab->AddSymbol(pName, newestOp);
     if ( smudgeIt )
     {

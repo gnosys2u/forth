@@ -5,6 +5,8 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
++ get multiple interfaces working using wrapper objects
+
 - get a consistent strategy for handling things like 2lit/lit/ilit/llit
 
 - replace ForthShell environment variable arrays with a simple map
@@ -26,11 +28,11 @@ TBDs:
 
 + add a FORTH_SCRIPTS environment variable which allows multiple directories to be searched
 
-+ change icmp and uicmp to cmp and ucmp for consitency, add lcmp and ulcmp aliases for non-64 to autoload
++ change icmp and uicmp to cmp and ucmp for consistency, add lcmp and ulcmp aliases for non-64 to autoload
 
 + debug 64 bit varopSuffix changes
 
-- test Linux 32-bit build
+? test Linux 32-bit build
 
 ? try out OSX builds
 
@@ -53,17 +55,14 @@ TBDs:
 - have verbose describe of a class or struct shows its typeIndex
 
 + add general immediate ops, so 'N op' would compile into just the op plus an immediate operand
-  - there would need to be new optypes for each of native, C and userDefs
-  - there would need to be 32 and 64 bit variants, maybe signed and unsigned for 32-bits
+  + there would need to be new optypes for each of native, C and userDefs
+  + there would need to be 32 and 64 bit variants, maybe signed and unsigned for 32-bits
 
-- get rid of old userDef optypes, replace with relativeDef optypes
-
-- get multiple interfaces working using wrapper objects
+? get rid of old userDef optypes, replace with relativeDef optypes
 
 - add a global AsyncLock for things like pushConsoleOut
 
 + deal with ref counting being non-atomic
-  ? or just prohibit sharing objects between threads
 
 + get DLL support working for 64-bit
 
@@ -108,7 +107,7 @@ TBDs:
 - have error reporting show the param and return stacks, the op that the crash happened in
   -> the param stack might not be up to date, especially in turbo mode
   
-? have "woof -> foo( blah )" compile into "woof blah -> foo"
+x have "woof -> foo( blah )" compile into "woof blah -> foo"
 
 ? add properties to classes
   ? are these just getters/setters
@@ -219,6 +218,48 @@ Double has consistent layout, long is reversed on param stack.
 
 
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+January 1 2023
+
+I added support for multiple interfaces using a wrapper object.
+
+You define interface classes with interface: ... ;interface.  Inside the interface
+definition you should only put methods, which should have no body and just define
+the method name and optional return value.
+
+To use interfaces, use getInterface and classIdOf:
+  getInterface(OBJECT_WITH_INTERFACE classIdOf INTERFACE_CLASS)
+assign the result to an object of type INTERFACE_CLASS.
+
+Classes define interfaces with implements: INTERFACE_NAME ... ;implements.  Inside
+the implements section you define methods which the interface defines.  When you
+define a method in an implements section, a _devo opcode is compiled as its first
+opcode.  _devo takes the interface objects wrapped object and overwrites the core
+this pointer with its value, so the method body can use member methods and variables
+from its class.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+December 29 2022
+
+I added back in compiling small constants using constant optype.
+
+My next project is supporting multiple interfaces, here are the TODOs:
+
++ implement _devo opcode which overwrites core.this pointer with wrapped object
+  + C++ version
+  + x86 version
+  + x64 version
++ compile _devo as first instruction of each method definition when defining an interface
+    interface method definitions will not be able to reference other methods in their
+    own interface, only methods or forthops defined in their containing class
+- only allow interfaces to define methods which are in target interface, since there
+  will be no unique vocabulary for this interface implementation
+  ? if you define a forthop inside an interface implementation, should it be added
+    to the containing class?  should it be hidden (and how)?
++ add a way to get secondary interfaces - it looks like I never actually added or even defined this
+? should getInterface be a method
+? how do you identify the interface you want to get
+  ? by a name string - inefficient and clunky
+  ? by typeIndex - how do you get a typeIndex
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 December 25 2022
 

@@ -2129,7 +2129,7 @@ FORTHOP( structOp )
 	pEngine->GetShell()->StartDefinition(pName, "stru");
 }
 
-FORTHOP( endstructOp )
+FORTHOP( endStructOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
@@ -2149,12 +2149,30 @@ FORTHOP( classOp )
 	pEngine->GetShell()->StartDefinition(pName, "clas");
 }
 
-FORTHOP( endclassOp )
+FORTHOP( endClassOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     pOuter->EndClassDefinition();
 	pEngine->GetShell()->CheckDefinitionEnd("class", "clas");
+}
+
+FORTHOP(interfaceOp)
+{
+    ForthEngine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    const char* pName = pOuter->GetNextSimpleToken();
+    pOuter->StartInterfaceDefinition(pName);
+
+    pEngine->GetShell()->StartDefinition(pName, "intf");
+}
+
+FORTHOP(endInterfaceOp)
+{
+    ForthEngine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    pOuter->EndInterfaceDefinition();
+    pEngine->GetShell()->CheckDefinitionEnd("interface", "intf");
 }
 
 FORTHOP(defineNewOp)
@@ -2201,23 +2219,51 @@ FORTHOP( methodOp )
             pDefinitionVocab = pVocab;
         }
     }
+
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
     ForthClassVocabulary* pVocab = pManager->GetNewestClass();
+    if (pVocab == nullptr)
+    {
+        pEngine->SetError(ForthError::kBadSyntax, "Defining class not found in 'method:'");
+        return;
+    }
+
+    bool isInterface = (pOuter->GetFlags() & kEngineFlagInInterfaceImplementation) != 0;
 
     int methodIndex = pVocab->FindMethod( pMethodName );
-    pOuter->StartOpDefinition(pMethodName, true, kOpUserDef, pDefinitionVocab);
-    // switch to compile mode
-    pEngine->SetCompileState( 1 );
-    /*
-    if (strcmp(pMethodName, "delete") != 0)     // delete is really a forthop, not a method
+    if (isInterface)
     {
-        pOuter->SetFlag(kEngineFlagIsMethod);
-    }
-    */
-    pOuter->SetFlag(kEngineFlagIsMethod);
+        if (methodIndex < 0)
+        {
+            pEngine->AddErrorText(pMethodName);
+            pEngine->SetError(ForthError::kBadSyntax, "unknown method name in interface implementation");
+            return;
+        }
 
-    if ( pVocab )
+        ForthInterface* pInterface = pVocab->GetCurrentInterface();
+        if (pInterface)
+        {
+            // this case is a class defining a method for a secondary interface
+            //  in other words, within a "implements:"...";implements" block
+            // an opcode needs to be allocated and set into the interface methods,
+            //  but no symbol should be added to any vocabulary
+            forthop newestOp = pOuter->AddOp(pCore->pDictionary->pCurrent);
+            newestOp = COMPILED_OP(kOpUserDef, newestOp);
+            pEngine->SetCompileState(1);
+            pOuter->SetFlag(kEngineFlagIsMethod);
+            pInterface->SetMethod(methodIndex, newestOp);
+            pOuter->CompileBuiltinOpcode(OP_DEVOLVE);
+        }
+        else
+        {
+            pEngine->SetError(ForthError::kBadParameter, "current interface not found while implementing interface");
+        }
+    }
+    else
     {
+        pOuter->StartOpDefinition(pMethodName, true, kOpUserDef, pDefinitionVocab);
+        pEngine->SetCompileState( 1 );          // switch to compile mode
+        pOuter->SetFlag(kEngineFlagIsMethod);
         forthop* pEntry = pVocab->GetNewestEntry();
         if ( pEntry )
         {
@@ -2230,26 +2276,22 @@ FORTHOP( methodOp )
 			pEngine->SetError(ForthError::kBadSyntax, "method op being defined not found in 'method:'");
 		}
     }
-    else
-    {
-		pEngine->SetError(ForthError::kBadSyntax, "Defining class not found in 'method:'");
-	}
 
 	pEngine->GetShell()->StartDefinition(pMethodName, "meth");
 }
 
 FORTHOP( endmethodOp )
 {
-    // TODO
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    bool isInterface = (pOuter->GetFlags() & kEngineFlagInInterfaceImplementation) != 0;
 
     exitOp( pCore );
     // switch back from compile mode to execute mode
     pEngine->SetCompileState( 0 );
     // finish current symbol definition
     // compile local vars allocation op (if needed)
-    pOuter->EndOpDefinition( true );
+    pOuter->EndOpDefinition(!isInterface);
     pOuter->ClearFlag( kEngineFlagIsMethod );
 
 	pEngine->GetShell()->CheckDefinitionEnd("method", "meth");
@@ -2328,7 +2370,15 @@ FORTHOP( implementsOp )
     ForthClassVocabulary* pVocab = pManager->GetNewestClass();
     if ( pVocab && pOuter->CheckFlag( kEngineFlagInClassDefinition ) )
     {
-        pVocab->Implements( pOuter->GetNextSimpleToken() );
+        if (pOuter->CheckFlag(kEngineFlagInInterfaceImplementation))
+        {
+            pEngine->SetError(ForthError::kBadSyntax, "implements: already implementing an interface");
+        }
+        else
+        {
+            pOuter->SetFlag(kEngineFlagInInterfaceImplementation);
+            pVocab->Implements(pOuter->GetNextSimpleToken());
+        }
     }
     else
     {
@@ -2343,14 +2393,83 @@ FORTHOP( endImplementsOp )
 
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
     ForthClassVocabulary* pVocab = pManager->GetNewestClass();
-    if ( pVocab && pOuter->CheckFlag( kEngineFlagInClassDefinition ) )
+    if ( pVocab && pOuter->CheckFlag( kEngineFlagInInterfaceImplementation ) )
     {
         pVocab->EndImplements();
+        pOuter->ClearFlag(kEngineFlagInInterfaceImplementation);
     }
     else
     {
-        pEngine->SetError( ForthError::kBadSyntax, ";implements outside of class definition" );
+        pEngine->SetError( ForthError::kBadSyntax, ";implements outside of interface definition" );
     }
+}
+
+FORTHOP(classIdOfOp)      // has precedence
+{
+    ForthEngine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    char* pClassName = pOuter->GetNextSimpleToken();
+    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+
+    // see if it is a struct type
+    ForthStructVocabulary* pTypeVocab = pManager->GetStructVocabulary(pClassName);
+    if (pTypeVocab)
+    {
+        if (pTypeVocab->IsClass())
+        {
+            pOuter->ProcessConstant(pTypeVocab->GetTypeIndex());
+        }
+        else
+        {
+            pEngine->AddErrorText(pClassName);
+            pEngine->SetError(ForthError::kBadSyntax, " is a struct, not a class");
+        }
+    }
+    else
+    {
+        pEngine->AddErrorText(pClassName);
+        pEngine->SetError(ForthError::kUnknownSymbol, " is not a known class");
+    }
+}
+
+FORTHOP(getInterfaceOp)
+{
+    // TOS: classId pObject
+    // query pObject for its interface of classID
+    // if pObject doesn't have that interface, return null
+    // else
+    //      create an InterfaceObject object and set its wrappedObject field to pObject
+    //      increment pObject's refcount
+    int32_t classId = (int32_t)(SPOP);
+    ForthObject pObject;
+    POP_OBJECT(pObject);
+    InterfaceObject interfaceObject = nullptr;
+
+    if (pObject != nullptr)
+    {
+        ForthClassObject* pClassObj = GET_CLASS_OBJECT(pObject);
+        ForthClassVocabulary* pVocab = pClassObj->pVocab;
+        int32_t interfaceIndex = pVocab->FindInterfaceIndex(classId);
+        if (interfaceIndex == 0)
+        {
+            interfaceObject = (InterfaceObject)pObject;
+        }
+        else if (interfaceIndex > 0)
+        {
+            ForthInterface* pInterface = pVocab->GetInterface(interfaceIndex);
+            if (pInterface)
+            {
+                interfaceObject = (InterfaceObject)ALLOCATE_BYTES(sizeof(oInterfaceObjectStruct));
+                TRACK_NEW;
+                interfaceObject->pMethods = pInterface->GetMethods();
+                interfaceObject->refCount = 0;
+                interfaceObject->pWrappedObject = pObject;
+                pObject->refCount += 1;
+            }
+        }
+    }
+
+    PUSH_OBJECT(interfaceObject);
 }
 
 FORTHOP( unionOp )
@@ -4775,7 +4894,7 @@ FORTHOP( addDLLEntryOp )
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     char* pProcName = (char *) SPOP;
     ForthDLLVocabulary* pVocab = (ForthDLLVocabulary *) (pOuter->GetDefinitionVocabulary());
-    if ( strcmp( pVocab->GetType(), "dllOp" ) )
+    if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );
         pEngine->SetError( ForthError::kBadParameter, " is not a DLL vocabulary - addDllEntry" );
@@ -4793,7 +4912,7 @@ FORTHOP(addDLLEntryExOp)
     char* pProcName = (char *)SPOP;
 	char* pEntryName = (char *)SPOP;
 	ForthDLLVocabulary* pVocab = (ForthDLLVocabulary *)(pOuter->GetDefinitionVocabulary());
-	if (strcmp(pVocab->GetType(), "dllOp"))
+	if (pVocab->GetType() != VocabularyType::kDLL)
 	{
 		pEngine->AddErrorText(pVocab->GetName());
 		pEngine->SetError(ForthError::kBadParameter, " is not a DLL vocabulary - addDllEntry");
@@ -4809,7 +4928,7 @@ FORTHOP(DLLVoidOp)
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     ForthDLLVocabulary* pVocab = (ForthDLLVocabulary *) (pOuter->GetDefinitionVocabulary());
-    if ( strcmp( pVocab->GetType(), "dllOp" ) )
+    if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );
         pEngine->SetError( ForthError::kBadParameter, " is not a DLL vocabulary - DLLVoidOp" );
@@ -4827,7 +4946,7 @@ FORTHOP( DLLLongOp )
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     ForthDLLVocabulary* pVocab = (ForthDLLVocabulary *) (pOuter->GetDefinitionVocabulary());
-    if ( strcmp( pVocab->GetType(), "dllOp" ) )
+    if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );
         pEngine->SetError( ForthError::kBadParameter, " is not a DLL vocabulary - DLLLongOp" );
@@ -4845,7 +4964,7 @@ FORTHOP( DLLStdCallOp )
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     ForthDLLVocabulary* pVocab = (ForthDLLVocabulary *) (pOuter->GetDefinitionVocabulary());
-    if ( strcmp( pVocab->GetType(), "dllOp" ) )
+    if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );
         pEngine->SetError( ForthError::kBadParameter, " is not a DLL vocabulary - DLLStdCallOp" );
@@ -8352,6 +8471,13 @@ FORTHOP( noopBop )
 {
 }
 
+FORTHOP(devolveBop)
+{
+    ForthEngine* pEngine = GET_ENGINE;
+    InterfaceObject interfaceObj = (InterfaceObject) pCore->TP;
+    pCore->TP = interfaceObj->pWrappedObject;
+}
+
 FORTHOP(odropBop)
 {
     ForthEngine *pEngine = GET_ENGINE;
@@ -9365,7 +9491,7 @@ OPREF( doLongArrayBop );    OPREF( doLongArrayBop );    OPREF( doFloatArrayBop )
 OPREF( doDoubleArrayBop );  OPREF( doStringArrayBop );  OPREF( doOpArrayBop );
 OPREF( doObjectArrayBop );  OPREF( initStringBop );     OPREF( plusBop );
 OPREF( strFixupBop );       OPREF( fetchVaractionBop );	OPREF( noopBop );
-OPREF(odropBop);
+OPREF(odropBop);            OPREF(devolveBop);
 
 OPREF( ifetchBop );          OPREF( doStructBop );       OPREF( doStructArrayBop );
 OPREF( doDoBop );           OPREF( doLoopBop );         OPREF( doLoopNBop );
@@ -9577,9 +9703,11 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     OP_COMPILED_DEF(        doFinallyOp,            "_doFinally",       OP_DO_FINALLY ),
     OP_COMPILED_DEF(        doEndtryOp,             "_doEndtry",        OP_DO_ENDTRY ),
     OP_COMPILED_DEF(        raiseOp,                "raise",            OP_RAISE),
-    NATIVE_COMPILED_DEF(    unsuperBop,              "_unsuper",        OP_UNSUPER),
-    NATIVE_COMPILED_DEF(    rdropBop,                "rdrop",           OP_RDROP),
-    NATIVE_COMPILED_DEF(    noopBop,                "noop",             OP_NOOP)
+    NATIVE_COMPILED_DEF(    unsuperBop,             "_unsuper",         OP_UNSUPER),
+    NATIVE_COMPILED_DEF(    rdropBop,               "rdrop",            OP_RDROP),
+    NATIVE_COMPILED_DEF(    noopBop,                "noop",             OP_NOOP),
+    NATIVE_COMPILED_DEF(    devolveBop,             "_devo",            OP_DEVOLVE),
+    OP_COMPILED_DEF(unimplementedMethodOp,          "unimplementedMethod", OP_UNIMPLEMENTED),
 };
 
 
@@ -10087,9 +10215,11 @@ baseDictionaryEntry baseDictionary[] =
     PRECOP_DEF(arrayOfOp,              "arrayOf" ),
     PRECOP_DEF(ptrToOp,                "ptrTo" ),
     OP_DEF(    structOp,               "struct:" ),
-    OP_DEF(    endstructOp,            ";struct" ),
+    OP_DEF(    endStructOp,            ";struct" ),
     OP_DEF(    classOp,                "class:" ),
-    OP_DEF(    endclassOp,             ";class" ),
+    OP_DEF(    endClassOp,             ";class" ),
+    OP_DEF(    interfaceOp,            "interface:" ),
+    OP_DEF(    endInterfaceOp,         ";interface" ),
     OP_DEF(    defineNewOp,            "new:" ),
     OP_DEF(    methodOp,               "m:" ),
     PRECOP_DEF(endmethodOp,            ";m" ),
@@ -10097,6 +10227,8 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    doMethodOp,             "doMethod" ),
     OP_DEF(    implementsOp,           "implements:" ),
     OP_DEF(    endImplementsOp,        ";implements" ),
+    PRECOP_DEF(classIdOfOp,            "classIdOf"),
+    OP_DEF(    getInterfaceOp,         "getInterface"),
     OP_DEF(    unionOp,                "union" ),
     OP_DEF(    extendsOp,              "extends" ),
     OP_DEF(    strSizeOfOp,            "$sizeOf" ),
@@ -10112,7 +10244,7 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    enumOp,                 "enum:" ),
     OP_DEF(    endenumOp,              ";enum" ),
     OP_DEF(    findEnumSymbolOp,       "findEnumSymbol" ),
-    
+
     PRECOP_DEF(recursiveOp,            "recursive" ),
     OP_DEF(    precedenceOp,           "precedence" ),
     OP_DEF(    strRunFileOp,           "$runFile" ),
@@ -10314,7 +10446,6 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    describeAtOp,           "describe@" ),
     OP_DEF(    errorOp,                "error" ),
     OP_DEF(    addErrorTextOp,         "addErrorText" ),
-    OP_DEF(    unimplementedMethodOp,  "unimplementedMethod" ),
     OP_DEF(    illegalMethodOp,        "illegalMethod" ),
     NATIVE_DEF( setTraceBop,           "setTrace"),
 	OP_DEF(    getTraceOp,             "getTrace" ),

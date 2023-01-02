@@ -272,7 +272,7 @@ ForthTypesManager::DefineInitOpcode()
 }
 
 ForthClassVocabulary*
-ForthTypesManager::StartClassDefinition(const char *pName, int classIndex)
+ForthTypesManager::StartClassDefinition(const char *pName, int classIndex, bool isInterface)
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
@@ -289,7 +289,8 @@ ForthTypesManager::StartClassDefinition(const char *pName, int classIndex)
 
     // can't smudge class definition, since method definitions will be nested inside it
     forthop* pEntry = pOuter->StartOpDefinition( pName, false, kOpUserDefImmediate );
-	pInfo->pVocab = new ForthClassVocabulary(pName, classIndex);
+	pInfo->pVocab = isInterface ? new InterfaceVocabulary(pName, classIndex)
+        : new ForthClassVocabulary(pName, classIndex);
     pInfo->op = *pEntry;
 	SPEW_STRUCTS("StartClassDefinition %s struct index %d\n", pName, classIndex);
 	pInfo->typeIndex = classIndex;
@@ -643,7 +644,7 @@ ForthStructVocabulary::ForthStructVocabulary( const char    *pName,
 , mpSearchNext( NULL )
 , mInitOpcode( 0 )
 {
-
+    mType = VocabularyType::kStruct;
 }
 
 ForthStructVocabulary::~ForthStructVocabulary()
@@ -939,7 +940,7 @@ ForthStructVocabulary::Extends( ForthStructVocabulary *pParentStruct )
 }
 
 const char*
-ForthStructVocabulary::GetType( void )
+ForthStructVocabulary::GetDescription( void )
 {
     return "struct";
 }
@@ -1095,12 +1096,6 @@ ForthStructVocabulary::TypecodeToString( int32_t typeCode, char* outBuff, size_t
 void ForthStructVocabulary::EndDefinition()
 {
     mNumBytes = mMaxNumBytes;
-}
-
-bool
-ForthStructVocabulary::IsStruct()
-{
-	return true;
 }
 
 const char *
@@ -1346,6 +1341,8 @@ ForthClassVocabulary::ForthClassVocabulary( const char*     pName,
 			Extends( smpObjectClass );
 		}
 	}
+
+    mType = VocabularyType::kClass;
 }
 
 
@@ -1618,25 +1615,28 @@ ForthClassVocabulary::Implements( const char* pName )
             else if ( interfaceIndex < 0 )
             {
                 // this is an interface which this class doesn't already have
-                ForthInterface* pNewInterface = new ForthInterface( this );
+                ForthInterface* pNewInterface = new ForthInterface(pClassVocab);
                 pNewInterface->Implements( pClassVocab );
+                mCurrentInterface = mInterfaces.size();
                 mInterfaces.push_back( pNewInterface );
             }
             else
             {
-                // TBD: report error - target of "implements" is same class!
+                // report error - target of "implements" is same class!
+                mpEngine->SetError(ForthError::kBadSyntax, "interface is base class");
             }
 		}
 		else
 		{
-			// TBD: report that vocab is struct, not class
-		}
+			// report that vocab is struct, not class
+            mpEngine->SetError(ForthError::kBadSyntax, "interface is struct, not class");
+        }
 	
 	}
 	else
 	{
-		// TBD: report vocabulary not found
-	}
+        mpEngine->SetError(ForthError::kBadSyntax, "interface unknown");
+    }
 }
 
 
@@ -1647,16 +1647,15 @@ ForthClassVocabulary::EndImplements()
     mCurrentInterface = 0;
 }
 
-bool
-ForthClassVocabulary::IsClass( void )
-{
-	return true;
-}
-
 ForthInterface*
 ForthClassVocabulary::GetInterface( int32_t index )
 {
 	return (index < static_cast<int32_t>(mInterfaces.size())) ? mInterfaces[index] : nullptr;
+}
+
+ForthInterface* ForthClassVocabulary::GetCurrentInterface()
+{
+    return GetInterface(mCurrentInterface);
 }
 
 forthop* ForthClassVocabulary::GetMethods()
@@ -1866,6 +1865,19 @@ CustomObjectReader ForthClassVocabulary::GetCustomObjectReader()
 
 // TBD: implement FindSymbol which iterates over all interfaces
 
+
+//////////////////////////////////////////////////////////////////////
+////
+///     InterfaceVocabulary
+//
+//
+
+InterfaceVocabulary::InterfaceVocabulary(const char* pName, int typeIndex)
+    : ForthClassVocabulary(pName, typeIndex)
+{
+    mType = VocabularyType::kInterface;
+}
+
 //////////////////////////////////////////////////////////////////////
 ////
 ///     ForthInterface
@@ -1944,30 +1956,37 @@ ForthInterface::GetMethod( int index )
 void
 ForthInterface::SetMethod( int index, forthop method )
 {
-    // TBD: check index in bounds
     index += INTERFACE_SKIPPED_ENTRIES;
-    if ( mMethods[index] != method )
+    if (index < mMethods.size())
     {
-		if ( method != gCompiledOps[OP_BAD_OP] )
+        if (mMethods[index] != method)
         {
-            mNumAbstractMethods--;
+            if (method != gCompiledOps[OP_UNIMPLEMENTED])
+            {
+                mNumAbstractMethods--;
+            }
+            mMethods[index] = method;
+            // NOTE: we don't support the case where the old method was concrete and the new method is abstract
         }
-    	mMethods[index] = method;
-        // NOTE: we don't support the case where the old method was concrete and the new method is abstract
+    }
+    else
+    {
+        ForthEngine::GetInstance()->SetError(ForthError::kBadArrayIndex, "attempt to set interface method with out-of-bounds index");
     }
 }
 
 
-void
-ForthInterface::Implements( ForthClassVocabulary* pVocab )
+extern FORTHOP(oInterfaceDeleteMethod);
+void ForthInterface::Implements( ForthClassVocabulary* pVocab )
 {
     ForthInterface* pInterface = pVocab->GetInterface( 0 );
     int numMethods = (int)(pInterface->mMethods.size());
     mMethods.resize( numMethods );
 	for ( int i = INTERFACE_SKIPPED_ENTRIES; i < numMethods; i++ )
 	{
-		mMethods[i] = gCompiledOps[OP_BAD_OP];	// TBD: make this "unimplemented method" opcode
+        mMethods[i] = pInterface->mMethods[i];
 	}
+    
     mNumAbstractMethods = numMethods;
 }
 
@@ -1977,7 +1996,7 @@ ForthInterface::AddMethod( forthop method )
 {
     int methodIndex = (int)(mMethods.size() - INTERFACE_SKIPPED_ENTRIES);
 	mMethods.push_back( method );
-    if ( method == gCompiledOps[OP_BAD_OP] )
+    if ( method == gCompiledOps[OP_UNIMPLEMENTED] )
     {
         mNumAbstractMethods++;
     }

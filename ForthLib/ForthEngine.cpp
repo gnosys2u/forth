@@ -1340,8 +1340,15 @@ static int deleteDepth = 0;
 #endif
 OpResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
 {
+    //
+    // iterate up the class inheritance chain, calling the delete method at each step
+    // don't call delete method if it is Object::delete, since that just deallocates the
+    //  memory for the whole object, and that is done directly at the end of this method
+    //
+    // NOTE: as we move up the inheritance chain, we will overwrite the methods pointer
+    // of the object being deleted at each step.
+    //
     ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
-    int objSize = pClassObject->pVocab->GetSize();
     OpResult exitStatus = OpResult::kOk;
     forthop opScratch[2];
     opScratch[1] = gCompiledOps[OP_DONE];
@@ -1376,25 +1383,26 @@ OpResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
         }
         else
         {
+
 #ifdef DEBUG_DELETE_OBJECT
             printf("skipping %s op 0x%x\n", pClassObject->pVocab->GetName(), opCode);
 #endif
         }
 
         ForthClassVocabulary* parentVocabulary = pClassObject->pVocab->ParentClass();
-        pClassObject = parentVocabulary ? parentVocabulary->GetClassObject() : nullptr;
-        if (pClassObject != nullptr)
+        if (parentVocabulary == nullptr)
         {
-            obj->pMethods = parentVocabulary->GetMethods();
-        }
-        else
-        {
+            // we've reached the top of the inheritance chain, exit loop
             break;
         }
+        pClassObject = parentVocabulary ? parentVocabulary->GetClassObject() : nullptr;
+        obj->pMethods = parentVocabulary->GetMethods();
     }
-    obj->pMethods = savedMethods;
+    // is there any reason to restore the methods pointer here, since it is about to be deleted?
+    //obj->pMethods = savedMethods;
 
     // now free the storage for the object instance
+    int objSize = pClassObject->pVocab->GetSize();
     DEALLOCATE_BYTES(obj, objSize);
 
     //deleteDepth--;
