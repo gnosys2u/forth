@@ -76,11 +76,12 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
     forthop newOpVal = opVal & OPCODE_VALUE_MASK;
     switch( opType )
 	{
-	case NATIVE_OPTYPE:
-		{
+    case kOpNative:
+    case kOpCCode:
+    {
             if (GetPreviousOpcode(previousOpType, previousOpVal))
             {
-                if (previousOpType == kOpMemberRef || previousOpType == kOpLocalRef)
+                if (opType == NATIVE_OPTYPE && (previousOpType == kOpMemberRef || previousOpType == kOpLocalRef))
                 {
                     if ((mCompileComboOpFlags & kCERefOp) != 0
                         && FITS_IN_BITS(previousOpVal, 12) && FITS_IN_BITS(newOpVal, 12))

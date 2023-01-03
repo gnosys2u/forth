@@ -228,7 +228,7 @@ public:
 
     // handle invocation of a struct op - define a local/global struct or struct array, or define a field
     virtual void	    DefineInstance(void);
-    virtual void	    DefineInstance(const char* pInstanceName, const char* pContainedClassName = nullptr);
+    virtual void	    DefineInstance(char* pInstanceName, const char* pContainedClassName = nullptr);
 
     virtual const char* GetTypeName();
 

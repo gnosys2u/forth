@@ -5,7 +5,23 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+- add opTypes for memberObjectMethod and localObjectMethod
+
+- fix super multi-fiber bug
+
++ variable initialization is broken, at least for objects:
+    ARRAY_OBJECT Array arr!
+  doesn't initialize arr to ARRAY_OBJECT
+
+? does 'new' work for things like 'new Array of String'?  probably not...
+  -> no, it doesn't need to - 'of String' is just attached to the Array instance,
+     so 'new Array -> Array of String foo' will be just fine
+
 + get multiple interfaces working using wrapper objects
+
+- reorganization 
+  - get rid of "Forth" at the start of all class names
+  - break up large files
 
 - get a consistent strategy for handling things like 2lit/lit/ilit/llit
 
@@ -53,6 +69,7 @@ TBDs:
      after it is being shared by multiple threads this state is always very unsafe
 
 - have verbose describe of a class or struct shows its typeIndex
+  and also all its interfaces
 
 + add general immediate ops, so 'N op' would compile into just the op plus an immediate operand
   + there would need to be new optypes for each of native, C and userDefs
@@ -218,6 +235,33 @@ Double has consistent layout, long is reversed on param stack.
 
 
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+January 2 2023
+
+I'm thinking about removing much of the support for native strings.
+o remove all arrays of native strings
+o remove strings in structs
+o remove strings as object members
+
+Native strings would only be allowed as:
+o global instances
+o local variables in user ops and methods
+
+I think this would remove all the 'struct init opcode' stuff.
+
+Super is broken in multi-fiber use - changing the methods pointer affects all
+fibers using that object instance, not just the fiber that did super.method.
+The changing-methods-pointer was done to allow chains of super.xxx to work, in
+particular chains of super.delete.  Without changing the instance methods pointer,
+doing super.xxx would always just go one level below where the instance was in
+the object hierarchy.
+
+Some multi-fiber safe ways to do super.xxx:
+o compile method opcode from the parent class and somehow invoke that
+o have methodWithSuper leave methods pointer alone, and only support one level-deep super
+
+I don't even want to think about what happens when code uses both super and
+multiple interfaces.  Probably Armageddon, even on non-ARM platforms.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 January 1 2023
 
@@ -3161,7 +3205,7 @@ version 1 sdl_ttf DLL.  Updating it to use version 2 fixed the problems.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 December 6 2015
 
-I have a mostly working implementtation of struct initialization ops.
+I have a mostly working implementation of struct initialization ops.
 
 Currently if you define structs or objects which have string fields, the strings maxLength field is uninitialized.
 This change would add an automatically generated init op whenever any struct is defined which

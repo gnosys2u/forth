@@ -1372,7 +1372,7 @@ ForthClassVocabulary::DefineInstance( void )
 
 
 void
-ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pContainedClassName)
+ForthClassVocabulary::DefineInstance(char* pInstanceName, const char* pContainedClassName)
 {
     // do one of the following:
     // - define a global instance of this class type
@@ -1388,6 +1388,16 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
     ForthCoreState *pCore = mpEngine->GetCoreState();
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     int32_t typeIndex = mTypeIndex;
+
+    // if new instance name ends in '!', chop the '!' and initialize the new instance
+    size_t instanceNameLen = strlen(pInstanceName);
+    bool doInitializationVarop = false;
+    if (instanceNameLen > 1 && pInstanceName[instanceNameLen - 1] == '!' && pOuter->CheckFeature(kFFAllowVaropSuffix))
+    {
+        instanceNameLen--;
+        pInstanceName[instanceNameLen] = '\0';
+        doInitializationVarop = true;
+    }
 
     if (pContainedClassName != nullptr)
     {
@@ -1441,7 +1451,15 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
             pHere = (ForthObject*)mpEngine->GetDP();
             bool bCompileInstanceOp = pOuter->GetLastCompiledIntoPtr() == (((forthop *)pHere) - 1);
             pOuter->AddLocalVar( pInstanceName, typeCode, nBytes );
-            if (bCompileInstanceOp)
+            if (doInitializationVarop)
+            {
+                // local var name ended with '!', so compile op for this local var with varop Set
+                //  so it will be initialized
+                forthop* pEntry = pVocab->GetNewestEntry();
+                forthop op = COMPILED_OP((isPtr ? kOpLocalCell : kOpLocalObject), pEntry[0]);
+                pOuter->CompileOpcode(op | ((forthop)VarOperation::kVarSet) << 20);
+            }
+            else if (bCompileInstanceOp)
             {
                 // local var definition was preceeded by "->", so compile the op for this local var
                 //  so it will be initialized
@@ -1495,7 +1513,7 @@ ForthClassVocabulary::DefineInstance(const char* pInstanceName, const char* pCon
                 pOuter->AddGlobalObjectVariable(pHere, this, pInstanceName);
             }
 
-            if ( GET_VAR_OPERATION == VarOperation::kVarSet )
+            if ( GET_VAR_OPERATION == VarOperation::kVarSet || doInitializationVarop)
             {
                 ForthObject srcObj = (ForthObject)SPOP;
                 if ( isPtr )
