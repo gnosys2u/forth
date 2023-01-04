@@ -134,12 +134,9 @@ x have "woof -> foo( blah )" compile into "woof blah -> foo"
   which have different data members...
 
 - add support for iterating over files in directories
+  ? doesn't Directory in directory.fs do this?
 
 ? add a debug feature where a map is maintained from IP address to file/lineNumber
-
-+ add a string-to-long map based off CMap
-  remember that a charPtr-to-long map would just map from the value of the
-  charPtr, not the chars in the string, to the long
 
 ? add a "parser stack" - this would allow stuff like:
   + using #ifdef to skip sections of code
@@ -182,10 +179,6 @@ x have "woof -> foo( blah )" compile into "woof blah -> foo"
   - graphics
   ? do this via DLL support
   
-- help system
-
-- faster searches
-
 ? generalize the undefined symbol handling mechanism which is used to
  define enums
 ? add a way to extend parsing for user-defined literal constants
@@ -236,7 +229,24 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+January 3 2023
+
+I'm going to fix the multi-fiber super bug by grabbing the method opcode from
+the super class at compile time, and compiling it, this op and a new executeMethod
+opcode.
+
+One consequence of this change is that while executing the super method, method
+calls on this will use the methods of the original instance, not the corresponding
+super methods, since the instance methods pointer will be left unchanged.  I should
+document that and how non-method class opcodes will be executed for users.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 January 2 2023
+
+I think a good next thing to do is to remove as much of the complex non-useful
+crap as possible.
+
+I think removing the squished opTypes would be good.  There isn't a lot of complexity
+there, but there isn't any real advantages for keeping it.
 
 I'm thinking about removing much of the support for native strings.
 o remove all arrays of native strings

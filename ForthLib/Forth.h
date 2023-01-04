@@ -224,6 +224,12 @@ typedef enum
     // optypes from 128:.255 are used to select class methods    
 } forthOpType;
 
+#ifdef ASM_INNER_INTERPRETER
+#define NATIVE_OPTYPE kOpNative
+#else
+#define NATIVE_OPTYPE kOpCCode
+#endif
+
 // there is an action routine with this signature for each forthOpType
 // user can add new optypes with ForthEngine::AddOpType
 typedef void (*optypeActionRoutine)( ForthCoreState *pCore, forthop theData );
@@ -579,11 +585,12 @@ enum {
     OP_DO_FINALLY,
     OP_DO_ENDTRY,
     OP_RAISE,
-    OP_UNSUPER,
     OP_RDROP,
     OP_NOOP,
     OP_DEVOLVE,
     OP_UNIMPLEMENTED,
+    OP_EXECUTE_METHOD,
+    OP_THIS,
 
 	NUM_COMPILED_OPS,
 

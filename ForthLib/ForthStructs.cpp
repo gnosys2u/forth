@@ -2384,12 +2384,3 @@ ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
         }
     }
 }
-
-extern "C"
-{
-    forthop* getSuperClassMethods(ForthClassVocabulary *pVocab)
-    {
-        return pVocab->ParentClass()->GetMethods();
-    }
-};
-

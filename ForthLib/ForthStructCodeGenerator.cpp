@@ -542,8 +542,30 @@ bool ForthStructCodeGenerator::HandleMiddle()
     {
         // This is a method which is a non-final accessor field
         // this method must return either a struct or an object
-        opType = (bUsesSuper) ? kOpMethodWithSuper : kOpMethodWithTOS;
-        mOffset = pEntry[0];
+        if (bUsesSuper)
+        {
+#ifdef ASM_INNER_INTERPRETER
+            * mpDst++ = COMPILED_OP(kOpNativeU32, OP_THIS);
+#else
+            * mpDst++ = COMPILED_OP(kOpCCodeU32, OP_THIS);
+#endif
+            if (mpStructVocab->IsClass())
+            {
+                *mpDst++ = dynamic_cast<ForthClassVocabulary*>(mpStructVocab)->GetMethods()[pEntry[0]];
+            }
+            else
+            {
+                SPEW_STRUCTS("using super on non-class");
+                return false;
+            }
+            opType = NATIVE_OPTYPE;
+            mOffset = gCompiledOps[OP_EXECUTE_METHOD];
+        }
+        else
+        {
+            opType = kOpMethodWithTOS;
+            mOffset = pEntry[0];
+        }
         SPEW_STRUCTS( " opcode 0x%x\n", COMPILED_OP( opType, mOffset ) );
         *mpDst++ = COMPILED_OP( opType, mOffset );
         mOffset = 0;
@@ -751,8 +773,30 @@ bool ForthStructCodeGenerator::HandleLast()
     SPEW_STRUCTS(" FINAL");
     if (isMethod)
     {
-        opType = (mUsesSuper) ? kOpMethodWithSuper : kOpMethodWithTOS;
-        mOffset = pEntry[0];     // method#
+        if (mUsesSuper)
+        {
+#ifdef ASM_INNER_INTERPRETER
+            * mpDst++ = COMPILED_OP(kOpNativeU32, OP_THIS);
+#else
+            *mpDst++ = COMPILED_OP(kOpCCodeU32, OP_THIS);
+#endif
+            if (mpStructVocab->IsClass())
+            {
+                *mpDst++ = dynamic_cast<ForthClassVocabulary*>(mpStructVocab)->GetMethods()[pEntry[0]];
+            }
+            else
+            {
+                SPEW_STRUCTS("using super on non-class");
+                return false;
+            }
+            opType = NATIVE_OPTYPE;
+            mOffset = gCompiledOps[OP_EXECUTE_METHOD];
+        }
+        else
+        {
+            opType = kOpMethodWithTOS;
+            mOffset = pEntry[0];     // method#
+        }
     }
     else if ( isPtr )
     {
@@ -780,16 +824,6 @@ bool ForthStructCodeGenerator::HandleLast()
     SPEW_STRUCTS( " opcode 0x%x\n", COMPILED_OP( opType, mOffset ) );
     *mpDst++ = COMPILED_OP( opType, mOffset );
 
-    if (isMethod && mUsesSuper)
-    {
-        // compile op that will pop old pMethods pointer and stuff it
-        //  back in this.pMethods after a methodWithSuper methods opcode
-        // for delete, which is method 0, compile an rdrop instead, since we don't
-        //   want to save the old pMethods into memory which we have just freed
-        int32_t unSuperOp = gCompiledOps[(mOffset == 0) ? OP_RDROP : OP_UNSUPER];
-        SPEW_STRUCTS(" unsuperOp 0x%x", unSuperOp);
-        *mpDst++ = unSuperOp;
-    }
 	return success;
 }
 	

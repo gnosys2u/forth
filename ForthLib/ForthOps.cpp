@@ -8947,14 +8947,6 @@ FORTHOP( thisBop )
     SPUSH( ((cell) GET_TP) );
 }
 
-FORTHOP(unsuperBop)
-{
-    // this is compiled after every MethodWithSuper op, it pops the original
-    //  methods pointer off the rstack and stuffs it back into this.pMethods
-    forthop* oldMethods = (forthop*)(RPOP);
-    GET_TP->pMethods = oldMethods;
-}
-
 // doStructOp is compiled at the start of each user-defined global structure instance
 FORTHOP( doStructBop )
 {
@@ -8993,6 +8985,28 @@ FORTHOP( executeBop )
     InnerInterpreter( pCore );
     SET_IP( oldIP );
 #endif
+}
+
+FORTHOP(executeMethodBop)
+{
+    // TOS is object pointer, next is method opcode (not index)
+    // this is compiled to implement super.xxx, and shouldn't be
+    // used in normal code
+    ForthEngine* pEngine = GET_ENGINE;
+    ForthObject obj;
+
+    RPUSH(((cell)GET_TP));
+
+    POP_OBJECT(obj);
+    forthop methodOpcode = (forthop)(SPOP);
+    if (obj == nullptr || obj->pMethods == nullptr)
+    {
+        SET_ERROR(ForthError::kBadObject);
+        return;
+    }
+
+    SET_TP(obj);
+    pEngine->ExecuteOp(pCore, methodOpcode);
 }
 
 //##############################
@@ -9491,12 +9505,12 @@ OPREF( doLongArrayBop );    OPREF( doLongArrayBop );    OPREF( doFloatArrayBop )
 OPREF( doDoubleArrayBop );  OPREF( doStringArrayBop );  OPREF( doOpArrayBop );
 OPREF( doObjectArrayBop );  OPREF( initStringBop );     OPREF( plusBop );
 OPREF( strFixupBop );       OPREF( fetchVaractionBop );	OPREF( noopBop );
-OPREF(odropBop);            OPREF(devolveBop);
+OPREF(odropBop);            OPREF(devolveBop);          OPREF(executeMethodBop);
 
 OPREF( ifetchBop );          OPREF( doStructBop );       OPREF( doStructArrayBop );
 OPREF( doDoBop );           OPREF( doLoopBop );         OPREF( doLoopNBop );
 OPREF( dfetchBop );         OPREF( doCheckDoBop );
-OPREF( thisBop );           OPREF( unsuperBop );        OPREF( dpBop );
+OPREF( thisBop );           OPREF( dpBop );
 OPREF( executeBop );        OPREF( callBop );           OPREF( gotoBop );
 OPREF( iBop );              OPREF( jBop );              OPREF( unloopBop );
 OPREF( leaveBop );          OPREF( hereBop );           OPREF( refVaractionBop );
@@ -9703,18 +9717,18 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     OP_COMPILED_DEF(        doFinallyOp,            "_doFinally",       OP_DO_FINALLY ),
     OP_COMPILED_DEF(        doEndtryOp,             "_doEndtry",        OP_DO_ENDTRY ),
     OP_COMPILED_DEF(        raiseOp,                "raise",            OP_RAISE),
-    NATIVE_COMPILED_DEF(    unsuperBop,             "_unsuper",         OP_UNSUPER),
     NATIVE_COMPILED_DEF(    rdropBop,               "rdrop",            OP_RDROP),
     NATIVE_COMPILED_DEF(    noopBop,                "noop",             OP_NOOP),
     NATIVE_COMPILED_DEF(    devolveBop,             "_devo",            OP_DEVOLVE),
     OP_COMPILED_DEF(unimplementedMethodOp,          "unimplementedMethod", OP_UNIMPLEMENTED),
+    NATIVE_COMPILED_DEF(    executeMethodBop,       "_executeMethod",   OP_EXECUTE_METHOD),
+    NATIVE_COMPILED_DEF(    thisBop,                "this",             OP_THIS),
 };
 
 
 
 baseDictionaryEntry baseDictionary[] =
 {
-	NATIVE_DEF(    thisBop,                 "this" ),
     NATIVE_DEF(    executeBop,              "execute" ),
     NATIVE_DEF(    callBop,                 "call" ),
     NATIVE_DEF(    gotoBop,                 "setIP" ),

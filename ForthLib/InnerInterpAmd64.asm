@@ -3473,45 +3473,6 @@ methodTos1:
 	mov	rax, [rcore + FCore.innerExecute]
 	jmp rax
 	
-; invoke a method on super class of object currently referenced by this ptr pair
-entry methodWithSuperType
-	; rbx is method number
-	sub	rrp, 16
-	mov	rax, [rcore + FCore.TPtr]
-	; push original methods ptr on return stack
-	mov	rcx, [rax]			; rcx is original methods ptr
-	mov	[rrp + 8], rcx
-	; push this on return stack
-	mov	[rrp], rax
-	
-	mov	rcx, [rcx - 8]		; rcx -> class vocabulary object
-%ifdef LINUX
-	mov	rdi, [rcx + 16]		; 1st param rcx -> class vocabulary
-	mov	[rcore + FCore.IPtr], rip		; save IP as it will get stomped in xcalls in linux
-%else
-	mov	rcx, [rcx + 16]		; 1st param rcx -> class vocabulary
-%endif
-	sub rsp, kShadowSpace			; shadow space
-	xcall getSuperClassMethods
-	add rsp, kShadowSpace
-	mov roptab, [rcore + FCore.ops]
-	mov rnumops, [rcore + FCore.numOps]
-	mov racttab, [rcore + FCore.optypeAction]
-%ifdef LINUX
-	mov	rnext, [rcore + FCore.innerLoop]	; rdi/rnext was stomped above
-	mov	rip, [rcore + FCore.IPtr]	; rdi/rnext was stomped above
-%endif
-	; rax -> super class methods table
-	mov	rcx, [rcore + FCore.TPtr]
-	mov	[rcx], rax		; set this methods ptr to super class methods
-	; rbx is method number
-	and	rbx, 00FFFFFFh
-	sal	rbx, 2
-	add	rbx, rax
-	mov	ebx, [rbx]	; rbx = method opcode
-	mov	rax, [rcore + FCore.innerExecute]
-	jmp rax
-	
 ;-----------------------------------------------
 ;
 ; member string init ops
@@ -7122,20 +7083,35 @@ entry devolveBop
 	
 ;========================================
 
-entry unsuperBop
-	; pop original pMethods off rstack
-	mov	rbx, [rrp]
-	add	rrp, 8
-	; store original pMethods in this.pMethods
-	mov	rax, [rcore + FCore.TPtr]
-	mov	[rax], rbx
-	jmp	rnext
-	
-;========================================
-
 entry executeBop
 	mov	ebx, [rpsp]
 	add	rpsp, 8
+	mov	rax, [rcore + FCore.innerExecute]
+	jmp rax
+	
+;========================================
+
+entry executeMethodBop
+    ; TOS is object pointer, next is method opcode (not index)
+    ; this is compiled to implement super.xxx, and shouldn't be used in normal code
+    ; push this on rstack
+
+	; get this ptr from TOS	
+	mov	rax, [rpsp]
+	add	rpsp, 8
+	or	rax, rax
+	jnz executeMethod1
+	mov	rax, kForthErrorBadObject
+	jmp	interpFuncErrorExit
+executeMethod1:
+	; push current this on return stack
+	mov	rcx, [rcore + FCore.TPtr]
+	sub	rrp, 8
+	mov	[rrp], rcx
+	mov	[rcore + FCore.TPtr], rax
+
+    mov rbx, [rpsp]
+    add rpsp, 8
 	mov	rax, [rcore + FCore.innerExecute]
 	jmp rax
 	
@@ -8380,7 +8356,7 @@ entry opTypesTable
 ;	120 - 122
 	DQ	lroComboType
 	DQ	mroComboType
-	DQ  methodWithSuperType
+	DQ  extOpType       ; was methodWithSuperType
 	
 ;	123 - 127
     DQ  nativeU32Type

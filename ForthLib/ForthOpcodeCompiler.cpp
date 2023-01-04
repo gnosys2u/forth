@@ -52,12 +52,6 @@ void ForthOpcodeCompiler::Reset()
 	mpLastIntoOpcode = NULL;
 }
 
-#ifdef ASM_INNER_INTERPRETER
-#define NATIVE_OPTYPE kOpNative
-#else
-#define NATIVE_OPTYPE kOpCCode
-#endif
-
 #define FITS_IN_BITS( VAL, NBITS )  ((VAL) < (1 << NBITS))
 // VAL must already have high 8 bits zeroed
 #define FITS_IN_SIGNED_BITS( VAL, NBITS )  (((VAL) < (1 << (NBITS - 1))) || ((VAL) > (((1 << 24) - (1 << NBITS)) + 1)))

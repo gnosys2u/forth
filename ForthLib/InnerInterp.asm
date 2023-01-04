@@ -3227,42 +3227,6 @@ methodTos1:
 	mov	eax, [rcore + FCore.innerExecute]
 	jmp eax
 	
-; invoke a method on super class of object currently referenced by this ptr pair
-entry methodWithSuperType
-	; ebx is method number
-	mov	ecx, [rcore + FCore.RPtr]
-	sub	ecx, 8
-	mov	[rcore + FCore.RPtr], ecx
-	mov	eax, [rcore + FCore.TPtr]
-    push ebx
-	; push original methods ptr on return stack
-	mov	ebx, [eax]			; ebx is original methods ptr
-	mov	[ecx+4], ebx
-	; push this on return stack
-	mov	[ecx], eax
-	
-	mov	ecx, [ebx-4]		; ecx -> class vocabulary object
-	mov	eax, [ecx+8]		; eax -> class vocabulary
-	push rpsp
-    push ecx
-    sub esp, 12         ; 16-byte align for OSX
-    push eax            ; class vocabulary
-	xcall getSuperClassMethods
-	; eax -> super class methods table
-	mov	ebx, [rcore + FCore.TPtr]
-	mov	[ebx], eax		; set this methods ptr to super class methods
-	add esp, 16
-	pop ecx
-	pop rpsp
-	pop ebx
-	; ebx is method number
-	and	ebx, 00FFFFFFh
-	sal	ebx, 2
-	add	ebx, eax
-	mov	ebx, [ebx]	; ebx = method opcode
-	mov	eax, [rcore + FCore.innerExecute]
-	jmp eax
-	
 ;-----------------------------------------------
 ;
 ; member string init ops
@@ -7352,22 +7316,37 @@ entry devolveBop
 	
 ;========================================
 
-entry unsuperBop
-	; pop original pMethods off rstack
-	mov	eax, [rcore + FCore.RPtr]
-	mov	ebx, [eax]
-	add	eax, 4
-	mov	[rcore + FCore.RPtr], eax
-	; store original pMethods in this.pMethods
-	mov	eax, [rcore + FCore.TPtr]
-	mov	[eax], ebx
-	jmp	rnext
-	
-;========================================
-
 entry executeBop
 	mov	ebx, [rpsp]
 	add	rpsp, 4
+	mov	eax, [rcore + FCore.innerExecute]
+	jmp eax
+	
+;========================================
+
+entry executeMethodBop
+    ; TOS is object pointer, next is method opcode (not index)
+    ; this is compiled to implement super.xxx, and shouldn't be used in normal code
+    ; push this on rstack
+
+	; get this ptr from TOS	
+	mov	eax, [rpsp]
+	add	rpsp, 4
+	or	eax, eax
+	jnz executeMethod1
+	mov	eax, kForthErrorBadObject
+	jmp	interpLoopErrorExit
+executeMethod1:
+	; push current this on return stack
+	mov	ecx, [rcore + FCore.TPtr]
+	mov	ebx, [rcore + FCore.RPtr]
+	sub	ebx, 4
+	mov	[rcore + FCore.RPtr], ebx
+	mov	[ebx], ecx
+	mov	[rcore + FCore.TPtr], eax
+
+    mov ebx, DWORD[rpsp]
+    add rpsp, 4
 	mov	eax, [rcore + FCore.innerExecute]
 	jmp eax
 	
@@ -8422,7 +8401,7 @@ entry opTypesTable
 ;	120 - 122
 	DD	lroComboType
 	DD	mroComboType
-	DD	methodWithSuperType
+	DD	extOpType           ; was methodWithSuperType
 	
 ;	123 - 127
     DD  native32Type
