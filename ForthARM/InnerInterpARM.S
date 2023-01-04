@@ -188,7 +188,7 @@ filePutString	=		48
 	.global	doByteBop, doShortBop, doIntBop, doFloatBop, refVaractionBop, fetchVaractionBop, intoVaractionBop, addToVaractionBop, subtractFromVaractionBop, doExitBop
 	.global	doExitLBop, doExitMBop, doExitMLBop, doVocabBop, doByteArrayBop, doShortArrayBop, doIntArrayBop, doFloatArrayBop
 	.global	plusBop, ifetchBop, doStructBop, doStructArrayBop, doDoBop, doLoopBop, doLoopNBop, dfetchBop
-	.global	thisBop, unsuperBop, executeBop, callBop, gotoBop, iBop, jBop, unloopBop, leaveBop, hereBop, dpBop
+	.global	thisBop, executeBop, executeMethodBop, callBop, gotoBop, iBop, jBop, unloopBop, leaveBop, hereBop, dpBop
 	.global	minusBop, noopBop
 	.global	timesBop, times2Bop, times4Bop, times8Bop, divideBop, divide2Bop, divide4Bop, divide8Bop, divmodBop, modBop, negateBop
 	.global fplusBop, fminusBop, ftimesBop, fdivideBop,	dplusBop, dminusBop, dtimesBop, ddivideBop
@@ -544,6 +544,45 @@ cCodeTypeExit:
 .cct2:
 	bx	r2
 
+@-----------------------------------------------
+@
+@ combos which push an immediate literal, then execute another op
+@
+@	r1 holds the opcode value field
+@
+native32Type:
+    ldmia   rip!, {r2}
+    stmdb   rpsp!, {r2}
+	ldr	r0, [rops, r1, lsl #2]
+	str	r0, [rcore, #scratch]
+	bx	r0
+    
+native64Type:
+    ldmia   rip!, {r2, r3}
+    stmdb   rpsp!, {r2, r3}
+	ldr	r0, [rops, r1, lsl #2]
+	str	r0, [rcore, #scratch]
+	bx	r0
+
+cCode32Type:
+    ldmia   rip!, {r2}
+    stmdb   rpsp!, {r2}
+    b cCodeType
+
+cCode64Type:
+    ldmia   rip!, {r2, r3}
+    stmdb   rpsp!, {r2, r3}
+    b cCodeType
+
+userDef32Type:
+    ldmia   rip!, {r2}
+    stmdb   rpsp!, {r2}
+    b userDefType
+
+userDef64Type:
+    ldmia   rip!, {r2, r3}
+    stmdb   rpsp!, {r2, r3}
+    b userDefType
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @                                                    @
@@ -2805,9 +2844,11 @@ doDoesBop:
 	stmdb	rsp!, {r0}		@ push r0 onto param stack
 	bx	lr
 	
-@@@@@@@@@@@@@@@@@  lit  @@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@  lit, flit, ulit  @@@@@@@@@@@@@@@@@
 
 litBop:
+flitBop:
+ulitBop:
 	ldmia	rip!, {r0}
 	stmdb	rsp!, {r0}
 	bx	lr
@@ -3461,20 +3502,37 @@ thisBop:
 	stmdb	rsp!, {r0}
 	bx	lr
 	
-@@@@@@@@@@@@@@@@@  unsuper  @@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@  _devo  @@@@@@@@@@@@@@@@@
 
-unsuperBop:
-    @ pop original pMethods off rstack
-    ldmia   rrp!, {r0}
-	ldr	r1, [rcore, #tp]
-    @ store original pMethods in this.pMethods
-	str r0, [r1]
+devolveBop:
+	ldr	r1, [rcore, #tp]    ; r1 = this
+    ldr r2, [r1, #8]        ; r2 = wrapped object
+    str r2, [rcore, #tp]    ; this = wrapped object
 	bx	lr
 	
 @@@@@@@@@@@@@@@@@  execute  @@@@@@@@@@@@@@@@@
 
 executeBop:
 	ldmia	rsp!, {r0}
+	ldr	r1, [rcore, #inner_execute]
+	bx	r1
+
+@@@@@@@@@@@@@@@@@  _executeMethod  @@@@@@@@@@@@@@@@@
+
+executeMethodBop:
+    @ TOS is object pointer, NOS is method opcode (not index)
+    @ this is compiled to implement super.xxx, and shouldn't be used in normal code
+
+    @ push this ptr on return stack
+	ldr	r2, [rcore, #tp]
+	stmdb	rrp!, {r2}
+
+	ldmia	rsp!, {r1, r2}      @ r1 = object, r2 = method opcode
+	orrs r1, r1
+	beq	badObject
+	str	r1, [rcore, #tp]
+
+    mov r0, r2
 	ldr	r1, [rcore, #inner_execute]
 	bx	r1
 
@@ -7388,7 +7446,7 @@ methodWithTOSType:
 	@ set this from TOS	
 	ldmia	rsp!, {r2}
 	orrs r2, r2
-	beq	badMethod
+	beq	badObject
 	str	r2, [rcore, #tp]
 	@ get method opcode
     ldr r3, [r2]
@@ -7396,30 +7454,10 @@ methodWithTOSType:
 	ldr	r1, [rcore, #inner_execute]
 	bx	r1
 
-badMethod:
-	mov	r0, #kForthErrorIllegalMethod
+badObject:
+	mov	r0, #kForthErrorBadObject
 	b	interpLoopErrorExit
 	
-@ invoke a method on object currently referenced by this ptr pair
-methodWithSuperType:
-	@ r1 is method number
-	@ push old methods ptr, this ptr on return stack
-	ldr	r2, [rcore, #tp]
-    ldr r3, [r2]                @ r3 is methods table ptr
-	stmdb	rrp!, {r3}
-	stmdb	rrp!, {r2}
-	ldr	r3, [r3, #-4]		    @ r3 -> super vocabulary object
-	ldr	r0, [r3, #8]			@ r0 -> super vocabulary
-	push	{r1, r2, rcore, lr}
-	bl	getSuperClassMethods
-	pop	{r1, r2, rcore, lr}
-	@ r0 is super method table
-	str r0, [r2]
-	@ get method opcode
-	ldr	r0, [r0, r1, lsl #2]
-	ldr	r1, [rcore, #inner_execute]
-	bx	r1
-		
 @ squished float literal
 squishedFloatType:
 	@ r1: bit 23 is sign, bits 22..18 are exponent, bits 17..0 are mantissa
@@ -7831,11 +7869,31 @@ opTypesTable:
 @	120 - 122
 	.word	lroComboType
 	.word	mroComboType
-	.word	methodWithSuperType
+	.word	extOpType       @ was methodWithSuperType
 
-@	123 - 149
-	.word	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
-	.word	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
+@	123 - 127
+    .word  native32Type
+    .word  native32Type
+    .word  native32Type
+    .word  native64Type
+    .word  native64Type
+
+@	128 - 132
+    .word  cCode32Type
+    .word  cCode32Type
+    .word  cCode32Type
+    .word  cCode64Type
+    .word  cCode64Type
+
+@	133 - 137
+    .word  userDef32Type
+    .word  userDef32Type
+    .word  userDef32Type
+    .word  userDef64Type
+    .word  userDef64Type
+
+@	138 - 149
+	.word	extOpType,extOpType
 	.word	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 @	150 - 199
 	.word	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
