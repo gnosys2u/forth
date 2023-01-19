@@ -189,7 +189,7 @@ filePutString	=		48
 	.global	doExitLBop, doExitMBop, doExitMLBop, doVocabBop, doByteArrayBop, doShortArrayBop, doIntArrayBop, doFloatArrayBop
 	.global	plusBop, ifetchBop, doStructBop, doStructArrayBop, doDoBop, doLoopBop, doLoopNBop, dfetchBop
 	.global	thisBop, executeBop, executeMethodBop, callBop, gotoBop, iBop, jBop, unloopBop, leaveBop, hereBop, dpBop
-	.global	minusBop, noopBop
+	.global	minusBop, noopBop, devolveBop
 	.global	timesBop, times2Bop, times4Bop, times8Bop, divideBop, divide2Bop, divide4Bop, divide8Bop, divmodBop, modBop, negateBop
 	.global fplusBop, fminusBop, ftimesBop, fdivideBop,	dplusBop, dminusBop, dtimesBop, ddivideBop
 	.global orBop, andBop, xorBop, invertBop, lshiftBop, arshiftBop, rotateBop, notBop, trueBop, falseBop
@@ -391,7 +391,7 @@ iidisp:
 @	bl checkOptypeTable
 @	pop {lr}
 	cmp	r0, rnumops					@ is opcode native op?
-	bge	.II3
+	bhs	.II3						@ branch high or same, AKA unsigned greater than or equals
 	@ handle native ops
 	ldr	r1, [rops, r0, lsl #2]
 	str	r0, [rcore, #scratch]
@@ -552,36 +552,36 @@ cCodeTypeExit:
 @
 native32Type:
     ldmia   rip!, {r2}
-    stmdb   rpsp!, {r2}
+    stmdb   rsp!, {r2}
 	ldr	r0, [rops, r1, lsl #2]
 	str	r0, [rcore, #scratch]
 	bx	r0
     
 native64Type:
     ldmia   rip!, {r2, r3}
-    stmdb   rpsp!, {r2, r3}
+    stmdb   rsp!, {r2, r3}
 	ldr	r0, [rops, r1, lsl #2]
 	str	r0, [rcore, #scratch]
 	bx	r0
 
 cCode32Type:
     ldmia   rip!, {r2}
-    stmdb   rpsp!, {r2}
+    stmdb   rsp!, {r2}
     b cCodeType
 
 cCode64Type:
     ldmia   rip!, {r2, r3}
-    stmdb   rpsp!, {r2, r3}
+    stmdb   rsp!, {r2, r3}
     b cCodeType
 
 userDef32Type:
     ldmia   rip!, {r2}
-    stmdb   rpsp!, {r2}
+    stmdb   rsp!, {r2}
     b userDefType
 
 userDef64Type:
     ldmia   rip!, {r2, r3}
-    stmdb   rpsp!, {r2, r3}
+    stmdb   rsp!, {r2, r3}
     b userDefType
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -3505,9 +3505,9 @@ thisBop:
 @@@@@@@@@@@@@@@@@  _devo  @@@@@@@@@@@@@@@@@
 
 devolveBop:
-	ldr	r1, [rcore, #tp]    ; r1 = this
-    ldr r2, [r1, #8]        ; r2 = wrapped object
-    str r2, [rcore, #tp]    ; this = wrapped object
+	ldr	r1, [rcore, #tp]    @ r1 = this
+    ldr r2, [r1, #8]        @ r2 = wrapped object
+    str r2, [rcore, #tp]    @ this = wrapped object
 	bx	lr
 	
 @@@@@@@@@@@@@@@@@  execute  @@@@@@@@@@@@@@@@@

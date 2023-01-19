@@ -16,7 +16,7 @@ CDEBUG = -g
 
 
 DEFINES = -DRASPI -DLINUX -DASM_INNER_INTERPRETER -DINCLUDE_TRACE -DATOMIC_REFCOUNTS -DSTORAGE_LONGS=4000000
-CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -std=c++11 -marm
+CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -std=c++17 -marm
 
 #WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wsign-compare -Wunused-but-set-variable
 #WARNING_FLAGS = -Wno-format -Wno-reorder -Wno-unused-variable
