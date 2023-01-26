@@ -1,19 +1,19 @@
 
-: hints ;
+: advHints ;
 
 //========== Hints. =======================================================
 // This section corresponds to sections 80 and 193--196 in Knuth.
 
 : addHint
-  new Hint -> Hint newHint
-  new String -> newHint.prompt
-  new String -> newHint.hint
+  new Hint Hint newHint!
+  new String newHint.prompt!
+  new String newHint.hint!
   newHint.hint.set
   newHint.prompt.set
-  -> newHint.cost
-  -> newHint.thresh
+  newHint.cost!
+  newHint.thresh!
   game.addHint(newHint)
-  oclear newHint
+  newHint~
 ;
 
 : build_hints

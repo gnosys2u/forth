@@ -5,7 +5,7 @@
 
 //struct Place places[MAX_LOC + 1];
 
-null -> ptrTo Instruction __nextLoc
+null ptrTo Instruction __nextLoc!
 
 // make_loc(locationId longDescription shortDescription)
 //   adds a Place to game.places
@@ -40,9 +40,9 @@ null -> ptrTo Instruction __nextLoc
   else
     game.places.push(place)
   endif
-  game.start(__nextLoc place.locID ->)
+  __nextLoc game.start!(place.locID)
   //place.show
-  oclear place
+  place~
 ;
 
 // create a location with no hints
@@ -52,32 +52,32 @@ null -> ptrTo Instruction __nextLoc
 : make_inst
 //    assert(&travels[0] <= q && q < &travels[733]);
 //    assert(m == 0 || (MIN_MOTION <= m && m <= MAX_MOTION));
-  -> __nextLoc.dest
-  -> __nextLoc.cond
-  -> __nextLoc.mot
+  __nextLoc.dest!
+  __nextLoc.cond!
+  __nextLoc.mot!
   d[ t{ "make_inst " %s __nextLoc.dest %d %nl }t ]d
 ;
 
 //#define make_ins(m, d) make_inst(q++, m, 0, d)
 : make_ins
-  -> int d
-  -> int m
+  int d!
+  int m!
   make_inst(m 0 d)
-  sizeOf Instruction ->+ __nextLoc
+  sizeOf Instruction __nextLoc!+
 ;
 
 //#define make_cond_ins(m, c, d) make_inst(q++, m, c, d)
 : make_cond_ins
   make_inst
-  sizeOf Instruction ->+ __nextLoc
+  sizeOf Instruction __nextLoc!+
 ;
 
 //#define ditto(m) make_inst(q, m, q[-1].cond, q[-1].dest)  ++q;
 : ditto
-  -> int m
-  __nextLoc sizeOf Instruction - -> ptrTo Instruction previousInstruction
+  int m!
+  __nextLoc sizeOf Instruction - ptrTo Instruction previousInstruction!
   make_inst(m previousInstruction.cond previousInstruction.dest)
-  sizeOf Instruction ->+ __nextLoc
+  sizeOf Instruction __nextLoc!+
 ;
 
 // cond values:
@@ -101,18 +101,18 @@ null -> ptrTo Instruction __nextLoc
 : remark FIRST_REMARK + ;
 
 : twist
-  -> ptrTo byte m
-  -> int d
-  -> int u
-  -> int sw
-  -> int nw
-  -> int se
-  -> int ne
-  -> int w
-  -> int e
-  -> int s
-  -> int n
-  -> int name
+  ptrTo byte m!
+  int d!
+  int u!
+  int sw!
+  int nw!
+  int se!
+  int ne!
+  int w!
+  int e!
+  int s!
+  int n!
+  int name!
   make_loc(name m null)
   make_ins(N n)  make_ins(S s)  make_ins(E e)  make_ins(W w)
   make_ins(NE ne)  make_ins(SE se)  make_ins(NW nw)  make_ins(SW sw)
@@ -123,7 +123,7 @@ null -> ptrTo Instruction __nextLoc
 "Dead end." $constant dead_end
 
 : build_travel_table
-  0 ref game.travels -> __nextLoc
+  0 ref game.travels __nextLoc!
   game.places.push(null)   // TODO: why do we need to do this?
   
   make_loc(R_ROAD "You are standing at the end of a road before a small brick building.\n\+
@@ -968,7 +968,7 @@ of the Hall of Mists."  null)
   make_ins(0  R_W2PIT) 
 
   // The remaining "locations" R_PPASS, R_PDROP, and R_TROLL are special.
-  game.start(__nextLoc R_PPASS ->)
+  __nextLoc game.start!(R_PPASS)
 ;
 
 loaddone

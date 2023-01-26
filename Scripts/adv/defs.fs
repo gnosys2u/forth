@@ -65,7 +65,7 @@ enum: MessageWord
 ;enum
 
 : wordToName
-  -> int wordNum
+  int wordNum!
   case(wordNum)
     ofif(wordNum 400 >=)
       findEnumSymbol(wordNum  ref MessageWord)
@@ -136,7 +136,7 @@ enum: Location
 ;enum
 
 : locationToName
-  -> int locationNum
+  int locationNum!
   findEnumSymbol(locationNum  ref Location)
   if(0=)
     "UnknownLocation"
@@ -160,10 +160,10 @@ struct: Instruction
 ;struct
 
 : showInstruction
-  -> ptrTo Instruction inst
+  ptrTo Instruction inst!
   inst.mot wordToName %s " -> " %s inst.dest locationToName %s %bl
-  inst.cond -> int cond
-  mod(cond 100) MIN_OBJ + -> int obj
+  inst.cond int cond!
+  mod(cond 100) MIN_OBJ + int obj!
   if(cond 0=)
     "always"
   elseif(cond 100 <=)
@@ -173,7 +173,7 @@ struct: Instruction
   elseif(cond 300 <=)
     "if object " %s wordToName(obj) %s " is here" %s
   else
-    cond 100 / 3- -> int propValue
+    cond 100 / 3- int propValue!
     "if object " %s wordToName(obj) %s " does not have property value " %s propValue %d
   endif
   %nl

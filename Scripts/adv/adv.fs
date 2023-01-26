@@ -1,6 +1,6 @@
 requires randoms
 
-//true -> compileDebug
+//true compileDebug!
 
 autoforget collosalCaveAdventure
 vocabulary collosalCaveAdventure
@@ -11,9 +11,10 @@ also collosalCaveAdventure definitions
 : sp!
   depth r> swap >r >r
 ;
+
 ptrTo byte _spName
 : sp@
-  -> _spName
+  _spName!
   r> r> swap >r depth 1-
   if(2dup <>)
     "Stack mismatch in " %s _spName %s %bl %d %bl %d %bl ds
@@ -26,7 +27,7 @@ alias sp? sp@
 // spoo MESSAGE_UNTIL_END_OF_LINE - spit out message while debugging
 //   good for tracking down when loading just dies quietly
 : spoo
-  0 $word -> ptrTo byte msg
+  0 $word ptrTo byte msg!
   d[ t{ msg %s %nl ds }t ]d
 ; immediate spoo
 
@@ -39,14 +40,14 @@ spoo after defs
 : pct ran(100) swap < ;
 : streq 
   //5 strncmp 0=
-  true -> bool result
-  -> ptrTo byte pStr1
-  -> ptrTo byte pStr2
+  true bool result!
+  ptrTo byte pStr1!
+  ptrTo byte pStr2!
   do(5 0)
-    pStr1 i + c@ -> byte ch1
-    pStr2 i + c@ -> byte ch2
+    pStr1 i + c@ byte ch1!
+    pStr2 i + c@ byte ch2!
     if(ch1 ch2 <>)
-      false -> result
+      false result!
       leave
     endif
     if(ch2 0=)
@@ -69,22 +70,22 @@ class: Place
   
   // locationID longDescription shortDescription flags ...
   m: init
-    -> flags
-    new String -> short_desc  short_desc.set
-    new String -> long_desc  long_desc.set
-    -> locID
-    NOTHING -> objects
-    0 -> visits
+    flags!
+    new String short_desc!  short_desc.set
+    new String long_desc!  long_desc.set
+    locID!
+    NOTHING objects!
+    0 visits!
     // flags if short_desc.get %s " has flags 0x" %s flags %x %nl endif
   ;m
   
   m: delete
-    oclear long_desc
-    oclear short_desc
+    long_desc~
+    short_desc~
   ;m
   
   m: setVisits
-    -> visits
+    visits!
   ;m
 ;class
 
@@ -99,26 +100,26 @@ class: ObjectData
     Array of String desc  // .prop ranges from 0 to 3
     
     m: delete
-      oclear name
-      oclear desc
+      name~
+      desc~
     ;m
     
     m: init  // NAME_STRING BASE? LOC_ID
-      -> place
-      -> base
-      new String -> name
+      place!
+      base!
+      new String name!
       name.set
-      new Array -> desc
+      new Array desc!
     ;m
     
     m: removeObject ;m
     
     m: setProp
-      -> prop
+      prop!
     ;m
     
     m: setPlace
-      -> place
+      place!
     ;m
 ;class
 
@@ -130,13 +131,13 @@ class: Dwarf
   int index
   
   m: setLoc
-    -> loc
+    loc!
     d[ ">>> Moving dwarf " %s index %d " to " %s loc ref Location findEnumSymbol if(0=) "???" endif %s %nl ]d
   ;m
   
-  m: setIndex -> index ;m
-  m: setOldloc -> oldloc ;m
-  m: setSeen -> seen ;m
+  m: setIndex index! ;m
+  m: setOldloc oldloc! ;m
+  m: setSeen seen! ;m
 
 ;class
   
@@ -148,14 +149,14 @@ class: Word
   WordClass class
   
   m: init
-    -> class
-    -> meaning
-    new String -> text
+    class!
+    meaning!
+    new String text!
     text.set
   ;m
   
   m: delete
-    oclear text
+    text~
   ;m
   
 ;class
@@ -170,8 +171,8 @@ class: Hint
   String hint
 
   m: delete
-    oclear prompt
-    oclear hint
+    prompt~
+    hint~
   ;m
 
 ;class
@@ -183,14 +184,14 @@ class: AdventureState
   eAdventureState stateNum
     
   m: init
-    -> stateNum
-    -> stateOp
-    new String -> name
+    stateNum!
+    stateOp!
+    new String name!
     name.set
   ;m
   
   m: delete
-    oclear name
+    name~
   ;m
   
 ;class
@@ -281,62 +282,62 @@ class: IGame
   // end adventure state machine variables
 
   m: delete
-    oclear words
-    oclear wordMap
-    oclear places
-    oclear _objs
-    oclear dwarves
-    oclear pirate
-    oclear classMessages
-    oclear classScores
-    oclear deathWishes
-    oclear hints
-    oclear inBuffer
-    oclear inWord1
-    oclear inWord2
-    oclear adventureStates
-    oclear consoleInStream
-    oclear restoreFileName
-    oclear restoreStream
-    oclear saveFileName
-    oclear saveStream
+    words~
+    wordMap~
+    places~
+    _objs~
+    dwarves~
+    pirate~
+    classMessages~
+    classScores~
+    deathWishes~
+    hints~
+    inBuffer~
+    inWord1~
+    inWord2~
+    adventureStates~
+    consoleInStream~
+    restoreFileName~
+    restoreStream~
+    saveFileName~
+    saveStream~
   ;m
   
   m: init
-    new Array -> words
-    new StringIntMap -> wordMap
-    R_LIMBO -> last_knife_loc
-    15 -> tally
-    0 -> lost_treasures
-    new Array -> _objs
+    new Array words!
+    new StringIntMap wordMap!
+    R_LIMBO last_knife_loc!
+    15 tally!
+    0 lost_treasures!
+    new Array _objs!
     _objs.resize(MAX_OBJ 1+ MIN_OBJ -)
-    new Array -> dwarves
-    15 -> clock1
-    30 -> clock2
-    false -> closed
-    0 -> bonus
-    false -> warnedOfClosing
-    false -> closingPanic
-    0 -> turns
-    5 -> verbose_interval
-    0 -> foobar
-    new Array -> classMessages
-    new IntArray -> classScores
-    new Array -> deathWishes
-    new Array -> hints
-    true -> firstDwarfKill
-    false -> haveTriedToGetKnife
-    new Array -> places
-    0 -> __west_count
-    new ByteArray -> inBuffer   inBuffer.resize(BUF_SIZE)   inBuffer.set(0 0)
-    new ByteArray -> inWord1    inWord1.resize(BUF_SIZE)    inWord1.set(0 0)
-    new ByteArray -> inWord2    inWord2.resize(BUF_SIZE)    inWord2.set(0 0)
-    new Array -> adventureStates
+    new Array dwarves!
+    15 clock1!
+    30 clock2!
+    false closed!
+    0 bonus!
+    false warnedOfClosing!
+    false closingPanic!
+    0 turns!
+    5 verbose_interval!
+    0 foobar!
+    new Array classMessages!
+    new IntArray classScores!
+    new Array deathWishes!
+    new Array hints!
+    true firstDwarfKill!
+    false haveTriedToGetKnife!
+    new Array places!
+    0 __west_count!
+    new ByteArray inBuffer   inBuffer.resize(BUF_SIZE)   inBuffer.set(0 0)!
+    new ByteArray inWord1    inWord1.resize(BUF_SIZE)    inWord1.set(0 0)!
+    new ByteArray inWord2    inWord2.resize(BUF_SIZE)    inWord2.set(0 0)!
+    new Array adventureStates!
     
-    new ConsoleInStream -> consoleInStream
-    new String -> saveFileName
+    new ConsoleInStream consoleInStream!
+    new String saveFileName!
     saveFileName.set("tmp.sav")
-    new String -> restoreFileName
+    new String restoreFileName!
     restoreFileName.set("adventure.sav")
   ;m
   
@@ -360,15 +361,17 @@ class: IGame
   
 
   m: addObjectTo
-    -> Location loc
-    -> ObjectWord t
-    places.get(loc) ->o Place place
-    ref place.objects -> ptrTo ObjectWord p
+    Location loc!
+    ObjectWord t!
+    Place place
+    ObjectData obj
+    places.get(loc) place!o
+    ref place.objects ptrTo ObjectWord p!
     d[ "adding obj " %s t %d " to loc " %s loc %d  %bl place %x %nl ]d
     begin
     while(p i@ NOTHING <>)
-      objs(p i@) ->o ObjectData obj
-      ref obj.link -> p
+      objs(p i@) obj!o 
+      ref obj.link p!
     repeat
     t p i!
   ;m
@@ -380,7 +383,7 @@ spoo after IGame
 "It is now pitch dark.  If you proceed you will most likely fall into a pit." $constant pitchDarkMsg
 
 : is_forced
-  -> Location loc
+  Location loc!
   case(loc)
     of(R_NECK)    of(R_LOSE) of(R_CLIMB)
     of(R_CHECK)   of(R_THRU) of(R_DUCK)
@@ -393,7 +396,7 @@ spoo after IGame
 ;
 
 : has_light
-  -> Location loc
+  Location loc!
   case(loc)
     of(R_ROAD) of(R_HILL) of(R_HOUSE) of(R_VALLEY)
     of(R_FOREST) of(R_FOREST2) of(R_SLIT) of(R_OUTSIDE)
@@ -408,7 +411,7 @@ spoo after IGame
 ;
 
 : has_water
-  -> Location loc
+  Location loc!
   case(loc)
     of(R_ROAD) of(R_HOUSE) of(R_VALLEY) of(R_SLIT)
     of(R_WET) of(R_FALLS) of(R_RES)
@@ -453,16 +456,16 @@ spoo after words
 
 : go
   "Using random seed " %s getRandomSeed %d %nl
-  new Game -> game
+  new Game game!
   game.init
   goBody
 ;
 
 : restore
-  new Game -> game
+  new Game game!
   game.init
-  new FileInStream -> game.restoreStream
-  blword -> ptrTo byte restoreName
+  new FileInStream game.restoreStream!
+  blword ptrTo byte restoreName!
   if(strlen(restoreName) 0>)
     game.restoreFileName.set(restoreName)
     game.restoreFileName.append(".sav")
