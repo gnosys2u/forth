@@ -674,7 +674,7 @@ ForthStructVocabulary::DefineInstance( void )
     // - define a local instance of this struct type
     // - define a field of this struct type
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
-    char *pToken = pOuter->GetNextSimpleToken();
+    char *pInstanceName = pOuter->GetNextSimpleToken();
     int nBytes = mMaxNumBytes;
     char *pHere;
     int32_t val = 0;
@@ -684,6 +684,16 @@ ForthStructVocabulary::DefineInstance( void )
     bool isPtr = false;
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
     ForthCoreState *pCore = mpEngine->GetCoreState();        // so we can GET_VAR_OPERATION
+
+    // if new instance name ends in '!', chop the '!' and initialize the new instance
+    size_t instanceNameLen = strlen(pInstanceName);
+    bool doInitializationVarop = false;
+    if (instanceNameLen > 1 && pInstanceName[instanceNameLen - 1] == '!' && pOuter->CheckFeature(kFFAllowVaropSuffix))
+    {
+        instanceNameLen--;
+        pInstanceName[instanceNameLen] = '\0';
+        doInitializationVarop = true;
+    }
 
     int32_t numElements = pOuter->GetArraySize();
     bool isArray = (numElements != 0);
@@ -707,7 +717,7 @@ ForthStructVocabulary::DefineInstance( void )
         if ( isArray )
         {
             pOuter->SetArraySize( numElements );
-            pOuter->AddLocalArray( pToken, typeCode, nBytes );
+            pOuter->AddLocalArray( pInstanceName, typeCode, nBytes );
 
 			if (!isPtr && (mInitOpcode != 0))
 			{
@@ -724,16 +734,23 @@ ForthStructVocabulary::DefineInstance( void )
         {
             pHere = (char *) (mpEngine->GetDP());
             bool bCompileInstanceOp = pOuter->GetLastCompiledIntoPtr() == (((forthop *)pHere) - 1);
-            pOuter->AddLocalVar( pToken, typeCode, nBytes );
+            pOuter->AddLocalVar( pInstanceName, typeCode, nBytes );
             if ( isPtr )
             {
-                // handle "-> ptrTo STRUCT_TYPE pWoof"
-                if (bCompileInstanceOp)
+                if (doInitializationVarop)
+                {
+                    // local var name ended with '!', so compile op for this local var with varop Set
+                    //  so it will be initialized
+                    forthop* pEntry = pVocab->GetNewestEntry();
+                    forthop op = COMPILED_OP(kOpLocalCell, pEntry[0]);
+                    pOuter->CompileOpcode(op | ((forthop)VarOperation::kVarSet) << 20);
+                }
+                else if (bCompileInstanceOp)
                 {
                     // local var definition was preceeded by "->", so compile the op for this local var
                     //  so it will be initialized
                     forthop* pEntry = pVocab->GetNewestEntry();
-                    pOuter->CompileOpcode( pEntry[0] );
+                    pOuter->CompileOpcode(pEntry[0]);
                 }
             }
 			else
@@ -752,12 +769,12 @@ ForthStructVocabulary::DefineInstance( void )
     {
 		if ( pOuter->InStructDefinition() )
 		{
-			pManager->GetNewestStruct()->AddField( pToken, typeCode, numElements );
+			pManager->GetNewestStruct()->AddField( pInstanceName, typeCode, numElements );
 			return;
 		}
 
         // define global struct
-        pOuter->AddUserOp( pToken );
+        pOuter->AddUserOp( pInstanceName );
         pEntry = pOuter->GetDefinitionVocabulary()->GetNewestEntry();
         if ( isArray )
         {
@@ -794,16 +811,27 @@ ForthStructVocabulary::DefineInstance( void )
             pHere = (char *) (mpEngine->GetDP());
             mpEngine->AllotLongs( (nBytes  + 3) >> 2 );
             memset( pHere, 0, nBytes );
-            if ( isPtr && (GET_VAR_OPERATION == VarOperation::kVarSet) )
+            if (isPtr)
             {
-                // var definition was preceeded by "->", so initialize var
-				mpEngine->FullyExecuteOp(pCore, pEntry[0]);
+                if (doInitializationVarop)
+                {
+                    SET_VAR_OPERATION(VarOperation::kVarSet);
+                }
+
+                if (GET_VAR_OPERATION == VarOperation::kVarSet)
+                {
+                    // var definition was preceeded by "->", so initialize var
+                    mpEngine->FullyExecuteOp(pCore, pEntry[0]);
+                }
             }
-			if (!isPtr && (mInitOpcode != 0))
-			{
-				SPUSH((cell)pHere);
-				mpEngine->FullyExecuteOp(pCore, mInitOpcode);
-			}
+            else
+            {
+                if (mInitOpcode != 0)
+                {
+                    SPUSH((cell)pHere);
+                    mpEngine->FullyExecuteOp(pCore, mInitOpcode);
+                }
+            }
 		}
         pEntry[1] = typeCode;
     }
