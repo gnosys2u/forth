@@ -12,19 +12,19 @@ class: atcAirplane extends iAtcAirplane
       exit
     endif
     if( commandedAltitude altitude > )
-      1000 ->+ altitude
+      1000 altitude!+
     else
-      1000 ->- altitude
+      1000 altitude!-
     endif
   ;
   
   : updateHeading
-    0 -> int rightTurns
-    0 -> int leftTurns
-    0 -> int deltaHeading
+    int rightTurns
+    int leftTurns
+    int deltaHeading
     
     if( circle )
-      heading circle 2* + 7 and dup -> heading -> commandedHeading
+      heading circle 2* + 7 and dup heading! commandedHeading!
       exit
     endif
     
@@ -33,37 +33,37 @@ class: atcAirplane extends iAtcAirplane
     endif
     
     if( commandedHeading heading > )
-      commandedHeading heading - dup -> rightTurns
-      8 swap - -> leftTurns
+      commandedHeading heading - dup rightTurns!
+      8 swap - leftTurns!
     else
-      heading commandedHeading - dup -> leftTurns
-      8 swap - -> rightTurns
+      heading commandedHeading - dup leftTurns!
+      8 swap - rightTurns!
     endif
     t{ "old heading " %s heading 45 * %d " commandedHeading " %s commandedHeading 45 * %d }t
     
     case(forceDirection)
 
       of(1)
-        rightTurns -> deltaHeading
+        rightTurns deltaHeading!
       endof
 
       of(-1)
-        negate(leftTurns) -> deltaHeading
+        negate(leftTurns) deltaHeading!
       endof
 
       if( rightTurns leftTurns < )
-        rightTurns -> deltaHeading
+        rightTurns deltaHeading!
       else
-        negate(leftTurns) -> deltaHeading
+        negate(leftTurns) deltaHeading!
       endif
       
     endcase
 
     if(deltaHeading 2 >)
-      2 -> deltaHeading
+      2 deltaHeading!
     else
       if(deltaHeading -2 <)
-        -2 -> deltaHeading
+        -2 deltaHeading!
       endif
     endif
    
@@ -87,54 +87,51 @@ class: atcAirplane extends iAtcAirplane
   ;
   
   m: init   // REGION ID
-    `plan` -> tag
-    -> id
-    ->o region  // break circular reference  region->tile->airplane->region
+    id!
+    region!o  // break circular reference  region->tile->airplane->region
+    `plan` tag!
   ;m
 
   m: setPosition     // X Y ALTITUDE HEADING
-    dup -> heading    -> commandedHeading
-    dup -> altitude   -> commandedAltitude
-    -> y
-    -> x
+    dup heading!    commandedHeading!
+    dup altitude!   commandedAltitude!
+    y!    x!
   ;m
   
   m: setDestination    // DESTINATION DESTINATION_TYPE ...
-    -> destinationType
-    -> destination
+    destinationType!    destination!
   ;m
   
   m: activate    // UPDATE_TIME IS_JET IS_MOVING ...
-    if kAASMovingMarked else kAASHolding endif -> status
+    if kAASMovingMarked else kAASHolding endif status!
 
     name.clear
     if
-      1 -> updateInterval
+      1 updateInterval!
       name.appendChar( `a` id +)
     else
-      2 -> updateInterval
+      2 updateInterval!
       name.appendChar( `A` id +)
     endif
   
-    -> nextUpdateTime
+    nextUpdateTime!
 
-    -1 -> beaconNum
-    0 -> circle
-    region.startingFuel -> fuel
+    -1 beaconNum!
+    0 circle!
+    region.startingFuel fuel!
   ;m
   
   m: delete
     //t{ "deleting plane " %s thisData %x %bl name.get %s %nl }t
-    oclear name
-    super.delete
+    name~
   ;m
   
   m: update  // now ...
-    -> int now
+    int now!
     
     if( now nextUpdateTime > )
       if( status kAASMovingMarked >= )
-        updateInterval ->+ nextUpdateTime
+        updateInterval nextUpdateTime!+
         updateAltitude
         
         if( beaconNum 0< )
@@ -143,9 +140,9 @@ class: atcAirplane extends iAtcAirplane
     
           if( region.getBeacon(beaconNum).at(x y) )
             // plane has arrived at beacon
-            -1 -> beaconNum
+            -1 beaconNum!
             if(kAASMovingUnmarked status =)
-              kAASMovingMarked -> status
+              kAASMovingMarked status!
             endif
             updateHeading
           endif
@@ -158,60 +155,61 @@ class: atcAirplane extends iAtcAirplane
   
   
   m: executeCommand // COMMAND_INFO_PTR DISPLAY_OBJECT ...
-    ->o iAtcDisplay display
-    -> ptrTo atcCommandInfo commandInfo
+    iAtcDisplay display     display!o
+    ptrTo atcCommandInfo commandInfo!
     if( status kAASMovingMarked >= )
       case( commandInfo.command)
       
         of(kACTAltitude)
-          commandInfo.amount 1000 * -> commandedAltitude
+          commandInfo.amount 1000 * commandedAltitude!
           if(commandInfo.isRelative)
-            altitude ->+ commandedAltitude
+            altitude commandedAltitude!+
           endif
           if(commandedAltitude kMaxAltitude >)
-            kMaxAltitude -> commandedAltitude
+            kMaxAltitude commandedAltitude!
           else
             if(commandedAltitude 0<)
-              0 -> commandedAltitude
+              0 commandedAltitude!
             endif
           endif
         endof
     
         of(kACTMark)
-          kAASMovingMarked -> status
+          kAASMovingMarked status!
         endof
     
         of(kACTIgnore)
-          kAASMovingIgnored -> status
+          kAASMovingIgnored status!
         endof
       
         of(kACTUnmark)
-          kAASMovingUnmarked -> status
+          kAASMovingUnmarked status!
         endof
       
         of(kACTCircle)
-          if(commandInfo.forceDirection 0<) -1 else 1 endif -> circle
-          commandInfo.beaconNum -> beaconNum
+          if(commandInfo.forceDirection 0<) -1 else 1 endif circle!
+          commandInfo.beaconNum beaconNum!
         endof
     
         of(kACTTurn)
           0 -> circle
-          commandInfo.amount -> commandedHeading
-          commandInfo.beaconNum -> beaconNum
+          commandInfo.amount commandedHeading!
+          commandInfo.beaconNum beaconNum!
           if(commandInfo.isRelative)
-            heading ->+ commandedHeading
+            heading commandedHeading!+
           endif
+          
           if(commandedHeading 0<)
-            kNumDirections ->+ commandedHeading
+            kNumDirections commandedHeading!+
           else
             if(commandedHeading kNumDirections >)
-              kNumDirections ->- commandedHeading
+              kNumDirections commandedHeading!-
             endif
           endif
         endof
       
         of(kACTTurnTowards)
-          commandInfo.beaconNum -> beaconNum
+          commandInfo.beaconNum beaconNum!
         endof
    
         //display.showWarning("unexpected command ") %d
@@ -224,9 +222,9 @@ class: atcAirplane extends iAtcAirplane
       if( commandInfo.command kACTAltitude = )
         if( commandInfo.amount 0> )
           // handle takeoff
-          kAASMovingMarked -> status
-          region.startingFuel -> fuel
-          commandInfo.amount -> commandedAltitude
+          kAASMovingMarked status!
+          region.startingFuel fuel!
+          commandInfo.amount commandedAltitude!
         endif
       else
         //display.showWarning("only valid command is altitude(takeoff)")

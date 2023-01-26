@@ -42,17 +42,17 @@ enum: atcFileCommands
 int regionWidth
 int regionHeight
 
-: update    getValue -> daGame.updateRate ;
-: newplane  getValue -> daGame.newplaneRate ;
+: update    getValue daGame.updateRate! ;
+: newplane  getValue daGame.newplaneRate! ;
 : width
-  getValue -> regionWidth
+  getValue regionWidth!
   if( regionHeight )
     daGame.region.init(regionWidth regionHeight)
   endif
 ;
 
 : height
-  getValue -> regionHeight
+  getValue regionHeight!
   if( regionWidth )
     daGame.region.init(regionWidth regionHeight)
   endif
@@ -65,39 +65,39 @@ atcFileCommands command
 
 kFFParenIsExpression ->- features
 : ( ;
-: ) 1 ->+ numArgs ;
+: ) numArgs++ ;
 kFFParenIsExpression ->+ features
 
 : [ ;
 : ] ;
-: exit: kCmdExit -> command 0 -> numArgs ;
-: beacon: kCmdBeacon -> command 0 -> numArgs ;
-: airport: kCmdAirport -> command 0 -> numArgs ;
-: line: kCmdLine -> command 0 -> numArgs ;
+: exit: kCmdExit command! numArgs~ ;
+: beacon: kCmdBeacon command! numArgs~ ;
+: airport: kCmdAirport command! numArgs~ ;
+: line: kCmdLine command! numArgs~ ;
 : # 0 $word drop ;  // eat all comments
 
 : ;
-  numArgs 1- -> int id
+  numArgs 1- int id!
   case(command)
 
     of(kCmdExit)
       do( numArgs 0 )
         id daGame.region.addPortal
-        1 ->- id
+        id--
       loop
     endof
 
     of(kCmdBeacon)
       do( numArgs 0 )
         id daGame.region.addBeacon
-        1 ->- id
+        id--
       loop
     endof
 
     of(kCmdAirport)
       do( numArgs 0 )
         id daGame.region.addAirport
-        1 ->- id
+        id--
       loop
     endof
 
@@ -110,7 +110,7 @@ kFFParenIsExpression ->+ features
     "unexpected command in atc file" %s dup %d
   endcase
   
-  0 -> numArgs
+  numArgs~
 forth:;
 
 kFFParenIsExpression ->- features
@@ -127,23 +127,22 @@ forth:;
 
 // ATC_FILENAME ATC_GAME_OBJ ... TRUE   if successfuly read file
 : loadAtcFile
-  -> daGame
-  -> ptrTo byte gameName
+  daGame!
+  ptrTo byte gameName!
   
   if( fexists(gameName))
   
-    0 -> regionWidth
-    0 -> regionHeight
+    regionWidth~    regionHeight~
   
   
     also atcFileReader
     decimal
-    kFFParenIsExpression ->- features
+    kFFParenIsExpression features!-
   
     $runFile( gameName )
   
     only forth
-    kFFParenIsExpression ->+ features
+    kFFParenIsExpression features!+
     true
   else
     "Could not find atc game file " %s gameName %s %nl

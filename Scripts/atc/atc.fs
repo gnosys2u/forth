@@ -4,7 +4,7 @@ autoforget ATC
 
 FileOutStream traceFileStream
 : openTrace
-  new FileOutStream -> traceFileStream
+  new FileOutStream traceFileStream!
   traceFileStream.open( "traceOut.txt" "w")
 ;
 
@@ -127,10 +127,10 @@ class: atcTile
   ;m
   
   m: init
-    `tile` -> tag
-    0 -> altitude
-    kATTEmpty -> tileType
-    new List -> airplanes
+    `tile` tag!
+    altitude~
+    kATTEmpty tileType!
+    new List airplanes!
   ;m
     
   m: reset
@@ -246,10 +246,8 @@ class: iAtcBeacon
   int id
   
   m: init  // X Y ID
-    `becn` -> tag
-    -> id
-    -> y
-    -> x
+    id!    y!    x!
+    `becn` tag!
   ;m
   
   m: at returns int  // X Y BOOL
@@ -266,8 +264,8 @@ class: iAtcLine
   int y1
   
   m: init        // x0 y0 x1 y1
-    `line` -> tag
-    -> y1  -> x1  -> y0  -> x0
+    y1!  x1!  y0!  x0!
+    `line` tag!
   ;m
 
 ;class
@@ -342,22 +340,22 @@ lf atcFileReader
 : listATCGames
   getFilesInDirectory("games") -> Array gameFilenames
   
-  gameFilenames.headIter -> Iter iter
+  gameFilenames.headIter Iter iter!
   begin
   while( iter.next )
-    -> String gameFilename
+    String gameFilename!
     "   " %s gameFilename.get %s %nl
-    oclear gameFilename
+    gameFilename~
   repeat
-  oclear iter
+  iter~
   
-  oclear gameFilenames
+  gameFilenames~
 ;
 
 : atc
   openTrace
-  getConsoleColor -> int color
-  new atcGame -> game
+  getConsoleColor int color!
+  new atcGame game!
   game.init( blword )
 #if FORTH64
   srand(xor(time dup 32 rshift swap MAXUINT and))
@@ -375,7 +373,7 @@ lf atcFileReader
     listATCGames
   endif
   //t{ game.show }t
-  oclear game
+  game~
   setConsoleColor( color )
   closeTrace
 ;

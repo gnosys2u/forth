@@ -43,10 +43,10 @@ class: atcConsoleDisplay extends iAtcDisplay
       xyAddr(0 i) %s %nl
     loop
   ;
-  
+
   m: init         // REGION ...
-    `disp` -> tag
-    ->o region
+    `disp` tag!
+    region!o
     getConsoleColor -> defaultColors
     new ByteArray -> text
     region.columns -> int columns

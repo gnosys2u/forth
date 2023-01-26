@@ -33,7 +33,7 @@ class: atcInputHandler extends iAtcInputHandler
   : setIdle
     displayString.clear
     commandString.clear
-    kACSIdle -> commandState
+    kACSIdle commandState!
   ;
   
   : executeCommand
@@ -41,7 +41,7 @@ class: atcInputHandler extends iAtcInputHandler
     setIdle
     display.showCommand("")
     display.showWarning("")
-    true -> commandInfo.isReady
+    true commandInfo.isReady!
   ;
   
   : unrecognizedCommandWarning
@@ -49,19 +49,19 @@ class: atcInputHandler extends iAtcInputHandler
   ;
 
   : handleIdle
-    false -> commandInfo.isReady
-    -1 -> commandInfo.beaconNum
-    0 -> commandInfo.forceDirection
+    false commandInfo.isReady!
+    -1 commandInfo.beaconNum!
+    commandInfo.forceDirection~
     if( within( cmdChar `a` `z` 1+ ))
-      cmdChar `a` - -> commandInfo.airplaneNum
-      kACSPlaneSelected -> commandState
+      cmdChar `a` - commandInfo.airplaneNum!
+      kACSPlaneSelected commandState!
       commandString.appendChar( cmdChar )
       displayString.clear
       displayString.appendChar( cmdChar )
     else
       if( cmdChar `\r` =)
         // force an immediate game turn
-        ms@ -> game.status.nextMoveTime
+        ms@ game.status.nextMoveTime!
       else
         display.startWarning "airplane name a..z is required" %s
       endif
@@ -74,45 +74,45 @@ class: atcInputHandler extends iAtcInputHandler
       `a` of  // altitude
         commandString.appendChar( cmdChar )
         displayString.append( " altitude" )
-        kACSAltitude -> commandState
-        kACTAltitude -> commandInfo.command
+        kACSAltitude commandState!
+        kACTAltitude commandInfo.command!
       endof
       
       `m` of  // mark
         commandString.appendChar( cmdChar )
         displayString.append( " mark" )
-        kACSCommandReady -> commandState
-        kACTMark -> commandInfo.command
+        kACSCommandReady commandState!
+        kACTMark commandInfo.command!
       endof
       
       `u` of  // unmark
         commandString.appendChar( cmdChar )
         displayString.append( " unmark" )
-        kACSCommandReady -> commandState
-        kACTUnmark -> commandInfo.command
+        kACSCommandReady commandState!
+        kACTUnmark commandInfo.command!
       endof
       
       `i` of  // ignore
         commandString.appendChar( cmdChar )
         displayString.append( " ignore" )
-        kACSCommandReady -> commandState
-        kACTIgnore -> commandInfo.command
+        kACSCommandReady commandState!
+        kACTIgnore commandInfo.command!
       endof
       
       `c` of  // circle
         commandString.appendChar( cmdChar )
         displayString.append( " circle" )
-        kACSCircle -> commandState
-        0 -> commandInfo.forceDirection
-        kACTCircle -> commandInfo.command
+        kACSCircle commandState!
+        commandInfo.forceDirection~
+        kACTCircle commandInfo.command!
       endof
       
       `t` of  // turn
         commandString.appendChar( cmdChar )
         displayString.append( " turn" )
-        kACSTurn -> commandState
-        kACTTurn -> commandInfo.command
-        0 -> commandInfo.forceDirection
+        kACSTurn commandState!
+        kACTTurn commandInfo.command!
+        commandInfo.forceDirection~
       endof
       
       unrecognizedCommandWarning( "actmui  altitude/circle/turn/mark/unmark/ignore" )
@@ -129,23 +129,23 @@ class: atcInputHandler extends iAtcInputHandler
   ;
 
   : handleAltitude
-    cmdChar `0` - -> int altitude
+    cmdChar `0` - int altitude!
     case( cmdChar )
-      `-` of  `d` -> cmdChar endof
-      `+` of  `c` -> cmdChar endof
+      `-` of  `d` cmdChar! endof
+      `+` of  `c` cmdChar! endof
     endcase
   
     case( cmdChar )
       `c` of
         commandString.appendChar( cmdChar )
         displayString.append( " climb" )
-        kACSAltitudeClimb -> commandState
+        kACSAltitudeClimb commandState!
       endof
       
       `d` of
         commandString.appendChar( cmdChar )
         displayString.append( " descend" )
-        kACSAltitudeDescend -> commandState
+        kACSAltitudeDescend commandState!
       endof
 
       if( within(altitude 0 10) )
@@ -153,9 +153,9 @@ class: atcInputHandler extends iAtcInputHandler
         displayString.appendChar( ` ` )
         displayString.appendChar( cmdChar )
         displayString.append( "000" )
-        kACSCommandReady -> commandState
-        altitude -> commandInfo.amount
-        false -> commandInfo.isRelative
+        kACSCommandReady commandState!
+        altitude commandInfo.amount!
+        false commandInfo.isRelative!
       else
         unrecognizedCommandWarning("cd0123456789")
       endif
@@ -164,15 +164,15 @@ class: atcInputHandler extends iAtcInputHandler
   ;
   
   : handleAltitudeClimb
-    cmdChar `0` - -> int altitude
+    cmdChar `0` - int altitude!
     if( within(altitude 1 10) )
       commandString.appendChar( cmdChar )
       displayString.appendChar( ` ` )
       displayString.appendChar( cmdChar )
       displayString.append( "000" )
-      kACSCommandReady -> commandState
-      altitude -> commandInfo.amount
-      true -> commandInfo.isRelative
+      kACSCommandReady commandState!
+      altitude commandInfo.amount!
+      true commandInfo.isRelative!
       // TODO: check climb is in range
     else
       unrecognizedCommandWarning("0123456789")
@@ -180,15 +180,15 @@ class: atcInputHandler extends iAtcInputHandler
   ;
   
   : handleAltitudeDescend
-    `0` cmdChar - -> int altitude
+    `0` cmdChar - int altitude!
     if( within(altitude -9 0) )
       commandString.appendChar( cmdChar )
       displayString.appendChar( ` ` )
       displayString.appendChar( cmdChar )
       displayString.append( "000" )
-      kACSCommandReady -> commandState
-      altitude -> commandInfo.amount
-      true -> commandInfo.isRelative
+      kACSCommandReady commandState!
+      altitude commandInfo.amount!
+      true commandInfo.isRelative!
       // TODO: check descend is in range
     else
       // TODO: report error
@@ -200,31 +200,31 @@ class: atcInputHandler extends iAtcInputHandler
       `l` of
         commandString.appendChar( cmdChar )
         displayString.append( " left" )
-        kACSCircleReady -> commandState
-        -1 -> commandInfo.forceDirection
+        kACSCircleReady commandState!
+        -1 commandInfo.forceDirection!
       endof
     
       `r` of
         commandString.appendChar( cmdChar )
         displayString.append( " right" )
-        kACSCircleReady -> commandState
-        1 -> commandInfo.forceDirection
+        kACSCircleReady commandState!
+        1 commandInfo.forceDirection!
       endof
     
       `a` of
         commandString.appendChar( cmdChar )
         displayString.append( " at" )
-        kACSAt -> commandState
+        kACSAt commandState!
       endof
     
       `@` of
         commandString.appendChar( cmdChar )
         displayString.append( " at" )
-        kACSAt -> commandState
+        kACSAt commandState!
       endof
     
       `\r` of
-        0 -> commandInfo.forceDirection
+        commandInfo.forceDirection~
         executeCommand
       endof
     
@@ -237,13 +237,13 @@ class: atcInputHandler extends iAtcInputHandler
       `a` of
         commandString.appendChar( cmdChar )
         displayString.append( " at" )
-        kACSAt -> commandState
+        kACSAt commandState!
       endof
       
       `@` of
         commandString.appendChar( cmdChar )
         displayString.append( " at" )
-        kACSAt -> commandState
+        kACSAt commandState!
       endof
       
       `\r` of
@@ -257,61 +257,61 @@ class: atcInputHandler extends iAtcInputHandler
   
   : handleTurn
     case( oCmdChar )
-      `-` of  `l` -> oCmdChar endof
-      `+` of  `r` -> oCmdChar endof
+      `-` of  `l` oCmdChar! endof
+      `+` of  `r` oCmdChar! endof
     endcase
   
     case( oCmdChar )
       `l` of
         commandString.appendChar( oCmdChar )
         displayString.append( " left" )
-        kACSTurnDirection -> commandState
-        -1 -> commandInfo.amount
-        true -> commandInfo.isRelative
-        -1 -> commandInfo.forceDirection
+        kACSTurnDirection commandState!
+        -1 commandInfo.amount!
+        true commandInfo.isRelative!
+        -1 commandInfo.forceDirection!
       endof
       
       `r` of
         commandString.appendChar( oCmdChar )
         displayString.append( " right" )
-        kACSTurnDirection -> commandState
-        1 -> commandInfo.amount
-        true -> commandInfo.isRelative
-        1 -> commandInfo.forceDirection
+        kACSTurnDirection commandState!
+        1 commandInfo.amount!
+        true commandInfo.isRelative!
+        1 commandInfo.forceDirection!
       endof
       
       `L` of
         commandString.appendChar( oCmdChar )
         displayString.append( " left 90" )
-        kACSTurnReady -> commandState
-        -2 -> commandInfo.amount
-        true -> commandInfo.isRelative
-        -1 -> commandInfo.forceDirection
+        kACSTurnReady commandState!
+        -2 commandInfo.amount!
+        true commandInfo.isRelative!
+        -1 commandInfo.forceDirection!
       endof
       
       `R` of
         commandString.appendChar( oCmdChar )
         displayString.append( " right 90" )
-        kACSTurnReady -> commandState
-        2 -> commandInfo.amount
-        true -> commandInfo.isRelative
-        1 -> commandInfo.forceDirection
+        kACSTurnReady commandState!
+        2 commandInfo.amount!
+        true commandInfo.isRelative!
+        1 commandInfo.forceDirection!
       endof
       
       `t` of
         commandString.appendChar( oCmdChar )
         displayString.append( " towards" )
-        kACSTurnTowards -> commandState
+        kACSTurnTowards commandState!
       endof
       
       c2dir( cmdChar )
       if( dup 0>= )
-        -> commandInfo.amount
+        commandInfo.amount!
         commandString.appendChar( cmdChar )
         displayString.appendChar( ` ` )
         displayString.append( c2dir$( cmdChar ) )
-        false -> commandInfo.isRelative
-        kACSTurnReady -> commandState
+        false commandInfo.isRelative!
+        kACSTurnReady commandState!
       else
         drop unrecognizedCommandWarning("lrLRt or a direction key wedcxzaq")
       endif
@@ -324,13 +324,13 @@ class: atcInputHandler extends iAtcInputHandler
       `a` of
         commandString.appendChar( cmdChar )
         displayString.append( " at" )
-        kACSAt -> commandState
+        kACSAt commandState!
       endof
       
       `@` of
         commandString.appendChar( cmdChar )
         displayString.append( " at" )
-        kACSAt -> commandState
+        kACSAt commandState!
       endof
       
       `\r` of
@@ -339,11 +339,11 @@ class: atcInputHandler extends iAtcInputHandler
       
       c2dir
       if( dup 0>= )
-        -> commandInfo.amount
+        commandInfo.amount!
         commandString.appendChar( cmdChar )
         displayString.appendChar( ` ` )
         displayString.append( c2dir$( cmdChar ) )
-        kACSTurnReady -> commandState
+        kACSTurnReady commandState!
       else
         drop unrecognizedCommandWarning("a, ENTER or a direction key wedcxzaq")
       endif
@@ -356,25 +356,25 @@ class: atcInputHandler extends iAtcInputHandler
       `a` of
         commandString.appendChar( cmdChar )
         displayString.append( " airport" )
-        kACSTurnTowardsAirport -> commandState
+        kACSTurnTowardsAirport commandState!
       endof
       
       `b` of
         commandString.appendChar( cmdChar )
         displayString.append( " beacon" )
-        kACSTurnTowardsBeacon -> commandState
+        kACSTurnTowardsBeacon commandState!
       endof
       
       `*` of
         commandString.appendChar( cmdChar )
         displayString.append( " beacon" )
-        kACSTurnTowardsBeacon -> commandState
+        kACSTurnTowardsBeacon commandState!
       endof
       
       `e` of
         commandString.appendChar( cmdChar )
         displayString.append( " exit" )
-        kACSTurnTowardsExit -> commandState
+        kACSTurnTowardsExit commandState!
       endof
       
       drop unrecognizedCommandWarning("abe")
@@ -383,11 +383,11 @@ class: atcInputHandler extends iAtcInputHandler
   ;
   
   : handleTurnTowardsAirport
-    cmdChar `0` - -> int targetNum
+    cmdChar `0` - int targetNum!
     if( within( targetNum 0 10))
-      kACSTurnReady -> commandState
-      targetNum -> commandInfo.targetNum
-      kATTAirport -> commandInfo.targetType
+      kACSTurnReady commandState!
+      targetNum commandInfo.targetNum!
+      kATTAirport commandInfo.targetType!
       commandString.appendChar( cmdChar )
       displayString.appendChar( ` ` )
       displayString.appendChar( cmdChar )
@@ -398,17 +398,17 @@ class: atcInputHandler extends iAtcInputHandler
   
   : handleTurnTowardsBeacon
     handleTurnTowardsAirport
-    kATTBeacon -> commandInfo.targetType
+    kATTBeacon commandInfo.targetType!
   ;
   
   : handleTurnTowardsExit
     handleTurnTowardsAirport
-    kATTPortal -> commandInfo.targetType
+    kATTPortal commandInfo.targetType!
   ;
   
   : handleAt
     if( cmdChar `b` = )
-      kACSAtBeacon -> commandState
+      kACSAtBeacon commandState!
       commandString.appendChar( cmdChar )
       displayString.append( " beacon" )
     else
@@ -418,10 +418,10 @@ class: atcInputHandler extends iAtcInputHandler
   ;
   
   : handleAtBeacon
-    cmdChar `0` - -> int beaconNum
+    cmdChar `0` - int beaconNum!
     if( within( beaconNum 0 10))
-      kACSCommandReady -> commandState
-      beaconNum -> commandInfo.beaconNum
+      kACSCommandReady commandState!
+      beaconNum commandInfo.beaconNum!
       commandString.appendChar( cmdChar )
       displayString.appendChar( ` ` )
       displayString.appendChar( cmdChar )
@@ -430,27 +430,27 @@ class: atcInputHandler extends iAtcInputHandler
     endif
   ;
   
-  ' handleIdle -> inputStateOps( kACSIdle )
-  ' handlePlaneSelected -> inputStateOps( kACSPlaneSelected )
-  ' handleCommandReady -> inputStateOps( kACSCommandReady )
-  ' handleAltitude -> inputStateOps( kACSAltitude )
-  ' handleAltitudeClimb -> inputStateOps( kACSAltitudeClimb )
-  ' handleAltitudeDescend -> inputStateOps( kACSAltitudeDescend )
-  ' handleCircle -> inputStateOps( kACSCircle )
-  ' handleDelayableReady -> inputStateOps( kACSCircleReady )
-  ' handleTurn -> inputStateOps( kACSTurn )
-  ' handleTurnDirection -> inputStateOps( kACSTurnDirection )
-  ' handleDelayableReady -> inputStateOps( kACSTurnReady )
-  ' handleTurnTowards -> inputStateOps( kACSTurnTowards )
-  ' handleTurnTowardsAirport -> inputStateOps( kACSTurnTowardsAirport )
-  ' handleTurnTowardsBeacon -> inputStateOps( kACSTurnTowardsBeacon )
-  ' handleTurnTowardsExit -> inputStateOps( kACSTurnTowardsExit )
-  ' handleAt -> inputStateOps( kACSAt )
-  ' handleAtBeacon -> inputStateOps( kACSAtBeacon )
+  ' handleIdle              inputStateOps!( kACSIdle )
+  ' handlePlaneSelected     inputStateOps!( kACSPlaneSelected )
+  ' handleCommandReady      inputStateOps!( kACSCommandReady )
+  ' handleAltitude          inputStateOps!( kACSAltitude )
+  ' handleAltitudeClimb     inputStateOps!( kACSAltitudeClimb )
+  ' handleAltitudeDescend   inputStateOps!( kACSAltitudeDescend )
+  ' handleCircle            inputStateOps!( kACSCircle )
+  ' handleDelayableReady    inputStateOps!( kACSCircleReady )
+  ' handleTurn              inputStateOps!( kACSTurn )
+  ' handleTurnDirection     inputStateOps!( kACSTurnDirection )
+  ' handleDelayableReady    inputStateOps!( kACSTurnReady )
+  ' handleTurnTowards       inputStateOps!( kACSTurnTowards )
+  ' handleTurnTowardsAirport inputStateOps!( kACSTurnTowardsAirport )
+  ' handleTurnTowardsBeacon inputStateOps!( kACSTurnTowardsBeacon )
+  ' handleTurnTowardsExit   inputStateOps!( kACSTurnTowardsExit )
+  ' handleAt                inputStateOps!( kACSAt )
+  ' handleAtBeacon          inputStateOps!( kACSAtBeacon )
 
   : setCommandCharacter
-    dup -> oCmdChar
-    tolower -> cmdChar
+    dup oCmdChar!
+    tolower cmdChar!
   ;
 
   : handleBackspace
@@ -460,11 +460,11 @@ class: atcInputHandler extends iAtcInputHandler
     mko String tmpCommandString
     tmpCommandString.set( commandString.get )
     tmpCommandString.resize( tmpCommandString.length 1- )
-    tmpCommandString.get -> ptrTo byte pSrc
+    tmpCommandString.get ptrTo byte pSrc!
     setIdle
     // process commandString chars one at a times
     begin
-      b@@++(ref pSrc) -> byte ch
+      b@@++(ref pSrc) byte ch!
     while( ch 0<> )
       setCommandCharacter( ch )
       inputStateOps( commandState )
@@ -474,22 +474,21 @@ class: atcInputHandler extends iAtcInputHandler
   ;
   
   m: init     // REGION DISPLAY_OBJ  ...
-    `inph` -> tag
-    -> display
-    ->o region
-    new String -> displayString
-    new String -> commandString
-    kACSIdle -> commandState
-    0 -> cmdChar
-    false -> isGameOver
+    `inph` tag!
+    display!
+    region!o
+    new String displayString!
+    new String commandString!
+    kACSIdle commandState!
+    0 cmdChar!
+    false isGameOver!
   ;m
   
   m: delete
     //t{ "deleting inputHandler " %s %nl }t
-    oclear display
-    oclear displayString
-    oclear commandString
-    super.delete
+    display~
+    displayString~
+    commandString~
   ;m
   
   m: update
@@ -503,7 +502,7 @@ class: atcInputHandler extends iAtcInputHandler
       
       else
         if( cmdChar 0x1b = )
-          true -> isGameOver
+          true isGameOver!
         else
           if( within( commandState kACSIdle kNumCommandStates ) )
             inputStateOps( commandState )
