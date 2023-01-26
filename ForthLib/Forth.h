@@ -198,7 +198,10 @@ typedef enum
     kOpUserDefS64,                          // low 24 bits is UserDef op number, next 2 longwords is 64-bit signed int immediate value
     kOpUserDefF64,                          // low 24 bits is UserDef op number, next 2 longwords is 64-bit float immediate value
 
-    kOpLastBaseDefined = kOpCCodeF64,
+    kOpMethodWithLocalObject,
+    kOpMethodWithMemberObject,
+    
+    kOpLastBaseDefined = kOpMethodWithMemberObject,
     kOpLocalUserDefined = 192,              // user can add more optypes starting with this one
     kOpMaxLocalUserDefined = 255,           // maximum user defined optype
 
@@ -283,6 +286,8 @@ enum class VarOperation:ucell {
     kPtrDecAtSet,
 
     kNumVarops,
+
+    kVarUnref = kVarSetMinus,
 
     kNumBasicVarops = kVarGetDec + 1,
     kUnchecked = kNumVarops

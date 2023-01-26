@@ -313,7 +313,15 @@ VarOperation ForthParseInfo::CheckVaropSuffix()
         break;
 
     case '~':
-        varop = VarOperation::kVarClear;
+        if (pLastChar[-1] == '@')
+        {
+            pLastChar--;
+            varop = VarOperation::kVarUnref;        // v@~ - push obj on TOS, clear var, decrement obj refcount but don't delete if 0
+        }
+        else
+        {
+            varop = VarOperation::kVarClear;        // v~ - clear var and decrement obj refcount, delete if 0
+        }
         break;
 
     case '@':
@@ -524,8 +532,8 @@ VarOperation ForthParseInfo::CheckVaropSuffix()
     case 'o':
         if (pLastChar[-1] == '!')
         {
-            pLastChar -= 2;
-            varop = VarOperation::kVarSetMinus;            // v!o - set object, don't inc refcount
+            pLastChar--;
+            varop = VarOperation::kVarSetPlus;            // v!o - set object, don't inc refcount
         }
         break;
     }
