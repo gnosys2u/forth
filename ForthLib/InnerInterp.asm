@@ -3200,7 +3200,7 @@ methodThis1:
 	mov	eax, [rcore + FCore.innerExecute]
 	jmp eax
 	
-; invoke a method on an object referenced by ptr pair on TOS
+; invoke a method on an object on TOS
 entry methodWithTOSType
 	; TOS is object
 	; ebx is method number
@@ -3227,6 +3227,60 @@ methodTos1:
 	mov	eax, [rcore + FCore.innerExecute]
 	jmp eax
 	
+; invoke a method on an object in a local variable
+entry methodWithLocalObjectType
+	; ebx: bits 0..11 are method index, bits 12..23 are frame offset in longs
+
+	; push current this on return stack
+	mov	ecx, [rcore + FCore.RPtr]
+	sub	ecx, 4
+	mov	[rcore + FCore.RPtr], ecx
+	mov	eax, [rcore + FCore.TPtr]
+	mov	[ecx], eax
+
+	; set this ptr from local object selected by ebx bits 12..23
+    mov	eax, [rcore + FCore.FPtr]
+    mov ecx, ebx
+	and	ecx, 00FFF000h
+	shr	ecx, 10
+	sub	eax, ecx        ; eax points to local var holding object
+	mov	ecx, [eax]      ; ecx is object pointer
+	or	ecx, ecx
+	jnz methodLocal1
+	mov	eax, kForthErrorBadObject
+	jmp	interpLoopErrorExit
+methodLocal1:
+	mov	[rcore + FCore.TPtr], ecx
+
+    mov eax, [ecx]              ; eax points to methods table
+    and ebx, 00000FFFh
+    mov ebx, [eax + ebx * 4]    ; ebx is method opcode
+
+	mov	eax, [rcore + FCore.innerExecute]
+	jmp eax
+
+; invoke a method on an object in a member variable
+entry methodWithMemberObjectType
+	; ebx: bits 0..11 are method index, bits 12..23 are object offset in longs
+
+	; push current this on return stack
+	mov	ecx, [rcore + FCore.RPtr]
+	sub	ecx, 4
+	mov	[rcore + FCore.RPtr], ecx
+	mov	eax, [rcore + FCore.TPtr]
+	mov	[ecx], eax
+
+	; set this ptr from member object selected by ebx bits 12..23
+    mov	eax, [rcore + FCore.TPtr]
+    mov ecx, ebx
+	and	ecx, 00FFF000h
+	shr	ecx, 12
+	mov	ecx, [eax + ecx]      ; ecx is object pointer
+	or	ecx, ecx
+	jnz methodLocal1
+	mov	eax, kForthErrorBadObject
+	jmp	interpLoopErrorExit
+
 ;-----------------------------------------------
 ;
 ; member string init ops
@@ -8424,10 +8478,12 @@ entry opTypesTable
     DD  userDef64Type
     DD  userDef64Type
 
-;	138 - 149
-	DD	extOpType,extOpType
+;   138 - 139
+    DD  methodWithLocalObjectType
+    DD  methodWithMemberObjectType
+
+;	140 - 199
 	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
-;	150 - 199
 	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType

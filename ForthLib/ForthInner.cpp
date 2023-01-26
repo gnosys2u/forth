@@ -3762,6 +3762,56 @@ OPTYPE_ACTION( MethodWithTOSAction )
 	//pEngine->TraceOut("<<MethodWithTOSAction IP %p  RP %p\n", GET_IP, GET_RP);
 }
 
+OPTYPE_ACTION(MethodWithLocalObjectAction)
+{
+    // object is a local variable
+    // bits 0..11 are method index, bits 12..23 are object offset in longs
+    ForthObject obj = *((ForthObject*)(GET_FP - (opVal >> 12)));
+    int methodIndex = opVal & 0xFFF;
+    ForthEngine* pEngine = GET_ENGINE;
+    //pEngine->TraceOut(">>MethodWithLocalObjectAction IP %p  RP %p\n", GET_IP, GET_RP);
+    RPUSH(((cell)GET_TP));
+
+    if (obj == nullptr || obj->pMethods == nullptr)
+    {
+        SET_ERROR(ForthError::kBadObject);
+        return;
+    }
+
+    SET_TP(obj);
+    if (pEngine->GetTraceFlags() & kLogInnerInterpreter)
+    {
+        SpewMethodName(obj, methodIndex);
+    }
+    pEngine->ExecuteOp(pCore, obj->pMethods[methodIndex]);
+    //pEngine->TraceOut("<<MethodWithLocalObjectAction IP %p  RP %p\n", GET_IP, GET_RP);
+}
+
+OPTYPE_ACTION(MethodWithMemberObjectAction)
+{
+    // object is a member of this object
+    // bits 0..11 are method index, bits 12..23 are frame offset in longs
+    ForthObject obj = *((ForthObject*)(((cell)(GET_TP)) + (opVal >> 12)));
+    int methodIndex = opVal & 0xFFF;
+    ForthEngine* pEngine = GET_ENGINE;
+    //pEngine->TraceOut(">>MethodWithLocalObjectAction IP %p  RP %p\n", GET_IP, GET_RP);
+    RPUSH(((cell)GET_TP));
+
+    if (obj == nullptr || obj->pMethods == nullptr)
+    {
+        SET_ERROR(ForthError::kBadObject);
+        return;
+    }
+
+    SET_TP(obj);
+    if (pEngine->GetTraceFlags() & kLogInnerInterpreter)
+    {
+        SpewMethodName(obj, methodIndex);
+    }
+    pEngine->ExecuteOp(pCore, obj->pMethods[methodIndex]);
+    //pEngine->TraceOut("<<MethodWithLocalObjectAction IP %p  RP %p\n", GET_IP, GET_RP);
+}
+
 OPTYPE_ACTION( MemberStringInitAction )
 {
     // bits 0..11 are string length in bytes, bits 12..23 are member offset in longs
@@ -4332,6 +4382,10 @@ optypeActionRoutine builtinOptypeAction[] =
     UserDefU32Action,           // float
     UserDef64Action,            // int64
     UserDef64Action,            // double
+
+    // 138 - 139    8A - 8B
+    MethodWithLocalObjectAction,
+    MethodWithMemberObjectAction,
 
     NULL            // this must be last to end the list
 };

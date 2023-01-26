@@ -46,6 +46,9 @@ protected:
 	char mErrorMsg[ 512 ];
     bool mUsesSuper;
     VarOperation mSuffixVarop;
+    // these two bools are used to detect localObject.method and memberObject.method cases
+    bool mbLocalObjectPrevious;
+    bool mbMemberObjectPrevious;
 };
 
 

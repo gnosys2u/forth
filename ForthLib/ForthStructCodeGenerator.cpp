@@ -46,6 +46,8 @@ ForthStructCodeGenerator::ForthStructCodeGenerator( ForthTypesManager* pTypeMana
     , mTOSTypeCode((uint32_t)BASE_TYPE_TO_CODE(BaseType::kVoid))
     , mUsesSuper(false)
     , mSuffixVarop(VarOperation::kVarDefaultOp)
+    , mbLocalObjectPrevious(false)
+    , mbMemberObjectPrevious(false)
 {
 	mBufferBytes = 512;
 	mpBuffer = (char *)__MALLOC(mBufferBytes);
@@ -168,6 +170,8 @@ bool ForthStructCodeGenerator::HandleFirst()
     mpStructVocab = nullptr;
     mpContainedClassVocab = nullptr;
     mUsesSuper = false;
+    mbLocalObjectPrevious = false;
+    mbMemberObjectPrevious = false;
 
     HandlePreceedingVarop();
     
@@ -255,6 +259,7 @@ bool ForthStructCodeGenerator::HandleFirst()
         if ( pEntry == NULL && pEngine->IsCompiling())
         {
             pEntry = pEngine->GetOuterInterpreter()->GetLocalVocabulary()->FindSymbol( mpToken );
+            mbLocalObjectPrevious = (pEntry != nullptr) && (FORTH_OP_TYPE(pEntry[0]) == kOpLocalObject);
         }
 
         if ( pEntry == NULL )
@@ -392,6 +397,7 @@ bool ForthStructCodeGenerator::HandleFirst()
 						else
 						{
 							COMPILE_OP( "object", kOpMemberObject, pEntry[0] );
+                            mbMemberObjectPrevious = true;
 						}
 					}
 					else
@@ -494,6 +500,12 @@ bool ForthStructCodeGenerator::HandleMiddle()
 {
     bool bUsesSuper = mUsesSuper;
     mUsesSuper = false;
+
+    bool bLocalObjectPrevious = mbLocalObjectPrevious;
+    mbLocalObjectPrevious = false;
+    bool bMemberObjectPrevious = mbMemberObjectPrevious;
+    mbMemberObjectPrevious = false;
+
 	if ( mpStructVocab == NULL )
 	{
 		return false;
@@ -563,8 +575,25 @@ bool ForthStructCodeGenerator::HandleMiddle()
         }
         else
         {
-            opType = kOpMethodWithTOS;
-            mOffset = pEntry[0];
+            mOffset = pEntry[0];        // get method number
+            if (bLocalObjectPrevious)
+            {
+                mpDst--;
+                opType = kOpMethodWithLocalObject;
+                // grab local object frame offset from previously compiled opcode
+                mOffset |= ((*mpDst & 0xFFF) << 12);
+            }
+            else if (bMemberObjectPrevious)
+            {
+                mpDst--;
+                opType = kOpMethodWithMemberObject;
+                // grab member object offset from previously compiled opcode
+                mOffset |= ((*mpDst & 0xFFF) << 12);
+            }
+            else
+            {
+                opType = kOpMethodWithTOS;
+            }
         }
         SPEW_STRUCTS( " opcode 0x%x\n", COMPILED_OP( opType, mOffset ) );
         *mpDst++ = COMPILED_OP( opType, mOffset );
@@ -711,6 +740,11 @@ bool ForthStructCodeGenerator::HandleLast()
     }
     bool success = true;
 
+    bool bLocalObjectPrevious = mbLocalObjectPrevious;
+    mbLocalObjectPrevious = false;
+    bool bMemberObjectPrevious = mbMemberObjectPrevious;
+    mbMemberObjectPrevious = false;
+
     if (mUsesSuper)
     {
         if (strcmp(mpToken, "delete") == 0)
@@ -794,8 +828,25 @@ bool ForthStructCodeGenerator::HandleLast()
         }
         else
         {
-            opType = kOpMethodWithTOS;
-            mOffset = pEntry[0];     // method#
+            mOffset = pEntry[0];        // get method number
+            if (bLocalObjectPrevious)
+            {
+                mpDst--;
+                opType = kOpMethodWithLocalObject;
+                // grab local object frame offset from previously compiled opcode
+                mOffset |= ((*mpDst & 0xFFF) << 12);
+            }
+            else if (bMemberObjectPrevious)
+            {
+                mpDst--;
+                opType = kOpMethodWithMemberObject;
+                // grab member object offset from previously compiled opcode
+                mOffset |= ((*mpDst & 0xFFF) << 12);
+            }
+            else
+            {
+                opType = kOpMethodWithTOS;
+            }
         }
     }
     else if ( isPtr )
