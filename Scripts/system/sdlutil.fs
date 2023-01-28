@@ -19,8 +19,8 @@ null  -> ptrTo byte sdlTexture
  
 : dummyFetchOp drop 0 ;
 
-' dummyFetchOp -> op pixel@
-' 2drop -> op pixel!
+' dummyFetchOp -> op getPixel
+' 2drop -> op setPixel
 
 0x00FFFF00 -> int pixelColor
 
@@ -68,23 +68,23 @@ SDL_Rect dstPos
     //"bits per pixel: " %s dup %d %nl
     case
       8 of
-        lit c@ -> pixel@
-        lit c! -> pixel!
+        lit c@ -> getPixel
+        lit c! -> setPixel
         0x55 -> pixelColor
       endof
       16 of
-        lit w@ -> pixel@
-        lit w! -> pixel!
+        lit w@ -> getPixel
+        lit w! -> setPixel
         0x5555 -> pixelColor
       endof
       32 of
-        lit @ -> pixel@
-        lit ! -> pixel!
+        lit @ -> getPixel
+        lit ! -> setPixel
         0x00FFFF00 -> pixelColor
       endof
       // unhandled pixel size
-      lit dummyFetchOp -> pixel@
-      lit 2drop -> pixel!
+      lit dummyFetchOp -> getPixel
+      lit 2drop -> setPixel
       "startSDL: Unhandled pixel size " %s dup %d %nl
     endcase
     
@@ -151,16 +151,16 @@ SDL_Rect dstPos
 // drawPixel & drawPixelRelative assume that you are handling SDL_LockSurface/SDL_UnlockSurface/SDL_UpdateRects
 // X Y drawPixel  - draw a dot at X,Y with color specified by pixelColor
 : drawPixel
-  screenAddress pixelColor swap pixel!
+  screenAddress pixelColor swap setPixel
 ;
 
 : drawPixelRelative
-  screenAddressRelative pixelColor swap pixel!
+  screenAddressRelative pixelColor swap setPixel
 ;
 
 // X Y getPixel -> fetches pixel value at X,Y
 : getPixel
-  screenAddress pixel@
+  screenAddress getPixel
 ;
 
 // X Y isOnScreen -> true/false

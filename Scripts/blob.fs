@@ -13,21 +13,21 @@ class: Blob
 
   m: free
     safeFree
-    0 -> numBytes
-    null -> blobData
-    false -> needsFreeing
+    numBytes~
+    blobData~
+    needsFreeing~
   ;m
   
   m: allocate
     safeFree
-    dup -> numBytes
-    malloc -> blobData
-    true -> needsFreeing
+    dup numBytes!
+    malloc blobData!
+    true needsFreeing!
     // TODO: report malloc failure
   ;m
   
   m: reallocate
-    -> numBytes
+    numBytes!
     if(needsFreeing)
       realloc(blobData numBytes)
     else

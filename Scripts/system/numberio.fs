@@ -12,7 +12,7 @@ variable pad padSize allot
 
 variable holdbuf padSize allot				    // permanent base of hold buffer
 align
-holdbuf padSize 1- + -> ptrTo byte holdbuf-end	// permanent end of hold buffer
+holdbuf padSize 1- + ptrTo byte holdbuf-end!	// permanent end of hold buffer
 ptrTo byte holdptr								// current pos in hold buffer (grows downward)
 ptrTo byte holdend								// current nested end of hold buffer
 
@@ -20,11 +20,10 @@ ptrTo byte holdend								// current nested end of hold buffer
 
 // add char on tos to numeric output buffer
 : hold 
-  1 ->- holdptr
+  holdptr--
   if( holdptr holdbuf u< )
     drop
-    1 ->+ holdptr
-    holdptr
+    holdptr++@
     "hold:{" %s holdbuf padSize type "}\n" %s
     error( "numeric output overflow in hold" )
   else
@@ -51,7 +50,7 @@ ptrTo byte holdend								// current nested end of hold buffer
   // stuff length of previous nested numeric output at bottom of hold
   holdend holdptr - hold
   // holdend now points to stuffed length byte
-  holdptr -> holdend
+  holdptr holdend!
 ;
 
 // end a nested numeric output
@@ -59,7 +58,7 @@ ptrTo byte holdend								// current nested end of hold buffer
   if( holdend holdbuf-end u< not )
     error( "bounds error in #>>" )
   else
-    holdend count bounds -> holdptr -> holdend
+    holdend count bounds holdptr! holdend!
   endif
 ;
 

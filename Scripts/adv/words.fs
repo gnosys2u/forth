@@ -1,7 +1,7 @@
 //========== The vocabulary. ==============================================
 // This section corresponds to sections 4--17 in Knuth.
 
-: words ;
+: advWords ;
 
 : new_word // (const char *w   int m  WordClass wc)
   WordClass wc!

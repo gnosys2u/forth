@@ -6,17 +6,17 @@ autoforget MAZE
 
 
 1 [if]
-ms@ -> int seed
-//: random ( -- u ) seed 31241 * 6927 + dup -> seed ;
-//: random ( -- u ) seed 0x107465 * 0x234567 + dup -> seed ;
+ms@ int seed!
+//: random ( -- u ) seed 31241 * 6927 + dup seed! ;
+//: random ( -- u ) seed 0x107465 * 0x234567 + dup seed! ;
 0xff800000 constant ROL9MASK
 : rol9 // u1 -- u2 | rotate u1 left by 9 bits
     dup ROL9MASK and 23 rshift swap 9 lshift or ;     
 : random // -- u
-seed 107465 * 234567 + rol9 dup -> seed ;
+seed 107465 * 234567 + rol9 dup seed! ;
 
 [else]
-ms@ -> int seed
+ms@ int seed!
 srand( ms@ )
 : random rand ;
 [endif]
@@ -48,10 +48,10 @@ enum: eMazeDirs
 
 kNumDirs arrayOf mazeDirs dirs
 : initDir
-  -> int ix
-  ix -> dirs.dy
-  ix -> dirs.dx
-  ix -> dirs.ch
+  int ix!
+  ix dirs.dy!
+  ix dirs.dx!
+  ix dirs.ch!
 ;
 
 initDir( `R`  1  0 kDirRight )
@@ -94,7 +94,7 @@ class: mazeArray
   int exitY
   
   m: delete
-    oclear maze
+    maze~
   ;m
   
   m: size
@@ -115,14 +115,14 @@ class: mazeArray
    
   // width height startX startY exitX exitY ...
   m: init
-    -> exitY
-    -> exitX
-    -> startY
-    -> startX
-    -> height
-    -> width
-    new ByteArray -> maze
-    width 2+ -> rowBytes
+    exitY!
+    exitX!
+    startY!
+    startX!
+    height!
+    width!
+    new ByteArray maze!
+    width 2+ rowBytes!
     maze.resize( rowBytes height 2+ * )
     
     fill( maze.base maze.count kMTTUnused )
@@ -142,7 +142,7 @@ class: mazeArray
     maze.base
     do( height 2+ 0 )
       dup width 2+ type %nl
-      rowBytes +
+      rowBytes@+
     loop
     drop
   ;m
@@ -160,8 +160,8 @@ class: mazeDisplay
 
     
   m: delete
-    oclear maze
-    oclear mazeText
+    maze~
+    mazeText~
   ;m
   
   : dir2Offset
@@ -192,31 +192,31 @@ class: mazeDisplay
   // mazeArray endX endY reachedExit  ...
   m: init
     
-    -> int reachedExit
-    -> int endY
-    -> int endX
-    -> maze
-    maze.startX -> int x
-    maze.startY -> int y
+    int reachedExit!
+    int endY!
+    int endX!
+    maze!
+    maze.startX int x!
+    maze.startY int y!
     
-    new ByteArray -> mazeText
-    maze.width 2* 1+ -> rowBytes
-    maze.height 2* 1+ -> numRows
+    new ByteArray mazeText!
+    maze.width 2* 1+ rowBytes!
+    maze.height 2* 1+ numRows!
     mazeText.resize( numRows rowBytes * )
     
     fill( mazeText.base mazeText.count kMTTWall )
 
-    kDirRight -> int dir
+    kDirRight int dir!
     begin
     while( or( x endX <> y endY <> ) )
-      ref( x y ) -> ptrTo byte pPos
+      ref( x y ) ptrTo byte pPos!
       kMTTOpen pPos c!
-      char2dir( maze.get( x y ) ) -> dir
+      char2dir( maze.get( x y ) ) dir!
       //x %d %bl y %d %bl maze.get( x y ) %c %bl dir %d %nl
       kMTTOpen pPos dir2Offset( dir ) + c!
       //draw %nl
-      x dir dirs.dx + -> x
-      y dir dirs.dy + -> y
+      x dir dirs.dx@+ x!
+      y dir dirs.dy@+ y!
     repeat
     set( ?pick( kMTTOpen kMTTDeadEnd reachedExit ) endX endY )
     kMTTEntrance ref( maze.startX maze.startY ) 1- c!
@@ -228,7 +228,7 @@ class: mazeDisplay
     mazeText.base
     do( numRows 0 )
       dup rowBytes type %nl
-      rowBytes +
+      rowBytes@+
     loop
     drop
   ;m
@@ -236,8 +236,8 @@ class: mazeDisplay
 ;class
 
 
-11 -> int defaultMazeWidth
-7 -> int defaultMazeHeight
+11 int defaultMazeWidth!
+7 int defaultMazeHeight!
 
 class: mazeGenerator
 
@@ -260,8 +260,8 @@ class: mazeGenerator
   mazeDisplay disp
   
   m: delete
-    oclear maze
-    oclear disp
+    maze~
+    disp~
   ;m
   
   m: set
@@ -271,20 +271,20 @@ class: mazeGenerator
   m: init
   
     if( mazeWidth 0= mazeHeight 0= or )
-      defaultMazeWidth -> mazeWidth
-      defaultMazeHeight -> mazeHeight
+      defaultMazeWidth mazeWidth!
+      defaultMazeHeight mazeHeight!
     endif
     
-    1 -> startX
-    mazeHeight 2/ -> startY
+    1 startX!
+    mazeHeight 2/ startY!
     
-    mazeWidth -> exitX
-    mazeHeight 2/ 1+ -> exitY
+    mazeWidth exitX!
+    mazeHeight 2/ 1+ exitY!
     
-    new mazeArray -> maze
+    new mazeArray maze!
     maze.init( mazeWidth mazeHeight startX startY exitX exitY )
 
-    new mazeDisplay -> disp
+    new mazeDisplay disp!
   ;m
 
   : numPossibleMoves
@@ -351,13 +351,13 @@ class: mazeGenerator
   m: gen
     "Using seed " %s seed %d %nl
     init
-    0 -> numMoves
-    0 -> numStuck
-    0 -> numBacksteps
+    0 numMoves!
+    0 numStuck!
+    0 numBacksteps!
   
-    kDirRight -> direction
-    startX -> posX
-    startY -> posY
+    kDirRight direction!
+    startX posX!
+    startY posY!
     int newDir
     int newX
     int newY
@@ -366,29 +366,29 @@ class: mazeGenerator
     while( and( numMoves 100 < not( reachedExit)))
       if( numPossibleMoves )
         begin
-          randomNewDirection -> newDir
-          posX posY newDir move -> newY -> newX
+          randomNewDirection newDir!
+          posX posY newDir move newY! newX!
         until( maze.get( newX newY ) kMTTUnused = )
         maze.set( newDir dirs.ch posX posY )
-        newDir -> direction
-        newX -> posX
-        newY -> posY
+        newDir direction!
+        newX posX!
+        newY posY!
         //"Moving " %s newDir dirs.ch %c " to " %s newX %d %bl newY %d %nl
       else
         1 if
         //"stuck at " %s posX %d %bl posY %d %nl
-        1 ->+ numStuck
+        numStuck++
         begin
-          findPreviousTile -> newY -> newX
+          findPreviousTile newY! newX!
           maze.set( kMTTWall posX posY )
-          newX -> posX
-          newY -> posY
-          1 ->+ numBacksteps
+          newX posX!
+          newY posY!
+          numBacksteps++
           //"back to " %s posX %d %bl posY %d %bl numPossibleMoves %d " moves" %s %nl
         until( numPossibleMoves )
         endif
       endif
-      1 ->+ numMoves
+      numMoves++
     repeat
     
     if( reachedExit )
@@ -401,15 +401,15 @@ class: mazeGenerator
   ;m
   
   m: regen
-    -> mazeHeight
-    -> mazeWidth
+    mazeHeight!
+    mazeWidth!
     gen
     drawBig
   ;m
   
 ;class
 
-new mazeGenerator -> mazeGenerator m
+new mazeGenerator mazeGenerator m!
 m.gen m.drawBig
 
 requires randoms
@@ -427,11 +427,11 @@ class: MazeDirection
   cell dy
 
   m: init
-    -> dy
-    -> dx
-    -> oppositeWall
-    -> wall
-    -> name
+    dy!
+    dx!
+    oppositeWall!
+    wall!
+    name!
   ;m
   
 ;class
@@ -450,10 +450,10 @@ class: MazeGen1
   MazeDirection west
   
   m: delete
-    oclear dirs
-    oclear grid
-    oclear random
-    oclear north oclear south oclear east oclear west
+    dirs~
+    grid~
+    random~
+    north~ south~ east~ west~
   ;m
  
   : addDirection
@@ -461,42 +461,41 @@ class: MazeGen1
     dir.init
     dirs.push(dir)
     dir
-    oclear dir
+    dir~
   ;
   
   m: init
-    -> height
-    -> width
-    new RandomIntGenerator -> random
-    new ByteArray -> grid
+    height!
+    width!
+    new RandomIntGenerator random!
+    new ByteArray grid!
     grid.resize(width height *)
     
-    
-    new Array -> dirs
-    `N` 1 2   0 -1 addDirection -> north
-    `S` 2 1   0  1 addDirection -> south
-    `E` 4 8   1  0 addDirection -> east
-    `W` 8 4  -1  0 addDirection -> west
+    new Array dirs!
+    `N` 1 2   0 -1 addDirection north!
+    `S` 2 1   0  1 addDirection south!
+    `E` 4 8   1  0 addDirection east!
+    `W` 8 4  -1  0 addDirection west!
   ;m
 
   : gridRef grid.ref(width * +) ;
 
   m: carvePassages recursive
-    -> cell cy
-    -> cell cx
-    gridRef(cx cy) -> ptrTo byte posRef
+    cell cy!
+    cell cx!
+    gridRef(cx cy) ptrTo byte posRef!
     
     random.shuffle(dirs)
-    dirs.headIter -> ArrayIter iter
+    dirs.headIter ArrayIter iter!
     
     begin
     while(iter.next)
-      -> MazeDirection dir
-      cx dir.dx + -> cell nx
-      cy dir.dy + -> cell ny
+      MazeDirection dir!
+      cx dir.dx@+ cell nx!
+      cy dir.dy@+ cell ny!
 
       if(within(ny 0 height)) andif(within(nx 0 width))
-        gridRef(nx ny) -> ptrTo byte nextPosRef
+        gridRef(nx ny) ptrTo byte nextPosRef!
         if(nextPosRef b@ 0=)
           posRef b@ dir.wall or posRef b!
           nextPosRef b@ dir.oppositeWall or nextPosRef b!
@@ -506,7 +505,7 @@ class: MazeGen1
       endif
     repeat
     
-    oclear iter
+    iter~
   ;m
   
   m: draw
@@ -519,7 +518,7 @@ class: MazeGen1
     do(height 0)
       `|` %c
       do(width 0)
-        gridRef(i j) -> posRef
+        gridRef(i j) posRef!
         if(posRef b@ south.wall and) ` ` else `_` endif %c
         if(posRef b@ east.wall and)
           // isn't this possibly looking one beyond end of maze?

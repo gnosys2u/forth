@@ -5,7 +5,8 @@
 //   kForth. Also, delays have been changed from 1000 ms to 
 //   100 ms for faster update --- K. Myneni, 12-26-2001
 
-// modified this to work in my forth without requiring ansi compatability mode - Pat McElhatton February 28 2017
+// modified this to work in my forth without requiring ansi compatability mode
+//   Pat McElhatton February 28 2017
 
 requires sdlscreen
 
@@ -102,10 +103,10 @@ int gpx int gpy
 : displayCell
   sc
   cellColumns /mod
-  cellRowsOffset - 2* -> int py
-  cellColumnsOffset - 2* -> int px
-  px -> gpx
-  py -> gpy
+  cellRowsOffset - 2* int py!
+  cellColumnsOffset - 2* int px!
+  px gpx!
+  py gpy!
   mt(px py) fsq(2)
   //px . py .
   dp(px py)
@@ -133,8 +134,8 @@ int gpx int gpy
    
 : updateNextGeneration  
   beginFrame
-  0 lastGeneration -> int pNextCell
-  totalCells -> int cellsLeft
+  0 lastGeneration ptrTo byte pNextCell!
+  totalCells int cellsLeft!
   begin
   while(cellsLeft)
     pNextCell c@  dup Alive and
@@ -149,8 +150,8 @@ int gpx int gpy
         pNextCell cellAddr>cellIndex Is-Born
       endif
     endif
-    1 ->- cellsLeft
-    1 ->+ pNextCell
+    cellsLeft--
+    pNextCell++
   repeat
   cellColumns 1- cellRows 1- setConsoleCursor
   endFrame
@@ -172,10 +173,10 @@ int gpx int gpy
 ;
 
 : setLiveCells // {xyPairs} numXYPairs xOffset yOffset xFlip yFlip ...
-  -> int yFlip
-  -> int xFlip
-  -> int yOffset
-  -> int xOffset
+  int yFlip!
+  int xFlip!
+  int yOffset!
+  int xOffset!
   0 do
     if(yFlip) negate endif yOffset + swap
     if(xFlip) negate endif xOffset + swap

@@ -286,7 +286,7 @@ struct: SDL_Point
 
 // Returns true if the rectangle has no area.
 : SDL_RectEmpty   // const SDL_Rect *r
-  -> ptrTo SDL_Rect r
+  ptrTo SDL_Rect r!
   
   if( r 0<> r.w 0> and r.h 0> and )
     SDL_TRUE
@@ -297,8 +297,8 @@ struct: SDL_Point
 
 // Returns true if the two rectangles are equal.
 : SDL_RectEquals    // const SDL_Rect *a  const SDL_Rect *b
-  -> ptrTo SDL_Rect b
-  -> ptrTo SDL_Rect a
+  ptrTo SDL_Rect b!
+  ptrTo SDL_Rect a!
   
   SDL_FALSE
   if( a 0<> b 0<> and)
@@ -357,7 +357,7 @@ struct: SDL_Surface
 
 // Evaluates to true if the surface needs to be locked before access.
 : SDL_MUSTLOCK
-  -> ptrTo SDL_Surface s
+  ptrTo SDL_Surface s!
   s.flags SDL_RLEACCEL and
 ;
 

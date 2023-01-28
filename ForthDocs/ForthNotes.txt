@@ -5,19 +5,29 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+? add a '#ifdef _autoTest' section to all script files
+
+- support 32 and 64 bit DLLs - separate directories for each size?
+
+- test sdl audio
+
++ fix life.fs -> it was a pointer-stored-as-int 64-bit problem
+
+- get wumpus.fs working
+
+- get cosmic.fs working
+
+- document and test createCallback
+
+- figure out how to implement methods in assembler and document it
+
 - add opTypes for memberObjectMethod and localObjectMethod
-
-- fix super multi-fiber bug
-
-+ variable initialization is broken, at least for objects:
-    ARRAY_OBJECT Array arr!
-  doesn't initialize arr to ARRAY_OBJECT
+  + x86, amd64
+  - ARM
 
 ? does 'new' work for things like 'new Array of String'?  probably not...
   -> no, it doesn't need to - 'of String' is just attached to the Array instance,
      so 'new Array -> Array of String foo' will be just fine
-
-+ get multiple interfaces working using wrapper objects
 
 - reorganization 
   - get rid of "Forth" at the start of all class names
@@ -42,6 +52,43 @@ TBDs:
 - have script file search check for "./" or "../" at start of script path, if so don't use
   search path directories, just use the raw specified script path
 
+- improve handling of ForthParseInfos - they are getting allocated multiple times
+  per token - have outer interpreter keep 2 parseInfo members, one is original token,
+  other is scratch token which can be manipulated during interpretation
+
+- allow methods to do 'returns Array of foo' instead of just 'returns Array'
+  ? would 'returns Array:foo' be acceptable?
+  ? is this actually all that useful?
+
+- check out if things like a(i).b(j) work
+  instanceArray(i).memberArray(j)
+  
+- document gotchas about using unref and Array.pop in multithreaded code
+  -> an object with a 0 refcount on TOS is only threadsafe when it is just created,
+     after it is being shared by multiple threads this state is always very unsafe
+
+- have verbose describe of a class or struct shows its typeIndex
+  and also all its interfaces
+
+- add a global AsyncLock for things like pushConsoleOut
+
+! document existing native ops !
+! create examples/tests for all native ops !
+
+- optimize object field reference code, there is a lot of code like LocalObject,drop
+- also optimize stuff like offset,2@,drop
+  -> these drops don't exist anymore, since getting rid of methods/data pair, right?
+  
++ add '@~' suffix for object unref (same code as '!-')
+
++ fix super multi-fiber bug
+
++ variable initialization is broken, at least for objects:
+    ARRAY_OBJECT Array arr!
+  doesn't initialize arr to ARRAY_OBJECT
+
++ get multiple interfaces working using wrapper objects
+
 + add a FORTH_SCRIPTS environment variable which allows multiple directories to be searched
 
 + change icmp and uicmp to cmp and ucmp for consistency, add lcmp and ulcmp aliases for non-64 to autoload
@@ -54,30 +101,11 @@ TBDs:
 
 + break outer interpreter out of ForthEngine
 
-- improve handling of ForthParseInfos - they are getting allocated multiple times
-  per token - have outer interpreter keep 2 parseInfo members, one is original token,
-  other is scratch token which can be manipulated during interpretation
-
-- allow methods to do 'returns Array of foo' instead of just 'returns Array'
-  ? would 'returns Array:foo' be acceptable?
-
-- check out if things like a(i).b(j) work
-  instanceArray(i).memberArray(j)
-  
-- document gotchas about using unref and Array.pop in multithreaded code
-  -> an object with a 0 refcount on TOS is only threadsafe when it is just created,
-     after it is being shared by multiple threads this state is always very unsafe
-
-- have verbose describe of a class or struct shows its typeIndex
-  and also all its interfaces
-
 + add general immediate ops, so 'N op' would compile into just the op plus an immediate operand
   + there would need to be new optypes for each of native, C and userDefs
   + there would need to be 32 and 64 bit variants, maybe signed and unsigned for 32-bits
 
 ? get rid of old userDef optypes, replace with relativeDef optypes
-
-- add a global AsyncLock for things like pushConsoleOut
 
 + deal with ref counting being non-atomic
 
@@ -89,18 +117,12 @@ TBDs:
 
 + test summary is always blank
 
-- show method always shows Object __pMethods value
 + IntMap, StringIntMap, StringFloatMap have missing comma after "map" element - are there others like this?
 
-! document existing native ops !
-! create examples/tests for all native ops !
+- show method always shows Object __pMethods value
 
 + have verbose describe show names of user defined ops
 
-- optimize object field reference code, there is a lot of code like LocalObject,drop
-- also optimize stuff like offset,2@,drop
-  -> these drops don't exist anymore, since getting rid of methods/data pair, right?
-  
 + add unref op, same op as ->-, it makes object variable:
   o leave object on TOS
   o zeros object variable
@@ -179,10 +201,11 @@ x have "woof -> foo( blah )" compile into "woof blah -> foo"
   - graphics
   ? do this via DLL support
   
-? generalize the undefined symbol handling mechanism which is used to
- define enums
-? add a way to extend parsing for user-defined literal constants
- 
+? generalize the undefined symbol handling mechanism which is used to define enums
+
++ add a way to extend parsing for user-defined literal constants
+  -> 'literals' vocabulary
+  
 ? forward referencing
   Problem: forward referencing breaks "forget"
 
@@ -228,6 +251,13 @@ Double has consistent layout, long is reversed on param stack.
 
 
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+January 26 2023
+
+I added MemberObjectMethod and LocalObjectMethod optypes, is done for x86 and amd64,
+still need to do it for ARM.
+I've updated many of the existing scripts to use varop suffixes, and found a number
+of varop suffix bugs in the process.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 January 3 2023
 

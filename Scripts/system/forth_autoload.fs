@@ -27,21 +27,26 @@ makeObject System system
   new StringMap -> system.namedObjects
 
   makeObject StringMap env
-  getEnvironment   -> int numVars  -> ptrTo int envValues  -> ptrTo int envNames
+
+  getEnvironment
+    int numVars!
+    ptrTo int envValues!
+    ptrTo int envNames!
+
   ?do(numVars 0)
     makeObject String varValue
     varValue.set(envValues p@)
     //"adding environment variable " %s envNames @ %s " = " %s varValue.get %s %nl
-    cellsize ->+ envValues
+    cellsize envValues!+
     env.set(varValue envNames p@)
-    cellsize ->+ envNames
-    oclear varValue
+    cellsize envNames!+
+    varValue~
   loop
-  env -> system.env
-  oclear env
+  env system.env!
+  env~
   
   makeObject Array args
-  argc -> int numArgs
+  argc int numArgs!
   args.resize(numArgs)
   ?do(numArgs 0)
     makeObject String arg
@@ -50,8 +55,8 @@ makeObject System system
     //"adding argument " %s arg.get %s %nl
     oclear arg
   loop
-  args -> system.args
-  oclear args
+  args system.args!
+  args~
 ;
 
 _initSystemObject
@@ -73,8 +78,8 @@ $forget("_initSystemObject") drop
   ptrTo byte oldSymbol!
   ptrTo byte newSymbol!
   
-  system.getDefinitionsVocab -> Vocabulary vocab
-  vocab.findEntryByName(oldSymbol) -> ptrTo int oldEntry
+  system.getDefinitionsVocab  Vocabulary vocab!
+  vocab.findEntryByName(oldSymbol)  ptrTo int oldEntry!
   if(oldEntry)
     // need to copy value, since addSymbol below could cause vocabulary memory to be realloced at a different address
     makeObject ByteArray valueBuffer
@@ -86,11 +91,11 @@ $forget("_initSystemObject") drop
     move(valueBuffer.base  newEntry  vocab.getValueLength)
     //newSymbol %s %nl dump(valueBuffer.base 32)
     //newSymbol %s %nl dump(newEntry 32)
-    oclear valueBuffer
+    valueBuffer~
   else
     "Symbol " %s oldSymbol %s " not found!\n" %s
   endif
-  oclear vocab
+  vocab~
 ;
 
 : alias
@@ -106,19 +111,19 @@ alias objNotNull 0<>
 alias ds dstack
 alias , i,
 
-0x7FFFFFFF -> int MAXINT
-0x80000000 -> int MININT
-0xFFFFFFFF -> int MAXUINT
-0x7FFFFFFFFFFFFFFFL -> long MAXLONG
-0x8000000000000000L -> long MINLONG
-0xFFFFFFFFFFFFFFFFL -> long MAXULONG
+0x7FFFFFFF int MAXINT!
+0x80000000 int MININT!
+0xFFFFFFFF int MAXUINT!
+0x7FFFFFFFFFFFFFFFL long MAXLONG!
+0x8000000000000000L long MINLONG!
+0xFFFFFFFFFFFFFFFFL long MAXULONG!
 
 #if FORTH64
 alias Cell Long
 alias CellArray LongArray
-MAXULONG -> cell MAXCELL
-MINLONG -> cell MINCELL
-MAXULONG -> cell MAXUCELL
+MAXULONG cell MAXCELL!
+MINLONG  cell MINCELL!
+MAXULONG cell MAXUCELL!
 
 : depth s0 sp - 3 rshift 1- ;
 : aligned 7+ -8 and ;
@@ -126,9 +131,9 @@ MAXULONG -> cell MAXUCELL
 #else
 alias Cell Int
 alias CellArray IntArray
-MAXINT -> cell MAXCELL
-MININT -> cell MINCELL
-MAXUINT -> cell MAXUCELL
+MAXINT  cell MAXCELL!
+MININT  cell MINCELL!
+MAXUINT cell MAXUCELL!
 
 : depth s0 sp - 2 rshift 1- ;
 : aligned 3+ -4 and ;
@@ -153,6 +158,7 @@ MAXUINT -> cell MAXUCELL
       endif
     endif
   endif
+  srcName~
 ;
     
 
@@ -197,7 +203,7 @@ MAXUINT -> cell MAXUCELL
   // compile number of strings
   numStrings ,
   // create array of pointers to strings
-  here -> ptrTo int string0
+  here ptrTo int string0!
   numStrings cells allot
   // compile strings and stuff ptrs to them into array
   ?do(numStrings 0) 
@@ -304,33 +310,34 @@ enum: eFeatures
 255 string _TempStringA
 255 string _TempStringB
 
-false -> int _helpfileLoaded
+false int _helpfileLoaded!
 mko StringMap _helpMap
 
 : addHelp
-  blword -> ptrTo byte name
+  blword ptrTo byte name!
   mko String helpContents
   helpContents.set($word(0))
   _helpMap.set(helpContents name)
-  oclear helpContents
+  helpContents~
 ;
 
 
 : $help
-  -> ptrTo byte opName
+  ptrTo byte opName!
   
   if( strlen( opName ) 0= )
     // line was empty, just list all help
-    _helpMap.headIter -> StringMapIter iter
+    _helpMap.headIter StringMapIter iter!
     begin
     while(iter.seekNext iter.currentPair)
       %s %bl <String>.get %s %nl
     repeat
-    oclear iter
+    iter~
   else
     if(_helpMap.grab(opName))
-      ->o String opDescription
+      String opDescription!
       opDescription.get %s %nl
+      opDescription~
     else
       opName %s " not found!\n" %s
     endif
@@ -338,10 +345,10 @@ mko StringMap _helpMap
 ;
 
 : help
-  blword -> _TempStringA
+  blword _TempStringA!
   if( _helpfileLoaded not )
-    $load( "help.txt"  )
-    true -> _helpfileLoaded
+    $load( "help.fs"  )
+    true _helpfileLoaded!
     // there is a $help at end of help.txt that will complete the lookup
     _TempStringA
   else
@@ -351,14 +358,14 @@ mko StringMap _helpMap
 
 addHelp immediate    makes most recently defined word have precedence
 : immediate
-  system.getDefinitionsVocab -> Vocabulary vocab
+  system.getDefinitionsVocab Vocabulary vocab!
   vocab.getNewestEntry
   vocab.getValueLength + >r // top of rstack points to length byte of counted string
   move( r@ 1+ _TempStringA r@ c@ )
   r> c@ dup _TempStringA 4- i!
   0 swap _TempStringA + c!
   precedence(pushToken(_TempStringA))
-  oclear vocab
+  vocab~
 ;
 
 addHelp	dump		ADDRESS LEN dump	dump memory
@@ -371,15 +378,15 @@ int dumpWidth
 
 // ADDR LEN OFFSET _dump
 : _dump
-  -> cell offset		// offset is subtracted from the actual data address before display
-  -> cell len
-  -> ptrTo byte addr
+  cell offset!		// offset is subtracted from the actual data address before display
+  cell len!
+  ptrTo byte addr!
   int columns
   ptrTo byte endAddr
   int ch
 
-  addr len + -> endAddr
-  len -> columns
+  addr len + endAddr!
+  len columns!
   begin
   while( addr endAddr < )
 #if FORTH64
@@ -388,7 +395,7 @@ int dumpWidth
     addr offset - "%08x" format %s "   " %s
 #endif
     if( len dumpWidth > )
-      dumpWidth -> columns
+      dumpWidth columns!
     endif
     do( columns 0 )
       addr i + c@ "%02x " format %s
@@ -400,7 +407,7 @@ int dumpWidth
     // why do we have to add 1 to dumpWidth here?
     dumpWidth 1+ columns - 0 do %bl %bl %bl loop
     do( columns 0 )
-      addr i + c@ -> ch
+      addr i + c@ ch!
       if( ch bl >  ch 127 < and )
         ch
       else
@@ -408,28 +415,28 @@ int dumpWidth
       endif
       %c
     loop
-    columns ->+ addr
-    columns ->- len
+    columns addr!+
+    columns len!-
     %nl
   repeat
 ;
 
 // ADDR LEN OFFSET _ldump
 : _ldump
-  -> int offset		// offset is subtracted from the actual data address before display
-  and( 3+ invert( 3 ) ) -> int len
-  and( invert( 3 ) ) -> cell addr
+  int offset!		// offset is subtracted from the actual data address before display
+  and( 3+ invert( 3 ) ) int len!
+  and( invert( 3 ) )    cell addr!
   int columns
   int endAddr
   int ch
 
-  addr len + -> endAddr
-  len -> columns
+  addr len + endAddr!
+  len columns!
   begin
   while( addr endAddr < )
     addr offset - "%08x" format %s "   " %s
     if( len dumpWidth > )
-      dumpWidth -> columns
+      dumpWidth columns!
     endif
     do( columns 0 )
       addr i + @ "%08x " format %s
@@ -438,7 +445,7 @@ int dumpWidth
     // why do we have to add 1 to dumpWidth here?
     dumpWidth 1+ columns - 0 do %bl %bl %bl loop
     do( columns 0 )
-      addr i + c@ -> ch
+      addr i + c@ ch!
       if( ch bl >  ch 127 < and )
         ch
       else
@@ -446,8 +453,8 @@ int dumpWidth
       endif
       %c
     loop
-    columns ->+ addr
-    columns ->- len
+    columns addr!+
+    columns len!-
     %nl
   repeat
 ;
@@ -457,10 +464,10 @@ int dumpWidth
 
 
 : _fdump
-  -> op dumpOp
-  -> int len
-  -> int offset
-  "rb" fopen -> cell infile
+  op dumpOp!
+  int len!
+  int offset!
+  "rb" fopen cell infile!
   cell buff
 
   if( infile 0= )
@@ -469,9 +476,9 @@ int dumpWidth
   endif
   if( len 0= )
     // read entire file
-    infile flen -> len
+    infile flen len!
   endif
-  len malloc -> buff
+  len malloc buff!
   infile offset 0 fseek
   if( 0 <> )
     "fdump fseek failure" %nl exit
@@ -509,9 +516,9 @@ precedence literal   precedence fliteral   precedence dliteral
 
 // given ptr to cstring, compile code which will push ptr to cstring
 : compileStringLiteral
-  -> ptrTo byte src
-  src strlen -> int len
-  len 4+ 0xFFFFFFFC and 2 rshift -> int lenInts
+  ptrTo byte src!
+  src strlen int len!
+  len 4+ 0xFFFFFFFC and 2 rshift int lenInts!
   //opType:makeOpcode( opType:litString lenInts ) ,		// compile literal string opcode
   or(0x15000000 lenInts) ,		// compile literal string opcode
   strcpy( here src )
@@ -551,29 +558,45 @@ alias then endif
 : char+ 1+ ;
 alias cr %nl
 alias space %bl
-: accept
-  stdin fgets dup -> ptrTo byte buffer
-  strlen -> int bytesRead
-  if( bytesRead )
-    if( buffer bytesRead + 1- c@ `\n` = )
-      // trim trailing linefeed from count
-      1 ->- bytesRead
+: accept    // buffer bufferLen ... bytesRead     read up to bufferLen bytes from console into buffer
+  cell bufferLen!
+  ptrTo byte buffer!
+  cell bytesRead
+
+  if(fgets(buffer bufferLen stdin))
+    strlen(buffer) bytesRead!
+    if( bytesRead )
+      if( buffer bytesRead@+ 1- c@ `\n` = )
+        // trim trailing linefeed from count
+        bytesRead--
+      endif
     endif
   endif
   bytesRead
 ;
 
+variable _#tib
+addHelp tib         ... ptrToBuffer     return text input buffer address
+: tib source drop ;
+addHelp #tib        ... ptrToTibCount    return address of variable with tib valid char count
+: #tib source _#tib ! drop _#tib ;
+
+addHelp expect  addr n ...    grab up to n chars from input, storing in buffer at addr
+addHelp span    ... spanAddr    return address of variable holding char count of last expect
+variable span
+: expect accept span ! ;
+
 addHelp $enum       enumInfo enumValue ... str      convert an enum value into its string
 : $enum
-  -> cell enumInfo
-  -> cell enumValue
+  cell enumInfo!
+  cell enumValue!
   findEnumSymbol(enumValue enumInfo)
   if(0=)
     mko String ss
     ss.resize(256)
     ss.format("unknown_%s_%d" enumInfo 16+ enumValue 2)
     addTempString(ss.get ss.length)
-    oclear ss
+    ss~
   endif
 ;
 
@@ -590,7 +613,7 @@ addHelp cd	cd BLAH			change working directory to BLAH
 : makeTempfileName
   getEnvironmentVar("FORTH_TEMP") -> ptrTo byte tempDir
   if(tempDir 0=)
-    "" -> tempDir
+    "" tempDir!
   endif
   mko String timeStr
   timeStr.resize(256)
@@ -606,72 +629,72 @@ addHelp cd	cd BLAH			change working directory to BLAH
 
   addTempString(resultStr.get resultStr.length)
 
-  oclear resultStr
-  oclear timeStr
+  resultStr~
+  timeStr~
 ;
 
 : $shellRun
-  -> ptrTo byte commandString
-  true -> int okay
-  null -> ptrTo byte outName
-  null -> ptrTo byte errName
-  null -> cell outStream
-  null -> cell errStream
-  -1   -> cell oldStdOut
-  -1   -> cell oldStdErr
-  0    -> int bytesRead
-  2048 -> int readSize
-  malloc( readSize 1+ ) -> ptrTo byte buffer
-  -1   -> int result
+  ptrTo byte commandString!
+  true int okay!
+  null ptrTo byte outName!
+  null ptrTo byte errName!
+  null cell outStream!
+  null cell errStream!
+  -1   cell oldStdOut!
+  -1   cell oldStdErr!
+  0    int bytesRead!
+  2048 int readSize!
+  malloc( readSize 1+ ) ptrTo byte buffer!
+  -1   int result!
   
   // create temp filenames for stdout and stderr streams
-  makeTempfileName -> outName
+  makeTempfileName outName!
   if( outName 0= )
     error( "$shellRun: failure creating standard out tempfile name" )
-    false -> okay
+    false okay!
   endif
   
   makeTempfileName -> errName
   if( errName 0= )
     error( "$shellRun: failure creating standard error tempfile name" )
-    false -> okay
+    false okay!
   endif
   
   // open temp file which will take standard output
   if( outName )
-    fopen( outName "w" ) -> outStream
+    fopen( outName "w" ) outStream!
     if( outStream 0= )
       addErrorText( "$shellRun: failure opening standard out file " )
       error( outName )
-      false -> okay
+      false okay!
     endif
   endif
   
   // open temp file which will take standard error
   if( errName )
-    fopen( errName "w" ) -> errStream
+    fopen( errName "w" ) errStream!
     if( errStream 0= )
       addErrorText( "$shellRun: failure opening standard error file " )
       error( errName )
-      false -> okay
+      false okay!
     endif
   endif
   
   // dup standard output file descriptor so we can restore it on exit
   if( okay )
-    _dup( 1 ) -> oldStdOut
+    _dup( 1 ) oldStdOut!
     if( oldStdOut -1 = )
       error( "$shellRun: failure dup-ing stdout" )
-      false -> okay
+      false okay!
     endif
   endif
     
   // dup standard error file descriptor so we can restore it on exit
   if( okay )
-    _dup( 2 ) -> oldStdErr
+    _dup( 2 ) oldStdErr!
     if( oldStdErr -1 = )
       error( "$shellRun: failure dup-ing stderr" )
-      false -> okay
+      false okay!
     endif
   endif
 
@@ -681,16 +704,16 @@ addHelp cd	cd BLAH			change working directory to BLAH
   if( okay )
     if( _dup2( _fileno( outStream ) 1 ) -1 = )
       error( "$shellRun: failure redirecting stdout" )
-      false -> okay
+      false okay!
     else
       // redirect standard error to temp error file
       if( _dup2( _fileno( errStream ) 2 ) -1 = )
         error( "$shellRun: failure redirecting stderr" )
-        false -> okay
+        false okay!
       else
       
         // have DOS shell execute command line string pointed to by TOS
-        _shellRun( commandString ) -> result
+        _shellRun( commandString ) result!
         
         fflush( stdout ) drop
         fflush( stderr ) drop
@@ -701,16 +724,16 @@ addHelp cd	cd BLAH			change working directory to BLAH
       _dup2( oldStdOut 1 ) drop
     endif
     fclose( outStream ) drop
-    null -> outStream
+    null outStream!
     fclose( errStream ) drop
-    null -> errStream
+    null errStream!
   endif
 
   //  
   // dump contents of output and error files using forth console IO routines
   //
   if( okay )
-    fopen( outName "r" ) -> outStream
+    fopen( outName "r" ) outStream!
     if( outStream )
       begin
         fread( buffer 1 readSize outStream ) -> bytesRead
@@ -722,22 +745,22 @@ addHelp cd	cd BLAH			change working directory to BLAH
     else
       addErrorText( "$shellRun: failure reopening standard output file " )
       error( outName )
-      false -> okay
+      false okay!
     endif
     
     fopen( errName "r" ) -> errStream
     if( errStream )
       begin
-        fread( buffer 1 readSize errStream ) -> bytesRead
+        fread( buffer 1 readSize errStream ) bytesRead!
         0 bytesRead buffer byte[] c!
         buffer %s
       until( feof( errStream ) )
       fclose( errStream ) drop
-      null -> errStream
+      null errStream!
     else
       addErrorText( "$shellRun: failure reopening standard error file " )
       error( errName )
-      false -> okay
+      false okay!
     endif
   endif
 
@@ -772,11 +795,11 @@ addHelp pwd	pwd			display working directory
 
 addHelp ls	ls BLAH		display directory (BLAH is optional filespec)
 : ls
-  `\n` $word -> _TempStringA
+  `\n` $word _TempStringA!
 #if WINDOWS
-  "dir" -> _TempStringB
+  "dir" _TempStringB!
 #else
-  "ls" -> _TempStringB
+  "ls" _TempStringB!
 #endif
   if( strcmp( _TempStringA "" ) )
     // user specified a directory
@@ -788,8 +811,8 @@ addHelp ls	ls BLAH		display directory (BLAH is optional filespec)
 
 addHelp mv	mv OLDNAME NEWNAME		rename a file
 : mv
-  blword -> _TempStringA
-  blword -> _TempStringB
+  blword _TempStringA!
+  blword _TempStringB!
   rename( _TempStringA _TempStringB )
   if( 0<> )
     addErrorText( "mv: failure renaming file " )
@@ -799,7 +822,7 @@ addHelp mv	mv OLDNAME NEWNAME		rename a file
 
 addHelp rm	rm FILENAME		remove a file
 : rm
-  blword -> _TempStringA
+  blword _TempStringA!
   remove( _TempStringA )
   if( 0<> )
     addErrorText( "rm: failure removing file " )
@@ -810,33 +833,32 @@ addHelp rm	rm FILENAME		remove a file
 addHelp more more FILENAME	display FILENAME on screen
 : more
   255 string linebuff
-  fopen( blword "r" ) -> cell infile
+  fopen( blword "r" ) cell infile!
   if( infile null = )
     exit
   endif
-  false -> int done
-  0 -> int lineCounter
+  false int done!
+  int lineCounter
   begin
-    fgets( linebuff 250 infile ) -> int result
+    fgets( linebuff 250 infile ) int result!
     
     if( result null = )
-      true -> done
+      true done!
     else
       result %s
       // pause every 50 lines
-      1 ->+ lineCounter
-      if( lineCounter 50 > )
-        0 -> lineCounter
+      if( lineCounter++@ 50 > )
+        0 lineCounter!
         "Hit q to quit, any other key to continue\n" %s
         fgetc( stdin ) dup
         if( `q` = swap `Q` = or )
-          true -> done
+          true done!
         endif
       endif
     endif
     
     if( feof( infile ) )
-      true -> done
+      true done!
     endif
   done until
   %nl
@@ -968,19 +990,19 @@ enum: DIRENT_TYPE_BITS
   cell dirHandle
   dirent entry
   ptrTo byte pName
-  new Array -> Array of String filenames
+  new Array Array of String filenames!
   ref dirHandle %x %bl entry %x %nl
   
-  opendir -> dirHandle
+  opendir dirHandle!
   if( dirHandle )
     begin
     while( readdir(dirHandle entry) )
-      entry.d_name(0 ref) -> pName
+      entry.d_name(0 ref) pName!
       if(pName c@ `.` <>)
-        new String -> String filename
+        new String String filename!
         filename.set(pName)
         filenames.push(filename)
-        oclear filename
+        filename~
       endif
     repeat
     closedir(dirHandle) drop
@@ -994,12 +1016,12 @@ enum: DIRENT_TYPE_BITS
 // stuff in t[ ... ]t is only compiled if compileTrace is true, and is only executed if runTrace is true
 // stuff in assert[ ... ] is only compiled if compileAsserts is true
 
-false -> int compileDebug
+false int compileDebug!
 
-false -> int compileTrace
-false -> int runTrace
+false int compileTrace!
+false int runTrace!
 
-false -> int compileAsserts
+false int compileAsserts!
 
 : d[
   // remember start of debug section in case we need to uncompile it
@@ -1075,20 +1097,21 @@ addHelp oshow   OBJECT oshow ...    like OBJECT.show, but doesn't crash if OBJEC
 0x3ff71547652b82feL 2constant dlog2e
 0x3fd34413509f79ffL 2constant dlog10two
 0x3fe62e42fefa39efL 2constant dlntwo
+0x7fffffffffffffffL 2constant dnan
 
 0x40490fdb constant fpi
 0x40549a78 constant flog2ten
 0x3fb8aa3b constant flog2e
 0x3e9a209b constant flog10two
 0x3f317218 constant flntwo
-
+0x7fffffff constant fnan
 //######################################################################
 // automated test support
 
 // PARAM_VALUE extParam PARAM_TYPE PARAM_NAME
 : extParam
-  blword -> ptrTo byte paramType
-  blword -> ptrTo byte paramName
+  blword ptrTo byte paramType!
+  blword ptrTo byte paramName!
   
   if($find(paramName))
     // already defined, just drop value on TOS
@@ -1097,12 +1120,12 @@ addHelp oshow   OBJECT oshow ...    like OBJECT.show, but doesn't crash if OBJEC
     mko String paramString
     
     if(strcmp(paramType "string"))
-      paramString.appendFormatted("-> %s %s" r[ paramType paramName ]r)
+      paramString.appendFormatted("%s %s!" r[ paramType paramName ]r)
     else
-      // param is string, so build: "-> STRING_LEN string PARAM_NAME"
-      -> ptrTo byte stringVal
+      // param is string, so build: "STRING_LEN string PARAM_NAME!"
+      ptrTo byte stringVal!
       stringVal
-      paramString.appendFormatted("-> %d string %s" r[ strlen(stringVal) paramName ]r)
+      paramString.appendFormatted("%d string %s!" r[ strlen(stringVal) paramName ]r)
     endif
     $evaluate(paramString.get)
     
@@ -1112,7 +1135,7 @@ addHelp oshow   OBJECT oshow ...    like OBJECT.show, but doesn't crash if OBJEC
 
 // scripts that may be used in automated testing should check 'testsRunning' and skip printing anything
 //  which could have non-predictable output - like running time, clock time or random elements
-false -> bool testsRunning
+bool testsRunning
 
 mko Array consoleOutStreamStack
 
@@ -1124,7 +1147,7 @@ addHelp pushConsoleOut   OUTPUT_STREAM pushConsoleOut ...   save current console
 
 addHelp pushFileOut   OUTPUT_FILENAME pushFileOut ...   redirect output stream to named file
 : pushFileOut
-  -> ptrTo byte outFileName
+  ptrTo byte outFileName!
   mko FileOutStream outFile
   
   if(outFile.open(outFileName "w"))
@@ -1133,7 +1156,7 @@ addHelp pushFileOut   OUTPUT_FILENAME pushFileOut ...   redirect output stream t
     addErrorText(outFileName)
     error("pushOutputFile: failed to open ")
   endif
-  oclear outFile
+  outFile~
 ;
 
 addHelp popConsoleOut   popConsoleOut ... OLD_CONSOLE_OUTSTREAM      restore previous console output stream
@@ -1163,12 +1186,12 @@ addHelp outToScreen   restore output to the normal console
 //  having garbled output - don't put anything inside p[...]p that could block
 //  your thread, or you will get a deadlock
 AsyncLock printLock
-system.createAsyncLock -> printLock
+system.createAsyncLock printLock!
 : p[ printLock.grab ;
 : ]p printLock.ungrab ;
 
 // use this version of printlocks if you want to be able to turn it off dynamically:
-//true -> bool usePrintLocks
+//true bool usePrintLocks!
 //: p[ if(usePrintLocks) printLock.grab endif ;
 //: ]p if(usePrintLocks) printLock.ungrab endif ;
 
@@ -1192,7 +1215,7 @@ addHelp popContext restore the current base, search vocabularies and definitions
   else
     base !
     system.setDefinitionsVocab
-    -> numSearchVocabs
+    numSearchVocabs!
     only
     if(numSearchVocabs 0>)
       system.setSearchVocabTop

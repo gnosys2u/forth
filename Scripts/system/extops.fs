@@ -30,11 +30,11 @@ lf extops_arm
 precedence doescode
 
 : fm/mod
-  -> int denominator
-  -> long numerator
+  int denominator!
+  long numerator!
   sm/rem( numerator denominator )
-  -> int quotient
-  -> int remainder
+  int quotient!
+  int remainder!
   if( remainder 0= )
     remainder quotient
     exit
@@ -47,35 +47,35 @@ precedence doescode
     remainder quotient
     exit
   endif
-  denominator ->+ remainder
-  1 ->- quotient
+  denominator remainder!+
+  quotient--
   remainder quotient
 ;
 
 // ud1 c-addr1 u1 -- ud2 c-addr2 u2 
 : >number
   //ds
-  -> int numChars
-  -> int pSrc
-  -> long accum
-  base @ i2l -> long lbase
+  int numChars!
+  int pSrc!
+  long accum!
+  base @ i2l long lbase!
   begin
-    pSrc @ -> byte ch
+    pSrc @ byte ch!
     if( ch `0` >= ch `9` <= and )
-      `0` ->- ch
+      `0` ch!-
     else
       if( ch `A` >= ch `Z` <= and  ch `a` >= ch `z` <= and  or )
-        ch 0x20 or -> ch  // lowercase it
-        `a` 0xa - ->- ch
+        ch 0x20 or ch!  // lowercase it
+        `a` 0xa - ch!-
       else
         // force exit
-        base @ -> ch
+        base @ ch!
       endif
     endif
     if( ch base @ < )
-      1 ->+ pSrc
-      1 ->- numChars
-      accum lbase l* ch i2l l+ -> accum
+      pSrc++
+      numChars--
+      accum lbase l* ch i2l l+ accum!
       //"adding " %s ch %d " total " %s accum %2d  %bl %bl numChars %d " chars left" %s %nl
       numChars 0=
     else

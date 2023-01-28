@@ -18,16 +18,16 @@ class: evil
 	int standardMark
 
 	m: reset
-		0 -> areg
-		0 -> wheelPos
-		new ByteArray -> wheel
+		areg~
+		wheelPos~
+		new ByteArray wheel!
 		wheel.resize(100)
-		1 -> wheelSize
-		new ByteArray -> pental
+		1 wheelSize!
+		new ByteArray pental!
 		pental.resize(pentalSize)
-		0 -> sourcePos
-		0 -> wheelPos
-		0 -> pentalPos
+		sourcePos~
+		wheelPos~
+		pentalPos~
 	;m
 
 
@@ -38,31 +38,31 @@ class: evil
 	
 	// TOS points to c-style string
 	m: init
-		new ByteArray -> source
+		new ByteArray source!
 		
-		5 -> pentalSize
+		5 pentalSize!
 		reset
 	;m
 	
 	m: jump
-		-> int forward
+		int forward!
 
 		if( standardMark )
 			`m`
 		else
 			`j`
 		endif
-		-> byte mark
+		byte mark!
 		
         if( forward )
 			begin
             while( sourcePos sourceSize <   source.get(sourcePos) mark <>   and )
-                1 ->+ sourcePos
+                sourcePos++
 			repeat
         else
 			begin
             while( sourcePos  0>=   source.get(sourcePos) mark <>   and )
-                1 ->- sourcePos
+                sourcePos--
 			repeat
         endif
 	;m
@@ -70,18 +70,19 @@ class: evil
 	m: wopen
         int ix
 		if( wheelSize wheel.count >= )
-			wheel -> ByteArray temp
-			new ByteArray -> wheel
+			wheel ByteArray temp!
+			new ByteArray wheel!
 			wheel.resize(temp.count 100+)
 			do(wheelSize 0)
 				wheel.set(temp.get(i) i)
 			loop
+            temp~
 		endif
-		wheelSize -> ix
+		wheelSize ix!
 		begin
 		while(ix wheelPos >)
 			wheel.set(wheel.get(i 1-) i)
-			1 ->- ix
+			ix--
 		repeat
 		wheel.set(0 wheelPos)
 	;m
@@ -90,33 +91,33 @@ class: evil
     create weaveMap  4 c, 1 c, 16 c, 2 c, 64 c, 8 c, 128 c, 32 c,
 
 	m: weave
-		-> byte x
+		byte x!
 		
-		1 -> int mask
-		0 -> int answer
+		1 int mask!
+		0 int answer!
 		
 		do(8 0)
 			if( x mask and )
-				or( answer   weaveMap i + c@ ) -> answer
+				or( answer   weaveMap i + c@ ) answer!
 			endif
-			mask 2* -> mask
+			mask 2* mask!
 		loop
 		
 		answer
 	;m
 	
 	m: swap
-		wheel -> ByteArray temp
-		source -> wheel
-		temp -> source
-		wheelPos -> int t
-		sourcePos -> wheelPos
-		t -> sourcePos
-		wheelSize -> t
-		sourceSize -> wheelSize
-		t -> sourceSize
+		wheel ByteArray temp!
+		source wheel!
+		temp source!
+		wheelPos int t!
+		sourcePos wheelPos!
+		t sourcePos!
+		wheelSize t!
+		sourceSize wheelSize!
+		t sourceSize!
 		
-		oclear temp
+		temp~
 	;m
 	
 	m: read
@@ -131,94 +132,94 @@ class: evil
 	;m
 
 	m: doOne
-		-> byte cmd
+		byte cmd!
 		
-		`m` -> byte mark
-		`j` -> byte altmark
+		`m` byte mark!
+		`j` byte altmark!
 		byte b
 
 		case( cmd )
-			`a` of	1 ->+ areg							endof
+			`a` of	areg++  							endof
 
 			`b` of	jump(false)							endof
 
 			`c` of	wopen								endof
 
 			`d` of
-				wheelPos -> int ix
+				wheelPos int ix!
 				begin
 				while(ix wheelSize 1- <)
 					wheel.set(wheel.get(ix 1+) ix)
 				repeat
-				1 ->- wheelSize
+				wheelSize--
 				if( wheelSize 0<= )
-					1 -> wheelSize
-					0 -> wheelPos
+					1 wheelSize!
+					0 wheelPos!
 					wheel.set(0 wheelPos)
 				endif
 			endof
 			
-			`e` of	weave(areg) -> areg					endof
+			`e` of	weave(areg) areg!					endof
 
 			`f` of	jump(true)							endof
 
-			`g` of	pental.get(pentalPos) -> areg		endof
+			`g` of	pental.get(pentalPos) areg! 		endof
 
 			`h` of
-				pentalPos 1+ pentalSize mod -> pentalPos
+				pentalPos 1+ pentalSize mod pentalPos!
 			endof
 			
 			`i` of
-				wheelPos 1+ wheelSize mod -> wheelPos
+				wheelPos 1+ wheelSize mod wheelPos!
 			endof
 			
 			`k` of	pental.set(areg pentalPos)			endof
 
 			`l` of
-				wheel.get(wheelPos) -> b
+				wheel.get(wheelPos) b!
 				wheel.set(areg wheelPos)
-				b -> areg
+				b areg!
 			endof
 			
 			`n` of
-                1 ->- pentalPos
-                if( pentalPos 0< )   pentalSize 1- -> pentalPos   endif
+                pentalPos--
+                if( pentalPos 0< )   pentalSize 1- pentalPos!   endif
 			endof
 
 			`o` of
-                1 ->- wheelPos
-                if( wheelPos 0< )   wheelSize 1- -> wheelPos   endif
+                wheelPos--
+                if( wheelPos 0< )   wheelSize 1- wheelPos!   endif
 			endof
 
-			`p` of	wheel.get(wheelPos) -> areg			endof
+			`p` of	wheel.get(wheelPos) areg!			endof
 
 			`q` of	swap								endof
 
-			`r` of	read -> areg						endof
+			`r` of	read areg!  						endof
 
-			`s` of	if(areg 0=)  1 ->+ sourcePos endif	endof
+			`s` of	if(areg 0=)  sourcePos++ endif	    endof
 
-			`t` of	if(areg 0<>) 1 ->+ sourcePos endif	endof
+			`t` of	if(areg 0<>) sourcePos++ endif	    endof
 
-			`u` of	1 ->- areg							endof
+			`u` of	areg--  							endof
 
 			`v` of
-                pental.get(pentalPos) -> b
+                pental.get(pentalPos) b!
                 pental.set(areg pentalPos)
-                b -> areg
+                b areg!
 			endof
 
 			`w` of	write(areg)							endof
 
-			`x` of	not(standardMark) -> standardMark	endof
+			`x` of	not(standardMark) standardMark!	    endof
 
 			`y` of	wheel.set(areg wheelPos)			endof
 
-			`z` of	0 -> areg							endof
+			`z` of	areg~   							endof
 
 		endcase
 		
-		1 ->+ sourcePos
+		sourcePos++
 	;m
     
 	m: execute

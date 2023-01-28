@@ -207,7 +207,7 @@ dll_3 TTF_RenderGlyph_Blended
 
 // Close an opened font file 
 // extern DECLSPEC void SDLCALL TTF_CloseFont(TTF_Font *font);
-DLLVoid DLLVoid dll_1 TTF_CloseFont
+DLLVoid dll_1 TTF_CloseFont
 
 // De-initialize the TTF engine 
 // extern DECLSPEC void SDLCALL TTF_Quit(void);
