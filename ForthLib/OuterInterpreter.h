@@ -13,12 +13,14 @@
 #include "Forth.h"
 #include "ForthShell.h"
 #include "ForthInner.h"
-#include "ForthVocabulary.h"
 #include "ForthStructs.h"
+#include "VocabularyStack.h"
 
 class ForthFiber;
 class ForthShell;
 class ForthOpcodeCompiler;
+class ForthVocabulary;
+class LocalVocabulary;
 
 typedef enum {
     //kEngineFlagHasLocalVars              = 0x01,

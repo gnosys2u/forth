@@ -16,6 +16,9 @@
 #include "ForthBuiltinClasses.h"
 #include "ForthShowContext.h"
 
+#include "TypesManager.h"
+#include "ClassVocabulary.h"
+
 #include "ONumber.h"
 
 namespace ONumber

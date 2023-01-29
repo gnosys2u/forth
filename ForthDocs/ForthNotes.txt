@@ -252,6 +252,13 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+January 28 2023
+
+I did more restructure work:
+o broke ClassVocabulary, TypesManager and NativeType out of ForthStructs
+o broke LocalVocabulary, DLLVocabulary and VocabularyStack out of ForthVocabulary
+o chopped "Forth" off the front of a bunch of class names
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 January 26 2023
 
 I added MemberObjectMethod and LocalObjectMethod optypes, is done for x86 and amd64,

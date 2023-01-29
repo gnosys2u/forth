@@ -38,6 +38,12 @@
 #include "ForthShowContext.h"
 #include "ForthObjectReader.h"
 #include "ForthBuiltinClasses.h"
+#include "TypesManager.h"
+#include "LocalVocabulary.h"
+#include "ClassVocabulary.h"
+#include "NativeType.h"
+#include "DLLVocabulary.h"
+
 #if defined(LINUX) || defined(MACOSX)
 #include <strings.h>
 #include <errno.h>

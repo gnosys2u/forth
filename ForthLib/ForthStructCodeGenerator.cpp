@@ -12,6 +12,9 @@
 #include "ForthStructCodeGenerator.h"
 #include "ForthBuiltinClasses.h"
 #include "ForthParseInfo.h"
+#include "TypesManager.h"
+#include "LocalVocabulary.h"
+#include "ClassVocabulary.h"
 
 // symbol entry layout for struct vocabulary (fields and method symbols
 // offset   contents

@@ -8,6 +8,7 @@
 #include "ForthBlockFileManager.h"
 #include "ForthEngine.h"
 #include "OuterInterpreter.h"
+#include "ClassVocabulary.h"
 
 // TODO:
 //

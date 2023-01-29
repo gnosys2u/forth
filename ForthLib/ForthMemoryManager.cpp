@@ -7,6 +7,7 @@
 #include "pch.h"
 #include "Forth.h"
 #include "ForthEngine.h"
+#include "ClassVocabulary.h"
 
 #if defined(LINUX) || defined(MACOSX)
 #endif

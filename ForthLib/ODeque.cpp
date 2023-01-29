@@ -16,6 +16,9 @@
 #include "ForthShowContext.h"
 #include "ForthObjectReader.h"
 
+#include "TypesManager.h"
+#include "ClassVocabulary.h"
+
 #include "ODeque.h"
 
 namespace ODeque

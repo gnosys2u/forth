@@ -20,6 +20,7 @@
 #include "OuterInterpreter.h"
 #include "ForthShowContext.h"
 #include "ForthBuiltinClasses.h"
+#include "ClassVocabulary.h"
 
 // this is the number of extra longs to allocate at top and
 //    bottom of stacks

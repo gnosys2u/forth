@@ -9,6 +9,8 @@
 #include "ForthShowContext.h"
 
 #include "ForthEngine.h"
+#include "ClassVocabulary.h"
+
 
 //////////////////////////////////////////////////////////////////////
 ////

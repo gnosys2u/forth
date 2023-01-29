@@ -24,6 +24,11 @@
 #include "ForthPortability.h"
 #include "ForthBuiltinClasses.h"
 #include "ForthParseInfo.h"
+#include "LocalVocabulary.h"
+#include "VocabularyStack.h"
+#include "NativeType.h"
+#include "TypesManager.h"
+#include "ClassVocabulary.h"
 
 
 //////////////////////////////////////////////////////////////////////

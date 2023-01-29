@@ -25,6 +25,7 @@
 #include "ForthBlockFileManager.h"
 #include "ForthParseInfo.h"
 #include "OuterInterpreter.h"
+#include "ClassVocabulary.h"
 
 extern "C"
 {

@@ -5,10 +5,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "Forth.h"
-#include "ForthBuiltinClasses.h"
-#include "ForthForgettable.h"
 #include "ForthVocabulary.h"
+#include "ForthBuiltinClasses.h"
 #include "ForthStructCodeGenerator.h"
 #include <vector>
 
@@ -76,94 +74,6 @@ typedef struct
 	int32_t numElements;
 } ForthFieldInitInfo;
 
-class ForthInterface
-{
-public:
-	ForthInterface( ClassVocabulary* pDefiningClass=NULL );
-	virtual ~ForthInterface();
-
-	void					Copy( ForthInterface* pInterface, bool isPrimaryInterface );
-	void					Implements( ClassVocabulary* pClass );
-	ClassVocabulary*	GetDefiningClass();
-	forthop*				GetMethods();
-    forthop					GetMethod( int index );
-	void					SetMethod(int index, forthop method );
-    int					    AddMethod(forthop method );
-    int                     GetMethodIndex( const char* pName );
-    int					    GetNumMethods();
-    int					    GetNumAbstractMethods();
-protected:
-	ClassVocabulary*   mpDefiningClass;
-    std::vector<forthop>    mMethods;
-	int                     mNumAbstractMethods;
-};
-
-// a struct accessor compound operation must be less than this length in longs
-#define MAX_ACCESSOR_LONGS  64
-
-class TypesManager : public Forgettable
-{
-public:
-    TypesManager();
-    ~TypesManager();
-
-    virtual void    ForgetCleanup( void *pForgetLimit, forthop op );
-
-    // compile/interpret symbol if it is a valid structure accessor
-    virtual bool    ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus );
-
-    // compile symbol if it is a class member variable or method
-    virtual bool    ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus, VarOperation varop = VarOperation::kVarDefaultOp );
-
-    void            AddBuiltinClasses(OuterInterpreter* pOuter);
-    void            ShutdownBuiltinClasses(ForthEngine* pEngine);
-
-    // add a new structure type
-    StructVocabulary*          StartStructDefinition( const char *pName );
-    void                            EndStructDefinition( void );
-	// default classIndex value means assign next available classIndex
-	ClassVocabulary*           StartClassDefinition(const char *pName, int classIndex = kNumBuiltinClasses, bool isInterface = false);
-    void                            EndClassDefinition( void );
-    static TypesManager*       GetInstance( void );
-
-    // return info structure for struct type specified by typeIndex
-    ForthTypeInfo*        GetTypeInfo( int typeIndex );
-	ClassVocabulary* GetClassVocabulary(int typeIndex) const;
-	ForthInterface* GetClassInterface(int typeIndex, int interfaceIndex) const;
-
-    // return vocabulary for a struct type given its opcode or name
-    StructVocabulary*  GetStructVocabulary( forthop op );
-	StructVocabulary*	GetStructVocabulary( const char* pName );
-
-    void GetFieldInfo( int32_t fieldType, int32_t& fieldBytes, int32_t& alignment );
-
-    StructVocabulary*  GetNewestStruct( void );
-    ClassVocabulary*   GetNewestClass( void );
-    BaseType                GetBaseTypeFromName( const char* typeName );
-    NativeType*        GetNativeTypeFromName( const char* typeName );
-    int32_t                 GetBaseTypeSizeFromName( const char* typeName );
-    forthop*                GetClassMethods();
-
-    virtual const char* GetTypeName();
-    virtual const char* GetName();
-
-	inline const std::vector<ForthFieldInitInfo>&	GetFieldInitInfos() {  return mFieldInitInfos;  }
-	void AddFieldInitInfo(const ForthFieldInitInfo& fieldInitInfo);
-	void					DefineInitOpcode();
-
-protected:
-    // mStructInfo is an array with an entry for each defined structure type
-	std::vector<ForthTypeInfo>      mStructInfo;
-    static TypesManager*       mpInstance;
-    ForthVocabulary*                mpSavedDefinitionVocab;
-    char                            mToken[ DEFAULT_INPUT_BUFFER_LEN ];
-    forthop                         mCode[ MAX_ACCESSOR_LONGS ];
-    forthop*                        mpClassMethods;
-	ForthStructCodeGenerator*		mpCodeGenerator;
-	std::vector<ForthFieldInitInfo>	mFieldInitInfos;
-	cell							mNewestTypeIndex;
-};
-
 class StructVocabulary : public ForthVocabulary
 {
 public:
@@ -219,78 +129,4 @@ protected:
     StructVocabulary   *mpSearchNext;
 	forthop					mInitOpcode;
 };
-
-class ClassVocabulary : public StructVocabulary
-{
-public:
-    ClassVocabulary( const char* pName, int typeIndex );
-    virtual ~ClassVocabulary();
-
-    // handle invocation of a struct op - define a local/global struct or struct array, or define a field
-    virtual void	    DefineInstance(void);
-    virtual void	    DefineInstance(char* pInstanceName, const char* pContainedClassName = nullptr);
-
-    virtual const char* GetTypeName();
-
-	int                 AddMethod( const char* pName, int methodIndex, forthop op );
-	int 				FindMethod( const char* pName );
-	void				Implements( const char* pName );
-	void				EndImplements( void );
-	int32_t				GetClassId( void )		{ return mTypeIndex; }
-
-	ForthInterface*		GetInterface( int32_t index );
-    ForthInterface*     GetCurrentInterface();
-
-    forthop*            GetMethods();
-    int32_t                FindInterfaceIndex( int32_t classId );
-	int32_t				GetNumInterfaces( void );
-    virtual void        Extends( ClassVocabulary *pParentClass );
-    ForthClassObject*   GetClassObject(void);
-    void                FixClassObjectMethods(void);
-    ClassVocabulary* ParentClass( void );
-
-    virtual void        PrintEntry(forthop*   pEntry);
-    void                SetCustomObjectReader(CustomObjectReader reader);
-    CustomObjectReader  GetCustomObjectReader();
-
-protected:
-    int32_t                        mCurrentInterface;
-	ClassVocabulary*       mpParentClass;
-	std::vector<ForthInterface *>	mInterfaces;
-    ForthClassObject*           mpClassObject;
-    CustomObjectReader          mCustomReader;
-	static ClassVocabulary* smpObjectClass;
-};
-
-class InterfaceVocabulary : public ClassVocabulary
-{
-public:
-    InterfaceVocabulary(const char* pName, int typeIndex);
-};
-
-class NativeType
-{
-public:
-    NativeType( const char* pName, int numBytes, BaseType nativeType );
-    virtual ~NativeType();
-    virtual void DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_t flags=0 );
-
-    inline int32_t GetGlobalOp( void ) { return (int32_t)mBaseType + gCompiledOps[OP_DO_BYTE]; };
-    inline int32_t GetGlobalArrayOp( void ) { return (int32_t)mBaseType + gCompiledOps[OP_DO_BYTE_ARRAY]; };
-    inline int32_t GetLocalOp( void ) { return (int32_t)mBaseType + kOpLocalByte; };
-    inline int32_t GetFieldOp( void ) { return (int32_t)mBaseType + kOpFieldByte; };
-    inline int32_t GetAlignment( void ) { return (mNumBytes > 4) ? 4 : mNumBytes; };
-    inline int32_t GetSize( void ) { return mNumBytes; };
-    inline const char* GetName( void ) { return mpName; };
-    inline BaseType GetBaseType( void ) { return mBaseType; };
-
-protected:
-    const char*         mpName;
-    int                 mNumBytes;
-    BaseType       mBaseType;
-};
-
-extern NativeType gNativeTypeByte, gNativeTypeUByte, gNativeTypeShort, gNativeTypeUShort,
-		gNativeTypeInt, gNativeTypeUInt, gNativeTypeLong, gNativeTypeULong, gNativeTypeFloat,
-        gNativeTypeDouble, gNativeTypeString, gNativeTypeOp, gNativeTypeObject;
 

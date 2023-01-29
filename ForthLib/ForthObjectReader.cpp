@@ -7,6 +7,8 @@
 #include "pch.h"
 #include <stdexcept>
 #include "ForthObjectReader.h"
+#include "TypesManager.h"
+#include "ClassVocabulary.h"
 //#include "ForthEngine.h"
 
 /*

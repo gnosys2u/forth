@@ -12,6 +12,7 @@
 #include "ForthShell.h"
 #include "ForthVocabulary.h"
 #include "ForthObject.h"
+#include "ClassVocabulary.h"
 
 // for combo optypes which include an op, the op optype is native if
 // we are defining (some) ops in assembler, otherwise the op optype is C code.

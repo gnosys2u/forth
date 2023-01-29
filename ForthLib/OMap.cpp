@@ -17,6 +17,9 @@
 #include "ForthShowContext.h"
 #include "ForthObjectReader.h"
 
+#include "TypesManager.h"
+#include "ClassVocabulary.h"
+
 #include "OMap.h"
 
 namespace OMap

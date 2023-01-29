@@ -18,6 +18,9 @@
 #include "ForthShowContext.h"
 #include "ForthObjectReader.h"
 
+#include "TypesManager.h"
+#include "ClassVocabulary.h"
+
 #include "OArray.h"
 #include "OList.h"
 #include "OMap.h"

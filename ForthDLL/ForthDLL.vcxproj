@@ -496,6 +496,8 @@
     <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ForthLib\ClassVocabulary.h" />
+    <ClInclude Include="..\ForthLib\DLLVocabulary.h" />
     <ClInclude Include="..\ForthLib\Forth.h" />
     <ClInclude Include="..\ForthLib\ForthBlockFileManager.h" />
     <ClInclude Include="..\ForthLib\ForthBuiltinClasses.h" />
@@ -520,6 +522,8 @@
     <ClInclude Include="..\ForthLib\ForthStructs.h" />
     <ClInclude Include="..\ForthLib\ForthThread.h" />
     <ClInclude Include="..\ForthLib\ForthVocabulary.h" />
+    <ClInclude Include="..\ForthLib\LocalVocabulary.h" />
+    <ClInclude Include="..\ForthLib\NativeType.h" />
     <ClInclude Include="..\ForthLib\OArray.h" />
     <ClInclude Include="..\ForthLib\ODeque.h" />
     <ClInclude Include="..\ForthLib\OList.h" />
@@ -531,11 +535,15 @@
     <ClInclude Include="..\ForthLib\OSystem.h" />
     <ClInclude Include="..\ForthLib\OuterInterpreter.h" />
     <ClInclude Include="..\ForthLib\sys\dirent.h" />
+    <ClInclude Include="..\ForthLib\TypesManager.h" />
+    <ClInclude Include="..\ForthLib\VocabularyStack.h" />
     <ClInclude Include="ForthDLL.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\ForthLib\ClassVocabulary.cpp" />
+    <ClCompile Include="..\ForthLib\DLLVocabulary.cpp" />
     <ClCompile Include="..\ForthLib\ForthBlockFileManager.cpp" />
     <ClCompile Include="..\ForthLib\ForthBuiltinClasses.cpp" />
     <ClCompile Include="..\ForthLib\ForthClient.cpp" />
@@ -757,6 +765,8 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">true</BrowseInformation>
     </ClCompile>
+    <ClCompile Include="..\ForthLib\LocalVocabulary.cpp" />
+    <ClCompile Include="..\ForthLib\NativeType.cpp" />
     <ClCompile Include="..\ForthLib\OArray.cpp" />
     <ClCompile Include="..\ForthLib\ODeque.cpp" />
     <ClCompile Include="..\ForthLib\OList.cpp" />
@@ -767,6 +777,8 @@
     <ClCompile Include="..\ForthLib\OString.cpp" />
     <ClCompile Include="..\ForthLib\OSystem.cpp" />
     <ClCompile Include="..\ForthLib\OuterInterpreter.cpp" />
+    <ClCompile Include="..\ForthLib\TypesManager.cpp" />
+    <ClCompile Include="..\ForthLib\VocabularyStack.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="ForthDLL.cpp" />
     <ClCompile Include="pch.cpp">

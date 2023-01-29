@@ -18,6 +18,9 @@
 #include "ForthThread.h"
 #include "ForthPortability.h"
 
+#include "TypesManager.h"
+#include "ClassVocabulary.h"
+
 #include "OSystem.h"
 #include "OStream.h"
 #include "OString.h"

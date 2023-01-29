@@ -12,10 +12,13 @@
 #include "ForthEngine.h"
 #include "OuterInterpreter.h"
 #include "ForthVocabulary.h"
+#include "ClassVocabulary.h"
+#include "TypesManager.h"
 #include "ForthObject.h"
 #include "ForthBuiltinClasses.h"
 #include "ForthShowContext.h"
 #include "ForthBlockFileManager.h"
+
 
 #include "OArray.h"
 #include "ODeque.h"

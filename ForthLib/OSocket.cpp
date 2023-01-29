@@ -30,6 +30,9 @@
 #include "ForthShowContext.h"
 #include "ForthPipe.h"
 
+#include "TypesManager.h"
+#include "ClassVocabulary.h"
+
 #include "OSocket.h"
 
 namespace OSocket
