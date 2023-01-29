@@ -20,7 +20,7 @@ CDEBUG = -g
 DEFINES = -DLINUX -DASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -DFORTH64 -DINCLUDE_TRACE
 #DEFINES = -DLINUX -DNOASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -DFORTH64 -DINCLUDE_TRACE
 
-CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -std=c++11 -m64 -fno-stack-protector
+CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -save-temps=obj -std=c++17 -m64 -fno-stack-protector
 # CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -std=c++11 -m64
 
 WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wno-sign-compare -Wno-conversion-null -Wno-pointer-arith
@@ -64,7 +64,14 @@ SRCS = \
 	OSocket.cpp \
 	OStream.cpp \
 	OString.cpp \
-	OSystem.cpp
+	OSystem.cpp \
+	ClassVocabulary.cpp \
+	LocalVocabulary.cpp \
+	DLLVocabulary.cpp \
+	NativeType.cpp \
+	TypesManager.cpp \
+	VocabularyStack.cpp
+	
 	
 	
 ASMSRCS = InnerInterpAmd64.asm \

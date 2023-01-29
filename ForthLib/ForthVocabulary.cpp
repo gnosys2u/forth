@@ -14,9 +14,6 @@
 #include "ForthBuiltinClasses.h"
 #include "TypesManager.h"
 #include "ClassVocabulary.h"
-#if defined(LINUX) || defined(MACOSX)
-#include <dlfcn.h>
-#endif
 
 //############################################################################
 //
