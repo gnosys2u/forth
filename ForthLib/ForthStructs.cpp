@@ -71,15 +71,15 @@ NativeType *gpNativeTypes[] =
 
 //////////////////////////////////////////////////////////////////////
 ////
-///     ForthTypesManager
+///     TypesManager
 //
 //
 
-ForthTypesManager *ForthTypesManager::mpInstance = NULL;
+TypesManager *TypesManager::mpInstance = NULL;
 
 
-ForthTypesManager::ForthTypesManager()
-	: ForthForgettable(NULL, 0)
+TypesManager::TypesManager()
+	: Forgettable(NULL, 0)
 	, mpSavedDefinitionVocab(NULL)
 	, mpClassMethods(NULL)
 	, mNewestTypeIndex(0)
@@ -98,7 +98,7 @@ ForthTypesManager::ForthTypesManager()
 	}
 }
 
-ForthTypesManager::~ForthTypesManager()
+TypesManager::~TypesManager()
 {
 	delete mpCodeGenerator;
     mpInstance = NULL;
@@ -106,7 +106,7 @@ ForthTypesManager::~ForthTypesManager()
 }
 
 void
-ForthTypesManager::ForgetCleanup( void *pForgetLimit, forthop op )
+TypesManager::ForgetCleanup( void *pForgetLimit, forthop op )
 {
     // remove struct info for forgotten struct types
 	int numStructs;
@@ -133,7 +133,7 @@ ForthTypesManager::ForgetCleanup( void *pForgetLimit, forthop op )
 
 
 StructVocabulary*
-ForthTypesManager::StartStructDefinition( const char *pName )
+TypesManager::StartStructDefinition( const char *pName )
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
     ForthVocabulary* pDefinitionsVocab = pEngine->GetOuterInterpreter()->GetDefinitionVocabulary();
@@ -147,7 +147,7 @@ ForthTypesManager::StartStructDefinition( const char *pName )
 }
 
 void
-ForthTypesManager::EndStructDefinition()
+TypesManager::EndStructDefinition()
 {
     SPEW_STRUCTS( "EndStructDefinition\n" );
     ForthEngine *pEngine = ForthEngine::GetInstance();
@@ -157,7 +157,7 @@ ForthTypesManager::EndStructDefinition()
 }
 
 void
-ForthTypesManager::DefineInitOpcode()
+TypesManager::DefineInitOpcode()
 {
 	ForthTypeInfo *pInfo = &(mStructInfo[mNewestTypeIndex]);
 	StructVocabulary *pVocab = pInfo->pVocab;
@@ -272,7 +272,7 @@ ForthTypesManager::DefineInitOpcode()
 }
 
 ClassVocabulary*
-ForthTypesManager::StartClassDefinition(const char *pName, int classIndex, bool isInterface)
+TypesManager::StartClassDefinition(const char *pName, int classIndex, bool isInterface)
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
@@ -300,7 +300,7 @@ ForthTypesManager::StartClassDefinition(const char *pName, int classIndex, bool 
 }
 
 void
-ForthTypesManager::EndClassDefinition()
+TypesManager::EndClassDefinition()
 {
     SPEW_STRUCTS( "EndClassDefinition\n" );
     ForthEngine *pEngine = ForthEngine::GetInstance();
@@ -312,7 +312,7 @@ ForthTypesManager::EndClassDefinition()
 }
 
 StructVocabulary*
-ForthTypesManager::GetStructVocabulary( forthop op )
+TypesManager::GetStructVocabulary( forthop op )
 {
     //TBD: replace this with a map
 	for (const ForthTypeInfo& info : mStructInfo)
@@ -326,7 +326,7 @@ ForthTypesManager::GetStructVocabulary( forthop op )
 }
 
 StructVocabulary*
-ForthTypesManager::GetStructVocabulary( const char* pName )
+TypesManager::GetStructVocabulary( const char* pName )
 {
     //TBD: replace this with a map
 	for (const ForthTypeInfo& info : mStructInfo)
@@ -341,7 +341,7 @@ ForthTypesManager::GetStructVocabulary( const char* pName )
 }
 
 ForthTypeInfo*
-ForthTypesManager::GetTypeInfo( int typeIndex )
+TypesManager::GetTypeInfo( int typeIndex )
 {
 	int numStructs = static_cast<int>(mStructInfo.size());
 	if (typeIndex >= numStructs)
@@ -354,7 +354,7 @@ ForthTypesManager::GetTypeInfo( int typeIndex )
 }
 
 ClassVocabulary*
-ForthTypesManager::GetClassVocabulary(int typeIndex) const
+TypesManager::GetClassVocabulary(int typeIndex) const
 {
 	int numStructs = static_cast<int>(mStructInfo.size());
 	if (typeIndex >= numStructs)
@@ -372,7 +372,7 @@ ForthTypesManager::GetClassVocabulary(int typeIndex) const
 }
 
 ForthInterface*
-ForthTypesManager::GetClassInterface(int typeIndex, int interfaceIndex) const
+TypesManager::GetClassInterface(int typeIndex, int interfaceIndex) const
 {
 	int numStructs = static_cast<int>(mStructInfo.size());
 	if (typeIndex >= numStructs)
@@ -391,15 +391,15 @@ ForthTypesManager::GetClassInterface(int typeIndex, int interfaceIndex) const
 	return pClassVocab->GetInterface(interfaceIndex);
 }
 
-ForthTypesManager*
-ForthTypesManager::GetInstance( void )
+TypesManager*
+TypesManager::GetInstance( void )
 {
     ASSERT( mpInstance != NULL );
     return mpInstance;
 }
 
 void
-ForthTypesManager::GetFieldInfo( int32_t fieldType, int32_t& fieldBytes, int32_t& alignment )
+TypesManager::GetFieldInfo( int32_t fieldType, int32_t& fieldBytes, int32_t& alignment )
 {
     BaseType subType = CODE_TO_BASE_TYPE(fieldType);
     if ( CODE_IS_PTR( fieldType ) )
@@ -433,16 +433,16 @@ ForthTypesManager::GetFieldInfo( int32_t fieldType, int32_t& fieldBytes, int32_t
 }
 
 StructVocabulary *
-ForthTypesManager::GetNewestStruct( void )
+TypesManager::GetNewestStruct( void )
 {
-    ForthTypesManager* pThis = GetInstance();
+    TypesManager* pThis = GetInstance();
 	return pThis->mStructInfo[mNewestTypeIndex].pVocab;
 }
 
 ClassVocabulary *
-ForthTypesManager::GetNewestClass( void )
+TypesManager::GetNewestClass( void )
 {
-    ForthTypesManager* pThis = GetInstance();
+    TypesManager* pThis = GetInstance();
 	StructVocabulary* pVocab = pThis->mStructInfo[mNewestTypeIndex].pVocab;
 	if (pVocab && !pVocab->IsClass())
     {
@@ -454,7 +454,7 @@ ForthTypesManager::GetNewestClass( void )
 
 // compile/interpret symbol if is a valid structure accessor
 bool
-ForthTypesManager::ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus )
+TypesManager::ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus )
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
@@ -490,7 +490,7 @@ ForthTypesManager::ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus )
 
 // compile symbol if it is a member variable or method
 bool
-ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus, VarOperation varop)
+TypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus, VarOperation varop)
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
@@ -581,7 +581,7 @@ ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitSta
 
 
 NativeType*
-ForthTypesManager::GetNativeTypeFromName( const char* typeName )
+TypesManager::GetNativeTypeFromName( const char* typeName )
 {
     for ( int i = 0; i <= (int)BaseType::kObject; i++ )
     {
@@ -595,7 +595,7 @@ ForthTypesManager::GetNativeTypeFromName( const char* typeName )
 
 
 BaseType
-ForthTypesManager::GetBaseTypeFromName( const char* typeName )
+TypesManager::GetBaseTypeFromName( const char* typeName )
 {
 	NativeType* pNative = GetNativeTypeFromName( typeName );
 	return (pNative != NULL) ? pNative->GetBaseType() : BaseType::kUnknown;
@@ -603,7 +603,7 @@ ForthTypesManager::GetBaseTypeFromName( const char* typeName )
 
 
 int32_t
-ForthTypesManager::GetBaseTypeSizeFromName( const char* typeName )
+TypesManager::GetBaseTypeSizeFromName( const char* typeName )
 {
     for ( int i = 0; i <= (int)BaseType::kObject; i++ )
     {
@@ -615,15 +615,15 @@ ForthTypesManager::GetBaseTypeSizeFromName( const char* typeName )
     return -1;
 }
 
-// ForthTypesManager::AddBuiltinClasses is defined in ForthBuiltinClasses.cpp
+// TypesManager::AddBuiltinClasses is defined in ForthBuiltinClasses.cpp
 
 forthop*
-ForthTypesManager::GetClassMethods()
+TypesManager::GetClassMethods()
 {
     return mpClassMethods;
 }
 
-void ForthTypesManager::AddFieldInitInfo(const ForthFieldInitInfo& fieldInitInfo)
+void TypesManager::AddFieldInitInfo(const ForthFieldInitInfo& fieldInitInfo)
 {
 	mFieldInitInfos.push_back(fieldInitInfo);
 }
@@ -682,7 +682,7 @@ StructVocabulary::DefineInstance( void )
     forthop* pEntry;
     int32_t typeCode;
     bool isPtr = false;
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     ForthCoreState *pCore = mpEngine->GetCoreState();        // so we can GET_VAR_OPERATION
 
     // if new instance name ends in '!', chop the '!' and initialize the new instance
@@ -846,7 +846,7 @@ StructVocabulary::AddField( const char* pName, int32_t fieldType, int numElement
     // - padded element size (valid only for array fields)
 
     int32_t fieldBytes, alignment, alignMask, padding;
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     bool isPtr = CODE_IS_PTR( fieldType );
     bool isNative = CODE_IS_NATIVE( fieldType );
 
@@ -1064,7 +1064,7 @@ StructVocabulary::TypecodeToString( int32_t typeCode, char* outBuff, size_t outB
         if (baseType == BaseType::kObject)
         {
             int32_t containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(typeCode);
-            ForthTypeInfo* pContainedInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containedTypeIndex);
+            ForthTypeInfo* pContainedInfo = TypesManager::GetInstance()->GetTypeInfo(containedTypeIndex);
             if (pContainedInfo)
             {
                 int32_t containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(typeCode);
@@ -1074,7 +1074,7 @@ StructVocabulary::TypecodeToString( int32_t typeCode, char* outBuff, size_t outB
                 }
                 else
                 {
-                    ForthTypeInfo* pContainerInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containerTypeIndex);
+                    ForthTypeInfo* pContainerInfo = TypesManager::GetInstance()->GetTypeInfo(containerTypeIndex);
                     if (pContainerInfo)
                     {
                         sprintf(buff2, "%s of %s", pContainerInfo->pVocab->GetName(), pContainedInfo->pVocab->GetName());
@@ -1093,7 +1093,7 @@ StructVocabulary::TypecodeToString( int32_t typeCode, char* outBuff, size_t outB
         else if (baseType == BaseType::kStruct)
         {
             int32_t typeIndex = CODE_TO_STRUCT_INDEX( typeCode );
-            ForthTypeInfo* pInfo = ForthTypesManager::GetInstance()->GetTypeInfo( typeIndex );
+            ForthTypeInfo* pInfo = TypesManager::GetInstance()->GetTypeInfo( typeIndex );
             if ( pInfo )
             {
                 sprintf( buff2, "%s", pInfo->pVocab->GetName() );
@@ -1278,7 +1278,7 @@ StructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, Struct
                     {
                         pShowContext->BeginNestedShow();
 
-                        ForthTypeInfo* pStructInfo = ForthTypesManager::GetInstance()->GetTypeInfo(CODE_TO_STRUCT_INDEX(typeCode));
+                        ForthTypeInfo* pStructInfo = TypesManager::GetInstance()->GetTypeInfo(CODE_TO_STRUCT_INDEX(typeCode));
                         pStructInfo->pVocab->ShowData(pStruct + byteOffset, pCore, false);
                         //elementSize = pStructInfo->pVocab->GetSize();
 
@@ -1412,7 +1412,7 @@ ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContainedClass
     forthop* pEntry;
     int32_t typeCode;
     bool isPtr = false;
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     ForthCoreState *pCore = mpEngine->GetCoreState();
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     int32_t typeIndex = mTypeIndex;
@@ -1645,7 +1645,7 @@ ClassVocabulary::Extends( ClassVocabulary *pParentClass )
 void
 ClassVocabulary::Implements( const char* pName )
 {
-	StructVocabulary* pVocab = ForthTypesManager::GetInstance()->GetStructVocabulary( pName );
+	StructVocabulary* pVocab = TypesManager::GetInstance()->GetStructVocabulary( pName );
 
 	if ( pVocab )
 	{
@@ -1737,7 +1737,7 @@ ClassVocabulary::GetClassObject( void )
     if (mpClassObject->pMethods == nullptr)
     {
         // this is gross, but it gets around an order of creation circular dependancy
-        mpClassObject->pMethods = ForthTypesManager::GetInstance()->GetClassMethods();
+        mpClassObject->pMethods = TypesManager::GetInstance()->GetClassMethods();
     }
     
     return mpClassObject;
@@ -1750,7 +1750,7 @@ void ClassVocabulary::FixClassObjectMethods(void)
     // the "Class" vocabulary - namely "Object" and "Class" itself
     // this is a little gross, but it gets around an order of creation circular dependancy
     //   and avoids Class and Object having no bellybuttons
-    mpClassObject->pMethods = ForthTypesManager::GetInstance()->GetClassMethods();
+    mpClassObject->pMethods = TypesManager::GetInstance()->GetClassMethods();
 }
 
 
@@ -1829,7 +1829,7 @@ ClassVocabulary::PrintEntry(forthop*   pEntry )
         if (baseType == BaseType::kObject)
         {
             int32_t containedTypeIndex = CODE_TO_CONTAINED_CLASS_INDEX(typeCode);
-            ForthTypeInfo* pContainedInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containedTypeIndex);
+            ForthTypeInfo* pContainedInfo = TypesManager::GetInstance()->GetTypeInfo(containedTypeIndex);
             if (pContainedInfo)
             {
                 int32_t containerTypeIndex = CODE_TO_CONTAINER_CLASS_INDEX(typeCode);
@@ -1839,7 +1839,7 @@ ClassVocabulary::PrintEntry(forthop*   pEntry )
                 }
                 else
                 {
-                    ForthTypeInfo* pContainerInfo = ForthTypesManager::GetInstance()->GetTypeInfo(containerTypeIndex);
+                    ForthTypeInfo* pContainerInfo = TypesManager::GetInstance()->GetTypeInfo(containerTypeIndex);
                     if (pContainerInfo)
                     {
                         sprintf(buff, "%s of %s", pContainerInfo->pVocab->GetName(), pContainedInfo->pVocab->GetName());
@@ -1858,7 +1858,7 @@ ClassVocabulary::PrintEntry(forthop*   pEntry )
         else if (baseType == BaseType::kStruct)
         {
             int32_t typeIndex = CODE_TO_STRUCT_INDEX(typeCode);
-            ForthTypeInfo* pInfo = ForthTypesManager::GetInstance()->GetTypeInfo(typeIndex);
+            ForthTypeInfo* pInfo = TypesManager::GetInstance()->GetTypeInfo(typeIndex);
             if (pInfo)
             {
                 sprintf(buff, "%s ", pInfo->pVocab->GetName());
@@ -2131,7 +2131,7 @@ NativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_t fla
     int32_t typeCode, len, varOffset, storageLen;
     char *pStr;
     ForthCoreState *pCore = pEngine->GetCoreState();        // so we can SPOP maxbytes
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     int tokenLen = (int)strlen(pToken);
 
     // if new instance name ends in '!', chop the '!' and initialize the new instance

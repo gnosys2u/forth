@@ -152,7 +152,7 @@ OuterInterpreter::OuterInterpreter(ForthEngine* pEngine)
 
     if (mpTypesManager == nullptr)
     {
-        mpTypesManager = new ForthTypesManager();
+        mpTypesManager = new TypesManager();
     }
 
     mpForthVocab = new ForthVocabulary("forth", NUM_FORTH_VOCAB_VALUE_LONGS);
@@ -325,7 +325,7 @@ ClassVocabulary* OuterInterpreter::StartClassDefinition(const char* pClassName, 
     SetFlag( kEngineFlagInStructDefinition );
     SetFlag( kEngineFlagInClassDefinition );
 	
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
 	ClassVocabulary* pVocab = pManager->StartClassDefinition(pClassName, classIndex);
 
 	// add new class vocab to top of search order
@@ -343,7 +343,7 @@ void OuterInterpreter::EndClassDefinition()
 	ClearFlag( kEngineFlagInStructDefinition );
     ClearFlag( kEngineFlagInClassDefinition );
 
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
 	pManager->EndClassDefinition();
 	mpVocabStack->DropTop();
 }
@@ -354,7 +354,7 @@ ClassVocabulary* OuterInterpreter::StartInterfaceDefinition(const char* pInterfa
     SetFlag(kEngineFlagInClassDefinition);
     SetFlag(kEngineFlagInInterfaceDeclaration);
 
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     ClassVocabulary* pVocab = pManager->StartClassDefinition(pInterfaceName, classIndex, true);
 
     // add new  vocab to top of search order
@@ -375,7 +375,7 @@ void OuterInterpreter::EndInterfaceDefinition()
     ClearFlag(kEngineFlagInInterfaceDeclaration);
     ClearFlag(kEngineFlagInClassDefinition);
 
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     pManager->EndClassDefinition();
     //mpVocabStack->DropTop();
 }
@@ -389,7 +389,7 @@ ClassVocabulary* OuterInterpreter::AddBuiltinClass(
 {
     // do "class:" - define class subroutine
 	ClassVocabulary* pVocab = StartClassDefinition(pClassName, classIndex);
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
 	ClassVocabulary* pParentClass = pManager->GetClassVocabulary(parentClassIndex);
 
     if ( pParentClass )
@@ -537,7 +537,7 @@ bool OuterInterpreter::ForgetSymbol( const char *pSym, bool quietMode )
 				if ( opIndex > mpCore->numBuiltinOps )
 				{
 					ForgetOp( op, quietMode );
-					ForthForgettable::ForgetPropagate( mpDictionary->pCurrent, op );
+					Forgettable::ForgetPropagate( mpDictionary->pCurrent, op );
 					forgotIt = true;
 				}
 				else
@@ -870,7 +870,7 @@ OuterInterpreter::AddLocalArray( const char          *pArrayName,
     {
         // array of struct
         int32_t fieldBytes, alignment, padding, alignMask;
-        ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+        TypesManager* pManager = TypesManager::GetInstance();
         pManager->GetFieldInfo( typeCode, fieldBytes, alignment );
         alignMask = alignment - 1;
         padding = fieldBytes & alignMask;

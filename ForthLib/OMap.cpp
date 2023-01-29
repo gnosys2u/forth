@@ -136,7 +136,7 @@ namespace OMap
 
     oMapIterStruct* createMapIterator(ForthCoreState* pCore, oMapStruct* pMap)
     {
-        ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIMapIter);
+        ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
 		ALLOCATE_ITER(oMapIterStruct, pIter, pIterVocab);
@@ -718,7 +718,7 @@ namespace OMap
 
     oIntMapIterStruct* createIntMapIterator(ForthCoreState* pCore, oIntMapStruct* pMap)
     {
-        ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIIntMapIter);
+        ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIIntMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
 		ALLOCATE_ITER(oIntMapIterStruct, pIter, pIterVocab);
@@ -1266,7 +1266,7 @@ namespace OMap
 
     oFloatMapIterStruct* createFloatMapIterator(ForthCoreState* pCore, oFloatMapStruct* pMap)
     {
-        ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIFloatMapIter);
+        ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIFloatMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
 		ALLOCATE_ITER(oFloatMapIterStruct, pIter, pIterVocab);
@@ -1586,7 +1586,7 @@ namespace OMap
 
     oLongMapIterStruct* createLongMapIterator(ForthCoreState* pCore, oLongMapStruct* pMap)
     {
-        ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCILongMapIter);
+        ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCILongMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
 		ALLOCATE_ITER(oLongMapIterStruct, pIter, pIterVocab);
@@ -2139,7 +2139,7 @@ namespace OMap
 
     oDoubleMapIterStruct* createDoubleMapIterator(ForthCoreState* pCore, oDoubleMapStruct* pMap, ForthObject& obj)
     {
-        ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIDoubleMapIter);
+        ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIDoubleMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
 		ALLOCATE_ITER(oDoubleMapIterStruct, pIter, pIterVocab);
@@ -2660,7 +2660,7 @@ namespace OMap
 
     oStringIntMapIterStruct* createStringIntMapIterator(ForthCoreState* pCore, oStringIntMapStruct* pMap)
     {
-        ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIStringIntMapIter);
+        ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIStringIntMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
 		ALLOCATE_ITER(oStringIntMapIterStruct, pIter, pIterVocab);
@@ -3233,7 +3233,7 @@ namespace OMap
 
     oStringLongMapIterStruct* createStringLongMapIterator(ForthCoreState* pCore, oStringLongMapStruct* pMap)
     {
-        ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIStringLongMapIter);
+        ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIStringLongMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
         //   a crash happens when you assign to it
 		ALLOCATE_ITER(oStringLongMapIterStruct, pIter, pIterVocab);

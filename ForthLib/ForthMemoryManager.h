@@ -24,10 +24,10 @@
 extern void startMemoryManager();
 extern void stopMemoryManager();
 
-class ForthMemoryStats
+class MemoryStats
 {
 public:
-    ForthMemoryStats(const char* name);
+    MemoryStats(const char* name);
 
     std::string& getName();
 
@@ -50,31 +50,31 @@ private:
     uint64_t mMaxInUse;
 };
 
-class ForthMemoryPoolBucket
+class MemoryPoolBucket
 {
 public:
-    ForthMemoryPoolBucket(int size);
-    virtual ~ForthMemoryPoolBucket();
+    MemoryPoolBucket(int size);
+    virtual ~MemoryPoolBucket();
     virtual char* allocate();
     virtual void deallocate(char*);
 
     int getSize() const;
-    ForthMemoryStats* getMemoryStats();
+    MemoryStats* getMemoryStats();
 
 protected:
     int mSize;
     char* mpFreeChain;
-    ForthMemoryStats* mStats;
+    MemoryStats* mStats;
 };
 
 
 #define NUM_MEMORY_POOLS 16
 #define INITIAL_BLOCK_ALLOCATION (1024 * 1024)
-class ForthMemoryManager
+class MemoryManager
 {
 public:
-    ForthMemoryManager();
-    virtual ~ForthMemoryManager();
+    MemoryManager();
+    virtual ~MemoryManager();
 
     virtual void* allocate(size_t numBytes);
     virtual void deallocate(void* pBlock, size_t numBytes);
@@ -84,7 +84,7 @@ public:
     virtual void* realloc(void *pMemory, size_t numBytes) = 0;
     virtual void free(void* pBlock) = 0;
 
-    void getStats(std::vector<ForthMemoryStats*> &statsOut, int& numStorageBlocks, int& totalStorage, int& freeStorage);
+    void getStats(std::vector<MemoryStats*> &statsOut, int& numStorageBlocks, int& totalStorage, int& freeStorage);
 
 protected:
     struct storageBlock
@@ -106,14 +106,14 @@ protected:
     // position in top entry in mBlocks where next allocation will come from
     char* mpNextAllocation;
 
-    std::vector<ForthMemoryPoolBucket *> mPools;
-    ForthMemoryStats* mBigThingStats;
-    ForthMemoryStats* mTotalStats;
+    std::vector<MemoryPoolBucket *> mPools;
+    MemoryStats* mBigThingStats;
+    MemoryStats* mTotalStats;
 };
 
-extern ForthMemoryManager* s_memoryManager;
+extern MemoryManager* s_memoryManager;
 
-class PassThruMemoryManager : public ForthMemoryManager
+class PassThruMemoryManager : public MemoryManager
 {
 public:
     void* malloc(size_t numBytes) override;
@@ -121,7 +121,7 @@ public:
     void free(void* pBlock) override;
 };
 
-class DebugPassThruMemoryManager : public ForthMemoryManager
+class DebugPassThruMemoryManager : public MemoryManager
 {
 public:
     void* allocate(size_t numBytes) override;

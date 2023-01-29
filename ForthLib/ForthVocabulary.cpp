@@ -53,7 +53,7 @@ ForthVocabulary::ForthVocabulary( const char    *pName,
                                   int           storageBytes,
                                   void*         pForgetLimit,
                                   forthop       op )
-: ForthForgettable( pForgetLimit, op )
+: Forgettable( pForgetLimit, op )
 , mpName( NULL )
 , mValueLongs( valueLongs )
 , mLastSerial( 0 )
@@ -101,7 +101,7 @@ ForthVocabulary::~ForthVocabulary()
 void
 ForthVocabulary::ForgetCleanup( void *pForgetLimit, forthop op )
 {
-   // this is invoked from the ForthForgettable chain to propagate a "forget"
+   // this is invoked from the Forgettable chain to propagate a "forget"
    ForgetOp( op );
 }
 
@@ -1277,7 +1277,7 @@ namespace OVocabulary
 		GET_THIS(oVocabularyStruct, pVocabulary);
 		pVocabulary->refCount++;
 		TRACK_KEEP;
-		ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIVocabularyIter);
+		ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIVocabularyIter);
 		ALLOCATE_ITER(oVocabularyIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;

@@ -1268,7 +1268,7 @@ FORTHOP(initStructArrayOp)
 {
 	// TOS: struct index, number of elements, ptr to first struct
 	ForthEngine *pEngine = GET_ENGINE;
-	ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+	TypesManager* pManager = TypesManager::GetInstance();
 
 	cell typeIndex = SPOP;
     cell numElements = SPOP;
@@ -2120,7 +2120,7 @@ FORTHOP( structOp )
     ForthEngine* pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     pOuter->SetFlag( kEngineFlagInStructDefinition );
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
 	const char* pName = pOuter->GetNextSimpleToken();
     StructVocabulary* pVocab = pManager->StartStructDefinition(pName);
     pOuter->CompileBuiltinOpcode( OP_DO_STRUCT_TYPE );
@@ -2134,7 +2134,7 @@ FORTHOP( endStructOp )
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     pOuter->ClearFlag( kEngineFlagInStructDefinition );
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     pManager->EndStructDefinition();
 	pEngine->GetShell()->CheckDefinitionEnd("struct", "stru");
 }
@@ -2179,7 +2179,7 @@ FORTHOP(defineNewOp)
 {
 	startColonDefinition(pCore, "__newOp");
 	ForthEngine *pEngine = GET_ENGINE;
-	ClassVocabulary* pVocab = ForthTypesManager::GetInstance()->GetNewestClass();
+	ClassVocabulary* pVocab = TypesManager::GetInstance()->GetNewestClass();
 	if (pVocab)
 	{
         forthop* pEntry = pVocab->GetNewestEntry();
@@ -2220,7 +2220,7 @@ FORTHOP( methodOp )
         }
     }
 
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     ClassVocabulary* pVocab = pManager->GetNewestClass();
     if (pVocab == nullptr)
     {
@@ -2304,7 +2304,7 @@ FORTHOP( returnsOp )
     if ( pOuter->CheckFlag( kEngineFlagIsMethod ) )
     {
         char *pToken = pOuter->GetNextSimpleToken();
-        ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+        TypesManager* pManager = TypesManager::GetInstance();
         ClassVocabulary* pVocab = pManager->GetNewestClass();
         forthop* pEntry = pVocab->GetNewestEntry();
         if ( strcmp( pToken, "ptrTo" ) == 0 )
@@ -2366,7 +2366,7 @@ FORTHOP( implementsOp )
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
 
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     ClassVocabulary* pVocab = pManager->GetNewestClass();
     if ( pVocab && pOuter->CheckFlag( kEngineFlagInClassDefinition ) )
     {
@@ -2391,7 +2391,7 @@ FORTHOP( endImplementsOp )
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
 
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     ClassVocabulary* pVocab = pManager->GetNewestClass();
     if ( pVocab && pOuter->CheckFlag( kEngineFlagInInterfaceImplementation ) )
     {
@@ -2409,7 +2409,7 @@ FORTHOP(classIdOfOp)      // has precedence
     ForthEngine* pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     char* pClassName = pOuter->GetNextSimpleToken();
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
 
     // see if it is a struct type
     StructVocabulary* pTypeVocab = pManager->GetStructVocabulary(pClassName);
@@ -2474,7 +2474,7 @@ FORTHOP(getInterfaceOp)
 
 FORTHOP( unionOp )
 {
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     pManager->GetNewestStruct()->StartUnion();
 }
 
@@ -2487,7 +2487,7 @@ FORTHOP( extendsOp )
     forthop* pEntry = pOuter->GetVocabularyStack()->FindSymbol( pSym, &pFoundVocab );
     if ( pEntry )
     {
-        ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+        TypesManager* pManager = TypesManager::GetInstance();
         StructVocabulary* pParentVocab = pManager->GetStructVocabulary( pEntry[0] );
         if ( pParentVocab )
         {
@@ -2547,7 +2547,7 @@ FORTHOP( strSizeOfOp )
 
     if ( pEntry )
     {
-        ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+        TypesManager* pManager = TypesManager::GetInstance();
         StructVocabulary* pStructVocab = pManager->GetStructVocabulary( pEntry[0] );
         if ( pStructVocab != nullptr)
         {
@@ -2592,7 +2592,7 @@ FORTHOP( strOffsetOfOp )
 		forthop* pEntry = pOuter->GetVocabularyStack()->FindSymbol(pType, &pFoundVocab);
 		if (pEntry)
 		{
-			ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+			TypesManager* pManager = TypesManager::GetInstance();
 			StructVocabulary* pStructVocab = pManager->GetStructVocabulary(pEntry[0]);
 			if (pStructVocab)
 			{
@@ -2675,7 +2675,7 @@ void __newOp(ForthCoreState* pCore, const char* pClassName)
 
     if ( pEntry )
     {
-        ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+        TypesManager* pManager = TypesManager::GetInstance();
         ClassVocabulary* pClassVocab = (ClassVocabulary *) (pManager->GetStructVocabulary( pEntry[0] ));
 
         if ( pClassVocab && pClassVocab->IsClass() )
@@ -2736,7 +2736,7 @@ FORTHOP(strNewOp)
 
 	if (pEntry)
 	{
-		ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+		TypesManager* pManager = TypesManager::GetInstance();
 		ClassVocabulary* pClassVocab = (ClassVocabulary *)(pManager->GetStructVocabulary(pEntry[0]));
 
 		if (pClassVocab && pClassVocab->IsClass())
@@ -2788,7 +2788,7 @@ FORTHOP(makeObjectOp)
 
     if (pEntry)
     {
-        ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+        TypesManager* pManager = TypesManager::GetInstance();
         ClassVocabulary* pClassVocab = (ClassVocabulary *)(pManager->GetStructVocabulary(pEntry[0]));
 
         if (pClassVocab && pClassVocab->IsClass())
@@ -2819,7 +2819,7 @@ FORTHOP(makeObjectOp)
 FORTHOP(doNewOp)
 {
 	// this op is compiled for 'new foo', the class typeIndex is on TOS
-	ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+	TypesManager* pManager = TypesManager::GetInstance();
 	ForthEngine *pEngine = GET_ENGINE;
 
 	int typeIndex = SPOP;
@@ -2870,7 +2870,7 @@ FORTHOP( initMemberStringOp )
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     char *pString = pOuter->GetNextSimpleToken();
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     ClassVocabulary* pVocab = pManager->GetNewestClass();
     forthop* pEntry;
 
@@ -3067,7 +3067,7 @@ FORTHOP(doStructTypeOp)
 		if ((pLastOp != NULL) && (*pLastOp == gCompiledOps[OP_REF]))
 		{
 			// compile this opcode so at runtime (ref STRUCT_OP) will push struct vocab address
-			ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+			TypesManager* pManager = TypesManager::GetInstance();
 			pOuter->CompileOpcode(pManager->GetTypeInfo(pVocab->GetTypeIndex())->op);
 			doDefineInstance = false;
 		}
@@ -4760,7 +4760,7 @@ FORTHOP( describeOp )
 			*pMethod++ = '\0';
 		}
 	}
-    ForthTypesManager* pManager = ForthTypesManager::GetInstance();
+    TypesManager* pManager = TypesManager::GetInstance();
     StructVocabulary* pVocab = pManager->GetStructVocabulary( buff );
 	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
 

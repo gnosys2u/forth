@@ -47,7 +47,7 @@ namespace ODeque
     /*
     oDequeIterStruct* createDequeIterator(ForthCoreState* pCore, oDequeStruct* pDeq)
     {
-        ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIDequeIter);
+        ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIDequeIter);
         ALLOCATE_ITER(oDequeIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;

@@ -1,25 +1,25 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthForgettable.h: interface for the ForthForgettable class.
+// Forgettable.h: interface for the Forgettable class.
 //
 //////////////////////////////////////////////////////////////////////
 
 #include "Forth.h"
 
-class ForthForgettable
+class Forgettable
 {
 public:
-    ForthForgettable( void *pOpAddress, forthop op );
-    virtual ~ForthForgettable();
+    Forgettable( void *pOpAddress, forthop op );
+    virtual ~Forgettable();
 
     static void     ForgetPropagate( void *pForgetLimit, forthop op );
 
-    static inline ForthForgettable *GetForgettableChainHead( void ) {
+    static inline Forgettable *GetForgettableChainHead( void ) {
         return mpChainHead;
     };
 
-    inline ForthForgettable *GetNextForgettable( void ) {
+    inline Forgettable *GetNextForgettable( void ) {
         return mpNext;
     };
 
@@ -37,9 +37,9 @@ protected:
 
     void*                       mpOpAddress;
     int32_t                        mOp;
-    ForthForgettable*           mpNext;
+    Forgettable*           mpNext;
 private:
-    static ForthForgettable*    mpChainHead;
+    static Forgettable*    mpChainHead;
 };
 
 

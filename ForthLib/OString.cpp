@@ -710,7 +710,7 @@ namespace OString
 			int substringSize;
 			bool notDone = true;
 
-			ClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIString);
+			ClassVocabulary *pClassVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIString);
 			while (notDone)
 			{
 				substringSize = 0;

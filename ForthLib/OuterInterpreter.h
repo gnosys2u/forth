@@ -315,7 +315,7 @@ private:
     int32_t            mLocalFrameSize;
     forthop*        mpLocalAllocOp;
 
-    ForthTypesManager *mpTypesManager;
+    TypesManager *mpTypesManager;
 
     interpreterExtensionRoutine *mpInterpreterExtension;
 

@@ -120,7 +120,7 @@ namespace
 	FORTHOP(objectDeleteMethod)
 	{
 		// this never gets called, it just needs to be here because of how builtin classes are defined.
-		// the Object method table delete entry gets stuffed with the 'noop' opcode in ForthTypesManager::AddBuiltinClasses (end of this file)
+		// the Object method table delete entry gets stuffed with the 'noop' opcode in TypesManager::AddBuiltinClasses (end of this file)
 		METHOD_RETURN;
 	}
 
@@ -477,7 +477,7 @@ void ForthShowObject(ForthObject& obj, ForthCoreState* pCore)
 //
 // 
 ForthForgettableGlobalObject::ForthForgettableGlobalObject( const char* pName, void* pOpAddress, forthop op, int numElements )
-: ForthForgettable( pOpAddress, op )
+: Forgettable( pOpAddress, op )
 ,	mNumElements( numElements )
 {
     size_t nameLen = strlen( pName );
@@ -519,13 +519,13 @@ void ForthForgettableGlobalObject::ForgetCleanup( void* pForgetLimit, forthop op
 }
 
 const char *
-ForthTypesManager::GetName( void )
+TypesManager::GetName( void )
 {
     return GetTypeName();
 }
 
 const char *
-ForthTypesManager::GetTypeName( void )
+TypesManager::GetTypeName( void )
 {
     return "typesManager";
 }
@@ -534,7 +534,7 @@ ForthTypesManager::GetTypeName( void )
 forthop gObjectShowInnerOpcode = 0;
 forthop gObjectDeleteOpcode = 0;
 
-void ForthTypesManager::AddBuiltinClasses(OuterInterpreter* pOuter)
+void TypesManager::AddBuiltinClasses(OuterInterpreter* pOuter)
 {
     ClassVocabulary* pObjectClassVocab = pOuter->AddBuiltinClass("Object", kBCIObject, kBCIInvalid, objectMembers);
     gObjectShowInnerOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodShowInner);
@@ -572,7 +572,7 @@ void ForthTypesManager::AddBuiltinClasses(OuterInterpreter* pOuter)
 }
 
 void
-ForthTypesManager::ShutdownBuiltinClasses(ForthEngine* pEngine)
+TypesManager::ShutdownBuiltinClasses(ForthEngine* pEngine)
 {
     OSystem::Shutdown(pEngine);
 }

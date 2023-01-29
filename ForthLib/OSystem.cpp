@@ -226,7 +226,7 @@ namespace OSystem
     {
         int typeIndex = (int)SPOP;
         ForthObject classObject = nullptr;
-        ClassVocabulary* pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(typeIndex);
+        ClassVocabulary* pClassVocab = TypesManager::GetInstance()->GetClassVocabulary(typeIndex);
         if (pClassVocab != nullptr)
         {
             classObject = (ForthObject) pClassVocab->GetClassObject();
@@ -239,7 +239,7 @@ namespace OSystem
 
     FORTHOP(oSystemGetNumClassesMethod)
     {
-        int numClasses = ForthTypesManager::GetInstance()->GetNewestClass()->GetTypeIndex() + 1;
+        int numClasses = TypesManager::GetInstance()->GetNewestClass()->GetTypeIndex() + 1;
         SPUSH(numClasses);
         METHOD_RETURN;
     }

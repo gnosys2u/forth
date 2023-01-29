@@ -29,7 +29,7 @@
 //
 //
 
-ForthStructCodeGenerator::ForthStructCodeGenerator( ForthTypesManager* pTypeManager )
+ForthStructCodeGenerator::ForthStructCodeGenerator( TypesManager* pTypeManager )
     : mpParseInfo(nullptr)
     , mpTypeManager( pTypeManager )
     , mpStructVocab(nullptr)

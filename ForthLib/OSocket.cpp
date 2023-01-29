@@ -159,7 +159,7 @@ namespace OSocket
         cell result = (cell)accept(pSocket->fd, addr, addrLen);
         if (result != -1)
         {
-            ClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCISocket);
+            ClassVocabulary *pClassVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCISocket);
             ALLOCATE_OBJECT(oSocketStruct, pNewSocket, pClassVocab);
             pNewSocket->pMethods = pClassVocab->GetMethods();
             pNewSocket->refCount = 0;

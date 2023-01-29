@@ -352,7 +352,7 @@ void ForthObjectReader::processElement(const std::string& name)
             std::string className = classId.substr(0, lastUnderscore);
 
             ForthCoreState *pCore = mpCore;
-            StructVocabulary* newClassVocab = ForthTypesManager::GetInstance()->GetStructVocabulary(className.c_str());
+            StructVocabulary* newClassVocab = TypesManager::GetInstance()->GetStructVocabulary(className.c_str());
             if (newClassVocab->IsClass())
             {
                 mContext.pVocab = newClassVocab;
@@ -568,7 +568,7 @@ void ForthObjectReader::processElement(const std::string& name)
                     case BaseType::kStruct:
                     {
                         int typeIndex = CODE_TO_STRUCT_INDEX(typeCode);
-                        ForthTypeInfo* structInfo = ForthTypesManager::GetInstance()->GetTypeInfo(typeIndex);
+                        ForthTypeInfo* structInfo = TypesManager::GetInstance()->GetTypeInfo(typeIndex);
                         getStruct(structInfo->pVocab, byteOffset, mContext.pData);
                         break;
                     }

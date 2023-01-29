@@ -113,7 +113,7 @@ extern "C"
 
 void unrefObject(ForthObject& fobj);
 
-#define GET_CLASS_VOCABULARY(BCI_INDEX) ForthTypesManager::GetInstance()->GetClassVocabulary(BCI_INDEX)
+#define GET_CLASS_VOCABULARY(BCI_INDEX) TypesManager::GetInstance()->GetClassVocabulary(BCI_INDEX)
 #define GET_BUILTIN_INTERFACE(BCI_INDEX, INTERFACE_INDEX) GET_CLASS_VOCABULARY(BCI_INDEX)->GetInterface(INTERFACE_INDEX)
 #ifdef FORTH64
 #define GET_CLASS_OBJECT(OBJ) *((ForthClassObject **)(((OBJ)->pMethods) - 2))
@@ -240,7 +240,7 @@ struct oLongMapIterStruct
     oLongMap::iterator*	cursor;
 };
 
-class ForthForgettableGlobalObject : public ForthForgettable
+class ForthForgettableGlobalObject : public Forgettable
 {
 public:
     ForthForgettableGlobalObject( const char* pName, void *pOpAddress, forthop op, int numElements = 1 );

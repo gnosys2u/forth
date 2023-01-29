@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthForgettable.cpp: implementation of the ForthForgettable abstract base class.
+// Forgettable.cpp: implementation of the Forgettable abstract base class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -17,16 +17,16 @@
 
 //////////////////////////////////////////////////////////////////////
 ////
-///     ForthForgettable - abstract forgettable base class
+///     Forgettable - abstract forgettable base class
 //
 // a forgettable object is associated with a forth op address, when a "forget"
 // causes that forth op to be destroyed, the forgettable chain is walked, and
 // all forgettables which are associated with ops that have been destroyed
 // are also deleted...
 
-ForthForgettable* ForthForgettable::mpChainHead = NULL;
+Forgettable* Forgettable::mpChainHead = NULL;
 
-ForthForgettable::ForthForgettable( void* pOpAddress, forthop op )
+Forgettable::Forgettable( void* pOpAddress, forthop op )
 : mpNext( mpChainHead )
 , mpOpAddress( pOpAddress )
 , mOp( op )
@@ -34,7 +34,7 @@ ForthForgettable::ForthForgettable( void* pOpAddress, forthop op )
     mpChainHead = this;
 }
 
-ForthForgettable::~ForthForgettable()
+Forgettable::~Forgettable()
 {
     // remove us from the forgettable chain
     if ( this == mpChainHead )
@@ -43,10 +43,10 @@ ForthForgettable::~ForthForgettable()
     }
     else
     {
-        ForthForgettable* pNext = mpChainHead;
+        Forgettable* pNext = mpChainHead;
         while ( pNext != NULL )
         {
-            ForthForgettable* pTmp = pNext->mpNext;
+            Forgettable* pTmp = pNext->mpNext;
 
             if ( pTmp == this )
             {
@@ -58,31 +58,31 @@ ForthForgettable::~ForthForgettable()
     }
 }
 const char *
-ForthForgettable::GetName( void )
+Forgettable::GetName( void )
 {
     return "noName";
 }
 
 const char *
-ForthForgettable::GetTypeName( void )
+Forgettable::GetTypeName( void )
 {
     return "noType";
 }
 
 void
-ForthForgettable::AfterStart()
+Forgettable::AfterStart()
 {
 }
 
 int
-ForthForgettable::Save( FILE* pOutFile )
+Forgettable::Save( FILE* pOutFile )
 {
     (void) pOutFile;
     return 0;
 }
 
 bool
-ForthForgettable::Restore( const char* pBuffer, uint32_t numBytes )
+Forgettable::Restore( const char* pBuffer, uint32_t numBytes )
 {
     (void) pBuffer;
     (void) numBytes;
@@ -90,10 +90,10 @@ ForthForgettable::Restore( const char* pBuffer, uint32_t numBytes )
 }
 
 
-void ForthForgettable::ForgetPropagate( void* pForgetLimit, forthop op )
+void Forgettable::ForgetPropagate( void* pForgetLimit, forthop op )
 {
-    ForthForgettable *pNext;
-    ForthForgettable *pTmp;
+    Forgettable *pNext;
+    Forgettable *pTmp;
 
     // delete all forgettables that are below the forget limit
     pNext = mpChainHead;

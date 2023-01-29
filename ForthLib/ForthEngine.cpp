@@ -297,10 +297,10 @@ ForthEngine::~ForthEngine()
     }
     delete [] mpErrorString;
 
-    ForthForgettable* pForgettable = ForthForgettable::GetForgettableChainHead();
+    Forgettable* pForgettable = Forgettable::GetForgettableChainHead();
     while ( pForgettable != nullptr )
     {
-        ForthForgettable* pNextForgettable = pForgettable->GetNextForgettable();
+        Forgettable* pNextForgettable = pForgettable->GetNextForgettable();
         delete pForgettable;
         pForgettable = pNextForgettable;
     }
@@ -463,13 +463,13 @@ cell ForthEngine::IsCompiling(void)
 
 void ForthEngine::ShowMemoryInfo()
 {
-    std::vector<ForthMemoryStats *> memoryStats;
+    std::vector<MemoryStats *> memoryStats;
     int numStorageBlocks;
     int totalStorage;
     int unusedStorage;
     s_memoryManager->getStats(memoryStats, numStorageBlocks, totalStorage, unusedStorage);
     char buffer[256];
-    for (ForthMemoryStats* stats : memoryStats)
+    for (MemoryStats* stats : memoryStats)
     {
         if (stats->getNumAllocations() > 0)
         {

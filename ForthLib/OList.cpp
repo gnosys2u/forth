@@ -77,7 +77,7 @@ namespace OList
         GET_THIS(oListStruct, pList);
         pList->refCount++;
         TRACK_KEEP;
-        ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIListIter);
+        ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIListIter);
         ALLOCATE_ITER(oListIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
@@ -92,7 +92,7 @@ namespace OList
         GET_THIS(oListStruct, pList);
         pList->refCount++;
         TRACK_KEEP;
-        ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIListIter);
+        ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIListIter);
         ALLOCATE_ITER(oListIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
@@ -125,7 +125,7 @@ namespace OList
         {
             pList->refCount++;
             TRACK_KEEP;
-            ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIListIter);
+            ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIListIter);
             ALLOCATE_ITER(oListIterStruct, pIter, pIterVocab);
             pIter->pMethods = pIterVocab->GetMethods();
             pIter->refCount = 0;
@@ -140,7 +140,7 @@ namespace OList
     FORTHOP(oListCloneMethod)
     {
         // create an empty list
-        ClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIList);
+        ClassVocabulary *pClassVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIList);
         ALLOCATE_OBJECT(oListStruct, pCloneList, pClassVocab);
         pCloneList->pMethods = pClassVocab->GetMethods();
         pCloneList->refCount = 0;
@@ -250,7 +250,7 @@ namespace OList
     {
         GET_THIS(oListStruct, pList);
         oListElement* pCur = pList->head;
-        ClassVocabulary *pArrayVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIArray);
+        ClassVocabulary *pArrayVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIArray);
         ALLOCATE_OBJECT(oArrayStruct, pArray, pArrayVocab);
         pArray->pMethods = pArrayVocab->GetMethods();
         pArray->refCount = 0;
@@ -863,7 +863,7 @@ namespace OList
 		GET_THIS(oListIterStruct, pIter);
 
 		// create an empty list
-		ClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIList);
+		ClassVocabulary *pClassVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIList);
 		ALLOCATE_OBJECT(oListStruct, pNewList, pClassVocab);
         pNewList->pMethods = pClassVocab->GetMethods();
         pNewList->refCount = 0;

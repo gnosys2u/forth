@@ -52,7 +52,7 @@ enum class VocabularyType :ucell
     kInterface
 };
 
-class ForthVocabulary : public ForthForgettable
+class ForthVocabulary : public Forgettable
 {
 public:
     ForthVocabulary( const char *pName = NULL,

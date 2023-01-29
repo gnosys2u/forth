@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthMemoryManager.cpp: implementation of the Forth memory manager classes.
+// MemoryManager.cpp: implementation of the Forth memory manager classes.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -13,7 +13,7 @@
 
 bool __useStandardMemoryAllocation = true;
 
-ForthMemoryManager* s_memoryManager = nullptr;
+MemoryManager* s_memoryManager = nullptr;
 
 void startMemoryManager()
 {
@@ -50,11 +50,11 @@ void stopMemoryManager()
 
 //////////////////////////////////////////////////////////////////////
 ////
-///     ForthMemoryStats
+///     MemoryStats
 //
 //
 
-ForthMemoryStats::ForthMemoryStats(const char* name)
+MemoryStats::MemoryStats(const char* name)
     : mNumAllocs(0)
     , mNumFrees(0)
     , mCurrentInUse(0)
@@ -64,7 +64,7 @@ ForthMemoryStats::ForthMemoryStats(const char* name)
 {
 }
 
-void ForthMemoryStats::trackAllocation(size_t size)
+void MemoryStats::trackAllocation(size_t size)
 {
     mNumAllocs++;
     uint64_t activeAllocs = mNumAllocs - mNumFrees;
@@ -80,69 +80,69 @@ void ForthMemoryStats::trackAllocation(size_t size)
     }
 }
 
-void ForthMemoryStats::trackDeallocation(size_t size)
+void MemoryStats::trackDeallocation(size_t size)
 {
     mNumFrees++;
     mCurrentInUse -= size;
 }
 
-uint64_t ForthMemoryStats::getNumAllocations()
+uint64_t MemoryStats::getNumAllocations()
 {
     return mNumAllocs;
 }
 
-uint64_t ForthMemoryStats::getNumDeallocations()
+uint64_t MemoryStats::getNumDeallocations()
 {
     return mNumFrees;
 }
 
-uint64_t ForthMemoryStats::getBytesInUse()
+uint64_t MemoryStats::getBytesInUse()
 {
     return mCurrentInUse;
 }
 
-uint64_t ForthMemoryStats::getMaxActiveAllocations()
+uint64_t MemoryStats::getMaxActiveAllocations()
 {
     return mMaxAllocs;
 }
 
-uint64_t ForthMemoryStats::getMaxBytesInUse()
+uint64_t MemoryStats::getMaxBytesInUse()
 {
     return mMaxInUse;
 }
 
-std::string& ForthMemoryStats::getName()
+std::string& MemoryStats::getName()
 {
     return mName;
 }
 
 //////////////////////////////////////////////////////////////////////
 ////
-///     ForthMemoryPoolBucket
+///     MemoryPoolBucket
 //
 //
 
-ForthMemoryPoolBucket::ForthMemoryPoolBucket(int size)
+MemoryPoolBucket::MemoryPoolBucket(int size)
     : mSize(size)
     , mpFreeChain(nullptr)
 {
     char buffer[32];
 #if defined(LINUX)
     sprintf(buffer, "bucket %d", size);
-    mStats = new ForthMemoryStats(buffer);
+    mStats = new MemoryStats(buffer);
 #else
     std::string name("bucket ");
     name.append(::itoa(size, buffer, 10));
-    mStats = new ForthMemoryStats(name.c_str());
+    mStats = new MemoryStats(name.c_str());
 #endif
 }
 
-ForthMemoryPoolBucket::~ForthMemoryPoolBucket()
+MemoryPoolBucket::~MemoryPoolBucket()
 {
     delete mStats;
 }
 
-char* ForthMemoryPoolBucket::allocate()
+char* MemoryPoolBucket::allocate()
 {
     mStats->trackAllocation(mSize);
 
@@ -154,7 +154,7 @@ char* ForthMemoryPoolBucket::allocate()
     return pResult;
 }
 
-void ForthMemoryPoolBucket::deallocate(char* pToBeFreed)
+void MemoryPoolBucket::deallocate(char* pToBeFreed)
 {
     mStats->trackDeallocation(mSize);
 
@@ -162,12 +162,12 @@ void ForthMemoryPoolBucket::deallocate(char* pToBeFreed)
     mpFreeChain = pToBeFreed;
 }
 
-int ForthMemoryPoolBucket::getSize() const
+int MemoryPoolBucket::getSize() const
 {
     return mSize;
 }
 
-ForthMemoryStats* ForthMemoryPoolBucket::getMemoryStats()
+MemoryStats* MemoryPoolBucket::getMemoryStats()
 {
     return mStats;
 }
@@ -177,30 +177,30 @@ ForthMemoryStats* ForthMemoryPoolBucket::getMemoryStats()
 
 //////////////////////////////////////////////////////////////////////
 ////
-///     ForthMemoryManager
+///     MemoryManager
 //
 //
 
-ForthMemoryManager::ForthMemoryManager()
+MemoryManager::MemoryManager()
     : mUnusedInNewestBlock(0)
     , mpNextAllocation(nullptr)
     , mTotalStorageSize(0)
 {
     for (int i = 0; i < NUM_MEMORY_POOLS; i++) {
-        mPools.push_back(new ForthMemoryPoolBucket(8 * (i + 1)));
+        mPools.push_back(new MemoryPoolBucket(8 * (i + 1)));
     }
-    mBigThingStats = new ForthMemoryStats("bigThings");
-    mTotalStats = new ForthMemoryStats("all");
+    mBigThingStats = new MemoryStats("bigThings");
+    mTotalStats = new MemoryStats("all");
 }
 
-ForthMemoryManager::~ForthMemoryManager()
+MemoryManager::~MemoryManager()
 {
     for (int i = 0; i < mBlocks.size(); i++) {
         ::free(mBlocks[i]->mStorage);
     }
 }
 
-void* ForthMemoryManager::allocate(size_t numBytes)
+void* MemoryManager::allocate(size_t numBytes)
 {
     void* result = nullptr;
     if (numBytes != 0)
@@ -208,7 +208,7 @@ void* ForthMemoryManager::allocate(size_t numBytes)
         int poolNum = (int)((numBytes - 1) >> 3);
         if (poolNum < NUM_MEMORY_POOLS)
         {
-            ForthMemoryPoolBucket* pool = mPools[poolNum];
+            MemoryPoolBucket* pool = mPools[poolNum];
             result = pool->allocate();
             if (result == nullptr)
             {
@@ -240,7 +240,7 @@ void* ForthMemoryManager::allocate(size_t numBytes)
     return result;
 }
 
-void ForthMemoryManager::deallocate(void* pBlock, size_t numBytes)
+void MemoryManager::deallocate(void* pBlock, size_t numBytes)
 {
     /*
     if (pBlock < mBlocks[0]->mStorage || pBlock >= (mBlocks[0]->mStorage + mBlocks[0]->mSize))
@@ -251,7 +251,7 @@ void ForthMemoryManager::deallocate(void* pBlock, size_t numBytes)
     int poolNum = (int)((numBytes - 1) >> 3);
     if (poolNum < NUM_MEMORY_POOLS)
     {
-        ForthMemoryPoolBucket* pool = mPools[poolNum];
+        MemoryPoolBucket* pool = mPools[poolNum];
         pool->deallocate((char *)pBlock);
     	//printf(">>> deallocate @%p %d bytes, pool%02d\n", pBlock, numBytes, poolNum);
     }
@@ -263,14 +263,14 @@ void ForthMemoryManager::deallocate(void* pBlock, size_t numBytes)
     }
 }
 
-void ForthMemoryManager::deallocateObject(void* pObject)
+void MemoryManager::deallocateObject(void* pObject)
 {
     ForthObject obj = (ForthObject)pObject;
     ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
     deallocate(pObject, pClassObject->pVocab->GetSize());
 }
 
-void ForthMemoryManager::allocateStorage(int size)
+void MemoryManager::allocateStorage(int size)
 {
     char *pNewBlock = (char *)::malloc(size);
     mBlocks.push_back(new storageBlock(size, pNewBlock));
@@ -279,9 +279,9 @@ void ForthMemoryManager::allocateStorage(int size)
     mTotalStorageSize += size;
 }
 
-void ForthMemoryManager::getStats(std::vector<ForthMemoryStats*>& statsOut, int& numStorageBlocks, int& totalStorage, int& freeStorage)
+void MemoryManager::getStats(std::vector<MemoryStats*>& statsOut, int& numStorageBlocks, int& totalStorage, int& freeStorage)
 {
-    for (ForthMemoryPoolBucket* pool : mPools)
+    for (MemoryPoolBucket* pool : mPools)
     {
         statsOut.push_back(pool->getMemoryStats());
     }
@@ -323,7 +323,7 @@ void PassThruMemoryManager::free(void* pBlock)
 
 void* DebugPassThruMemoryManager::allocate(size_t numBytes)
 {
-    void * pData = ForthMemoryManager::allocate(numBytes);
+    void * pData = MemoryManager::allocate(numBytes);
     ForthEngine::GetInstance()->TraceOut("allocate %d bytes @ 0x%p\n", numBytes, pData);
     return pData;
 }
@@ -331,13 +331,13 @@ void* DebugPassThruMemoryManager::allocate(size_t numBytes)
 void DebugPassThruMemoryManager::deallocate(void* pBlock, size_t numBytes)
 {
     ForthEngine::GetInstance()->TraceOut("deallocate @ 0x%p\n", pBlock);
-    ForthMemoryManager::deallocate(pBlock, numBytes);
+    MemoryManager::deallocate(pBlock, numBytes);
 }
 
 void DebugPassThruMemoryManager::deallocateObject(void* pObject)
 {
     ForthEngine::GetInstance()->TraceOut("deallocateObject @ 0x%p\n", pObject);
-    ForthMemoryManager::deallocateObject(pObject);
+    MemoryManager::deallocateObject(pObject);
 }
 
 void* DebugPassThruMemoryManager::malloc(size_t numBytes)

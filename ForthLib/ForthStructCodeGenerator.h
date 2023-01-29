@@ -7,14 +7,14 @@
 
 #include "Forth.h"
 
-class ForthTypesManager;
+class TypesManager;
 class StructVocabulary;
 class ForthParseInfo;
 
 class ForthStructCodeGenerator {
 
 public:
-	ForthStructCodeGenerator( ForthTypesManager* pTypeManager );
+	ForthStructCodeGenerator( TypesManager* pTypeManager );
 	~ForthStructCodeGenerator();
 	
 	bool Generate( ForthParseInfo *pInfo, forthop*& pDst, int dstLongs );
@@ -33,7 +33,7 @@ protected:
 	ForthParseInfo* mpParseInfo;
     StructVocabulary* mpStructVocab;
     StructVocabulary* mpContainedClassVocab;
-    ForthTypesManager* mpTypeManager;
+    TypesManager* mpTypeManager;
     forthop* mpDst;
     forthop* mpDstBase;
 	int	mDstLongs;

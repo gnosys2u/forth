@@ -16,7 +16,7 @@ class ForthEngine;
 class StructVocabulary;
 class ClassVocabulary;
 class NativeType;
-class ForthTypesManager;
+class TypesManager;
 class ForthStructCodeGenerator;
 class ForthObjectReader;
 
@@ -101,11 +101,11 @@ protected:
 // a struct accessor compound operation must be less than this length in longs
 #define MAX_ACCESSOR_LONGS  64
 
-class ForthTypesManager : public ForthForgettable
+class TypesManager : public Forgettable
 {
 public:
-    ForthTypesManager();
-    ~ForthTypesManager();
+    TypesManager();
+    ~TypesManager();
 
     virtual void    ForgetCleanup( void *pForgetLimit, forthop op );
 
@@ -124,7 +124,7 @@ public:
 	// default classIndex value means assign next available classIndex
 	ClassVocabulary*           StartClassDefinition(const char *pName, int classIndex = kNumBuiltinClasses, bool isInterface = false);
     void                            EndClassDefinition( void );
-    static ForthTypesManager*       GetInstance( void );
+    static TypesManager*       GetInstance( void );
 
     // return info structure for struct type specified by typeIndex
     ForthTypeInfo*        GetTypeInfo( int typeIndex );
@@ -154,7 +154,7 @@ public:
 protected:
     // mStructInfo is an array with an entry for each defined structure type
 	std::vector<ForthTypeInfo>      mStructInfo;
-    static ForthTypesManager*       mpInstance;
+    static TypesManager*       mpInstance;
     ForthVocabulary*                mpSavedDefinitionVocab;
     char                            mToken[ DEFAULT_INPUT_BUFFER_LEN ];
     forthop                         mCode[ MAX_ACCESSOR_LONGS ];
