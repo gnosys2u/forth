@@ -56,7 +56,7 @@ namespace OSocket
 
     FORTHOP(oSocketNew)
     {
-        ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+        ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
         ALLOCATE_OBJECT(oSocketStruct, pSocket, pClassVocab);
         pSocket->pMethods = pClassVocab->GetMethods();
         pSocket->refCount = 0;
@@ -159,7 +159,7 @@ namespace OSocket
         cell result = (cell)accept(pSocket->fd, addr, addrLen);
         if (result != -1)
         {
-            ForthClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCISocket);
+            ClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCISocket);
             ALLOCATE_OBJECT(oSocketStruct, pNewSocket, pClassVocab);
             pNewSocket->pMethods = pClassVocab->GetMethods();
             pNewSocket->refCount = 0;

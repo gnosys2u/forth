@@ -1276,7 +1276,7 @@ FORTHOP(initStructArrayOp)
 	ForthTypeInfo* typeInfo = pManager->GetTypeInfo(typeIndex);
 	if (typeInfo != nullptr)
 	{
-		ForthStructVocabulary* pVocab = typeInfo->pVocab;
+		StructVocabulary* pVocab = typeInfo->pVocab;
 		if (pVocab != nullptr)
 		{
 			if (pVocab->IsStruct())
@@ -1761,7 +1761,7 @@ FORTHOP( definitionsOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    ForthVocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
+    VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
 	if ( GET_VAR_OPERATION != VarOperation::kVarDefaultOp )
 	{
 		pOuter->GetDefinitionVocabulary()->DoOp( pCore );
@@ -1777,7 +1777,7 @@ FORTHOP( alsoOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    ForthVocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
+    VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
     pVocabStack->DupTop();
 }
 
@@ -1785,7 +1785,7 @@ FORTHOP( previousOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    ForthVocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
+    VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
     if ( !pVocabStack->DropTop() )
     {
         CONSOLE_STRING_OUT( "Attempt to drop last item on vocabulary stack ignored.\n" );
@@ -1796,7 +1796,7 @@ FORTHOP( onlyOp )
 {
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    ForthVocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
+    VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
     pVocabStack->Clear();
 }
 
@@ -1827,7 +1827,7 @@ FORTHOP( strForgetOp )
     bool forgotIt = pOuter->ForgetSymbol( pSym, !verbose );
     // reset search & definitions vocabs in case we deleted a vocab we were using
     pOuter->SetDefinitionVocabulary( pOuter->GetForthVocabulary() );
-    ForthVocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
+    VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
     pVocabStack->Clear();
     SPUSH( forgotIt ? -1 : 0 );
 }
@@ -1927,7 +1927,7 @@ FORTHOP( vlistOp )
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     bool quit = false;
-    ForthVocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
+    VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
     ForthVocabulary* pVocab;
 	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
     pOuter->ShowSearchInfo();
@@ -2122,7 +2122,7 @@ FORTHOP( structOp )
     pOuter->SetFlag( kEngineFlagInStructDefinition );
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
 	const char* pName = pOuter->GetNextSimpleToken();
-    ForthStructVocabulary* pVocab = pManager->StartStructDefinition(pName);
+    StructVocabulary* pVocab = pManager->StartStructDefinition(pName);
     pOuter->CompileBuiltinOpcode( OP_DO_STRUCT_TYPE );
     pOuter->CompileCell((cell)pVocab);
 
@@ -2179,7 +2179,7 @@ FORTHOP(defineNewOp)
 {
 	startColonDefinition(pCore, "__newOp");
 	ForthEngine *pEngine = GET_ENGINE;
-	ForthClassVocabulary* pVocab = ForthTypesManager::GetInstance()->GetNewestClass();
+	ClassVocabulary* pVocab = ForthTypesManager::GetInstance()->GetNewestClass();
 	if (pVocab)
 	{
         forthop* pEntry = pVocab->GetNewestEntry();
@@ -2221,7 +2221,7 @@ FORTHOP( methodOp )
     }
 
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-    ForthClassVocabulary* pVocab = pManager->GetNewestClass();
+    ClassVocabulary* pVocab = pManager->GetNewestClass();
     if (pVocab == nullptr)
     {
         pEngine->SetError(ForthError::kBadSyntax, "Defining class not found in 'method:'");
@@ -2305,7 +2305,7 @@ FORTHOP( returnsOp )
     {
         char *pToken = pOuter->GetNextSimpleToken();
         ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-        ForthClassVocabulary* pVocab = pManager->GetNewestClass();
+        ClassVocabulary* pVocab = pManager->GetNewestClass();
         forthop* pEntry = pVocab->GetNewestEntry();
         if ( strcmp( pToken, "ptrTo" ) == 0 )
         {
@@ -2324,7 +2324,7 @@ FORTHOP( returnsOp )
         else
         {
             // see if it is a struct type
-            ForthStructVocabulary* pTypeVocab = pManager->GetStructVocabulary( pToken );
+            StructVocabulary* pTypeVocab = pManager->GetStructVocabulary( pToken );
             if ( pTypeVocab )
             {
                 if ( pTypeVocab->IsClass() )
@@ -2367,7 +2367,7 @@ FORTHOP( implementsOp )
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
 
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-    ForthClassVocabulary* pVocab = pManager->GetNewestClass();
+    ClassVocabulary* pVocab = pManager->GetNewestClass();
     if ( pVocab && pOuter->CheckFlag( kEngineFlagInClassDefinition ) )
     {
         if (pOuter->CheckFlag(kEngineFlagInInterfaceImplementation))
@@ -2392,7 +2392,7 @@ FORTHOP( endImplementsOp )
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
 
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-    ForthClassVocabulary* pVocab = pManager->GetNewestClass();
+    ClassVocabulary* pVocab = pManager->GetNewestClass();
     if ( pVocab && pOuter->CheckFlag( kEngineFlagInInterfaceImplementation ) )
     {
         pVocab->EndImplements();
@@ -2412,7 +2412,7 @@ FORTHOP(classIdOfOp)      // has precedence
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
 
     // see if it is a struct type
-    ForthStructVocabulary* pTypeVocab = pManager->GetStructVocabulary(pClassName);
+    StructVocabulary* pTypeVocab = pManager->GetStructVocabulary(pClassName);
     if (pTypeVocab)
     {
         if (pTypeVocab->IsClass())
@@ -2448,7 +2448,7 @@ FORTHOP(getInterfaceOp)
     if (pObject != nullptr)
     {
         ForthClassObject* pClassObj = GET_CLASS_OBJECT(pObject);
-        ForthClassVocabulary* pVocab = pClassObj->pVocab;
+        ClassVocabulary* pVocab = pClassObj->pVocab;
         int32_t interfaceIndex = pVocab->FindInterfaceIndex(classId);
         if (interfaceIndex == 0)
         {
@@ -2488,14 +2488,14 @@ FORTHOP( extendsOp )
     if ( pEntry )
     {
         ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-        ForthStructVocabulary* pParentVocab = pManager->GetStructVocabulary( pEntry[0] );
+        StructVocabulary* pParentVocab = pManager->GetStructVocabulary( pEntry[0] );
         if ( pParentVocab )
         {
 			if ( pOuter->CheckFlag( kEngineFlagInClassDefinition ) )
 			{
 				if ( pParentVocab->IsClass() )
 				{
-					ForthClassVocabulary* pParentClassVocab = reinterpret_cast<ForthClassVocabulary *>(pParentVocab);
+					ClassVocabulary* pParentClassVocab = reinterpret_cast<ClassVocabulary *>(pParentVocab);
 					pManager->GetNewestClass()->Extends( pParentClassVocab );
 				}
 				else
@@ -2548,7 +2548,7 @@ FORTHOP( strSizeOfOp )
     if ( pEntry )
     {
         ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-        ForthStructVocabulary* pStructVocab = pManager->GetStructVocabulary( pEntry[0] );
+        StructVocabulary* pStructVocab = pManager->GetStructVocabulary( pEntry[0] );
         if ( pStructVocab != nullptr)
         {
 			size = pStructVocab->GetSize();
@@ -2593,7 +2593,7 @@ FORTHOP( strOffsetOfOp )
 		if (pEntry)
 		{
 			ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-			ForthStructVocabulary* pStructVocab = pManager->GetStructVocabulary(pEntry[0]);
+			StructVocabulary* pStructVocab = pManager->GetStructVocabulary(pEntry[0]);
 			if (pStructVocab)
 			{
 				pEntry = pStructVocab->FindSymbol(pField);
@@ -2659,7 +2659,7 @@ FORTHOP( processLongConstantOp )
 FORTHOP(showStructOp)
 {
 	// TOS: structVocabPtr ptrToStructData
-	ForthStructVocabulary *pStructVocab = (ForthStructVocabulary *)(SPOP);
+	StructVocabulary *pStructVocab = (StructVocabulary *)(SPOP);
 	void* pStruct = (void *)(SPOP);
 	pStructVocab->ShowData(pStruct, pCore, true);
 }
@@ -2676,7 +2676,7 @@ void __newOp(ForthCoreState* pCore, const char* pClassName)
     if ( pEntry )
     {
         ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-        ForthClassVocabulary* pClassVocab = (ForthClassVocabulary *) (pManager->GetStructVocabulary( pEntry[0] ));
+        ClassVocabulary* pClassVocab = (ClassVocabulary *) (pManager->GetStructVocabulary( pEntry[0] ));
 
         if ( pClassVocab && pClassVocab->IsClass() )
         {
@@ -2737,7 +2737,7 @@ FORTHOP(strNewOp)
 	if (pEntry)
 	{
 		ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-		ForthClassVocabulary* pClassVocab = (ForthClassVocabulary *)(pManager->GetStructVocabulary(pEntry[0]));
+		ClassVocabulary* pClassVocab = (ClassVocabulary *)(pManager->GetStructVocabulary(pEntry[0]));
 
 		if (pClassVocab && pClassVocab->IsClass())
 		{
@@ -2789,7 +2789,7 @@ FORTHOP(makeObjectOp)
     if (pEntry)
     {
         ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-        ForthClassVocabulary* pClassVocab = (ForthClassVocabulary *)(pManager->GetStructVocabulary(pEntry[0]));
+        ClassVocabulary* pClassVocab = (ClassVocabulary *)(pManager->GetStructVocabulary(pEntry[0]));
 
         if (pClassVocab && pClassVocab->IsClass())
         {
@@ -2828,7 +2828,7 @@ FORTHOP(doNewOp)
 	{
 		if (pTypeInfo->pVocab->IsClass())
 		{
-			ForthClassVocabulary *pClassVocab = static_cast<ForthClassVocabulary *>(pTypeInfo->pVocab);
+			ClassVocabulary *pClassVocab = static_cast<ClassVocabulary *>(pTypeInfo->pVocab);
 			SPUSH((cell)pClassVocab);
 			pEngine->FullyExecuteOp(pCore, pClassVocab->GetClassObject()->newOp);
 		}
@@ -2847,7 +2847,7 @@ FORTHOP( allocObjectOp )
 {
 	// allocObject is the default new op, it is used only for classes which don't define their
 	//   own 'new' op, or extend a class that does
-    ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *) (SPOP);
+    ClassVocabulary *pClassVocab = (ClassVocabulary *) (SPOP);
     forthop* pMethods = pClassVocab->GetMethods();
     if (pMethods)
     {
@@ -2871,7 +2871,7 @@ FORTHOP( initMemberStringOp )
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     char *pString = pOuter->GetNextSimpleToken();
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-    ForthClassVocabulary* pVocab = pManager->GetNewestClass();
+    ClassVocabulary* pVocab = pManager->GetNewestClass();
     forthop* pEntry;
 
     if ( !pOuter->CheckFlag( kEngineFlagIsMethod ) || (pVocab == NULL) )
@@ -3038,7 +3038,7 @@ FORTHOP(getClassByIndexOp)
 	// IP points to data field
 	int typeIndex = SPOP;
 	ForthObject classObject = nullptr;
-	ForthClassVocabulary* pClassVocab = GET_CLASS_VOCABULARY(typeIndex);
+	ClassVocabulary* pClassVocab = GET_CLASS_VOCABULARY(typeIndex);
 	if (pClassVocab != nullptr)
 	{
 		ForthClassObject* pClassObject = pClassVocab->GetClassObject();
@@ -3055,7 +3055,7 @@ FORTHOP(getClassByIndexOp)
 FORTHOP(doStructTypeOp)
 {
 	// IP points to data field
-	ForthStructVocabulary *pVocab = *(ForthStructVocabulary **)(GET_IP);
+	StructVocabulary *pVocab = *(StructVocabulary **)(GET_IP);
 
 	ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
@@ -3093,7 +3093,7 @@ FORTHOP( doClassTypeOp )
 {
     // IP points to data field
 	// TODO: change this to take class typeIndex on TOS like doNewOp
-    ForthClassVocabulary *pVocab = *((ForthClassVocabulary **)GET_IP);
+    ClassVocabulary *pVocab = *((ClassVocabulary **)GET_IP);
 	pVocab->DefineInstance();
     SET_IP( (forthop* ) (RPOP) );
 }
@@ -3285,7 +3285,7 @@ FORTHOP( requiresOp )
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     char *pSymbolName = pOuter->GetNextSimpleToken();
-	ForthVocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
+	VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
 
 	if ( pVocabStack->FindSymbol( pSymbolName ) == NULL )
     {
@@ -4761,7 +4761,7 @@ FORTHOP( describeOp )
 		}
 	}
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-    ForthStructVocabulary* pVocab = pManager->GetStructVocabulary( buff );
+    StructVocabulary* pVocab = pManager->GetStructVocabulary( buff );
 	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
 
     if ( pVocab )
@@ -4775,7 +4775,7 @@ FORTHOP( describeOp )
                 forthop typeCode = pEntry[1];
 				if (pVocab->IsClass())
 				{
-					ForthClassVocabulary* pClassVocab = (ForthClassVocabulary*)pVocab;
+					ClassVocabulary* pClassVocab = (ClassVocabulary*)pVocab;
 					if (CODE_IS_METHOD(typeCode))
 					{
 						// TODO: support secondary interfaces
@@ -4815,7 +4815,7 @@ FORTHOP( describeOp )
 			{
                 if (pVocab->IsClass())
                 {
-                    forthop* pMethods = ((ForthClassVocabulary *)pVocab)->GetMethods();
+                    forthop* pMethods = ((ClassVocabulary *)pVocab)->GetMethods();
                     SNPRINTF(buff, sizeof(buff), "class vocabulary %s:  methods at 0x%08x, size %d\n",
                         pVocab->GetName(), static_cast<int>(reinterpret_cast<intptr_t>(pMethods)), pVocab->GetSize());
                 }
@@ -4874,7 +4874,7 @@ FORTHOP( DLLVocabularyOp )
     char* pDLLOpName = pOuter->AddTempString(pOuter->GetNextSimpleToken());
     pOuter->StartOpDefinition( pDLLOpName );
     char* pDLLName = pOuter->GetNextSimpleToken();
-    ForthDLLVocabulary* pVocab = new ForthDLLVocabulary( pDLLOpName,
+    DLLVocabulary* pVocab = new DLLVocabulary( pDLLOpName,
                                                          pDLLName,
                                                          NUM_FORTH_VOCAB_VALUE_LONGS,
                                                          512,
@@ -4893,7 +4893,7 @@ FORTHOP( addDLLEntryOp )
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     char* pProcName = (char *) SPOP;
-    ForthDLLVocabulary* pVocab = (ForthDLLVocabulary *) (pOuter->GetDefinitionVocabulary());
+    DLLVocabulary* pVocab = (DLLVocabulary *) (pOuter->GetDefinitionVocabulary());
     if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );
@@ -4911,7 +4911,7 @@ FORTHOP(addDLLEntryExOp)
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     char* pProcName = (char *)SPOP;
 	char* pEntryName = (char *)SPOP;
-	ForthDLLVocabulary* pVocab = (ForthDLLVocabulary *)(pOuter->GetDefinitionVocabulary());
+	DLLVocabulary* pVocab = (DLLVocabulary *)(pOuter->GetDefinitionVocabulary());
 	if (pVocab->GetType() != VocabularyType::kDLL)
 	{
 		pEngine->AddErrorText(pVocab->GetName());
@@ -4927,7 +4927,7 @@ FORTHOP(DLLVoidOp)
 
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    ForthDLLVocabulary* pVocab = (ForthDLLVocabulary *) (pOuter->GetDefinitionVocabulary());
+    DLLVocabulary* pVocab = (DLLVocabulary *) (pOuter->GetDefinitionVocabulary());
     if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );
@@ -4945,7 +4945,7 @@ FORTHOP( DLLLongOp )
 
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    ForthDLLVocabulary* pVocab = (ForthDLLVocabulary *) (pOuter->GetDefinitionVocabulary());
+    DLLVocabulary* pVocab = (DLLVocabulary *) (pOuter->GetDefinitionVocabulary());
     if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );
@@ -4963,7 +4963,7 @@ FORTHOP( DLLStdCallOp )
 
     ForthEngine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    ForthDLLVocabulary* pVocab = (ForthDLLVocabulary *) (pOuter->GetDefinitionVocabulary());
+    DLLVocabulary* pVocab = (DLLVocabulary *) (pOuter->GetDefinitionVocabulary());
     if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );

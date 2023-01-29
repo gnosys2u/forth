@@ -1101,7 +1101,7 @@ void ForthEngine::DumpExecutionProfile()
         if (pVocab->IsClass())
         {
 
-            forthop* pMethods = ((ForthClassVocabulary *)pVocab)->GetMethods();
+            forthop* pMethods = ((ClassVocabulary *)pVocab)->GetMethods();
             while (pEntry != nullptr)
             {
                 forthop op = *pEntry;
@@ -1389,7 +1389,7 @@ OpResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
 #endif
         }
 
-        ForthClassVocabulary* parentVocabulary = pClassObject->pVocab->ParentClass();
+        ClassVocabulary* parentVocabulary = pClassObject->pVocab->ParentClass();
         if (parentVocabulary == nullptr)
         {
             // we've reached the top of the inheritance chain, exit loop
@@ -1764,7 +1764,7 @@ void ForthEngine::SetIsServer(bool isServer)
 	mIsServer = isServer;
 }
 
-ForthClassVocabulary* ForthEngine::AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex, eBuiltinClassIndex parentClassIndex, baseMethodEntry* pEntries)
+ClassVocabulary* ForthEngine::AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex, eBuiltinClassIndex parentClassIndex, baseMethodEntry* pEntries)
 {
     return mpOuter->AddBuiltinClass(pClassName, classIndex, parentClassIndex, pEntries);
 }

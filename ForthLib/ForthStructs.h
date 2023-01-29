@@ -13,9 +13,9 @@
 #include <vector>
 
 class ForthEngine;
-class ForthStructVocabulary;
-class ForthClassVocabulary;
-class ForthNativeType;
+class StructVocabulary;
+class ClassVocabulary;
+class NativeType;
 class ForthTypesManager;
 class ForthStructCodeGenerator;
 class ForthObjectReader;
@@ -34,13 +34,13 @@ struct ForthTypeInfo
 		, typeIndex(static_cast<int>(kBCIInvalid))
 	{}
 
-	ForthTypeInfo(ForthStructVocabulary* inVocab, forthop inOp, int inTypeIndex)
+	ForthTypeInfo(StructVocabulary* inVocab, forthop inOp, int inTypeIndex)
 		: pVocab(inVocab)
 		, op(inOp)
 		, typeIndex(inTypeIndex)
 	{}
 
-    ForthStructVocabulary*  pVocab;
+    StructVocabulary*  pVocab;
     forthop                 op;
 	int                     typeIndex;
 };
@@ -49,7 +49,7 @@ typedef struct
 {
     forthop*                    pMethods;
     REFCOUNTER                  refCount;
-	ForthClassVocabulary*       pVocab;
+	ClassVocabulary*       pVocab;
     forthop                     newOp;
 } ForthClassObject;
 
@@ -79,12 +79,12 @@ typedef struct
 class ForthInterface
 {
 public:
-	ForthInterface( ForthClassVocabulary* pDefiningClass=NULL );
+	ForthInterface( ClassVocabulary* pDefiningClass=NULL );
 	virtual ~ForthInterface();
 
 	void					Copy( ForthInterface* pInterface, bool isPrimaryInterface );
-	void					Implements( ForthClassVocabulary* pClass );
-	ForthClassVocabulary*	GetDefiningClass();
+	void					Implements( ClassVocabulary* pClass );
+	ClassVocabulary*	GetDefiningClass();
 	forthop*				GetMethods();
     forthop					GetMethod( int index );
 	void					SetMethod(int index, forthop method );
@@ -93,7 +93,7 @@ public:
     int					    GetNumMethods();
     int					    GetNumAbstractMethods();
 protected:
-	ForthClassVocabulary*   mpDefiningClass;
+	ClassVocabulary*   mpDefiningClass;
     std::vector<forthop>    mMethods;
 	int                     mNumAbstractMethods;
 };
@@ -119,28 +119,28 @@ public:
     void            ShutdownBuiltinClasses(ForthEngine* pEngine);
 
     // add a new structure type
-    ForthStructVocabulary*          StartStructDefinition( const char *pName );
+    StructVocabulary*          StartStructDefinition( const char *pName );
     void                            EndStructDefinition( void );
 	// default classIndex value means assign next available classIndex
-	ForthClassVocabulary*           StartClassDefinition(const char *pName, int classIndex = kNumBuiltinClasses, bool isInterface = false);
+	ClassVocabulary*           StartClassDefinition(const char *pName, int classIndex = kNumBuiltinClasses, bool isInterface = false);
     void                            EndClassDefinition( void );
     static ForthTypesManager*       GetInstance( void );
 
     // return info structure for struct type specified by typeIndex
     ForthTypeInfo*        GetTypeInfo( int typeIndex );
-	ForthClassVocabulary* GetClassVocabulary(int typeIndex) const;
+	ClassVocabulary* GetClassVocabulary(int typeIndex) const;
 	ForthInterface* GetClassInterface(int typeIndex, int interfaceIndex) const;
 
     // return vocabulary for a struct type given its opcode or name
-    ForthStructVocabulary*  GetStructVocabulary( forthop op );
-	ForthStructVocabulary*	GetStructVocabulary( const char* pName );
+    StructVocabulary*  GetStructVocabulary( forthop op );
+	StructVocabulary*	GetStructVocabulary( const char* pName );
 
     void GetFieldInfo( int32_t fieldType, int32_t& fieldBytes, int32_t& alignment );
 
-    ForthStructVocabulary*  GetNewestStruct( void );
-    ForthClassVocabulary*   GetNewestClass( void );
+    StructVocabulary*  GetNewestStruct( void );
+    ClassVocabulary*   GetNewestClass( void );
     BaseType                GetBaseTypeFromName( const char* typeName );
-    ForthNativeType*        GetNativeTypeFromName( const char* typeName );
+    NativeType*        GetNativeTypeFromName( const char* typeName );
     int32_t                 GetBaseTypeSizeFromName( const char* typeName );
     forthop*                GetClassMethods();
 
@@ -164,11 +164,11 @@ protected:
 	cell							mNewestTypeIndex;
 };
 
-class ForthStructVocabulary : public ForthVocabulary
+class StructVocabulary : public ForthVocabulary
 {
 public:
-    ForthStructVocabulary( const char* pName, int typeIndex );
-    virtual ~ForthStructVocabulary();
+    StructVocabulary( const char* pName, int typeIndex );
+    virtual ~StructVocabulary();
 
     // return pointer to symbol entry, NULL if not found
     virtual forthop*    FindSymbol( const char *pSymName, ucell serial=0 );
@@ -194,9 +194,9 @@ public:
     int                 GetAlignment( void );
     int                 GetSize( void );
     void                StartUnion( void );
-    virtual void        Extends( ForthStructVocabulary *pParentStruct );
+    virtual void        Extends( StructVocabulary *pParentStruct );
 
-    inline ForthStructVocabulary* BaseVocabulary( void ) { return mpSearchNext; }
+    inline StructVocabulary* BaseVocabulary( void ) { return mpSearchNext; }
 
     inline int32_t         GetTypeIndex( void ) { return mTypeIndex; };
 
@@ -206,7 +206,7 @@ public:
     // returns number of top-level data items shown
     // pass optional pEndVocab to prevent showing items from that vocab or lower
     virtual int		    ShowDataInner(const void* pData, ForthCoreState* pCore,
-        ForthStructVocabulary* pEndVocab = nullptr);
+        StructVocabulary* pEndVocab = nullptr);
 
 	inline forthop			GetInitOpcode() { return mInitOpcode;  }
 	void				SetInitOpcode(forthop op);
@@ -216,15 +216,15 @@ protected:
     int                     mMaxNumBytes;
     int                     mTypeIndex;
     int                     mAlignment;
-    ForthStructVocabulary   *mpSearchNext;
+    StructVocabulary   *mpSearchNext;
 	forthop					mInitOpcode;
 };
 
-class ForthClassVocabulary : public ForthStructVocabulary
+class ClassVocabulary : public StructVocabulary
 {
 public:
-    ForthClassVocabulary( const char* pName, int typeIndex );
-    virtual ~ForthClassVocabulary();
+    ClassVocabulary( const char* pName, int typeIndex );
+    virtual ~ClassVocabulary();
 
     // handle invocation of a struct op - define a local/global struct or struct array, or define a field
     virtual void	    DefineInstance(void);
@@ -244,10 +244,10 @@ public:
     forthop*            GetMethods();
     int32_t                FindInterfaceIndex( int32_t classId );
 	int32_t				GetNumInterfaces( void );
-    virtual void        Extends( ForthClassVocabulary *pParentClass );
+    virtual void        Extends( ClassVocabulary *pParentClass );
     ForthClassObject*   GetClassObject(void);
     void                FixClassObjectMethods(void);
-    ForthClassVocabulary* ParentClass( void );
+    ClassVocabulary* ParentClass( void );
 
     virtual void        PrintEntry(forthop*   pEntry);
     void                SetCustomObjectReader(CustomObjectReader reader);
@@ -255,24 +255,24 @@ public:
 
 protected:
     int32_t                        mCurrentInterface;
-	ForthClassVocabulary*       mpParentClass;
+	ClassVocabulary*       mpParentClass;
 	std::vector<ForthInterface *>	mInterfaces;
     ForthClassObject*           mpClassObject;
     CustomObjectReader          mCustomReader;
-	static ForthClassVocabulary* smpObjectClass;
+	static ClassVocabulary* smpObjectClass;
 };
 
-class InterfaceVocabulary : public ForthClassVocabulary
+class InterfaceVocabulary : public ClassVocabulary
 {
 public:
     InterfaceVocabulary(const char* pName, int typeIndex);
 };
 
-class ForthNativeType
+class NativeType
 {
 public:
-    ForthNativeType( const char* pName, int numBytes, BaseType nativeType );
-    virtual ~ForthNativeType();
+    NativeType( const char* pName, int numBytes, BaseType nativeType );
+    virtual ~NativeType();
     virtual void DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_t flags=0 );
 
     inline int32_t GetGlobalOp( void ) { return (int32_t)mBaseType + gCompiledOps[OP_DO_BYTE]; };
@@ -290,7 +290,7 @@ protected:
     BaseType       mBaseType;
 };
 
-extern ForthNativeType gNativeTypeByte, gNativeTypeUByte, gNativeTypeShort, gNativeTypeUShort,
+extern NativeType gNativeTypeByte, gNativeTypeUByte, gNativeTypeShort, gNativeTypeUShort,
 		gNativeTypeInt, gNativeTypeUInt, gNativeTypeLong, gNativeTypeULong, gNativeTypeFloat,
         gNativeTypeDouble, gNativeTypeString, gNativeTypeOp, gNativeTypeObject;
 

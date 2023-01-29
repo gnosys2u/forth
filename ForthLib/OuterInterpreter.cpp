@@ -157,7 +157,7 @@ OuterInterpreter::OuterInterpreter(ForthEngine* pEngine)
 
     mpForthVocab = new ForthVocabulary("forth", NUM_FORTH_VOCAB_VALUE_LONGS);
     mpLiteralsVocab = new ForthVocabulary("literals", NUM_FORTH_VOCAB_VALUE_LONGS);
-    mpLocalVocab = new ForthLocalVocabulary("locals", NUM_LOCALS_VOCAB_VALUE_LONGS);
+    mpLocalVocab = new LocalVocabulary("locals", NUM_LOCALS_VOCAB_VALUE_LONGS);
     mStringBufferASize = 3 * MAX_STRING_SIZE;
     mpStringBufferA = new char[mStringBufferASize];
     mpTempBuffer = new char[MAX_STRING_SIZE];
@@ -167,7 +167,7 @@ OuterInterpreter::OuterInterpreter(ForthEngine* pEngine)
 
 void OuterInterpreter::Initialize()
 {
-    mpVocabStack = new ForthVocabularyStack;
+    mpVocabStack = new VocabularyStack;
     mpVocabStack->Initialize();
     mpVocabStack->Clear();
 
@@ -320,13 +320,13 @@ void OuterInterpreter::AddBuiltinOps( baseDictionaryEntry *pEntries )
 }
 
 
-ForthClassVocabulary* OuterInterpreter::StartClassDefinition(const char* pClassName, eBuiltinClassIndex classIndex)
+ClassVocabulary* OuterInterpreter::StartClassDefinition(const char* pClassName, eBuiltinClassIndex classIndex)
 {
     SetFlag( kEngineFlagInStructDefinition );
     SetFlag( kEngineFlagInClassDefinition );
 	
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-	ForthClassVocabulary* pVocab = pManager->StartClassDefinition(pClassName, classIndex);
+	ClassVocabulary* pVocab = pManager->StartClassDefinition(pClassName, classIndex);
 
 	// add new class vocab to top of search order
 	mpVocabStack->DupTop();
@@ -349,13 +349,13 @@ void OuterInterpreter::EndClassDefinition()
 }
 
 
-ForthClassVocabulary* OuterInterpreter::StartInterfaceDefinition(const char* pInterfaceName, eBuiltinClassIndex classIndex)
+ClassVocabulary* OuterInterpreter::StartInterfaceDefinition(const char* pInterfaceName, eBuiltinClassIndex classIndex)
 {
     SetFlag(kEngineFlagInClassDefinition);
     SetFlag(kEngineFlagInInterfaceDeclaration);
 
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-    ForthClassVocabulary* pVocab = pManager->StartClassDefinition(pInterfaceName, classIndex, true);
+    ClassVocabulary* pVocab = pManager->StartClassDefinition(pInterfaceName, classIndex, true);
 
     // add new  vocab to top of search order
     //mpVocabStack->DupTop();
@@ -364,7 +364,7 @@ ForthClassVocabulary* OuterInterpreter::StartInterfaceDefinition(const char* pIn
     CompileBuiltinOpcode(OP_DO_CLASS_TYPE);
     CompileCell((cell)pVocab);
 
-    ForthClassVocabulary* pInterfaceClassVocab = pManager->GetClassVocabulary(kBCIInterface);
+    ClassVocabulary* pInterfaceClassVocab = pManager->GetClassVocabulary(kBCIInterface);
     pVocab->Extends(pInterfaceClassVocab);
 
     return pVocab;
@@ -381,16 +381,16 @@ void OuterInterpreter::EndInterfaceDefinition()
 }
 
 
-ForthClassVocabulary* OuterInterpreter::AddBuiltinClass(
+ClassVocabulary* OuterInterpreter::AddBuiltinClass(
     const char* pClassName,
     eBuiltinClassIndex classIndex,
     eBuiltinClassIndex parentClassIndex, 
     baseMethodEntry *pEntries)
 {
     // do "class:" - define class subroutine
-	ForthClassVocabulary* pVocab = StartClassDefinition(pClassName, classIndex);
+	ClassVocabulary* pVocab = StartClassDefinition(pClassName, classIndex);
     ForthTypesManager* pManager = ForthTypesManager::GetInstance();
-	ForthClassVocabulary* pParentClass = pManager->GetClassVocabulary(parentClassIndex);
+	ClassVocabulary* pParentClass = pManager->GetClassVocabulary(parentClassIndex);
 
     if ( pParentClass )
     {
@@ -571,7 +571,7 @@ bool OuterInterpreter::ForgetSymbol( const char *pSym, bool quietMode )
 
 void OuterInterpreter::ShowSearchInfo()
 {
-	ForthVocabularyStack* pVocabStack = GetVocabularyStack();
+	VocabularyStack* pVocabStack = GetVocabularyStack();
 	int depth = 0;
 	ForthConsoleStringOut(mpCore, "vocab stack:");
 	while (true)
@@ -673,7 +673,7 @@ void OuterInterpreter::DescribeOp( const char* pSymName, forthop op, int32_t aux
     const char* pStr = mpEngine->GetOpTypeName( opType );
     if ( isUserOp )
     {
-        ForthStructVocabulary::TypecodeToString( auxData, buff2, sizeof(buff2) );
+        StructVocabulary::TypecodeToString( auxData, buff2, sizeof(buff2) );
         SNPRINTF( buff, sizeof(buff), "%s: type %s:%x value 0x%x 0x%x (%s) \n", pSymName, pStr, opValue, op, auxData, buff2 );
     }
     else
@@ -1527,7 +1527,7 @@ forthop * OuterInterpreter::FindUserDefinition( ForthVocabulary* pVocab, forthop
 		else if ( CODE_IS_METHOD( typeCode ) )
 		{
 			// get opcode from method
-			ForthClassVocabulary* pClassVocab = (ForthClassVocabulary*) pVocab;
+			ClassVocabulary* pClassVocab = (ClassVocabulary*) pVocab;
 			ForthInterface* pInterface = pClassVocab->GetInterface(0);
 			// TODO: deal with secondary interfaces
 			opcode = pInterface->GetMethod( *pEntry );
@@ -2026,14 +2026,14 @@ OpResult OuterInterpreter::ProcessToken( ForthParseInfo   *pInfo )
 		// symbol ends with [], see if preceeding token is either a number or a structure type
 		pToken[len - 2] = '\0';
 		int elementSize = 0;
-        ForthStructVocabulary* pStructVocab = mpTypesManager->GetStructVocabulary( pToken );
+        StructVocabulary* pStructVocab = mpTypesManager->GetStructVocabulary( pToken );
         if ( pStructVocab != nullptr )
         {
 			elementSize = pStructVocab->GetSize();
         }
 		else
 		{
-			ForthNativeType *pNative = mpTypesManager->GetNativeTypeFromName( pToken );
+			NativeType *pNative = mpTypesManager->GetNativeTypeFromName( pToken );
 			if ( pNative != nullptr )
 			{
 				// string[] is not supported

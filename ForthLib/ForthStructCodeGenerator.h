@@ -8,7 +8,7 @@
 #include "Forth.h"
 
 class ForthTypesManager;
-class ForthStructVocabulary;
+class StructVocabulary;
 class ForthParseInfo;
 
 class ForthStructCodeGenerator {
@@ -31,8 +31,8 @@ protected:
 	uint32_t mTypeCode;
 
 	ForthParseInfo* mpParseInfo;
-    ForthStructVocabulary* mpStructVocab;
-    ForthStructVocabulary* mpContainedClassVocab;
+    StructVocabulary* mpStructVocab;
+    StructVocabulary* mpContainedClassVocab;
     ForthTypesManager* mpTypeManager;
     forthop* mpDst;
     forthop* mpDstBase;

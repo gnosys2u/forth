@@ -764,7 +764,7 @@ namespace OStream
 
     FORTHOP(oFileInStreamNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
 		ALLOCATE_OBJECT(oFileInStreamStruct, pFileInStreamStruct, pClassVocab);
         pFileInStreamStruct->istream.pMethods = pClassVocab->GetMethods();
         pFileInStreamStruct->istream.refCount = 0;
@@ -1027,7 +1027,7 @@ namespace OStream
 
 	FORTHOP(oConsoleInStreamNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
 		ALLOCATE_OBJECT(oFileInStreamStruct, pConsoleInStreamStruct, pClassVocab);
         pConsoleInStreamStruct->istream.pMethods = pClassVocab->GetMethods();
         pConsoleInStreamStruct->istream.refCount = 0;
@@ -1322,7 +1322,7 @@ namespace OStream
 
 	FORTHOP(oFileOutStreamNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
 		ALLOCATE_OBJECT(oFileOutStreamStruct, pFileOutStream, pClassVocab);
         pFileOutStream->ostream.pMethods = pClassVocab->GetMethods();
         pFileOutStream->ostream.refCount = 0;
@@ -1485,7 +1485,7 @@ namespace OStream
 
 	FORTHOP(oStringOutStreamNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
 		ALLOCATE_OBJECT(oStringOutStreamStruct, pStringOutStream, pClassVocab);
         pStringOutStream->ostream.pMethods = pClassVocab->GetMethods();
         pStringOutStream->ostream.refCount = 0;
@@ -1542,7 +1542,7 @@ namespace OStream
 
 	FORTHOP(oConsoleOutStreamNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
         consoleOutSingleton.ostream.pMethods = pClassVocab->GetMethods();
 		consoleOutSingleton.ostream.refCount = 1000;
 		consoleOutSingleton.ostream.pOutFuncs = &fileOutFuncs;
@@ -1578,7 +1578,7 @@ namespace OStream
 
     FORTHOP(oErrorOutStreamNew)
     {
-        ForthClassVocabulary* pClassVocab = (ForthClassVocabulary*)(SPOP);
+        ClassVocabulary* pClassVocab = (ClassVocabulary*)(SPOP);
         errorOutSingleton.ostream.pMethods = pClassVocab->GetMethods();
         errorOutSingleton.ostream.refCount = 100000;
         errorOutSingleton.ostream.pOutFuncs = &fileOutFuncs;
@@ -1627,7 +1627,7 @@ namespace OStream
 
 	FORTHOP(oFunctionOutStreamNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
 		ALLOCATE_OBJECT(oFunctionOutStreamStruct, pFunctionOutStream, pClassVocab);
         pFunctionOutStream->ostream.pMethods = pClassVocab->GetMethods();
         pFunctionOutStream->ostream.refCount = 0;
@@ -1704,7 +1704,7 @@ namespace OStream
 
 	FORTHOP(oTraceOutStreamNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
 		ALLOCATE_OBJECT(oOutStreamStruct, pTraceOutStream, pClassVocab);
         pTraceOutStream->pMethods = pClassVocab->GetMethods();
         pTraceOutStream->refCount = 0;
@@ -1918,7 +1918,7 @@ namespace OStream
 
 void GetForthConsoleOutStream(ForthCoreState* pCore, ForthObject& outObject)
 {
-    ForthClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIFileOutStream);
+    ClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIFileOutStream);
     OStream::consoleOutSingleton.ostream.pMethods = pClassVocab->GetMethods();
     OStream::consoleOutSingleton.ostream.refCount = 1000;
     OStream::consoleOutSingleton.ostream.pOutFuncs = &OStream::fileOutFuncs;
@@ -1929,7 +1929,7 @@ void GetForthConsoleOutStream(ForthCoreState* pCore, ForthObject& outObject)
 
 void GetForthErrorOutStream(ForthCoreState* pCore, ForthObject& outObject)
 {
-    ForthClassVocabulary* pClassVocab = GET_CLASS_VOCABULARY(kBCIFileOutStream);
+    ClassVocabulary* pClassVocab = GET_CLASS_VOCABULARY(kBCIFileOutStream);
     OStream::errorOutSingleton.ostream.pMethods = pClassVocab->GetMethods();
     OStream::errorOutSingleton.ostream.refCount = 1000;
     OStream::errorOutSingleton.ostream.pOutFuncs = &OStream::fileOutFuncs;
@@ -1941,7 +1941,7 @@ void GetForthErrorOutStream(ForthCoreState* pCore, ForthObject& outObject)
 
 void CreateForthFileOutStream(ForthCoreState* pCore, ForthObject& outObject, FILE* pOutFile)
 {
-    ForthClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIFileOutStream);
+    ClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIFileOutStream);
 	ALLOCATE_OBJECT(oOutStreamStruct, pFileOutStream, pClassVocab);
     pFileOutStream->pMethods = pClassVocab->GetMethods();
     pFileOutStream->refCount = 1;
@@ -1953,7 +1953,7 @@ void CreateForthFileOutStream(ForthCoreState* pCore, ForthObject& outObject, FIL
 void CreateForthStringOutStream(ForthCoreState* pCore, ForthObject& outObject)
 {
     // create the internal string object
-    ForthClassVocabulary* pClassVocab = GET_CLASS_VOCABULARY(kBCIString);
+    ClassVocabulary* pClassVocab = GET_CLASS_VOCABULARY(kBCIString);
     ALLOCATE_OBJECT(oStringStruct, pString, pClassVocab);
     pString->pMethods = pClassVocab->GetMethods();
     pString->refCount = 0;
@@ -1980,7 +1980,7 @@ const char* GetForthStringOutStreamData(ForthCoreState* pCore, ForthObject& stre
 void CreateForthFunctionOutStream(ForthCoreState* pCore, ForthObject& outObject, streamCharOutRoutine outChar,
 	streamBytesOutRoutine outBytes, streamStringOutRoutine outString, void* pUserData)
 {
-    ForthClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIFunctionOutStream);
+    ClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIFunctionOutStream);
 	ALLOCATE_OBJECT(OStream::oFunctionOutStreamStruct, pFunctionOutStream, pClassVocab);
     pFunctionOutStream->ostream.pMethods = pClassVocab->GetMethods();
     pFunctionOutStream->ostream.refCount = 1;

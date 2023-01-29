@@ -6,13 +6,13 @@
 //////////////////////////////////////////////////////////////////////
 
 
-class ForthClassVocabulary;
+class ClassVocabulary;
 
 namespace OMap
 {
 	void AddClasses(OuterInterpreter* pOuter);
 
-    oLongMapStruct* createLongMapObject(ForthClassVocabulary *pClassVocab);
+    oLongMapStruct* createLongMapObject(ClassVocabulary *pClassVocab);
 
-    extern ForthClassVocabulary* gpLongMapClassVocab;
+    extern ClassVocabulary* gpLongMapClassVocab;
 }

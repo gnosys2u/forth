@@ -6,13 +6,13 @@
 //////////////////////////////////////////////////////////////////////
 
 
-class ForthClassVocabulary;
+class ClassVocabulary;
 
 namespace OArray
 {
 	void AddClasses(OuterInterpreter* pOuter);
 
-    oArrayStruct* createArrayObject(ForthClassVocabulary *pClassVocab);
+    oArrayStruct* createArrayObject(ClassVocabulary *pClassVocab);
 
-    extern ForthClassVocabulary* gpArrayClassVocab;
+    extern ClassVocabulary* gpArrayClassVocab;
 }

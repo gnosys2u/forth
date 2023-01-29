@@ -107,7 +107,7 @@ namespace
     //
     FORTHOP(objectNew)
     {
-        ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+        ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
         int32_t nBytes = pClassVocab->GetSize();
 		ALLOCATE_OBJECT(oObjectStruct, pThis, pClassVocab);
         // clear the entire object area - this handles both its refcount and any object pointers it might contain
@@ -138,7 +138,7 @@ namespace
         else
         {
             pShowContext->AddObject(obj);
-            ForthClassVocabulary* pClassVocab = pClassObject->pVocab;
+            ClassVocabulary* pClassVocab = pClassObject->pVocab;
 
             pShowContext->BeginObject(pClassVocab->GetName(), obj, true);
 
@@ -146,7 +146,7 @@ namespace
             while (pClassVocab != nullptr)
             {
                 pEngine->FullyExecuteMethod(pCore, obj, kMethodShowInner);
-                pClassVocab = (ForthClassVocabulary *)pClassVocab->BaseVocabulary();
+                pClassVocab = (ClassVocabulary *)pClassVocab->BaseVocabulary();
                 if (pClassVocab != nullptr)
                 {
                     // slightly horrible, but efficient
@@ -287,11 +287,11 @@ namespace
 	FORTHOP(classSuperMethod)
 	{
 		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TP);
-		ForthClassVocabulary* pClassVocab = pClassObject->pVocab;
+		ClassVocabulary* pClassVocab = pClassObject->pVocab;
         ForthObject superObj = nullptr;
         if (pClassVocab->IsClass())
         {
-            superObj = ((ForthClassVocabulary *)(pClassVocab->BaseVocabulary()))->GetVocabularyObject();
+            superObj = ((ClassVocabulary *)(pClassVocab->BaseVocabulary()))->GetVocabularyObject();
         }
 		// what should happen if a class is derived from a struct?
 		PUSH_OBJECT(superObj);
@@ -301,7 +301,7 @@ namespace
 	FORTHOP(classNameMethod)
 	{
 		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TP);
-		ForthClassVocabulary* pClassVocab = pClassObject->pVocab;
+		ClassVocabulary* pClassVocab = pClassObject->pVocab;
 		const char* pName = pClassVocab->GetName();
 		SPUSH((cell)pName);
 		METHOD_RETURN;
@@ -536,11 +536,11 @@ forthop gObjectDeleteOpcode = 0;
 
 void ForthTypesManager::AddBuiltinClasses(OuterInterpreter* pOuter)
 {
-    ForthClassVocabulary* pObjectClassVocab = pOuter->AddBuiltinClass("Object", kBCIObject, kBCIInvalid, objectMembers);
+    ClassVocabulary* pObjectClassVocab = pOuter->AddBuiltinClass("Object", kBCIObject, kBCIInvalid, objectMembers);
     gObjectShowInnerOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodShowInner);
 	gObjectDeleteOpcode = pObjectClassVocab->GetInterface(0)->GetMethod(kMethodDelete);
 
-    ForthClassVocabulary* pClassClassVocab = pOuter->AddBuiltinClass("Class", kBCIClass, kBCIObject, classMembers);
+    ClassVocabulary* pClassClassVocab = pOuter->AddBuiltinClass("Class", kBCIClass, kBCIObject, classMembers);
     mpClassMethods = pClassClassVocab->GetMethods();
 
     // set the methods for class objects "Class" and "Object", they were created

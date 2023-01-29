@@ -319,7 +319,7 @@ namespace OBlockFile
 
     FORTHOP(oBlockFileNew)
     {
-        ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+        ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
         ALLOCATE_OBJECT(oBlockFileStruct, pBlockFile, pClassVocab);
         pBlockFile->pMethods = pClassVocab->GetMethods();
         pBlockFile->refCount = 0;

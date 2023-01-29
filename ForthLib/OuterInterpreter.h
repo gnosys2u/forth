@@ -145,11 +145,11 @@ public:
     forthop*        AddBuiltinOp( const char* name, uint32_t flags, void* value );
     void            AddBuiltinOps( baseDictionaryEntry *pEntries );
 
-    ForthClassVocabulary* StartClassDefinition(const char* pClassName, eBuiltinClassIndex classIndex = kNumBuiltinClasses);
+    ClassVocabulary* StartClassDefinition(const char* pClassName, eBuiltinClassIndex classIndex = kNumBuiltinClasses);
     void					EndClassDefinition();
-    ForthClassVocabulary* StartInterfaceDefinition(const char* pInterfaceName, eBuiltinClassIndex classIndex = kNumBuiltinClasses);
+    ClassVocabulary* StartInterfaceDefinition(const char* pInterfaceName, eBuiltinClassIndex classIndex = kNumBuiltinClasses);
     void					EndInterfaceDefinition();
-    ForthClassVocabulary*   AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex, eBuiltinClassIndex parentClassIndex, baseMethodEntry *pEntries);
+    ClassVocabulary*   AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex, eBuiltinClassIndex parentClassIndex, baseMethodEntry *pEntries);
 
     // forget the specified op and all higher numbered ops, and free the memory where those ops were stored
     void            ForgetOp(forthop opNumber, bool quietMode=true );
@@ -222,7 +222,7 @@ public:
     inline void             SetSearchVocabulary( ForthVocabulary* pVocab )  { mpVocabStack->SetTop( pVocab ); };
     inline ForthVocabulary  *GetDefinitionVocabulary( void )   { return mpDefinitionVocab; };
     inline void             SetDefinitionVocabulary( ForthVocabulary* pVocab )  { mpDefinitionVocab = pVocab; };
-    inline ForthLocalVocabulary  *GetLocalVocabulary( void )   { return mpLocalVocab; };
+    inline LocalVocabulary  *GetLocalVocabulary( void )   { return mpLocalVocab; };
 	void					ShowSearchInfo();
     inline ForthVocabulary  *GetForthVocabulary(void) { return mpForthVocab; };
     inline ForthVocabulary  *GetLiteralsVocabulary(void) { return mpLiteralsVocab; };
@@ -249,7 +249,7 @@ public:
     void                    StartEnumDefinition( void );
     void                    EndEnumDefinition( void );
 
-    ForthVocabularyStack*   GetVocabularyStack( void )              { return mpVocabStack; };
+    VocabularyStack*   GetVocabularyStack( void )              { return mpVocabStack; };
 
 	// squish float/double down to 24-bits, returns true IFF number can be represented exactly OR approximateOkay==true and number is within range of squished float
 	bool					SquishFloat( float fvalue, bool approximateOkay, uint32_t& squishedFloat );
@@ -292,10 +292,10 @@ private:
 
     ForthVocabulary * mpForthVocab;              // main forth vocabulary
     ForthVocabulary * mpLiteralsVocab;            // user-defined literals vocabulary
-    ForthLocalVocabulary * mpLocalVocab;         // local variable vocabulary
+    LocalVocabulary * mpLocalVocab;         // local variable vocabulary
 
     ForthVocabulary * mpDefinitionVocab;    // vocabulary which new definitions are added to
-    ForthVocabularyStack * mpVocabStack;
+    VocabularyStack * mpVocabStack;
 
 	ForthOpcodeCompiler* mpOpcodeCompiler;
     std::vector<ForthObject*> mGlobalObjectVariables;

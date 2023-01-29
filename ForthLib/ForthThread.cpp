@@ -937,8 +937,8 @@ namespace OThread
 	//                 oThread
 	//
 
-	static ForthClassVocabulary* gpThreadVocabulary;
-	static ForthClassVocabulary* gpFiberVocabulary;
+	static ClassVocabulary* gpThreadVocabulary;
+	static ClassVocabulary* gpFiberVocabulary;
 
 	void CreateThreadObject(ForthObject& outThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
 	{
@@ -1367,7 +1367,7 @@ namespace OLock
 #endif
 	};
 
-	static ForthClassVocabulary* gpAsyncLockVocabulary;
+	static ClassVocabulary* gpAsyncLockVocabulary;
 
 	void CreateAsyncLockObject(ForthObject& outAsyncLock, ForthEngine *pEngine)
 	{
@@ -1483,7 +1483,7 @@ namespace OLock
 
 	FORTHOP(oLockNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
 		ALLOCATE_OBJECT(oLockStruct, pLockStruct, pClassVocab);
 
         pLockStruct->pMethods = pClassVocab->GetMethods();
@@ -1705,7 +1705,7 @@ namespace OLock
 
     FORTHOP(oSemaphoreNew)
     {
-        ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+        ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
         ALLOCATE_OBJECT(oSemaphoreStruct, pSemaphoreStruct, pClassVocab);
 
         pSemaphoreStruct->pMethods = pClassVocab->GetMethods();
@@ -1857,7 +1857,7 @@ namespace OLock
 #endif
     };
 
-    static ForthClassVocabulary* gpSemaphoreVocabulary;
+    static ClassVocabulary* gpSemaphoreVocabulary;
 
     void CreateAsyncSemaphoreObject(ForthObject& outSemaphore, ForthEngine *pEngine)
     {

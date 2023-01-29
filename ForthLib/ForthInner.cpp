@@ -3646,7 +3646,7 @@ void SpewMethodName(ForthObject obj, forthop opVal)
     ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
 	if (pClassObject != nullptr)
 	{
-        ForthClassVocabulary* pVocab = pClassObject->pVocab;
+        ClassVocabulary* pVocab = pClassObject->pVocab;
         const char* pVocabName = pVocab->GetName();
         strcpy(buffer, "UNKNOWN_METHOD");
 		while (pVocab != nullptr)

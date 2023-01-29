@@ -35,8 +35,8 @@ namespace OString
     //
 
 	int gDefaultOStringSize = DEFAULT_STRING_DATA_BYTES - 1;
-    ForthClassVocabulary* gpStringClassVocab = nullptr;
-    ForthClassVocabulary* gpStringMapClassVocab = nullptr;
+    ClassVocabulary* gpStringClassVocab = nullptr;
+    ClassVocabulary* gpStringMapClassVocab = nullptr;
 
 // temp hackaround for a heap corruption when expanding a string
 //#define RCSTRING_SLOP 16
@@ -99,7 +99,7 @@ namespace OString
 
     FORTHOP( oStringNew )
     {
-        ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *) (SPOP);
+        ClassVocabulary *pClassVocab = (ClassVocabulary *) (SPOP);
         ALLOCATE_OBJECT( oStringStruct, pString, pClassVocab );
         pString->pMethods = pClassVocab->GetMethods();
         pString->refCount = 0;
@@ -710,7 +710,7 @@ namespace OString
 			int substringSize;
 			bool notDone = true;
 
-			ForthClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIString);
+			ClassVocabulary *pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIString);
 			while (notDone)
 			{
 				substringSize = 0;
@@ -977,7 +977,7 @@ namespace OString
 
     }
 
-    oStringMapStruct* createStringMapObject(ForthClassVocabulary *pClassVocab)
+    oStringMapStruct* createStringMapObject(ClassVocabulary *pClassVocab)
     {
 
         ALLOCATE_OBJECT(oStringMapStruct, pMap, pClassVocab);
@@ -989,7 +989,7 @@ namespace OString
 
     FORTHOP(oStringMapNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
         ForthObject newMap = (ForthObject) createStringMapObject(pClassVocab);
         PUSH_OBJECT(newMap);
 	}
@@ -1047,7 +1047,7 @@ namespace OString
         //   a crash happens when you assign to it
         oStringMapIterStruct* pIter = new oStringMapIterStruct;
         TRACK_ITER_NEW;
-        ForthClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIStringMapIter);
+        ClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIStringMapIter);
         pIter->pMethods = pClassVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -1066,7 +1066,7 @@ namespace OString
         //   a crash happens when you assign to it
         oStringMapIterStruct* pIter = new oStringMapIterStruct;
         TRACK_ITER_NEW;
-        ForthClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIStringMapIter);
+        ClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIStringMapIter);
         pIter->pMethods = pClassVocab->GetMethods();
         pIter->refCount = 0;
         pIter->parent = reinterpret_cast<ForthObject>(pMap);
@@ -1096,7 +1096,7 @@ namespace OString
                 //   a crash happens when you assign to it
                 oStringMapIterStruct* pIter = new oStringMapIterStruct;
                 TRACK_ITER_NEW;
-                ForthClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIStringMapIter);
+                ClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIStringMapIter);
                 pIter->pMethods = pClassVocab->GetMethods();
                 pIter->refCount = 0;
                 pIter->parent = reinterpret_cast<ForthObject>(pMap);

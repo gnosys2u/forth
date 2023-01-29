@@ -36,7 +36,7 @@ namespace ONumber
 
 	FORTHOP(oIntNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
 		ALLOCATE_OBJECT(oIntStruct, pInt, pClassVocab);
         pInt->pMethods = pClassVocab->GetMethods();
 		pInt->refCount = 0;
@@ -160,7 +160,7 @@ namespace ONumber
 
 	FORTHOP(oLongNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
 		ALLOCATE_OBJECT(oLongStruct, pLong, pClassVocab);
         pLong->pMethods = pClassVocab->GetMethods();
         pLong->refCount = 0;
@@ -244,7 +244,7 @@ namespace ONumber
 
 	FORTHOP(oFloatNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
 		ALLOCATE_OBJECT(oFloatStruct, pFloat, pClassVocab);
         pFloat->pMethods = pClassVocab->GetMethods();
         pFloat->refCount = 0;
@@ -325,7 +325,7 @@ namespace ONumber
 
 	FORTHOP(oDoubleNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
 		ALLOCATE_OBJECT(oDoubleStruct, pDouble, pClassVocab);
         pDouble->pMethods = pClassVocab->GetMethods();
         pDouble->refCount = 0;

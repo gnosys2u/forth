@@ -6,11 +6,11 @@
 //////////////////////////////////////////////////////////////////////
 
 
-class ForthClassVocabulary;
+class ClassVocabulary;
 
 namespace OSystem
 {
-	extern ForthClassVocabulary* gpOSystemClassVocab;
+	extern ClassVocabulary* gpOSystemClassVocab;
 
 	struct oSystemStruct
 	{

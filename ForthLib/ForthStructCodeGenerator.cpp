@@ -217,7 +217,7 @@ bool ForthStructCodeGenerator::HandleFirst()
 	{
 		if ( strcmp( mpToken, "super") == 0 )
 		{
-			ForthStructVocabulary* pSuperVocab = mpTypeManager->GetNewestClass()->ParentClass();
+			StructVocabulary* pSuperVocab = mpTypeManager->GetNewestClass()->ParentClass();
 			if ( pSuperVocab != NULL )
 			{
 				explicitTOSCast = true;
@@ -238,7 +238,7 @@ bool ForthStructCodeGenerator::HandleFirst()
 			//
 			////////////////////////////////////
 			*pLastChar = '\0';
-			ForthStructVocabulary* pCastVocab = mpTypeManager->GetStructVocabulary( mpToken + 1 );
+			StructVocabulary* pCastVocab = mpTypeManager->GetStructVocabulary( mpToken + 1 );
 			if ( pCastVocab != NULL )
 			{
 				explicitTOSCast = true;
@@ -268,7 +268,7 @@ bool ForthStructCodeGenerator::HandleFirst()
             if ( pEntry != NULL )
             {
                 // see if mToken is a class name
-                ForthStructVocabulary* pClassVocab = mpTypeManager->GetStructVocabulary( mpToken );
+                StructVocabulary* pClassVocab = mpTypeManager->GetStructVocabulary( mpToken );
                 if ( (pClassVocab != NULL) && pClassVocab->IsClass() )
                 {
 					////////////////////////////////////
@@ -563,7 +563,7 @@ bool ForthStructCodeGenerator::HandleMiddle()
 #endif
             if (mpStructVocab->IsClass())
             {
-                *mpDst++ = dynamic_cast<ForthClassVocabulary*>(mpStructVocab)->GetMethods()[pEntry[0]];
+                *mpDst++ = dynamic_cast<ClassVocabulary*>(mpStructVocab)->GetMethods()[pEntry[0]];
             }
             else
             {
@@ -816,7 +816,7 @@ bool ForthStructCodeGenerator::HandleLast()
 #endif
             if (mpStructVocab->IsClass())
             {
-                *mpDst++ = dynamic_cast<ForthClassVocabulary*>(mpStructVocab)->GetMethods()[pEntry[0]];
+                *mpDst++ = dynamic_cast<ClassVocabulary*>(mpStructVocab)->GetMethods()[pEntry[0]];
             }
             else
             {

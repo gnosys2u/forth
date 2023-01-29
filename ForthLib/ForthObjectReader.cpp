@@ -291,7 +291,7 @@ void ForthObjectReader::getObjectOrLink(ForthObject* pDst)
     }
 }
 
-void ForthObjectReader::getStruct(ForthStructVocabulary* pVocab, int offset, char *pDstData)
+void ForthObjectReader::getStruct(StructVocabulary* pVocab, int offset, char *pDstData)
 {
     getRequiredChar('{');
     mContextStack.push_back(mContext);
@@ -352,7 +352,7 @@ void ForthObjectReader::processElement(const std::string& name)
             std::string className = classId.substr(0, lastUnderscore);
 
             ForthCoreState *pCore = mpCore;
-            ForthStructVocabulary* newClassVocab = ForthTypesManager::GetInstance()->GetStructVocabulary(className.c_str());
+            StructVocabulary* newClassVocab = ForthTypesManager::GetInstance()->GetStructVocabulary(className.c_str());
             if (newClassVocab->IsClass())
             {
                 mContext.pVocab = newClassVocab;
@@ -360,7 +360,7 @@ void ForthObjectReader::processElement(const std::string& name)
 
                 int32_t initOpcode = mContext.pVocab->GetInitOpcode();
                 SPUSH((cell)mContext.pVocab);
-                mpEngine->FullyExecuteOp(pCore, (static_cast<ForthClassVocabulary *>(mContext.pVocab))->GetClassObject()->newOp);
+                mpEngine->FullyExecuteOp(pCore, (static_cast<ClassVocabulary *>(mContext.pVocab))->GetClassObject()->newOp);
                 if (initOpcode != 0)
                 {
                     // copy object data pointer to TOS to be used by init 
@@ -616,7 +616,7 @@ void ForthObjectReader::processCustomElement(const std::string& name)
 {
     if (mContext.pVocab->IsClass())
     {
-        ForthClassVocabulary* pVocab = (ForthClassVocabulary *)mContext.pVocab;
+        ClassVocabulary* pVocab = (ClassVocabulary *)mContext.pVocab;
 
         while (pVocab != nullptr)
         {
@@ -629,7 +629,7 @@ void ForthObjectReader::processCustomElement(const std::string& name)
                     return;
                 }
             }
-            pVocab = (ForthClassVocabulary *)pVocab->BaseVocabulary();
+            pVocab = (ClassVocabulary *)pVocab->BaseVocabulary();
         }
     }
     throwError("name not found");

@@ -47,7 +47,7 @@ namespace ODeque
     /*
     oDequeIterStruct* createDequeIterator(ForthCoreState* pCore, oDequeStruct* pDeq)
     {
-        ForthClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIDequeIter);
+        ClassVocabulary *pIterVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(kBCIDequeIter);
         ALLOCATE_ITER(oDequeIterStruct, pIter, pIterVocab);
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
@@ -87,7 +87,7 @@ namespace ODeque
 
     FORTHOP(oDequeNew)
     {
-        ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+        ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
         ALLOCATE_OBJECT(oDequeStruct, pDeque, pClassVocab);
         pDeque->pMethods = pClassVocab->GetMethods();
         pDeque->refCount = 0;
@@ -259,7 +259,7 @@ namespace ODeque
 
     void AddClasses(OuterInterpreter* pOuter)
     {
-        ForthClassVocabulary* pVocab = pOuter->AddBuiltinClass("Deque", kBCIDeque, kBCIObject, oDequeMembers);
+        ClassVocabulary* pVocab = pOuter->AddBuiltinClass("Deque", kBCIDeque, kBCIObject, oDequeMembers);
         pVocab->SetCustomObjectReader(customDequeReader);
     }
 

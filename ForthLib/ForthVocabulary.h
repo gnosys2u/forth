@@ -249,12 +249,12 @@ protected:
 
 #define MAX_LOCAL_DEPTH 16
 #define LOCAL_STACK_STRIDE 3
-class ForthLocalVocabulary : public ForthVocabulary
+class LocalVocabulary : public ForthVocabulary
 {
 public:
-    ForthLocalVocabulary( const char *pName=NULL,
+    LocalVocabulary( const char *pName=NULL,
                                int valueLongs=NUM_LOCALS_VOCAB_VALUE_LONGS, int storageBytes=DEFAULT_VOCAB_STORAGE );
-    virtual ~ForthLocalVocabulary();
+    virtual ~LocalVocabulary();
 
     // return a string telling the type of library
     virtual const char* GetDescription( void );
@@ -274,16 +274,16 @@ protected:
 	int					mFrameCells;
 };
 
-class ForthDLLVocabulary : public ForthVocabulary
+class DLLVocabulary : public ForthVocabulary
 {
 public:
-    ForthDLLVocabulary( const char *pVocabName,
+    DLLVocabulary( const char *pVocabName,
                         const char *pDLLName,
                         int valueLongs = DEFAULT_VALUE_FIELD_LONGS,
                         int storageBytes = DEFAULT_VOCAB_STORAGE,
                         void* pForgetLimit = NULL,
                         forthop op = 0 );
-    virtual ~ForthDLLVocabulary();
+    virtual ~DLLVocabulary();
 
     // return a string telling the type of library
     virtual const char* GetDescription( void );
@@ -303,11 +303,11 @@ protected:
 #endif
 };
 
-class ForthVocabularyStack
+class VocabularyStack
 {
 public:
-    ForthVocabularyStack( int maxDepth=256 );
-    ~ForthVocabularyStack();
+    VocabularyStack( int maxDepth=256 );
+    ~VocabularyStack();
     void                Initialize( void );
     void                DupTop( void );
     bool                DropTop( void );

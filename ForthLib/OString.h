@@ -41,12 +41,12 @@ namespace OString
 	extern void stringStringOut( ForthCoreState* pCore, void *pData, const char *pBuffer );
     
 	void AddClasses(OuterInterpreter* pOuter);
-    oStringMapStruct* createStringMapObject(ForthClassVocabulary *pClassVocab);
+    oStringMapStruct* createStringMapObject(ClassVocabulary *pClassVocab);
 
 
     extern int gDefaultOStringSize;
-    extern ForthClassVocabulary* gpStringClassVocab;
-    extern ForthClassVocabulary* gpStringMapClassVocab;
+    extern ClassVocabulary* gpStringClassVocab;
+    extern ClassVocabulary* gpStringMapClassVocab;
 
     extern baseMethodEntry oStringMembers[];
     extern baseMethodEntry oStringMapMembers[];

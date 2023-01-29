@@ -157,7 +157,7 @@ public:
 
     inline ForthExtension* GetExtension() { return mpExtension; }
 
-    ForthClassVocabulary* AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex,
+    ClassVocabulary* AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex,
         eBuiltinClassIndex parentClassIndex, baseMethodEntry* pEntries);
 
     inline OuterInterpreter* GetOuterInterpreter() { return mpOuter; }

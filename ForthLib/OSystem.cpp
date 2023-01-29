@@ -24,7 +24,7 @@
 
 namespace OSystem
 {
-    static ForthClassVocabulary *gpShellStackVocab = nullptr;
+    static ClassVocabulary *gpShellStackVocab = nullptr;
 
 	//////////////////////////////////////////////////////////////////////
 	///
@@ -35,7 +35,7 @@ namespace OSystem
 
     FORTHOP(oSystemNew)
 	{
-		ForthClassVocabulary *pClassVocab = (ForthClassVocabulary *)(SPOP);
+		ClassVocabulary *pClassVocab = (ClassVocabulary *)(SPOP);
         ForthObject obj;
         gSystemSingleton.refCount = 2000000000;
         CLEAR_OBJECT(gSystemSingleton.namedObjects);
@@ -113,7 +113,7 @@ namespace OSystem
 
     FORTHOP(oSystemClearSearchVocabMethod)
     {
-        ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
         pVocabStack->Clear();
 
         METHOD_RETURN;
@@ -121,7 +121,7 @@ namespace OSystem
 
     FORTHOP(oSystemGetSearchVocabDepthMethod)
 	{
-        ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
 		SPUSH(pVocabStack->GetDepth());
 
 		METHOD_RETURN;
@@ -131,7 +131,7 @@ namespace OSystem
 	{
 		int vocabStackIndex = (int) SPOP;
 
-        ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
 		ForthVocabulary* pVocab = pVocabStack->GetElement(vocabStackIndex);
 		if (pVocab != NULL)
 		{
@@ -146,7 +146,7 @@ namespace OSystem
 
 	FORTHOP(oSystemGetSearchVocabTopMethod)
 	{
-        ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
 		ForthVocabulary* pVocab = pVocabStack->GetTop();
 		if (pVocab != NULL)
 		{
@@ -169,7 +169,7 @@ namespace OSystem
 		ForthVocabulary* pVocab = pVocabStruct->vocabulary;
 		if (pVocab != NULL)
 		{
-			ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+			VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
 			pVocabStack->SetTop(pVocab);
 		}
 		METHOD_RETURN;
@@ -184,7 +184,7 @@ namespace OSystem
 		ForthVocabulary* pVocab = pVocabStruct->vocabulary;
 		if (pVocab != NULL)
 		{
-			ForthVocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+			VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
 			pVocabStack->DupTop();
 			pVocabStack->SetTop(pVocab);
 		}
@@ -226,7 +226,7 @@ namespace OSystem
     {
         int typeIndex = (int)SPOP;
         ForthObject classObject = nullptr;
-        ForthClassVocabulary* pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(typeIndex);
+        ClassVocabulary* pClassVocab = ForthTypesManager::GetInstance()->GetClassVocabulary(typeIndex);
         if (pClassVocab != nullptr)
         {
             classObject = (ForthObject) pClassVocab->GetClassObject();

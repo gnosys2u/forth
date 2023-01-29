@@ -26,33 +26,33 @@
 
 #define STRUCTS_EXPANSION_INCREMENT     16
 
-ForthNativeType gNativeTypeByte( "byte", 1, BaseType::kByte );
+NativeType gNativeTypeByte( "byte", 1, BaseType::kByte );
 
-ForthNativeType gNativeTypeUByte( "ubyte", 1, BaseType::kUByte );
+NativeType gNativeTypeUByte( "ubyte", 1, BaseType::kUByte );
 
-ForthNativeType gNativeTypeShort( "short", 2, BaseType::kShort );
+NativeType gNativeTypeShort( "short", 2, BaseType::kShort );
 
-ForthNativeType gNativeTypeUShort( "ushort", 2, BaseType::kUShort );
+NativeType gNativeTypeUShort( "ushort", 2, BaseType::kUShort );
 
-ForthNativeType gNativeTypeInt( "int", 4, BaseType::kInt );
+NativeType gNativeTypeInt( "int", 4, BaseType::kInt );
 
-ForthNativeType gNativeTypeUInt( "uint", 4, BaseType::kUInt );
+NativeType gNativeTypeUInt( "uint", 4, BaseType::kUInt );
 
-ForthNativeType gNativeTypeLong( "long", 8, BaseType::kLong );
+NativeType gNativeTypeLong( "long", 8, BaseType::kLong );
 
-ForthNativeType gNativeTypeULong( "ulong", 8, BaseType::kULong );
+NativeType gNativeTypeULong( "ulong", 8, BaseType::kULong );
 
-ForthNativeType gNativeTypeFloat( "float", 4, BaseType::kFloat );
+NativeType gNativeTypeFloat( "float", 4, BaseType::kFloat );
 
-ForthNativeType gNativeTypeDouble( "double", 8, BaseType::kDouble );
+NativeType gNativeTypeDouble( "double", 8, BaseType::kDouble );
 
-ForthNativeType gNativeTypeString( "string", 12, BaseType::kString );
+NativeType gNativeTypeString( "string", 12, BaseType::kString );
 
-ForthNativeType gNativeTypeOp( "op", 4, BaseType::kOp );
+NativeType gNativeTypeOp( "op", 4, BaseType::kOp );
 
-ForthNativeType gNativeTypeObject( "object", 8, BaseType::kObject );
+NativeType gNativeTypeObject( "object", 8, BaseType::kObject );
 
-ForthNativeType *gpNativeTypes[] =
+NativeType *gpNativeTypes[] =
 {
     &gNativeTypeByte,
     &gNativeTypeUByte,
@@ -132,7 +132,7 @@ ForthTypesManager::ForgetCleanup( void *pForgetLimit, forthop op )
 }
 
 
-ForthStructVocabulary*
+StructVocabulary*
 ForthTypesManager::StartStructDefinition( const char *pName )
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
@@ -140,7 +140,7 @@ ForthTypesManager::StartStructDefinition( const char *pName )
 
     forthop *pEntry = pEngine->GetOuterInterpreter()->StartOpDefinition( pName, true, kOpUserDefImmediate );
 	mNewestTypeIndex = static_cast<int>(mStructInfo.size());
-	ForthStructVocabulary* pVocab = new ForthStructVocabulary(pName, (int)mNewestTypeIndex);
+	StructVocabulary* pVocab = new StructVocabulary(pName, (int)mNewestTypeIndex);
 	mStructInfo.emplace_back(ForthTypeInfo(pVocab, *pEntry, (int)mNewestTypeIndex));
 	SPEW_STRUCTS("StartStructDefinition %s struct index %d\n", pName, mNewestTypeIndex);
     return pVocab;
@@ -160,7 +160,7 @@ void
 ForthTypesManager::DefineInitOpcode()
 {
 	ForthTypeInfo *pInfo = &(mStructInfo[mNewestTypeIndex]);
-	ForthStructVocabulary *pVocab = pInfo->pVocab;
+	StructVocabulary *pVocab = pInfo->pVocab;
 
 	// TODO: define new init opcode
 	if (mFieldInitInfos.size() > 0)
@@ -190,7 +190,7 @@ ForthTypesManager::DefineInitOpcode()
 
 			case kFSITSuper:
 			{
-				ForthStructVocabulary *pParentVocab = pVocab->BaseVocabulary();
+				StructVocabulary *pParentVocab = pVocab->BaseVocabulary();
 				ASSERT(pParentVocab != NULL);
 				int32_t parentInitOp = pVocab->BaseVocabulary()->GetInitOpcode();
 				ASSERT(parentInitOp != 0);
@@ -208,7 +208,7 @@ ForthTypesManager::DefineInitOpcode()
 
 			case kFSITStruct:
 			{
-				ForthStructVocabulary *pStructVocab = mStructInfo[initInfo.typeIndex].pVocab;
+				StructVocabulary *pStructVocab = mStructInfo[initInfo.typeIndex].pVocab;
 				ASSERT(pStructVocab != NULL);
 				int32_t structFieldInitOpcode = pStructVocab->GetInitOpcode();
 				ASSERT(structFieldInitOpcode != 0);
@@ -259,7 +259,7 @@ ForthTypesManager::DefineInitOpcode()
 	else
 	{
 		// newest struct/class doesn't have any fields which need initializers
-		ForthStructVocabulary *pParentVocab = pVocab->BaseVocabulary();
+		StructVocabulary *pParentVocab = pVocab->BaseVocabulary();
 		if (pParentVocab != NULL)
 		{
 			int32_t parentInitOp = pVocab->BaseVocabulary()->GetInitOpcode();
@@ -271,7 +271,7 @@ ForthTypesManager::DefineInitOpcode()
 	}
 }
 
-ForthClassVocabulary*
+ClassVocabulary*
 ForthTypesManager::StartClassDefinition(const char *pName, int classIndex, bool isInterface)
 {
     ForthEngine *pEngine = ForthEngine::GetInstance();
@@ -290,13 +290,13 @@ ForthTypesManager::StartClassDefinition(const char *pName, int classIndex, bool 
     // can't smudge class definition, since method definitions will be nested inside it
     forthop* pEntry = pOuter->StartOpDefinition( pName, false, kOpUserDefImmediate );
 	pInfo->pVocab = isInterface ? new InterfaceVocabulary(pName, classIndex)
-        : new ForthClassVocabulary(pName, classIndex);
+        : new ClassVocabulary(pName, classIndex);
     pInfo->op = *pEntry;
 	SPEW_STRUCTS("StartClassDefinition %s struct index %d\n", pName, classIndex);
 	pInfo->typeIndex = classIndex;
 	mpSavedDefinitionVocab = pOuter->GetDefinitionVocabulary();
     pOuter->SetDefinitionVocabulary( pInfo->pVocab );
-    return (ForthClassVocabulary*) (pInfo->pVocab);
+    return (ClassVocabulary*) (pInfo->pVocab);
 }
 
 void
@@ -311,7 +311,7 @@ ForthTypesManager::EndClassDefinition()
     mpSavedDefinitionVocab = NULL;
 }
 
-ForthStructVocabulary*
+StructVocabulary*
 ForthTypesManager::GetStructVocabulary( forthop op )
 {
     //TBD: replace this with a map
@@ -325,13 +325,13 @@ ForthTypesManager::GetStructVocabulary( forthop op )
 	return nullptr;
 }
 
-ForthStructVocabulary*
+StructVocabulary*
 ForthTypesManager::GetStructVocabulary( const char* pName )
 {
     //TBD: replace this with a map
 	for (const ForthTypeInfo& info : mStructInfo)
 	{
-		ForthStructVocabulary* pVocab = info.pVocab;
+		StructVocabulary* pVocab = info.pVocab;
         if ((pVocab != nullptr) && (strcmp( info.pVocab->GetName(), pName ) == 0))
         {
             return pVocab;
@@ -353,7 +353,7 @@ ForthTypesManager::GetTypeInfo( int typeIndex )
     return &(mStructInfo[ typeIndex ]);
 }
 
-ForthClassVocabulary*
+ClassVocabulary*
 ForthTypesManager::GetClassVocabulary(int typeIndex) const
 {
 	int numStructs = static_cast<int>(mStructInfo.size());
@@ -362,13 +362,13 @@ ForthTypesManager::GetClassVocabulary(int typeIndex) const
 		SPEW_STRUCTS("GetClassVocabulary error: typeIndex is %d, only %d types exist\n", typeIndex, numStructs);
 		return nullptr;
 	}
-	ForthStructVocabulary* pVocab = mStructInfo[typeIndex].pVocab;
+	StructVocabulary* pVocab = mStructInfo[typeIndex].pVocab;
 	if ((pVocab == nullptr) || !pVocab->IsClass())
 	{
 		return nullptr;
 
 	}
-	return static_cast<ForthClassVocabulary *>(pVocab);
+	return static_cast<ClassVocabulary *>(pVocab);
 }
 
 ForthInterface*
@@ -380,14 +380,14 @@ ForthTypesManager::GetClassInterface(int typeIndex, int interfaceIndex) const
 		SPEW_STRUCTS("GetClassInterface error: typeIndex is %d, only %d types exist\n", typeIndex, numStructs);
 		return nullptr;
 	}
-	ForthStructVocabulary* pVocab = mStructInfo[typeIndex].pVocab;
+	StructVocabulary* pVocab = mStructInfo[typeIndex].pVocab;
 	if (!pVocab->IsClass())
 	{
 		SPEW_STRUCTS("GetClassInterface error: vocabulary %s is not a class\n", pVocab->GetName());
 		return nullptr;
 
 	}
-	ForthClassVocabulary* pClassVocab = static_cast<ForthClassVocabulary *>(pVocab);
+	ClassVocabulary* pClassVocab = static_cast<ClassVocabulary *>(pVocab);
 	return pClassVocab->GetInterface(interfaceIndex);
 }
 
@@ -432,23 +432,23 @@ ForthTypesManager::GetFieldInfo( int32_t fieldType, int32_t& fieldBytes, int32_t
     }
 }
 
-ForthStructVocabulary *
+StructVocabulary *
 ForthTypesManager::GetNewestStruct( void )
 {
     ForthTypesManager* pThis = GetInstance();
 	return pThis->mStructInfo[mNewestTypeIndex].pVocab;
 }
 
-ForthClassVocabulary *
+ClassVocabulary *
 ForthTypesManager::GetNewestClass( void )
 {
     ForthTypesManager* pThis = GetInstance();
-	ForthStructVocabulary* pVocab = pThis->mStructInfo[mNewestTypeIndex].pVocab;
+	StructVocabulary* pVocab = pThis->mStructInfo[mNewestTypeIndex].pVocab;
 	if (pVocab && !pVocab->IsClass())
     {
         pVocab = NULL;
     }
-    return (ForthClassVocabulary *) pVocab;
+    return (ClassVocabulary *) pVocab;
 }
 
 
@@ -498,7 +498,7 @@ ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitSta
     ForthVocabulary *pFoundVocab = NULL;
     ForthCoreState* pCore = pEngine->GetCoreState();
 
-    ForthClassVocabulary* pVocab = GetNewestClass();
+    ClassVocabulary* pVocab = GetNewestClass();
     if ( pVocab == NULL )
     {
         // TBD: report no newest class??
@@ -580,7 +580,7 @@ ForthTypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitSta
 }
 
 
-ForthNativeType*
+NativeType*
 ForthTypesManager::GetNativeTypeFromName( const char* typeName )
 {
     for ( int i = 0; i <= (int)BaseType::kObject; i++ )
@@ -597,7 +597,7 @@ ForthTypesManager::GetNativeTypeFromName( const char* typeName )
 BaseType
 ForthTypesManager::GetBaseTypeFromName( const char* typeName )
 {
-	ForthNativeType* pNative = GetNativeTypeFromName( typeName );
+	NativeType* pNative = GetNativeTypeFromName( typeName );
 	return (pNative != NULL) ? pNative->GetBaseType() : BaseType::kUnknown;
 }
 
@@ -630,11 +630,11 @@ void ForthTypesManager::AddFieldInitInfo(const ForthFieldInitInfo& fieldInitInfo
 
 //////////////////////////////////////////////////////////////////////
 ////
-///     ForthStructVocabulary
+///     StructVocabulary
 //
 //
 
-ForthStructVocabulary::ForthStructVocabulary( const char    *pName,
+StructVocabulary::StructVocabulary( const char    *pName,
                                               int           typeIndex )
 : ForthVocabulary( pName, NUM_STRUCT_VOCAB_VALUE_LONGS, DEFAULT_VOCAB_STORAGE )
 , mTypeIndex( typeIndex )
@@ -647,14 +647,14 @@ ForthStructVocabulary::ForthStructVocabulary( const char    *pName,
     mType = VocabularyType::kStruct;
 }
 
-ForthStructVocabulary::~ForthStructVocabulary()
+StructVocabulary::~StructVocabulary()
 {
 }
 
 // delete symbol entry and all newer entries
 // return true IFF symbol was forgotten
 bool
-ForthStructVocabulary::ForgetSymbol( const char *pSymName )
+StructVocabulary::ForgetSymbol( const char *pSymName )
 {
     return false;
 }
@@ -662,12 +662,12 @@ ForthStructVocabulary::ForgetSymbol( const char *pSymName )
 
 // forget all ops with a greater op#
 void
-ForthStructVocabulary::ForgetOp( forthop op )
+StructVocabulary::ForgetOp( forthop op )
 {
 }
 
 void
-ForthStructVocabulary::DefineInstance( void )
+StructVocabulary::DefineInstance( void )
 {
     // do one of the following:
     // - define a global instance of this struct type
@@ -838,7 +838,7 @@ ForthStructVocabulary::DefineInstance( void )
 }
 
 void
-ForthStructVocabulary::AddField( const char* pName, int32_t fieldType, int numElements )
+StructVocabulary::AddField( const char* pName, int32_t fieldType, int numElements )
 {
     // a struct vocab entry has the following value fields:
     // - field offset in bytes
@@ -933,31 +933,31 @@ ForthStructVocabulary::AddField( const char* pName, int32_t fieldType, int numEl
 }
 
 int
-ForthStructVocabulary::GetAlignment( void )
+StructVocabulary::GetAlignment( void )
 {
     // return alignment of first field
     return mAlignment;
 }
 
 int
-ForthStructVocabulary::GetSize( void )
+StructVocabulary::GetSize( void )
 {
     // return size of struct
     return mMaxNumBytes;
 }
 
 void
-ForthStructVocabulary::StartUnion()
+StructVocabulary::StartUnion()
 {
     // when a union subtype is started, the current size is zeroed, but
     //   the maximum size is left untouched
     // if this struct is an extension of another struct, the size is set to
     //   the size of the parent struct
-    mNumBytes = (mpSearchNext) ? ((ForthStructVocabulary *) mpSearchNext)->GetSize() : 0;
+    mNumBytes = (mpSearchNext) ? ((StructVocabulary *) mpSearchNext)->GetSize() : 0;
 }
 
 void
-ForthStructVocabulary::Extends( ForthStructVocabulary *pParentStruct )
+StructVocabulary::Extends( StructVocabulary *pParentStruct )
 {
     // this new struct is an extension of an existing struct - it has all
     //   the fields of the parent struct
@@ -968,21 +968,21 @@ ForthStructVocabulary::Extends( ForthStructVocabulary *pParentStruct )
 }
 
 const char*
-ForthStructVocabulary::GetDescription( void )
+StructVocabulary::GetDescription( void )
 {
     return "struct";
 }
 
 // return ptr to vocabulary entry for symbol
 forthop *
-ForthStructVocabulary::FindSymbol( const char *pSymName, ucell serial )
+StructVocabulary::FindSymbol( const char *pSymName, ucell serial )
 {
     int32_t tmpSym[SYM_MAX_LONGS];
     forthop* pEntry;
     ForthParseInfo parseInfo( tmpSym, SYM_MAX_LONGS );
 
     parseInfo.SetToken( pSymName );
-    ForthStructVocabulary* pVocab = this;
+    StructVocabulary* pVocab = this;
     while ( pVocab )
     {
         pEntry = pVocab->ForthVocabulary::FindSymbol( &parseInfo, serial );
@@ -997,7 +997,7 @@ ForthStructVocabulary::FindSymbol( const char *pSymName, ucell serial )
 }
 
 void
-ForthStructVocabulary::PrintEntry( forthop*   pEntry )
+StructVocabulary::PrintEntry( forthop*   pEntry )
 {
 #define BUFF_SIZE 256
     char buff[BUFF_SIZE];
@@ -1034,7 +1034,7 @@ ForthStructVocabulary::PrintEntry( forthop*   pEntry )
 }
 
 void
-ForthStructVocabulary::TypecodeToString( int32_t typeCode, char* outBuff, size_t outBuffSize )
+StructVocabulary::TypecodeToString( int32_t typeCode, char* outBuff, size_t outBuffSize )
 {
     char buff[BUFF_SIZE];
     char buff2[64];
@@ -1121,25 +1121,25 @@ ForthStructVocabulary::TypecodeToString( int32_t typeCode, char* outBuff, size_t
     strncpy( outBuff, buff, outBuffSize - 1 );
 }
 
-void ForthStructVocabulary::EndDefinition()
+void StructVocabulary::EndDefinition()
 {
     mNumBytes = mMaxNumBytes;
 }
 
 const char *
-ForthStructVocabulary::GetTypeName( void )
+StructVocabulary::GetTypeName( void )
 {
     return "structVocabulary";
 }
 
 void
-ForthStructVocabulary::ShowData(const void* pData, ForthCoreState* pCore, bool showId)
+StructVocabulary::ShowData(const void* pData, ForthCoreState* pCore, bool showId)
 {
     GET_SHOW_CONTEXT;
 
     pShowContext->BeginObject(GetName(), pData, showId);
 
-    ForthStructVocabulary* pVocab = this;
+    StructVocabulary* pVocab = this;
 
     while (pVocab != nullptr)
     {
@@ -1151,7 +1151,7 @@ ForthStructVocabulary::ShowData(const void* pData, ForthCoreState* pCore, bool s
 }
 
 int
-ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, ForthStructVocabulary* pEndVocab)
+StructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, StructVocabulary* pEndVocab)
 {
     forthop* pEntry = GetNewestEntry();
     if (pEntry == nullptr)
@@ -1162,7 +1162,7 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
     char buffer[256];
     const char* pStruct = (const char*)pData;
     GET_SHOW_CONTEXT;
-    ForthStructVocabulary* pVocab = this;
+    StructVocabulary* pVocab = this;
 
     const char* pVocabName = pVocab->GetName();
     forthop* pEntriesEnd = pVocab->GetEntriesEnd();
@@ -1328,21 +1328,21 @@ ForthStructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, F
     return pShowContext->GetNumShown();
 }
 
-void ForthStructVocabulary::SetInitOpcode(forthop op)
+void StructVocabulary::SetInitOpcode(forthop op)
 {
 	mInitOpcode = op;
 }
 
 //////////////////////////////////////////////////////////////////////
 ////
-///     ForthClassVocabulary
+///     ClassVocabulary
 //
 //
-ForthClassVocabulary* ForthClassVocabulary::smpObjectClass = NULL;
+ClassVocabulary* ClassVocabulary::smpObjectClass = NULL;
 
-ForthClassVocabulary::ForthClassVocabulary( const char*     pName,
+ClassVocabulary::ClassVocabulary( const char*     pName,
                                             int             typeIndex )
-: ForthStructVocabulary( pName, typeIndex )
+: StructVocabulary( pName, typeIndex )
 , mpParentClass( NULL )
 , mCurrentInterface( 0 )
 , mCustomReader(nullptr)
@@ -1374,7 +1374,7 @@ ForthClassVocabulary::ForthClassVocabulary( const char*     pName,
 }
 
 
-ForthClassVocabulary::~ForthClassVocabulary()
+ClassVocabulary::~ClassVocabulary()
 {
     for ( uint32_t i = 0; i < mInterfaces.size(); i++ )
     {
@@ -1385,7 +1385,7 @@ ForthClassVocabulary::~ForthClassVocabulary()
 
 
 void
-ForthClassVocabulary::DefineInstance( void )
+ClassVocabulary::DefineInstance( void )
 {
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     char* pInstanceName = pOuter->GetNextSimpleToken();
@@ -1400,7 +1400,7 @@ ForthClassVocabulary::DefineInstance( void )
 
 
 void
-ForthClassVocabulary::DefineInstance(char* pInstanceName, const char* pContainedClassName)
+ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContainedClassName)
 {
     // do one of the following:
     // - define a global instance of this class type
@@ -1433,7 +1433,7 @@ ForthClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
         pEntry = pOuter->GetVocabularyStack()->FindSymbol(pContainedClassName, &pFoundVocab);
         if (pEntry != nullptr)
         {
-            ForthClassVocabulary* pContainedClassVocab = (ForthClassVocabulary *)(pManager->GetStructVocabulary(pEntry[0]));
+            ClassVocabulary* pContainedClassVocab = (ClassVocabulary *)(pManager->GetStructVocabulary(pEntry[0]));
             if (pContainedClassVocab && pContainedClassVocab->IsClass())
             {
                 typeIndex = (typeIndex << 16) | pContainedClassVocab->GetTypeIndex();
@@ -1565,7 +1565,7 @@ ForthClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
 }
 
 int
-ForthClassVocabulary::AddMethod( const char*    pName,
+ClassVocabulary::AddMethod( const char*    pName,
 								 int			methodIndex,
                                  forthop        op )
 {
@@ -1594,7 +1594,7 @@ ForthClassVocabulary::AddMethod( const char*    pName,
 }
 
 int
-ForthClassVocabulary::FindMethod( const char* pName )
+ClassVocabulary::FindMethod( const char* pName )
 {
 	ForthInterface* pCurInterface = mInterfaces[ mCurrentInterface ];
 	// see if method name is already defined - if so, just overwrite the method longword with op
@@ -1609,7 +1609,7 @@ extern forthop gObjectShowInnerOpcode;
 
 
 void
-ForthClassVocabulary::Extends( ForthClassVocabulary *pParentClass )
+ClassVocabulary::Extends( ClassVocabulary *pParentClass )
 {
 	if ( pParentClass->IsClass() )
 	{
@@ -1638,20 +1638,20 @@ ForthClassVocabulary::Extends( ForthClassVocabulary *pParentClass )
         mpClassObject->newOp = pParentClass->mpClassObject->newOp;
 	}
 
-	ForthStructVocabulary::Extends( pParentClass );
+	StructVocabulary::Extends( pParentClass );
 }
 
 
 void
-ForthClassVocabulary::Implements( const char* pName )
+ClassVocabulary::Implements( const char* pName )
 {
-	ForthStructVocabulary* pVocab = ForthTypesManager::GetInstance()->GetStructVocabulary( pName );
+	StructVocabulary* pVocab = ForthTypesManager::GetInstance()->GetStructVocabulary( pName );
 
 	if ( pVocab )
 	{
 		if ( pVocab->IsClass() )
 		{
-			ForthClassVocabulary* pClassVocab = reinterpret_cast<ForthClassVocabulary *>(pVocab);
+			ClassVocabulary* pClassVocab = reinterpret_cast<ClassVocabulary *>(pVocab);
             int32_t interfaceIndex = FindInterfaceIndex( pClassVocab->GetClassId() );
             if ( interfaceIndex > 0 )
             {
@@ -1687,34 +1687,34 @@ ForthClassVocabulary::Implements( const char* pName )
 
 
 void
-ForthClassVocabulary::EndImplements()
+ClassVocabulary::EndImplements()
 {
 	// TBD: report error if not all methods implemented
     mCurrentInterface = 0;
 }
 
 ForthInterface*
-ForthClassVocabulary::GetInterface( int32_t index )
+ClassVocabulary::GetInterface( int32_t index )
 {
 	return (index < static_cast<int32_t>(mInterfaces.size())) ? mInterfaces[index] : nullptr;
 }
 
-ForthInterface* ForthClassVocabulary::GetCurrentInterface()
+ForthInterface* ClassVocabulary::GetCurrentInterface()
 {
     return GetInterface(mCurrentInterface);
 }
 
-forthop* ForthClassVocabulary::GetMethods()
+forthop* ClassVocabulary::GetMethods()
 {
     return mInterfaces[0]->GetMethods();
 }
 
 int32_t
-ForthClassVocabulary::FindInterfaceIndex( int32_t classId )
+ClassVocabulary::FindInterfaceIndex( int32_t classId )
 {
     for ( uint32_t i = 0; i < mInterfaces.size(); i++ )
     {
-        ForthClassVocabulary* pVocab = mInterfaces[i]->GetDefiningClass();
+        ClassVocabulary* pVocab = mInterfaces[i]->GetDefiningClass();
         if ( pVocab->GetClassId() == classId )
         {
             return i;
@@ -1725,14 +1725,14 @@ ForthClassVocabulary::FindInterfaceIndex( int32_t classId )
 
 
 int32_t
-ForthClassVocabulary::GetNumInterfaces( void )
+ClassVocabulary::GetNumInterfaces( void )
 {
 	return (int32_t) mInterfaces.size();
 }
 
 
 ForthClassObject*
-ForthClassVocabulary::GetClassObject( void )
+ClassVocabulary::GetClassObject( void )
 {
     if (mpClassObject->pMethods == nullptr)
     {
@@ -1744,7 +1744,7 @@ ForthClassVocabulary::GetClassObject( void )
 }
 
 
-void ForthClassVocabulary::FixClassObjectMethods(void)
+void ClassVocabulary::FixClassObjectMethods(void)
 {
     // this needs to be called on all class vocabularies which are created before
     // the "Class" vocabulary - namely "Object" and "Class" itself
@@ -1755,7 +1755,7 @@ void ForthClassVocabulary::FixClassObjectMethods(void)
 
 
 void
-ForthClassVocabulary::PrintEntry(forthop*   pEntry )
+ClassVocabulary::PrintEntry(forthop*   pEntry )
 {
     char buff[BUFF_SIZE];
     char nameBuff[128];
@@ -1772,7 +1772,7 @@ ForthClassVocabulary::PrintEntry(forthop*   pEntry )
     bool isMethod = CODE_IS_METHOD( typeCode );
     if ( !isMethod )
     {
-        ForthStructVocabulary::PrintEntry( pEntry );
+        StructVocabulary::PrintEntry( pEntry );
         return;
     }
 
@@ -1887,24 +1887,24 @@ ForthClassVocabulary::PrintEntry(forthop*   pEntry )
     CONSOLE_STRING_OUT( buff );
 }
 
-ForthClassVocabulary*
-ForthClassVocabulary::ParentClass( void )
+ClassVocabulary*
+ClassVocabulary::ParentClass( void )
 {
-	return ((mpSearchNext != nullptr) && mpSearchNext->IsClass()) ? (ForthClassVocabulary *) mpSearchNext : NULL;
+	return ((mpSearchNext != nullptr) && mpSearchNext->IsClass()) ? (ClassVocabulary *) mpSearchNext : NULL;
 }
 
 const char *
-ForthClassVocabulary::GetTypeName( void )
+ClassVocabulary::GetTypeName( void )
 {
     return "classVocabulary";
 }
 
-void ForthClassVocabulary::SetCustomObjectReader(CustomObjectReader reader)
+void ClassVocabulary::SetCustomObjectReader(CustomObjectReader reader)
 {
     mCustomReader = reader;
 }
 
-CustomObjectReader ForthClassVocabulary::GetCustomObjectReader()
+CustomObjectReader ClassVocabulary::GetCustomObjectReader()
 {
     return mCustomReader;
 }
@@ -1919,7 +1919,7 @@ CustomObjectReader ForthClassVocabulary::GetCustomObjectReader()
 //
 
 InterfaceVocabulary::InterfaceVocabulary(const char* pName, int typeIndex)
-    : ForthClassVocabulary(pName, typeIndex)
+    : ClassVocabulary(pName, typeIndex)
 {
     mType = VocabularyType::kInterface;
 }
@@ -1938,7 +1938,7 @@ InterfaceVocabulary::InterfaceVocabulary(const char* pName, int typeIndex)
 #define INTERFACE_SKIPPED_ENTRIES 1
 #endif
 
-ForthInterface::ForthInterface( ForthClassVocabulary* pDefiningClass )
+ForthInterface::ForthInterface( ClassVocabulary* pDefiningClass )
 : mpDefiningClass( pDefiningClass )
 , mNumAbstractMethods( 0 )
 {
@@ -1977,7 +1977,7 @@ ForthInterface::Copy( ForthInterface* pInterface, bool isPrimaryInterface )
 }
 
 
-ForthClassVocabulary*
+ClassVocabulary*
 ForthInterface::GetDefiningClass()
 {
     return mpDefiningClass;
@@ -2023,7 +2023,7 @@ ForthInterface::SetMethod( int index, forthop method )
 
 
 extern FORTHOP(oInterfaceDeleteMethod);
-void ForthInterface::Implements( ForthClassVocabulary* pVocab )
+void ForthInterface::Implements( ClassVocabulary* pVocab )
 {
     ForthInterface* pInterface = pVocab->GetInterface( 0 );
     int numMethods = (int)(pInterface->mMethods.size());
@@ -2070,7 +2070,7 @@ ForthInterface::GetMethodIndex( const char* pName )
 	forthop* pEntry = NULL;
 	bool done = false;
 	int methodIndex = -1;
-	ForthStructVocabulary* pVocab = mpDefiningClass;
+	StructVocabulary* pVocab = mpDefiningClass;
 
 	while ( !done )
 	{
@@ -2099,11 +2099,11 @@ ForthInterface::GetMethodIndex( const char* pName )
 
 //////////////////////////////////////////////////////////////////////
 ////
-///     ForthNativeType
+///     NativeType
 //
 //
 
-ForthNativeType::ForthNativeType( const char*       pName,
+NativeType::NativeType( const char*       pName,
                                   int               numBytes,
                                   BaseType   baseType )
 : mpName( pName )
@@ -2112,12 +2112,12 @@ ForthNativeType::ForthNativeType( const char*       pName,
 {
 }
 
-ForthNativeType::~ForthNativeType()
+NativeType::~NativeType()
 {
 }
 
 void
-ForthNativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_t flags )
+NativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_t flags )
 {
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     char *pToken = pOuter->GetNextSimpleToken();

@@ -10,11 +10,11 @@
 #include "ForthEngine.h"
 #include "ForthBuiltinClasses.h"
 
-class ForthClassVocabulary;
+class ClassVocabulary;
 
 typedef struct
 {
-    ForthStructVocabulary* pVocab;
+    StructVocabulary* pVocab;
     int objIndex;
     char* pData;
 } CustomReaderContext;
@@ -39,7 +39,7 @@ public:
     void skipWhitespace();
     void getObject(ForthObject* pDst);
     void getObjectOrLink(ForthObject* pDst);
-    void getStruct(ForthStructVocabulary* pVocab, int offset, char *pDstData);
+    void getStruct(StructVocabulary* pVocab, int offset, char *pDstData);
     void processElement(const std::string& name);
     void processCustomElement(const std::string& name);
     void throwError(const char* message);

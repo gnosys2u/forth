@@ -10,7 +10,7 @@
 #include "ForthForgettable.h"
 #include "ForthObject.h"
 
-class ForthClassVocabulary;
+class ClassVocabulary;
 
 // structtype indices for builtin classes
 typedef enum
