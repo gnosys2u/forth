@@ -692,6 +692,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ClassVocabulary.cpp" />
+    <ClCompile Include="DLLVocabulary.cpp" />
     <ClCompile Include="ForthBlockFileManager.cpp" />
     <ClCompile Include="ForthBuiltinClasses.cpp" />
     <ClCompile Include="ForthClient.cpp" />
@@ -961,6 +963,8 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">MaxSpeed</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">MaxSpeed</Optimization>
     </ClCompile>
+    <ClCompile Include="LocalVocabulary.cpp" />
+    <ClCompile Include="NativeType.cpp" />
     <ClCompile Include="OArray.cpp" />
     <ClCompile Include="ODeque.cpp" />
     <ClCompile Include="OList.cpp" />
@@ -1017,6 +1021,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TypesManager.cpp" />
+    <ClCompile Include="VocabularyStack.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="AsmCore.asm">
@@ -1174,6 +1180,8 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ClassVocabulary.h" />
+    <ClInclude Include="DLLVocabulary.h" />
     <ClInclude Include="Forth.h" />
     <ClInclude Include="ForthBlockFileManager.h" />
     <ClInclude Include="ForthBuiltinClasses.h" />
@@ -1198,6 +1206,8 @@
     <ClInclude Include="ForthStructs.h" />
     <ClInclude Include="ForthThread.h" />
     <ClInclude Include="ForthVocabulary.h" />
+    <ClInclude Include="LocalVocabulary.h" />
+    <ClInclude Include="NativeType.h" />
     <ClInclude Include="OArray.h" />
     <ClInclude Include="ODeque.h" />
     <ClInclude Include="OList.h" />
@@ -1210,6 +1220,8 @@
     <ClInclude Include="OuterInterpreter.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="sys\dirent.h" />
+    <ClInclude Include="TypesManager.h" />
+    <ClInclude Include="VocabularyStack.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Readme.txt" />
