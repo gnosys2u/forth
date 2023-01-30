@@ -1,7 +1,7 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthShowContext.h: interface for the ForthShowContext class.
+// ShowContext.h: interface for the ShowContext class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -9,13 +9,13 @@
 #include <set>
 #include <vector>
 
-class ForthEngine;
+class Engine;
 
-class ForthShowContext
+class ShowContext
 {
 public:
-	ForthShowContext();
-	~ForthShowContext();
+	ShowContext();
+	~ShowContext();
 
 	void Reset();
 	ucell GetDepth();
@@ -31,7 +31,7 @@ public:
     void BeginFirstElement(const char* pText);
     void BeginNextElement(const char* pText);
 	void EndElement(const char* pEndText = NULL);
-	void ShowHeader(ForthCoreState* pCore, const char* pTypeName, const void* pData);
+	void ShowHeader(CoreState* pCore, const char* pTypeName, const void* pData);
 	void ShowID(const char* pTypeName, const void* pData);
 	void ShowIDElement (const char* pTypeName, const void* pData);
     void ShowObjectLink(const ForthObject& obj);
@@ -72,7 +72,7 @@ private:
 	std::set<void *> mShownObjects;
 	std::vector<ForthObject> mObjects;
     std::vector<int> mNumShownStack;
-	ForthEngine* mpEngine;
+	Engine* mpEngine;
 	bool mShowIDElement;
 	bool mShowRefCount;
     bool mShowSpaces;

@@ -47,7 +47,7 @@ namespace OMap
 	};
 
 
-    void setObjectMap(oMapStruct* pMap, ForthObject& keyObj, ForthObject& valueObj, ForthCoreState* pCore)
+    void setObjectMap(oMapStruct* pMap, ForthObject& keyObj, ForthObject& valueObj, CoreState* pCore)
     {
         oMap& a = *(pMap->elements);
         oMap::iterator iter = a.find(keyObj);
@@ -83,7 +83,7 @@ namespace OMap
         }
     }
 
-    bool customMapReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customMapReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "__keys")
         {
@@ -109,7 +109,7 @@ namespace OMap
         }
         else if (elementName == "map")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oMapStruct *dstMap = (oMapStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('{');
             std::string number;
@@ -137,7 +137,7 @@ namespace OMap
         return false;
     }
 
-    oMapIterStruct* createMapIterator(ForthCoreState* pCore, oMapStruct* pMap)
+    oMapIterStruct* createMapIterator(CoreState* pCore, oMapStruct* pMap)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
@@ -166,7 +166,7 @@ namespace OMap
 		GET_THIS(oMapStruct, pMap);
 		oMap::iterator iter;
 		oMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		for (iter = a.begin(); iter != a.end(); ++iter)
 		{
 			ForthObject key = iter->first;
@@ -183,7 +183,7 @@ namespace OMap
 		GET_THIS(oMapStruct, pMap);
 		oMap::iterator iter;
 		oMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
 
         // first, show any key objects that weren't already shown
@@ -286,7 +286,7 @@ namespace OMap
 		GET_THIS(oMapStruct, pMap);
 		oMap::iterator iter;
 		oMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		for (iter = a.begin(); iter != a.end(); ++iter)
 		{
 			ForthObject key = iter->first;
@@ -333,7 +333,7 @@ namespace OMap
         GET_THIS(oMapStruct, pMap);
         oMap::iterator iter;
         oMap& a = *(pMap->elements);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         for (iter = a.begin(); iter != a.end(); ++iter)
         {
             ForthObject key = iter->first;
@@ -403,7 +403,7 @@ namespace OMap
 
 	FORTHOP(oMapUnrefMethod)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		GET_THIS(oMapStruct, pMap);
 		oMap& a = *(pMap->elements);
 		ForthObject key;
@@ -455,7 +455,7 @@ namespace OMap
 
 	FORTHOP(oMapIterNew)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a MapIter object");
 	}
 
@@ -653,7 +653,7 @@ namespace OMap
 	};
 
 
-    void setIntMap(oIntMapStruct* pMap, int32_t key, ForthObject& newObj, ForthCoreState* pCore)
+    void setIntMap(oIntMapStruct* pMap, int32_t key, ForthObject& newObj, CoreState* pCore)
     {
         oIntMap& a = *(pMap->elements);
         oIntMap::iterator iter = a.find(key);
@@ -686,11 +686,11 @@ namespace OMap
         }
     }
 
-    bool customIntMapReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customIntMapReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "map")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oIntMapStruct *dstMap = (oIntMapStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('{');
             std::string number;
@@ -719,7 +719,7 @@ namespace OMap
         return false;
     }
 
-    oIntMapIterStruct* createIntMapIterator(ForthCoreState* pCore, oIntMapStruct* pMap)
+    oIntMapIterStruct* createIntMapIterator(CoreState* pCore, oIntMapStruct* pMap)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIIntMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
@@ -748,7 +748,7 @@ namespace OMap
 		GET_THIS(oIntMapStruct, pMap);
 		oIntMap::iterator iter;
 		oIntMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		for (iter = a.begin(); iter != a.end(); ++iter)
 		{
 			ForthObject& o = iter->second;
@@ -764,7 +764,7 @@ namespace OMap
 		GET_THIS(oIntMapStruct, pMap);
 		oIntMap::iterator iter;
 		oIntMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");
@@ -851,7 +851,7 @@ namespace OMap
 		GET_THIS(oIntMapStruct, pMap);
 		oIntMap::iterator iter;
 		oIntMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		for (iter = a.begin(); iter != a.end(); ++iter)
 		{
 			ForthObject& o = iter->second;
@@ -896,7 +896,7 @@ namespace OMap
         GET_THIS(oIntMapStruct, pMap);
         oIntMap::iterator iter;
         oIntMap& a = *(pMap->elements);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         for (iter = a.begin(); iter != a.end(); ++iter)
         {
             ForthObject& o = iter->second;
@@ -957,7 +957,7 @@ namespace OMap
 
 	FORTHOP(oIntMapUnrefMethod)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		GET_THIS(oIntMapStruct, pMap);
 		oIntMap& a = *(pMap->elements);
 		int32_t key = SPOP;
@@ -1006,7 +1006,7 @@ namespace OMap
 
 	FORTHOP(oIntMapIterNew)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create an IntMapIter object");
 	}
 
@@ -1201,7 +1201,7 @@ namespace OMap
 	};
 
 
-    void setFloatMap(oFloatMapStruct* pMap, float key, ForthObject& newObj, ForthCoreState* pCore)
+    void setFloatMap(oFloatMapStruct* pMap, float key, ForthObject& newObj, CoreState* pCore)
     {
         oFloatMap& a = *(pMap->elements);
         oFloatMap::iterator iter = a.find(key);
@@ -1234,11 +1234,11 @@ namespace OMap
         }
     }
 
-    bool customFloatMapReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customFloatMapReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "map")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oFloatMapStruct *dstMap = (oFloatMapStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('{');
             std::string number;
@@ -1267,7 +1267,7 @@ namespace OMap
         return false;
     }
 
-    oFloatMapIterStruct* createFloatMapIterator(ForthCoreState* pCore, oFloatMapStruct* pMap)
+    oFloatMapIterStruct* createFloatMapIterator(CoreState* pCore, oFloatMapStruct* pMap)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIFloatMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
@@ -1296,7 +1296,7 @@ namespace OMap
 		GET_THIS(oFloatMapStruct, pMap);
 		oFloatMap::iterator iter;
 		oFloatMap& a = *(pMap->elements);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");
@@ -1403,7 +1403,7 @@ namespace OMap
         GET_THIS(oFloatMapStruct, pMap);
         oFloatMap::iterator iter;
         oFloatMap& a = *(pMap->elements);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         for (iter = a.begin(); iter != a.end(); ++iter)
         {
             ForthObject& o = iter->second;
@@ -1464,7 +1464,7 @@ namespace OMap
 
 	FORTHOP(oFloatMapUnrefMethod)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		GET_THIS(oFloatMapStruct, pMap);
 		oFloatMap& a = *(pMap->elements);
 		float key = FPOP;
@@ -1521,7 +1521,7 @@ namespace OMap
         return pMap;
     }
 
-    void setLongMap(oLongMapStruct* pMap, stackInt64& key, ForthObject& newObj, ForthCoreState* pCore)
+    void setLongMap(oLongMapStruct* pMap, stackInt64& key, ForthObject& newObj, CoreState* pCore)
     {
         oLongMap& a = *(pMap->elements);
         oLongMap::iterator iter = a.find(key.s64);
@@ -1554,11 +1554,11 @@ namespace OMap
         }
     }
 
-    bool customLongMapReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customLongMapReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "map")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oLongMapStruct *dstMap = (oLongMapStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('{');
             std::string number;
@@ -1587,7 +1587,7 @@ namespace OMap
         return false;
     }
 
-    oLongMapIterStruct* createLongMapIterator(ForthCoreState* pCore, oLongMapStruct* pMap)
+    oLongMapIterStruct* createLongMapIterator(CoreState* pCore, oLongMapStruct* pMap)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCILongMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
@@ -1613,7 +1613,7 @@ namespace OMap
 		GET_THIS(oLongMapStruct, pMap);
 		oLongMap::iterator iter;
 		oLongMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		for (iter = a.begin(); iter != a.end(); ++iter)
 		{
 			ForthObject& o = iter->second;
@@ -1629,7 +1629,7 @@ namespace OMap
         GET_THIS(oLongMapStruct, pMap);
         oLongMap::iterator iter;
         oLongMap& a = *(pMap->elements);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");
@@ -1714,7 +1714,7 @@ namespace OMap
 		GET_THIS(oLongMapStruct, pMap);
 		oLongMap::iterator iter;
 		oLongMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		for (iter = a.begin(); iter != a.end(); ++iter)
 		{
 			ForthObject& o = iter->second;
@@ -1761,7 +1761,7 @@ namespace OMap
         GET_THIS(oLongMapStruct, pMap);
         oLongMap::iterator iter;
         oLongMap& a = *(pMap->elements);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         for (iter = a.begin(); iter != a.end(); ++iter)
         {
             ForthObject& o = iter->second;
@@ -1826,7 +1826,7 @@ namespace OMap
 
 	FORTHOP(oLongMapUnrefMethod)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		GET_THIS(oLongMapStruct, pMap);
 		oLongMap& a = *(pMap->elements);
         stackInt64 key;
@@ -1876,7 +1876,7 @@ namespace OMap
 
 	FORTHOP(oLongMapIterNew)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a LongMapIter object");
 	}
 
@@ -2074,7 +2074,7 @@ namespace OMap
 	};
 
 
-    void setDoubleMap(oDoubleMapStruct* pMap, double key, ForthObject& newObj, ForthCoreState* pCore)
+    void setDoubleMap(oDoubleMapStruct* pMap, double key, ForthObject& newObj, CoreState* pCore)
     {
         oDoubleMap& a = *(pMap->elements);
         oDoubleMap::iterator iter = a.find(key);
@@ -2107,11 +2107,11 @@ namespace OMap
         }
     }
 
-    bool customDoubleMapReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customDoubleMapReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "map")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oDoubleMapStruct *dstMap = (oDoubleMapStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('{');
             std::string number;
@@ -2140,7 +2140,7 @@ namespace OMap
         return false;
     }
 
-    oDoubleMapIterStruct* createDoubleMapIterator(ForthCoreState* pCore, oDoubleMapStruct* pMap, ForthObject& obj)
+    oDoubleMapIterStruct* createDoubleMapIterator(CoreState* pCore, oDoubleMapStruct* pMap, ForthObject& obj)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIDoubleMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
@@ -2170,7 +2170,7 @@ namespace OMap
         ForthClassObject* pClassObject = GET_CLASS_OBJECT(pMap);
         oDoubleMap::iterator iter;
 		oDoubleMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		for (iter = a.begin(); iter != a.end(); ++iter)
 		{
 			ForthObject& o = iter->second;
@@ -2186,7 +2186,7 @@ namespace OMap
         GET_THIS(oDoubleMapStruct, pMap);
         oDoubleMap::iterator iter;
         oDoubleMap& a = *(pMap->elements);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");
@@ -2275,7 +2275,7 @@ namespace OMap
 		GET_THIS(oDoubleMapStruct, pMap);
 		oDoubleMap::iterator iter;
 		oDoubleMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		for (iter = a.begin(); iter != a.end(); ++iter)
 		{
 			ForthObject& o = iter->second;
@@ -2320,7 +2320,7 @@ namespace OMap
         GET_THIS(oDoubleMapStruct, pMap);
         oDoubleMap::iterator iter;
         oDoubleMap& a = *(pMap->elements);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         for (iter = a.begin(); iter != a.end(); ++iter)
         {
             ForthObject& o = iter->second;
@@ -2381,7 +2381,7 @@ namespace OMap
 
 	FORTHOP(oDoubleMapUnrefMethod)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		GET_THIS(oDoubleMapStruct, pMap);
 		oDoubleMap& a = *(pMap->elements);
 		double key = DPOP;
@@ -2430,7 +2430,7 @@ namespace OMap
 
 	FORTHOP(oDoubleMapIterNew)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a DoubleMapIter object");
 	}
 
@@ -2627,11 +2627,11 @@ namespace OMap
 
 
 
-    bool customStringIntMapReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customStringIntMapReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "map")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oStringIntMapStruct *dstMap = (oStringIntMapStruct *)(reader->getCustomReaderContext().pData);
             oStringIntMap& a = *(dstMap->elements);
             reader->getRequiredChar('{');
@@ -2661,7 +2661,7 @@ namespace OMap
         return false;
     }
 
-    oStringIntMapIterStruct* createStringIntMapIterator(ForthCoreState* pCore, oStringIntMapStruct* pMap)
+    oStringIntMapIterStruct* createStringIntMapIterator(CoreState* pCore, oStringIntMapStruct* pMap)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIStringIntMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
@@ -2698,7 +2698,7 @@ namespace OMap
 		GET_THIS(oStringIntMapStruct, pMap);
 		oStringIntMap::iterator iter;
 		oStringIntMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");
@@ -2907,7 +2907,7 @@ namespace OMap
 
 	FORTHOP(oStringIntMapIterNew)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a StringIntMapIter object");
 	}
 
@@ -3082,11 +3082,11 @@ namespace OMap
 	//                 StringFloatMap
 	//
 
-    bool customStringFloatMapReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customStringFloatMapReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "map")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oStringIntMapStruct *dstMap = (oStringIntMapStruct *)(reader->getCustomReaderContext().pData);
             oStringIntMap& a = *(dstMap->elements);
             reader->getRequiredChar('{');
@@ -3122,7 +3122,7 @@ namespace OMap
         GET_THIS(oStringIntMapStruct, pMap);
         oStringIntMap::iterator iter;
         oStringIntMap& a = *(pMap->elements);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
 
         pShowContext->BeginElement("map");
@@ -3200,11 +3200,11 @@ namespace OMap
 
 
 
-    bool customStringLongMapReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customStringLongMapReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "map")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oStringLongMapStruct *dstMap = (oStringLongMapStruct *)(reader->getCustomReaderContext().pData);
             oStringLongMap& a = *(dstMap->elements);
             reader->getRequiredChar('{');
@@ -3234,7 +3234,7 @@ namespace OMap
         return false;
     }
 
-    oStringLongMapIterStruct* createStringLongMapIterator(ForthCoreState* pCore, oStringLongMapStruct* pMap)
+    oStringLongMapIterStruct* createStringLongMapIterator(CoreState* pCore, oStringLongMapStruct* pMap)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIStringLongMapIter);
         // needed to use new instead of malloc otherwise the iterator isn't setup right and
@@ -3271,7 +3271,7 @@ namespace OMap
         GET_THIS(oStringLongMapStruct, pMap);
         oStringLongMap::iterator iter;
         oStringLongMap& a = *(pMap->elements);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");
@@ -3482,7 +3482,7 @@ namespace OMap
 
 	FORTHOP(oStringLongMapIterNew)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a StringLongMapIter object");
 	}
 
@@ -3642,11 +3642,11 @@ namespace OMap
 	//                 StringDoubleMap
 	//
 
-    bool customStringDoubleMapReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customStringDoubleMapReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "map")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oStringLongMapStruct *dstMap = (oStringLongMapStruct *)(reader->getCustomReaderContext().pData);
             oStringLongMap& a = *(dstMap->elements);
             reader->getRequiredChar('{');
@@ -3682,7 +3682,7 @@ namespace OMap
         GET_THIS(oStringLongMapStruct, pMap);
         oStringLongMap::iterator iter;
         oStringLongMap& a = *(pMap->elements);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");

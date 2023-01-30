@@ -25,18 +25,18 @@ FORTHDLL_API int fnForthDLL(void);
 
 #include "ForthEngine.h"
 
-FORTHDLL_API ForthEngine* CreateForthEngine();
-FORTHDLL_API ForthShell* CreateForthShell(int argc, const char** argv, const char** envp,
-    ForthEngine* pEngine = NULL, ForthExtension* pExtension = NULL, int shellStackLongs = 1024);
+FORTHDLL_API Engine* CreateForthEngine();
+FORTHDLL_API Shell* CreateForthShell(int argc, const char** argv, const char** envp,
+    Engine* pEngine = NULL, Extension* pExtension = NULL, int shellStackLongs = 1024);
 
-FORTHDLL_API ForthBufferInputStream* CreateForthBufferInputStream(
+FORTHDLL_API BufferInputStream* CreateForthBufferInputStream(
     const char* pDataBuffer, int dataBufferLen, int bufferLen = DEFAULT_INPUT_BUFFER_LEN, bool deleteWhenEmpty = true);
-FORTHDLL_API ForthConsoleInputStream* CreateForthConsoleInputStream(
+FORTHDLL_API ConsoleInputStream* CreateForthConsoleInputStream(
     int bufferLen = DEFAULT_INPUT_BUFFER_LEN, bool deleteWhenEmpty = true);
-FORTHDLL_API ForthFileInputStream* CreateForthFileInputStream(
+FORTHDLL_API FileInputStream* CreateForthFileInputStream(
     FILE* pInFile, const char* pFilename, int bufferLen, bool deleteWhenEmpty = true);
 
-FORTHDLL_API void DeleteForthEngine(ForthEngine* pEngine);
-FORTHDLL_API void DeleteForthShell(ForthShell* pShell);
-FORTHDLL_API void DeleteForthInputStream(ForthInputStream* pStream);
+FORTHDLL_API void DeleteForthEngine(Engine* pEngine);
+FORTHDLL_API void DeleteForthShell(Shell* pShell);
+FORTHDLL_API void DeleteForthInputStream(InputStream* pStream);
 

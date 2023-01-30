@@ -16,12 +16,12 @@
 #define SOCKET  int
 #endif
 
-int ForthServerMainLoop( ForthEngine *pEngine, bool doAutoload, unsigned short portNum );
+int ForthServerMainLoop( Engine *pEngine, bool doAutoload, unsigned short portNum );
 
 class ForthPipe;
-class ForthExtension;
+class Extension;
 
-class ForthServerInputStream : public ForthInputStream
+class ForthServerInputStream : public InputStream
 {
 public:
     ForthServerInputStream( ForthPipe* pMsgPipe, bool isFile = false, int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
@@ -49,13 +49,13 @@ protected:
 
 
 
-class ForthServerShell : public ForthShell
+class ForthServerShell : public Shell
 {
 public:
-    ForthServerShell( bool doAutoload = true, ForthEngine *pEngine = NULL, ForthExtension *pExtension = NULL, int shellStackLongs = 1024 );
+    ForthServerShell( bool doAutoload = true, Engine *pEngine = NULL, Extension *pExtension = NULL, int shellStackLongs = 1024 );
     virtual ~ForthServerShell();
 
-    virtual int             Run( ForthInputStream *pInputStream );
+    virtual int             Run( InputStream *pInputStream );
 
     virtual bool            PushInputFile( const char *pFileName );
     virtual bool            PopInputStream( void );

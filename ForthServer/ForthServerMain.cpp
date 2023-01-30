@@ -4,8 +4,8 @@
 #include "pch.h"
 #include <string.h>
 #include <winsock2.h>
-#include "..\ForthLib\ForthShell.h"
-#include "..\ForthLib\ForthEngine.h"
+#include "..\ForthLib\Shell.h"
+#include "..\ForthLib\Engine.h"
 #include "..\ForthLib\ForthInput.h"
 #include "..\ForthLib\ForthThread.h"
 #include "..\ForthLib\ForthPipe.h"
@@ -52,7 +52,7 @@ void OutputToLogger(const char* pBuffer)
 //int _tmain(int argc, _TCHAR* argv[])
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
-    ForthShell* pShell = new ForthShell(argc, (const char **)(argv), (const char **)envp);
+    Shell* pShell = new Shell(argc, (const char **)(argv), (const char **)envp);
 
 	int retVal = ForthServerMainLoop( pShell->GetEngine(), true, FORTH_SERVER_PORT );
 

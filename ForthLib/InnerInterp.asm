@@ -7,7 +7,7 @@ BITS 32
 
 EXTERN _CallDLLRoutine
 
-;%define FCore ForthCoreState
+;%define FCore CoreState
 ;%define FileFunc ForthFileInterface
 
 ;	COMDAT _main
@@ -177,7 +177,7 @@ extOpType1:
 ;
 ; InitAsmTables - initializes first part of optable, where op positions are referenced by constants
 ;
-; extern void InitAsmTables( ForthCoreState *pCore );
+; extern void InitAsmTables( CoreState *pCore );
 entry InitAsmTables
 	push rcore
 	mov	rcore, esp	; 0(rcore) = old_ebp 4(rcore)=return_addr  8(rcore)=ForthCore_ptr
@@ -208,7 +208,7 @@ entry InitAsmTables
 ;
 ; single step a thread
 ;
-; extern OpResult InterpretOneOpFast( ForthCoreState *pCore, forthop op );
+; extern OpResult InterpretOneOpFast( CoreState *pCore, forthop op );
 entry InterpretOneOpFast
 	push rcore
 	mov	rcore, esp
@@ -252,7 +252,7 @@ InterpretOneOpFastExit2:	; this is exit for state != OK
 ;
 ; inner interpreter C entry point
 ;
-; extern OpResult InnerInterpreterFast( ForthCoreState *pCore );
+; extern OpResult InnerInterpreterFast( CoreState *pCore );
 entry InnerInterpreterFast
 	push rcore
 	mov	rcore, esp
@@ -567,8 +567,8 @@ entry relativeDefType
 	and	ebx, 00FFFFFFh
 	sal	ebx, 2
 	mov	eax, [rcore + FCore.DictionaryPtr]
-	add	ebx, [eax + ForthMemorySection.pBase]
-	cmp	ebx, [eax + ForthMemorySection.pCurrent]
+	add	ebx, [eax + MemorySection.pBase]
+	cmp	ebx, [eax + MemorySection.pCurrent]
 	jge	badUserDef
 	; push IP on rstack
 	mov	eax, [rcore + FCore.RPtr]
@@ -676,8 +676,8 @@ entry relativeDataType
 	and	ebx, 00FFFFFFh
 	sal	ebx, 2
 	mov	eax, [rcore + FCore.DictionaryPtr]
-	add	ebx, [eax + ForthMemorySection.pBase]
-	cmp	ebx, [eax + ForthMemorySection.pCurrent]
+	add	ebx, [eax + MemorySection.pBase]
+	cmp	ebx, [eax + MemorySection.pCurrent]
 	jge	badUserDef
 	; push address of data on pstack
 	sub	rpsp, 4
@@ -692,7 +692,7 @@ entry relativeDefBranchType
 	; push relativeDef opcode for immediately following anonymous definition (IP in rip points to it)
 	; compute offset from dictionary base to anonymous def
 	mov	eax, [rcore + FCore.DictionaryPtr]
-	mov	ecx, [eax + ForthMemorySection.pBase]
+	mov	ecx, [eax + MemorySection.pBase]
 	mov	eax, rip
 	sub	eax, ecx
 	sar	eax, 2
@@ -6410,7 +6410,7 @@ entry endTupleBop
 
 entry hereBop
 	mov	eax, [rcore + FCore.DictionaryPtr]
-    mov	ebx, [eax + ForthMemorySection.pCurrent]
+    mov	ebx, [eax + MemorySection.pCurrent]
     sub rpsp, 4
     mov [rpsp], ebx
     jmp rnext
@@ -6419,7 +6419,7 @@ entry hereBop
 
 entry dpBop
     mov	eax, [rcore + FCore.DictionaryPtr]
-    lea	ebx, [eax + ForthMemorySection.pCurrent]
+    lea	ebx, [eax + MemorySection.pCurrent]
     sub rpsp, 4
     mov [rpsp], ebx
     jmp rnext
@@ -7656,10 +7656,10 @@ entry	setTraceBop
 
 ;========================================
 
-;extern void fprintfSub( ForthCoreState* pCore );
-;extern void snprintfSub( ForthCoreState* pCore );
-;extern void fscanfSub( ForthCoreState* pCore );
-;extern void sscanfSub( ForthCoreState* pCore );
+;extern void fprintfSub( CoreState* pCore );
+;extern void snprintfSub( CoreState* pCore );
+;extern void fscanfSub( CoreState* pCore );
+;extern void sscanfSub( CoreState* pCore );
 
 ;========================================
 
@@ -7690,7 +7690,7 @@ fprintfSub2:
 	add	esp, ebx
 	ret
 	
-; extern void fprintfSub( ForthCoreState* pCore );
+; extern void fprintfSub( CoreState* pCore );
 
 entry fprintfSub
 ;fprintfSub PROC near C public uses ebx rip rpsp ecx rnext rcore,
@@ -7750,7 +7750,7 @@ snprintfSub2:
 	add	esp, ebx
 	ret
 	
-; extern long snprintfSub( ForthCoreState* pCore );
+; extern long snprintfSub( CoreState* pCore );
 
 entry snprintfSub
 ;snprintfSub PROC near C GLOBAL uses ebx rip rpsp ecx rnext rcore,
@@ -7779,7 +7779,7 @@ entry snprintfSub
 
 ;========================================
 
-; extern int oStringFormatSub( ForthCoreState* pCore, char* pBuffer, int bufferSize );
+; extern int oStringFormatSub( CoreState* pCore, char* pBuffer, int bufferSize );
 entry oStringFormatSub;
 ;oStringFormatSub PROC near C public uses ebx rip rpsp ecx rnext rcore,
 ;	core:PTR,
@@ -7873,7 +7873,7 @@ fscanfSub2:
 	add	esp, ebx
 	ret
 	
-; extern long fscanfSub( ForthCoreState* pCore );
+; extern long fscanfSub( CoreState* pCore );
 
 entry fscanfSub
 ;fscanfSub PROC near C public uses ebx rip rpsp ecx rnext rcore,
@@ -7928,7 +7928,7 @@ sscanfSub2:
 	add	esp, ebx
 	ret
 
-; extern long sscanfSub( ForthCoreState* pCore );
+; extern long sscanfSub( CoreState* pCore );
 
 entry sscanfSub
 ;sscanfSub PROC near C public uses ebx rip rpsp ecx rnext rcore,
@@ -8308,7 +8308,7 @@ entry mroComboType
 ;=================================================================================================
 entry opTypesTable
 ; TBD: check the order of these
-; TBD: copy these into base of ForthCoreState, fill unused slots with badOptype
+; TBD: copy these into base of CoreState, fill unused slots with badOptype
 ;	00 - 09
 	DD	externalBuiltin		; kOpNative = 0,
 	DD	nativeImmediate		; kOpNativeImmediate,

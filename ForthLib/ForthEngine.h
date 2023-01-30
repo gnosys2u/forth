@@ -1,7 +1,7 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthEngine.h: interface for the ForthEngine class.
+// Engine.h: interface for the Engine class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -24,10 +24,10 @@
 
 class ForthThread;
 class ForthFiber;
-class ForthShell;
-class ForthExtension;
-class ForthOpcodeCompiler;
-class ForthBlockFileManager;
+class Shell;
+class Extension;
+class OpcodeCompiler;
+class BlockFileManager;
 class OuterInterpreter;
 
 #define DEFAULT_USER_STORAGE 16384
@@ -39,16 +39,16 @@ class OuterInterpreter;
 //  which is the buffer used by word and blword
 #define TMP_STRING_BUFFER_LEN MAX_STRING_SIZE
 
-class ForthEngine
+class Engine
 {
 public:
-    ForthEngine();
-    virtual         ~ForthEngine();
+    Engine();
+    virtual         ~Engine();
 
-    void            Initialize(ForthShell* pShell,
+    void            Initialize(Shell* pShell,
         int storageLongs = DEFAULT_USER_STORAGE,
         bool bAddBaseOps = true,
-        ForthExtension* pExtension = NULL);
+        Extension* pExtension = NULL);
     void            Reset(void);
     void            ErrorReset(void);
 
@@ -57,19 +57,19 @@ public:
     bool            GetFastMode(void);
 
     //
-    // FullyExecuteOp is used by the Outer Interpreter (ForthEngine::ProcessToken) to
+    // FullyExecuteOp is used by the Outer Interpreter (Engine::ProcessToken) to
     // execute forth ops, and is also how systems external to forth execute ops
     //
-    OpResult        FullyExecuteOp(ForthCoreState* pCore, forthop opCode);
+    OpResult        FullyExecuteOp(CoreState* pCore, forthop opCode);
     // ExecuteOp will start execution of an op, but will not finish user defs or methods
-    OpResult        ExecuteOp(ForthCoreState* pCore, forthop opCode);
+    OpResult        ExecuteOp(CoreState* pCore, forthop opCode);
     // ExecuteOps executes a sequence of forth ops
     // The sequence must be terminated with an OP_DONE
-    OpResult        ExecuteOps(ForthCoreState* pCore, forthop* pOps);
+    OpResult        ExecuteOps(CoreState* pCore, forthop* pOps);
 
-    OpResult		FullyExecuteMethod(ForthCoreState* pCore, ForthObject& obj, int methodNum);
-    OpResult        DeleteObject(ForthCoreState* pCore, ForthObject& obj);
-    void                ReleaseObject(ForthCoreState* pCore, ForthObject& inObject);
+    OpResult		FullyExecuteMethod(CoreState* pCore, ForthObject& obj, int methodNum);
+    OpResult        DeleteObject(CoreState* pCore, ForthObject& obj);
+    void                ReleaseObject(CoreState* pCore, ForthObject& inObject);
 
     inline forthop* GetDP() { return mDictionary.pCurrent; };
     inline void             SetDP(forthop* pNewDP) { mDictionary.pCurrent = pNewDP; };
@@ -79,11 +79,11 @@ public:
         mDictionary.pCurrent = (forthop*)((((cell)mDictionary.pCurrent) + (sizeof(forthop) - 1))
             & ~(sizeof(forthop) - 1));
     };
-    inline ForthMemorySection* GetDictionaryMemorySection() { return &mDictionary; };
+    inline MemorySection* GetDictionaryMemorySection() { return &mDictionary; };
 
     void                    ShowMemoryInfo();
-    inline ForthShell* GetShell(void) { return mpShell; };
-    inline void				SetShell(ForthShell* pShell) { mpShell = pShell; };
+    inline Shell* GetShell(void) { return mpShell; };
+    inline void				SetShell(Shell* pShell) { mpShell = pShell; };
     inline ForthFiber* GetMainFiber(void) { return mpMainThread->GetFiber(0); };
 
     cell* GetCompileStatePtr(void);
@@ -97,19 +97,19 @@ public:
     void                    SetFatalError(ForthError e, const char* pString = NULL);
     inline ForthError      GetError(void) { return (ForthError)(mpCore->error); };
     // for some reason, inlining this makes it return bogus data in some cases - WTF?
-    //inline ForthCoreState*  GetCoreState( void ) { return mpCore; };
-    ForthCoreState* GetCoreState(void);
+    //inline CoreState*  GetCoreState( void ) { return mpCore; };
+    CoreState* GetCoreState(void);
 
-    static ForthEngine* GetInstance(void);
+    static Engine* GetInstance(void);
 
     void					SetDefaultConsoleOut(ForthObject& newOutStream);
-    void					SetConsoleOut(ForthCoreState* pCore, ForthObject& newOutStream);
-    void					SetErrorOut(ForthCoreState* pCore, ForthObject& newOutStream);
-    void* GetErrorOut(ForthCoreState* pCore);
-    void					PushConsoleOut(ForthCoreState* pCore);
-    void					PushErrorOut(ForthCoreState* pCore);
-    void					PushDefaultConsoleOut(ForthCoreState* pCore);
-    void					ResetConsoleOut(ForthCoreState& core);
+    void					SetConsoleOut(CoreState* pCore, ForthObject& newOutStream);
+    void					SetErrorOut(CoreState* pCore, ForthObject& newOutStream);
+    void* GetErrorOut(CoreState* pCore);
+    void					PushConsoleOut(CoreState* pCore);
+    void					PushErrorOut(CoreState* pCore);
+    void					PushDefaultConsoleOut(CoreState* pCore);
+    void					ResetConsoleOut(CoreState& core);
     void					ResetConsoleOut();
 
     // return milliseconds since engine was created
@@ -126,7 +126,7 @@ public:
 
     const char* GetOpTypeName(int32_t opType);
     void                    TraceOp(forthop* pOp, forthop op);
-    void                    TraceStack(ForthCoreState* pCore);
+    void                    TraceStack(CoreState* pCore);
     void                    DescribeOp(forthop* pOp, char* pBuffer, int buffSize, bool lookupUserDefs = false);
     void                    AddOpExecutionToProfile(forthop op);
     void                    DumpExecutionProfile();
@@ -135,27 +135,27 @@ public:
     void					DumpCrashState();
     void					DisplayUserDefCrash(forthop* pRVal, char* buff, int buffSize);
 
-    void                    RaiseException(ForthCoreState* pCore, cell exceptionNum);
+    void                    RaiseException(CoreState* pCore, cell exceptionNum);
 
     // create a thread which will be managed by the engine - the engine destructor will delete all threads
     //  which were created with CreateThread 
     ForthThread* CreateThread(forthop fiberOp = OP_DONE, int paramStackSize = DEFAULT_PSTACK_SIZE, int returnStackSize = DEFAULT_RSTACK_SIZE);
     void            DestroyThread(ForthThread* pThread);
 
-    void InitCoreState(ForthCoreState& core);
+    void InitCoreState(CoreState& core);
 
-    ForthBlockFileManager* GetBlockFileManager();
+    BlockFileManager* GetBlockFileManager();
 
     // returns true IFF file opened successfully
     bool            PushInputFile(const char* pInFileName);
     void            PushInputBuffer(const char* pDataBuffer, int dataBufferLen);
-    void            PushInputBlocks(ForthBlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock);
+    void            PushInputBlocks(BlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock);
     void            PopInputStream(void);
 
     bool					IsServer() const;
     void					SetIsServer(bool isServer);
 
-    inline ForthExtension* GetExtension() { return mpExtension; }
+    inline Extension* GetExtension() { return mpExtension; }
 
     ClassVocabulary* AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex,
         eBuiltinClassIndex parentClassIndex, baseMethodEntry* pEntries);
@@ -166,15 +166,15 @@ public:
 
 private:
     OuterInterpreter* mpOuter;
-    ForthBlockFileManager* mBlockFileManager;
+    BlockFileManager* mBlockFileManager;
 
-    ForthCoreState* mpCore;             // core inner interpreter state
+    CoreState* mpCore;             // core inner interpreter state
 
-    ForthMemorySection mDictionary;
+    MemorySection mDictionary;
 
     ForthThread* mpThreads;
     ForthThread* mpMainThread;
-    ForthShell* mpShell;
+    Shell* mpShell;
     int32_t* mpEngineScratch;
     char* mpErrorString;  // optional error information from shell
     traceOutRoutine	mTraceOutRoutine;
@@ -186,7 +186,7 @@ private:
     struct opcodeProfileInfo {
         forthop op;
         ucell count;
-        ForthVocabulary* pVocabulary;
+        Vocabulary* pVocabulary;
         forthop* pEntry;
     };
     std::vector<opcodeProfileInfo> mProfileOpcodeCounts;
@@ -205,9 +205,9 @@ private:
     struct timeb    mStartTime;
 #endif
 
-    ForthExtension* mpExtension;
+    Extension* mpExtension;
 
-    static ForthEngine* mpInstance;
+    static Engine* mpInstance;
     bool            mFastMode;
     bool			mIsServer;
 

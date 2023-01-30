@@ -56,43 +56,43 @@ FORTHDLL_API void OutputToLogger(const char* pBuffer)
     return;
 }
 
-FORTHDLL_API ForthEngine* CreateForthEngine()
+FORTHDLL_API Engine* CreateForthEngine()
 {
-    return new ForthEngine;
+    return new Engine;
 }
 
-FORTHDLL_API ForthShell* CreateForthShell(int argc, const char** argv, const char** envp, ForthEngine* pEngine, ForthExtension* pExtension, int shellStackLongs)
+FORTHDLL_API Shell* CreateForthShell(int argc, const char** argv, const char** envp, Engine* pEngine, Extension* pExtension, int shellStackLongs)
 {
-    return new ForthShell(argc, argv, envp, pEngine, pExtension, shellStackLongs);
+    return new Shell(argc, argv, envp, pEngine, pExtension, shellStackLongs);
 }
 
-FORTHDLL_API ForthBufferInputStream* CreateForthBufferInputStream(const char* pDataBuffer, int dataBufferLen, int bufferLen, bool deleteWhenEmpty)
+FORTHDLL_API BufferInputStream* CreateForthBufferInputStream(const char* pDataBuffer, int dataBufferLen, int bufferLen, bool deleteWhenEmpty)
 {
-    ForthBufferInputStream* inStream = new ForthBufferInputStream(pDataBuffer, dataBufferLen, bufferLen);
+    BufferInputStream* inStream = new BufferInputStream(pDataBuffer, dataBufferLen, bufferLen);
     inStream->SetDeleteWhenEmpty(deleteWhenEmpty);
     return inStream;
 }
 
-FORTHDLL_API ForthConsoleInputStream* CreateForthConsoleInputStream(int bufferLen, bool deleteWhenEmpty)
+FORTHDLL_API ConsoleInputStream* CreateForthConsoleInputStream(int bufferLen, bool deleteWhenEmpty)
 {
-    ForthConsoleInputStream* inStream = new ForthConsoleInputStream(bufferLen);
+    ConsoleInputStream* inStream = new ConsoleInputStream(bufferLen);
     inStream->SetDeleteWhenEmpty(deleteWhenEmpty);
     return inStream;
 }
 
-FORTHDLL_API ForthFileInputStream* CreateForthFileInputStream(FILE* pInFile, const char* pFilename, int bufferLen, bool deleteWhenEmpty)
+FORTHDLL_API FileInputStream* CreateForthFileInputStream(FILE* pInFile, const char* pFilename, int bufferLen, bool deleteWhenEmpty)
 {
-    ForthFileInputStream* inStream = new ForthFileInputStream(pInFile, pFilename, bufferLen);
+    FileInputStream* inStream = new FileInputStream(pInFile, pFilename, bufferLen);
     inStream->SetDeleteWhenEmpty(deleteWhenEmpty);
     return inStream;
 }
 
-FORTHDLL_API void DeleteForthEngine(ForthEngine* pEngine)
+FORTHDLL_API void DeleteForthEngine(Engine* pEngine)
 {
     delete pEngine;
 }
 
-FORTHDLL_API void DeleteForthShell(ForthShell* pShell)
+FORTHDLL_API void DeleteForthShell(Shell* pShell)
 {
     delete pShell;
 }
@@ -102,7 +102,7 @@ FORTHDLL_API void DeleteForthFiber(ForthFiber* pFiber)
     delete pFiber;
 }
 
-FORTHDLL_API void DeleteForthInputStream(ForthInputStream* pStream)
+FORTHDLL_API void DeleteForthInputStream(InputStream* pStream)
 {
     delete pStream;
 }

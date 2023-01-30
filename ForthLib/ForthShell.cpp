@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthShell.cpp: implementation of the ForthShell class.
+// Shell.cpp: implementation of the Shell class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -191,10 +191,10 @@ uint32_t ConsoleInputThreadRoutine( void* pThreadData );
 //////////////////////////////////////////////////////////////////////
 ////
 ///
-//                     ForthShell
+//                     Shell
 // 
 
-ForthShell::ForthShell(int argc, const char ** argv, const char ** envp, ForthEngine *pEngine, ForthExtension *pExtension, int shellStackLongs)
+Shell::Shell(int argc, const char ** argv, const char ** envp, Engine *pEngine, Extension *pExtension, int shellStackLongs)
 : mpEngine(pEngine)
 , mFlags(0)
 , mNumArgs(0)
@@ -277,7 +277,7 @@ ForthShell::ForthShell(int argc, const char ** argv, const char ** envp, ForthEn
 
     if ( mpEngine == NULL )
     {
-        mpEngine = new ForthEngine();
+        mpEngine = new Engine();
         mFlags = SHELL_FLAG_CREATED_ENGINE;
     }
     mpEngine->Initialize( this, STORAGE_LONGS, true, pExtension );
@@ -290,7 +290,7 @@ ForthShell::ForthShell(int argc, const char ** argv, const char ** envp, ForthEn
     mpEngine->SetCurrentThread( mpThread );
 #endif
 
-    mpInput = new ForthInputStack;
+    mpInput = new InputStack;
 	mpStack = new ForthShellStack( shellStackLongs );
 
 #if 0
@@ -313,7 +313,7 @@ ForthShell::ForthShell(int argc, const char ** argv, const char ** envp, ForthEn
 
 }
 
-ForthShell::~ForthShell()
+Shell::~Shell()
 {
     DeleteEnvironmentVars();
     DeleteCommandLine();
@@ -346,14 +346,14 @@ ForthShell::~ForthShell()
 // create a new file input stream & push on stack
 //
 bool
-ForthShell::PushInputFile( const char *pFilename )
+Shell::PushInputFile( const char *pFilename )
 {
     std::string containingDir;
     FILE *pInFile = OpenForthFile( pFilename, containingDir);
     if ( pInFile != NULL )
     {
         //printf("%s is contained in {%s}\n", pFilename, containingDir.c_str());
-        ForthFileInputStream* newStream = new ForthFileInputStream(pInFile, pFilename);
+        FileInputStream* newStream = new FileInputStream(pInFile, pFilename);
         std::string curWorkDir;
         GetWorkDir(curWorkDir);
         newStream->SetSavedWorkDir(curWorkDir);
@@ -370,26 +370,26 @@ ForthShell::PushInputFile( const char *pFilename )
 // create a new buffer input stream & push on stack
 //
 void
-ForthShell::PushInputBuffer( const char *pDataBuffer, int dataBufferLen )
+Shell::PushInputBuffer( const char *pDataBuffer, int dataBufferLen )
 {
-    mpInput->PushInputStream( new ForthBufferInputStream( pDataBuffer, dataBufferLen ) );
+    mpInput->PushInputStream( new BufferInputStream( pDataBuffer, dataBufferLen ) );
 }
 
 
 void
-ForthShell::PushInputBlocks(ForthBlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock)
+Shell::PushInputBlocks(BlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock)
 {
-    mpInput->PushInputStream( new ForthBlockInputStream(pManager, firstBlock, lastBlock) );
+    mpInput->PushInputStream( new BlockInputStream(pManager, firstBlock, lastBlock) );
 }
 
 
 bool
-ForthShell::PopInputStream( void )
+Shell::PopInputStream( void )
 {
-    ForthInputStream* curStream = mpInput->InputStream();
+    InputStream* curStream = mpInput->Top();
     if (curStream->IsFile())
     {
-        ForthFileInputStream* fileStream = dynamic_cast<ForthFileInputStream*>(curStream);
+        FileInputStream* fileStream = dynamic_cast<FileInputStream*>(curStream);
         if (!fileStream->GetSavedWorkDir().empty())
         {
             mFileInterface.setWorkDir(fileStream->GetSavedWorkDir().c_str());
@@ -403,24 +403,24 @@ ForthShell::PopInputStream( void )
 // interpret one stream, return when it is exhausted
 //
 int
-ForthShell::RunOneStream(ForthInputStream *pInStream)
+Shell::RunOneStream(InputStream *pInStream)
 {
 	const char *pBuffer;
 	int retVal = 0;
 	bool bQuit = false;
 	OpResult result = OpResult::kOk;
 
-	ForthInputStream* pOldInput = mpInput->InputStream();
+	InputStream* pOldInput = mpInput->Top();
 	mpInput->PushInputStream(pInStream);
 
-	while ((mpInput->InputStream() != pOldInput) && !bQuit)
+	while ((mpInput->Top() != pOldInput) && !bQuit)
 	{
 		// try to fetch a line from current stream
 		pBuffer = mpInput->GetLine(mpEngine->GetFastMode() ? "ok>" : "OK>");
         pBuffer = AddToInputLine(pBuffer);
         if (pBuffer == nullptr)
 		{
-            bQuit = PopInputStream() || (mpInput->InputStream() == pOldInput);
+            bQuit = PopInputStream() || (mpInput->Top() == pOldInput);
 		}
 
 		if (!bQuit && !mInContinuationLine)
@@ -467,7 +467,7 @@ ForthShell::RunOneStream(ForthInputStream *pInStream)
 // return 0 for normal exit
 //
 int
-ForthShell::Run( ForthInputStream *pInStream )
+Shell::Run( InputStream *pInStream )
 {
     const char *pBuffer;
     int retVal = 0;
@@ -555,7 +555,7 @@ ForthShell::Run( ForthInputStream *pInStream )
 
 #define CONTINUATION_MARKER "\\+"
 #define CONTINUATION_MARKER_LEN 2
-char* ForthShell::AddToInputLine(const char* pBuffer)
+char* Shell::AddToInputLine(const char* pBuffer)
 {
     char* pResult = nullptr;
 
@@ -592,7 +592,7 @@ char* ForthShell::AddToInputLine(const char* pBuffer)
 }
 
 // ProcessLine is the layer between Run and InterpretLine that implements pound directives
-OpResult ForthShell::ProcessLine( const char *pSrcLine )
+OpResult Shell::ProcessLine( const char *pSrcLine )
 {
     OpResult result = OpResult::kOk;
 
@@ -600,7 +600,7 @@ OpResult ForthShell::ProcessLine( const char *pSrcLine )
     const char* pLineBuff = mpInput->GetBufferBasePointer();
     if ( pSrcLine != NULL )
 	{
-        mpInput->InputStream()->StuffBuffer( pSrcLine );
+        mpInput->Top()->StuffBuffer( pSrcLine );
 	}
 
     if ( (mFlags & SHELL_FLAG_SKIP_SECTION) != 0 )
@@ -663,7 +663,7 @@ OpResult ForthShell::ProcessLine( const char *pSrcLine )
             if ( (mFlags & SHELL_FLAG_START_IF) != 0 )
             {
                 // this line started with #if
-                ForthCoreState* pCore = mpEngine->GetCoreState();
+                CoreState* pCore = mpEngine->GetCoreState();
                 if ( GET_SDEPTH > 0 )
                 {
                     cell expressionResult = SPOP;
@@ -695,12 +695,12 @@ static bool gbCatchExceptions = false;
 //
 // return true IFF the forth shell should exit
 //
-OpResult ForthShell::InterpretLine( const char *pSrcLine )
+OpResult Shell::InterpretLine( const char *pSrcLine )
 {
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     OpResult  result = OpResult::kOk;
     bool bLineEmpty;
-    ForthParseInfo parseInfo( mTokenBuffer, sizeof(mTokenBuffer) >> 2 );
+    ParseInfo parseInfo( mTokenBuffer, sizeof(mTokenBuffer) >> 2 );
 
     const char *pLineBuff;
 
@@ -709,7 +709,7 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
     pLineBuff = mpInput->GetBufferBasePointer();
     if ( pSrcLine != NULL )
 	{
-		mpInput->InputStream()->StuffBuffer( pSrcLine );
+		mpInput->Top()->StuffBuffer( pSrcLine );
 	}
 	SPEW_SHELL( "\n*** InterpretLine {%s}\n", pLineBuff );
     bLineEmpty = false;
@@ -721,7 +721,7 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
         {
             result = OpResult::kError;
         }
-        ForthInputStream* pInput = mpInput->InputStream();
+        InputStream* pInput = mpInput->Top();
         SPEW_SHELL("input %s:%s[%d] buffer 0x%x readoffset %d write %d\n", pInput->GetType(), pInput->GetName(),
             pInput->GetLineNumber(), pInput->GetBufferPointer(), pInput->GetReadOffset(), pInput->GetWriteOffset() );
 
@@ -776,7 +776,7 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
                 mpEngine->DumpCrashState();
             }
             ErrorReset();
-            if (!mpInput->InputStream()->IsInteractive() && !exitingShell)
+            if (!mpInput->Top()->IsInteractive() && !exitingShell)
             {
                 // if the initial input stream was a file, any error
                 //   must be treated as a fatal error
@@ -789,7 +789,7 @@ OpResult ForthShell::InterpretLine( const char *pSrcLine )
 }
 
 void
-ForthShell::ErrorReset( void )
+Shell::ErrorReset( void )
 {
 	mpEngine->ErrorReset();
 	mpInput->Reset();
@@ -799,7 +799,7 @@ ForthShell::ErrorReset( void )
 }
 
 void
-ForthShell::ReportError( void )
+Shell::ReportError( void )
 {
     char errorBuf1[512];
     char errorBuf2[512];
@@ -808,7 +808,7 @@ ForthShell::ReportError( void )
     mpEngine->GetErrorString( errorBuf1, sizeof(errorBuf1) );
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     pLastInputToken = pOuter->GetLastInputToken();
-	ForthCoreState* pCore = mpEngine->GetCoreState();
+	CoreState* pCore = mpEngine->GetCoreState();
 
 	if ( pLastInputToken != NULL )
     {
@@ -860,7 +860,7 @@ ForthShell::ReportError( void )
 	}
 }
 
-void ForthShell::ReportWarning(const char* pMessage)
+void Shell::ReportWarning(const char* pMessage)
 {
     char errorBuf1[512];
     char errorBuf2[512];
@@ -868,7 +868,7 @@ void ForthShell::ReportWarning(const char* pMessage)
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
 
     pLastInputToken = pOuter->GetLastInputToken();
-    ForthCoreState* pCore = mpEngine->GetCoreState();
+    CoreState* pCore = mpEngine->GetCoreState();
 
     if (pLastInputToken != NULL)
     {
@@ -919,7 +919,7 @@ void ForthShell::ReportWarning(const char* pMessage)
 // this is a stripped down version of ParseToken used just for building string tables
 // TODO!!! there is nothing to keep us from writing past end of pTokenBuffer
 bool
-ForthShell::ParseString( ForthParseInfo *pInfo )
+Shell::ParseString( ParseInfo *pInfo )
 {
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     const char *pSrc;
@@ -1014,7 +1014,7 @@ ForthShell::ParseString( ForthParseInfo *pInfo )
 // return true IFF done parsing line - in this case no token is returned in pInfo
 // TODO!!! there is nothing to keep us from writing past end of pTokenBuffer
 bool
-ForthShell::ParseToken( ForthParseInfo *pInfo )
+Shell::ParseToken( ParseInfo *pInfo )
 {
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     const char *pSrc;
@@ -1157,11 +1157,11 @@ ForthShell::ParseToken( ForthParseInfo *pInfo )
 						 advanceInputBuffer = false;
 						 if (mExpressionInputStream == NULL)
 						 {
-							 mExpressionInputStream = new ForthExpressionInputStream;
+							 mExpressionInputStream = new ExpressionInputStream;
 						 }
 						 pInfo->SetAllFlags(0);
 						 mpInput->SetBufferPointer(pSrc);
-						 mExpressionInputStream->ProcessExpression(mpInput->InputStream());
+						 mExpressionInputStream->ProcessExpression(mpInput->Top());
                          // begin horrible nasty kludge for elseif
                          const char* endOfExpression = mExpressionInputStream->GetBufferBasePointer() + (mExpressionInputStream->GetWriteOffset() - 1);
                          int charsToCrop = 7;
@@ -1241,11 +1241,11 @@ ForthShell::ParseToken( ForthParseInfo *pInfo )
 
 
 char *
-ForthShell::GetNextSimpleToken( void )
+Shell::GetNextSimpleToken( void )
 {
-	while (mpInput->IsEmpty() && mpInput->InputStream()->IsGenerated())
+	while (mpInput->IsEmpty() && mpInput->Top()->IsGenerated())
 	{
-		SPEW_SHELL("GetNextSimpleToken: %s:%s empty, popping\n", mpInput->InputStream()->GetType(), mpInput->InputStream()->GetName());
+		SPEW_SHELL("GetNextSimpleToken: %s:%s empty, popping\n", mpInput->Top()->GetType(), mpInput->Top()->GetName());
 		if (mpInput->PopInputStream())
 		{
 			// no more input streams available
@@ -1288,11 +1288,11 @@ ForthShell::GetNextSimpleToken( void )
 
 
 char *
-ForthShell::GetToken( char delim, bool bSkipLeadingWhiteSpace )
+Shell::GetToken( char delim, bool bSkipLeadingWhiteSpace )
 {
-	while (mpInput->IsEmpty() && mpInput->InputStream()->IsGenerated())
+	while (mpInput->IsEmpty() && mpInput->Top()->IsGenerated())
 	{
-		SPEW_SHELL("GetToken: %s %s empty, popping\n", mpInput->InputStream()->GetType(), mpInput->InputStream()->GetName());
+		SPEW_SHELL("GetToken: %s %s empty, popping\n", mpInput->Top()->GetType(), mpInput->Top()->GetName());
 		if (mpInput->PopInputStream())
 		{
 			// no more input streams available
@@ -1335,7 +1335,7 @@ ForthShell::GetToken( char delim, bool bSkipLeadingWhiteSpace )
 }
 
 void
-ForthShell::SetCommandLine( int argc, const char ** argv )
+Shell::SetCommandLine( int argc, const char ** argv )
 {
     int i, len;
 
@@ -1460,7 +1460,7 @@ ForthShell::SetCommandLine( int argc, const char ** argv )
 
 
 void
-ForthShell::SetEnvironmentVars( const char ** envp )
+Shell::SetEnvironmentVars( const char ** envp )
 {
     int i, nameLen;
     char *pValue;
@@ -1624,7 +1624,7 @@ ForthShell::SetEnvironmentVars( const char ** envp )
 }
 
 void
-ForthShell::DeleteCommandLine( void )
+Shell::DeleteCommandLine( void )
 {
     while ( mNumArgs > 0 )
     {
@@ -1652,7 +1652,7 @@ ForthShell::DeleteCommandLine( void )
 
 
 void
-ForthShell::DeleteEnvironmentVars( void )
+Shell::DeleteEnvironmentVars( void )
 {
     while ( mNumEnvVars > 0 )
     {
@@ -1668,7 +1668,7 @@ ForthShell::DeleteEnvironmentVars( void )
 
 
 const char*
-ForthShell::GetEnvironmentVar(const char* envVarName)
+Shell::GetEnvironmentVar(const char* envVarName)
 {
     const char* envVarValue = NULL;
     for (int i = 0; i < mNumEnvVars; i++)
@@ -1683,7 +1683,7 @@ ForthShell::GetEnvironmentVar(const char* envVarName)
 
 
 bool
-ForthShell::CheckSyntaxError(const char *pString, eShellTag tag, int32_t desiredTags)
+Shell::CheckSyntaxError(const char *pString, eShellTag tag, int32_t desiredTags)
 {
     int32_t tagVal = (int32_t)tag;
     bool tagsMatched = ((tagVal & desiredTags) != 0);
@@ -1712,7 +1712,7 @@ ForthShell::CheckSyntaxError(const char *pString, eShellTag tag, int32_t desired
 
 
 void
-ForthShell::StartDefinition(const char* pSymbol, const char* pFourCharCode)
+Shell::StartDefinition(const char* pSymbol, const char* pFourCharCode)
 {
 	mpStack->PushString(pSymbol);
 	mpStack->Push(FourCharToLong(pFourCharCode));
@@ -1721,7 +1721,7 @@ ForthShell::StartDefinition(const char* pSymbol, const char* pFourCharCode)
 
 
 bool
-ForthShell::CheckDefinitionEnd(const char* pDisplayName, const char* pFourCharCode)
+Shell::CheckDefinitionEnd(const char* pDisplayName, const char* pFourCharCode)
 {
     eShellTag defineTag = mpStack->PopTag();
 
@@ -1754,19 +1754,19 @@ ForthShell::CheckDefinitionEnd(const char* pDisplayName, const char* pFourCharCo
 
 
 ForthFileInterface*
-ForthShell::GetFileInterface()
+Shell::GetFileInterface()
 {
     return &mFileInterface;
 }
 
 char
-ForthShell::GetChar()
+Shell::GetChar()
 {
     return getchar();
 }
 
 FILE*
-ForthShell::FileOpen( const char* filePath, const char* openMode )
+Shell::FileOpen( const char* filePath, const char* openMode )
 {
 	FILE* pFile = NULL;
     pFile = fopen( filePath, openMode );
@@ -1774,49 +1774,49 @@ ForthShell::FileOpen( const char* filePath, const char* openMode )
 }
 
 int
-ForthShell::FileClose( FILE* pFile )
+Shell::FileClose( FILE* pFile )
 {
     return fclose( pFile );
 }
 
 int
-ForthShell::FileSeek( FILE* pFile, int offset, int control )
+Shell::FileSeek( FILE* pFile, int offset, int control )
 {
     return fseek( pFile, offset, control );
 }
 
 int
-ForthShell::FileRead( FILE* pFile, void* pDst, int itemSize, int numItems )
+Shell::FileRead( FILE* pFile, void* pDst, int itemSize, int numItems )
 {
     return (int)fread( pDst, itemSize, numItems, pFile );
 }
 
 int
-ForthShell::FileWrite( FILE* pFile, const void* pSrc, int itemSize, int numItems ) 
+Shell::FileWrite( FILE* pFile, const void* pSrc, int itemSize, int numItems ) 
 {
     return (int)fwrite( pSrc, itemSize, numItems, pFile );
 }
 
 int
-ForthShell::FileGetChar( FILE* pFile )
+Shell::FileGetChar( FILE* pFile )
 {
     return fgetc( pFile );
 }
 
 int
-ForthShell::FilePutChar( FILE* pFile, int outChar )
+Shell::FilePutChar( FILE* pFile, int outChar )
 {
     return fputc( outChar, pFile );
 }
 
 int
-ForthShell::FileAtEOF( FILE* pFile )
+Shell::FileAtEOF( FILE* pFile )
 {
     return feof( pFile );
 }
 
 int
-ForthShell::FileCheckExists( const char* pFilename )
+Shell::FileCheckExists( const char* pFilename )
 {
     FILE* pFile = fopen( pFilename, "r" );
     int result = (pFile != NULL) ? ~0 : 0;
@@ -1828,7 +1828,7 @@ ForthShell::FileCheckExists( const char* pFilename )
 }
 
 int
-ForthShell::FileGetLength( FILE* pFile )
+Shell::FileGetLength( FILE* pFile )
 {
     int oldPos = ftell( pFile );
     fseek( pFile, 0, SEEK_END );
@@ -1838,32 +1838,32 @@ ForthShell::FileGetLength( FILE* pFile )
 }
 
 int
-ForthShell::FileGetPosition( FILE* pFile )
+Shell::FileGetPosition( FILE* pFile )
 {
     return ftell( pFile );
 }
 
 char*
-ForthShell::FileGetString( FILE* pFile, char* pBuffer, int maxChars )
+Shell::FileGetString( FILE* pFile, char* pBuffer, int maxChars )
 {
     return fgets( pBuffer, maxChars, pFile );
 }
 
 
 int
-ForthShell::FilePutString( FILE* pFile, const char* pBuffer )
+Shell::FilePutString( FILE* pFile, const char* pBuffer )
 {
     return fputs( pBuffer, pFile );
 }
 
 void*
-ForthShell::ReadDir(void* pDir, void* pEntry)
+Shell::ReadDir(void* pDir, void* pEntry)
 {
     return readDir(pDir, pEntry);
 }
 
 /*int
-ForthShell::FileRemove( Fonst char* pFilename )
+Shell::FileRemove( Fonst char* pFilename )
 {
     return remove( pFilename );
 }*/
@@ -1872,7 +1872,7 @@ ForthShell::FileRemove( Fonst char* pFilename )
 // support for conditional compilation ops
 //
 
-void ForthShell::PoundIf()
+void Shell::PoundIf()
 {
     //mPoundIfDepth++;
 
@@ -1893,10 +1893,10 @@ void ForthShell::PoundIf()
 }
 
 
-void ForthShell::PoundIfdef( bool isDefined )
+void Shell::PoundIfdef( bool isDefined )
 {
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
-    ForthVocabulary* pVocab = pOuter->GetSearchVocabulary();
+    Vocabulary* pVocab = pOuter->GetSearchVocabulary();
     char* pToken = GetNextSimpleToken();
     if ( (pToken == NULL) || (pVocab == NULL) || ((pVocab->FindSymbol( pToken ) != NULL) != isDefined) )
     {
@@ -1908,7 +1908,7 @@ void ForthShell::PoundIfdef( bool isDefined )
 }
 
 
-void ForthShell::PoundElse()
+void Shell::PoundElse()
 {
     cell marker = mpStack->Pop();
     if ( marker == kShellTagPoundIf )
@@ -1925,7 +1925,7 @@ void ForthShell::PoundElse()
 }
 
 
-void ForthShell::PoundEndif()
+void Shell::PoundEndif()
 {
     cell marker = mpStack->Pop();
     if ( marker != kShellTagPoundIf )
@@ -1936,7 +1936,7 @@ void ForthShell::PoundEndif()
 }
 
 
-FILE* ForthShell::OpenInternalFile( const char* pFilename )
+FILE* Shell::OpenInternalFile( const char* pFilename )
 {
     // see if file is an internal file, and if so use it
 	FILE* pFile = NULL;
@@ -1958,7 +1958,7 @@ FILE* ForthShell::OpenInternalFile( const char* pFilename )
 }
 
 
-FILE* ForthShell::OpenForthFile(const char* pPath, std::string& containingDir)
+FILE* Shell::OpenForthFile(const char* pPath, std::string& containingDir)
 {
     containingDir.clear();
 
@@ -2017,14 +2017,14 @@ FILE* ForthShell::OpenForthFile(const char* pPath, std::string& containingDir)
 }
 
 
-int32_t ForthShell::FourCharToLong(const char* pFourCC)
+int32_t Shell::FourCharToLong(const char* pFourCC)
 {
 	int32_t retVal = 0;
 	memcpy(&retVal, pFourCC, sizeof(retVal));
 	return retVal;
 }
 
-void ForthShell::GetWorkDir(std::string& dstString)
+void Shell::GetWorkDir(std::string& dstString)
 {
 //#define INITIAL_BUFFER_SIZE 128
 #define INITIAL_BUFFER_SIZE 4
@@ -2038,7 +2038,7 @@ void ForthShell::GetWorkDir(std::string& dstString)
     dstString.assign(pBuffer);
 }
 
-void ForthShell::SetWorkDir(const std::string& workDir)
+void Shell::SetWorkDir(const std::string& workDir)
 {
     mFileInterface.setWorkDir(workDir.c_str());
 }
@@ -2075,7 +2075,7 @@ ForthShellStack::PushTag(eShellTag tag)
     if (mSSP > mSSB)
     {
         *--mSSP = (forthop*) tag;
-        if (ForthEngine::GetInstance()->GetTraceFlags() & kLogShell)
+        if (Engine::GetInstance()->GetTraceFlags() & kLogShell)
         {
             GetTagString(tag, tagString);
             SPEW_SHELL("ShellStack: pushed tag %s 0x%08x\n", tagString, (int32_t) tag);
@@ -2083,7 +2083,7 @@ ForthShellStack::PushTag(eShellTag tag)
     }
     else
     {
-        ForthEngine::GetInstance()->SetError(ForthError::kShellStackOverflow);
+        Engine::GetInstance()->SetError(ForthError::kShellStackOverflow);
     }
 }
 
@@ -2097,7 +2097,7 @@ ForthShellStack::Push(cell val)
     }
     else
     {
-        ForthEngine::GetInstance()->SetError(ForthError::kShellStackOverflow);
+        Engine::GetInstance()->SetError(ForthError::kShellStackOverflow);
     }
 }
 
@@ -2111,7 +2111,7 @@ ForthShellStack::PushAddress(forthop* addr)
     }
     else
     {
-        ForthEngine::GetInstance()->SetError(ForthError::kShellStackOverflow);
+        Engine::GetInstance()->SetError(ForthError::kShellStackOverflow);
     }
 }
 
@@ -2142,13 +2142,13 @@ forthop* ForthShellStack::PopAddress( void )
 {
     if (mSSP == mSST)
     {
-        ForthEngine::GetInstance()->SetError( ForthError::kShellStackUnderflow );
+        Engine::GetInstance()->SetError( ForthError::kShellStackUnderflow );
         return (forthop*)kShellTagNothing;
     }
     forthop* pOp = *mSSP++;
 #ifdef TRACE_SHELL
     char tagString[256];
-    if (ForthEngine::GetInstance()->GetTraceFlags() & kLogShell)
+    if (Engine::GetInstance()->GetTraceFlags() & kLogShell)
     {
         if (mayBeAShellTag((cell)pOp))
         {
@@ -2168,13 +2168,13 @@ cell ForthShellStack::Pop(void)
 {
     if (mSSP == mSST)
     {
-        ForthEngine::GetInstance()->SetError(ForthError::kShellStackUnderflow);
+        Engine::GetInstance()->SetError(ForthError::kShellStackUnderflow);
         return kShellTagNothing;
     }
     cell val = (cell)*mSSP++;
 #ifdef TRACE_SHELL
     char tagString[256];
-    if (ForthEngine::GetInstance()->GetTraceFlags() & kLogShell)
+    if (Engine::GetInstance()->GetTraceFlags() & kLogShell)
     {
         if (mayBeAShellTag(val))
         {
@@ -2237,7 +2237,7 @@ ForthShellStack::PushString( const char *pString )
 	}
 	else
 	{
-        ForthEngine::GetInstance()->SetError( ForthError::kShellStackOverflow );
+        Engine::GetInstance()->SetError( ForthError::kShellStackOverflow );
 	}
 }
 
@@ -2249,7 +2249,7 @@ ForthShellStack::PopString(char *pString, int maxLen)
     {
         *pString = '\0';
         SPEW_SHELL( "Failed to pop string\n" );
-        ForthEngine::GetInstance()->SetError( ForthError::kShellStackUnderflow );
+        Engine::GetInstance()->SetError( ForthError::kShellStackUnderflow );
         return false;
     }
     mSSP++;
@@ -2273,13 +2273,13 @@ ForthShellStack::ShowStack()
 	forthop** pSP = mSSP;
     char* buff = (char *)malloc(512);
 
-	ForthEngine::GetInstance()->ConsoleOut("Shell Stack:\n");
+	Engine::GetInstance()->ConsoleOut("Shell Stack:\n");
 	
 	while (pSP != mSST)
 	{
 		forthop* tag = *pSP++;
         sprintf(buff, "%16p   ", tag);
-        ForthEngine::GetInstance()->ConsoleOut(buff);
+        Engine::GetInstance()->ConsoleOut(buff);
         // TODO!
         int32_t tagChars = static_cast<int32_t>(reinterpret_cast<intptr_t>(tag));
         for (int i = 0; i < 4; ++i)
@@ -2295,13 +2295,13 @@ ForthShellStack::ShowStack()
         buff[4] = ' ';
         buff[5] = ' ';
         buff[6] = '\0';
-        ForthEngine::GetInstance()->ConsoleOut(buff);
+        Engine::GetInstance()->ConsoleOut(buff);
         if (mayBeAShellTag((cell)tag))
         {
             GetTagString((cell)tag, buff);
-            ForthEngine::GetInstance()->ConsoleOut(buff);
+            Engine::GetInstance()->ConsoleOut(buff);
         }
-        ForthEngine::GetInstance()->ConsoleOut("\n");
+        Engine::GetInstance()->ConsoleOut("\n");
     }
     free(buff);
 }
@@ -2318,7 +2318,7 @@ DWORD WINAPI ConsoleInputThreadRoutine( void* pThreadData )
 uint32_t ConsoleInputThreadRoutine( void* pThreadData )
 #endif
 {
-    ForthShell* pShell = (ForthShell *) pThreadData;
+    Shell* pShell = (Shell *) pThreadData;
 
 #if 0
     return pShell->ConsoleInputLoop();

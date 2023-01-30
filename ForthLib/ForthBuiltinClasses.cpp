@@ -48,9 +48,9 @@ int32_t gStatReleases = 0;
 
 extern "C" {
 	uint32_t SuperFastHash (const char * data, int len, uint32_t hash);
-	extern void unimplementedMethodOp( ForthCoreState *pCore );
-	extern void illegalMethodOp( ForthCoreState *pCore );
-	extern cell oStringFormatSub( ForthCoreState* pCore, char* pBuffer, int bufferSize );
+	extern void unimplementedMethodOp( CoreState *pCore );
+	extern void illegalMethodOp( CoreState *pCore );
+	extern cell oStringFormatSub( CoreState* pCore, char* pBuffer, int bufferSize );
 };
 
 #ifdef WIN32
@@ -78,7 +78,7 @@ float boohoo(int aa, int bb, int cc)
 
 void unrefObject(ForthObject& fobj)
 {
-	ForthEngine *pEngine = ForthEngine::GetInstance();
+	Engine *pEngine = Engine::GetInstance();
 	if (fobj != nullptr)
 	{
 #if defined(ATOMIC_REFCOUNTS)
@@ -132,7 +132,7 @@ namespace
         ForthObject obj = GET_TP;
         GET_SHOW_CONTEXT;
         ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
 
         if (pShowContext->ObjectAlreadyShown(obj))
         {
@@ -173,7 +173,7 @@ namespace
         ForthObject obj = GET_TP;
         GET_SHOW_CONTEXT;
         ForthClassObject* pClassObject = GET_CLASS_OBJECT(obj);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
 
         pClassObject->pVocab->ShowDataInner(GET_TP, pCore);
         METHOD_RETURN;
@@ -226,8 +226,8 @@ namespace
 #endif
 		if (doRelease)
 		{
-			//((ForthEngine*)(pCore->pEngine))->DeleteObject(pCore, obj);
-			ForthEngine* pEngine = ForthEngine::GetInstance();
+			//((Engine*)(pCore->pEngine))->DeleteObject(pCore, obj);
+			Engine* pEngine = Engine::GetInstance();
 			uint32_t deleteOp = obj->pMethods[kMethodDelete];
 			pEngine->ExecuteOp(pCore, deleteOp);
 			// we are effectively chaining to the delete op, its method return will pop TPM & TPD for us
@@ -280,7 +280,7 @@ namespace
 	{
 		ForthClassObject* pClassObject = (ForthClassObject *)(GET_TP);
 		SPUSH((cell)pClassObject->pVocab);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
         // METHOD_RETURN before ExecuteOp so that op is not executed with
         //   this still pointing to class object
         METHOD_RETURN;
@@ -326,7 +326,7 @@ namespace
     
 	FORTHOP(classDeleteMethod)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot delete a class object");
 		METHOD_RETURN;
 	}
@@ -434,9 +434,9 @@ namespace
 } // namespace
 
 // return true IFF object was already shown
-bool ForthShowAlreadyShownObject(ForthObject obj, ForthCoreState* pCore, bool addIfUnshown)
+bool ForthShowAlreadyShownObject(ForthObject obj, CoreState* pCore, bool addIfUnshown)
 {
-	ForthEngine* pEngine = ForthEngine::GetInstance();
+	Engine* pEngine = Engine::GetInstance();
     GET_SHOW_CONTEXT;
     if (obj != nullptr)
 	{
@@ -462,11 +462,11 @@ bool ForthShowAlreadyShownObject(ForthObject obj, ForthCoreState* pCore, bool ad
 	return true;
 }
 
-void ForthShowObject(ForthObject& obj, ForthCoreState* pCore)
+void ForthShowObject(ForthObject& obj, CoreState* pCore)
 {
 	if (!ForthShowAlreadyShownObject(obj, pCore, false))
 	{
-		ForthEngine* pEngine = ForthEngine::GetInstance();
+		Engine* pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pEngine->FullyExecuteMethod(pCore, obj, kMethodShow);
 		pShowContext->AddObject(obj);
@@ -511,7 +511,7 @@ void ForthForgettableGlobalObject::ForgetCleanup( void* pForgetLimit, forthop op
 	if ((ucell)mpOpAddress > (ucell)pForgetLimit)
 	{
 		ForthObject* pObject = (ForthObject *)((int32_t *)mpOpAddress + 1);
-		ForthCoreState* pCore = ForthEngine::GetInstance()->GetCoreState();
+		CoreState* pCore = Engine::GetInstance()->GetCoreState();
 		for (int i = 0; i < mNumElements; i++)
 		{
 			// TODO: release each 
@@ -575,7 +575,7 @@ void TypesManager::AddBuiltinClasses(OuterInterpreter* pOuter)
 }
 
 void
-TypesManager::ShutdownBuiltinClasses(ForthEngine* pEngine)
+TypesManager::ShutdownBuiltinClasses(Engine* pEngine)
 {
     OSystem::Shutdown(pEngine);
 }

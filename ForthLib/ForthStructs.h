@@ -10,13 +10,13 @@
 #include "ForthStructCodeGenerator.h"
 #include <vector>
 
-class ForthEngine;
+class Engine;
 class StructVocabulary;
 class ClassVocabulary;
 class NativeType;
 class TypesManager;
-class ForthStructCodeGenerator;
-class ForthObjectReader;
+class StructCodeGenerator;
+class ObjectReader;
 
 // each new structure type definition is assigned a unique index
 // the struct type index is:
@@ -51,7 +51,7 @@ typedef struct
     forthop                     newOp;
 } ForthClassObject;
 
-typedef bool(*CustomObjectReader)(const std::string& elementName, ForthObjectReader* reader);
+typedef bool(*CustomObjectReader)(const std::string& elementName, ObjectReader* reader);
 
 ///////////////////////////////////////
 
@@ -74,7 +74,7 @@ typedef struct
 	int32_t numElements;
 } ForthFieldInitInfo;
 
-class StructVocabulary : public ForthVocabulary
+class StructVocabulary : public Vocabulary
 {
 public:
     StructVocabulary( const char* pName, int typeIndex );
@@ -112,10 +112,10 @@ public:
 
     virtual void        EndDefinition();
 
-    virtual void		ShowData(const void* pData, ForthCoreState* pCore, bool showId);
+    virtual void		ShowData(const void* pData, CoreState* pCore, bool showId);
     // returns number of top-level data items shown
     // pass optional pEndVocab to prevent showing items from that vocab or lower
-    virtual int		    ShowDataInner(const void* pData, ForthCoreState* pCore,
+    virtual int		    ShowDataInner(const void* pData, CoreState* pCore,
         StructVocabulary* pEndVocab = nullptr);
 
 	inline forthop			GetInitOpcode() { return mInitOpcode;  }

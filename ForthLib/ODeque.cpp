@@ -48,7 +48,7 @@ namespace ODeque
     //
 
     /*
-    oDequeIterStruct* createDequeIterator(ForthCoreState* pCore, oDequeStruct* pDeq)
+    oDequeIterStruct* createDequeIterator(CoreState* pCore, oDequeStruct* pDeq)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIDequeIter);
         ALLOCATE_ITER(oDequeIterStruct, pIter, pIterVocab);
@@ -59,11 +59,11 @@ namespace ODeque
     }
     */
 
-    bool customDequeReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customDequeReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "queue")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oDequeStruct *dstDeque = (oDequeStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('[');
             ForthObject obj;

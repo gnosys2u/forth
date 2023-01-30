@@ -7,15 +7,15 @@
 
 #include "Forth.h"
 
-//class ForthEngine;
+//class Engine;
 
 extern "C" {
 
 // VAR_ACTIONs are subops of a variable op (store/fetch/incStore/decStore)
-#define VAR_ACTION(NAME) static void NAME( ForthCoreState *pCore )
-typedef void (*VarAction)( ForthCoreState *pCore );
+#define VAR_ACTION(NAME) static void NAME( CoreState *pCore )
+typedef void (*VarAction)( CoreState *pCore );
 
-#define OPTYPE_ACTION(NAME) static void NAME( ForthCoreState *pCore, forthop opVal )
+#define OPTYPE_ACTION(NAME) static void NAME( CoreState *pCore, forthop opVal )
 
 // right now there are about 250 builtin ops, allow for future expansion
 #define MAX_BUILTIN_OPS 2048
@@ -57,9 +57,9 @@ struct ForthFileInterface
 
 #define NUM_CORE_SCRATCH_CELLS 8
 
-struct ForthCoreState
+struct CoreState
 {
-    ForthCoreState(int paramStackLongs, int returnStackLongs);
+    CoreState(int paramStackLongs, int returnStackLongs);
     void InitializeFromEngine(void* pEngine);
 
     optypeActionRoutine  *optypeAction;
@@ -70,7 +70,7 @@ struct ForthCoreState
     ucell               numOps;
     ucell               maxOps;     // current size of table at pUserOps
 
-    void*               pEngine;        // ForthEngine*
+    void*               pEngine;        // Engine*
 
     forthop*            IP;            // interpreter pointer
 
@@ -100,7 +100,7 @@ struct ForthCoreState
 
     void                *pFiber;		// actually a ForthFiber
 
-    ForthMemorySection* pDictionary;
+    MemorySection* pDictionary;
     ForthFileInterface* pFileFuncs;
 
     void				*innerLoop;		// inner loop reentry point for assembler inner interpreter
@@ -117,17 +117,17 @@ struct ForthCoreState
 };
 
 
-extern OpResult InnerInterpreter( ForthCoreState *pCore );
-extern OpResult InterpretOneOp( ForthCoreState *pCore, forthop op );
+extern OpResult InnerInterpreter( CoreState *pCore );
+extern OpResult InterpretOneOp( CoreState *pCore, forthop op );
 #ifdef ASM_INNER_INTERPRETER
-extern OpResult InnerInterpreterFast( ForthCoreState *pCore );
-extern void InitAsmTables( ForthCoreState *pCore );
-extern OpResult InterpretOneOpFast( ForthCoreState *pCore, forthop op );
+extern OpResult InnerInterpreterFast( CoreState *pCore );
+extern void InitAsmTables( CoreState *pCore );
+extern OpResult InterpretOneOpFast( CoreState *pCore, forthop op );
 #endif
 
-void InitDispatchTables( ForthCoreState* pCore );
-void CoreSetError( ForthCoreState *pCore, ForthError error, bool isFatal );
-void _doIntVarop(ForthCoreState* pCore, int* pVar);
+void InitDispatchTables( CoreState* pCore );
+void CoreSetError( CoreState *pCore, ForthError error, bool isFatal );
+void _doIntVarop(CoreState* pCore, int* pVar);
 void SpewMethodName(ForthObject obj, forthop opVal);
 
 // DLLRoutine is used for any external DLL routine - it can take any number of arguments
@@ -136,9 +136,9 @@ typedef int32_t (*DLLRoutine)();
 // 1) moves arguments from the forth parameter stack to the real stack in reverse order
 // 2) calls the DLL routine
 // 3) leaves the DLL routine result on the forth parameter stack
-extern void CallDLLRoutine( DLLRoutine function, int32_t argCount, uint32_t flags, ForthCoreState *pCore );
+extern void CallDLLRoutine( DLLRoutine function, int32_t argCount, uint32_t flags, CoreState *pCore );
 
-inline forthop GetCurrentOp( ForthCoreState *pCore )
+inline forthop GetCurrentOp( CoreState *pCore )
 {
     forthop* pIP = pCore->IP - 1;
     return *pIP;
@@ -203,7 +203,7 @@ inline forthop GetCurrentOp( ForthCoreState *pCore )
 #define GET_STATE                       (pCore->state)
 #define SET_STATE( A )                  (pCore->state = (A))
 
-#define GET_ENGINE                      ((ForthEngine *) (pCore->pEngine))
+#define GET_ENGINE                      ((Engine *) (pCore->pEngine))
 
 #define GET_VAR_OPERATION               (pCore->varMode)
 #define SET_VAR_OPERATION( A )          (pCore->varMode = (A))

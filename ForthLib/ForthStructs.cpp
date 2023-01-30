@@ -36,7 +36,7 @@
 
 StructVocabulary::StructVocabulary( const char    *pName,
                                               int           typeIndex )
-: ForthVocabulary( pName, NUM_STRUCT_VOCAB_VALUE_LONGS, DEFAULT_VOCAB_STORAGE )
+: Vocabulary( pName, NUM_STRUCT_VOCAB_VALUE_LONGS, DEFAULT_VOCAB_STORAGE )
 , mTypeIndex( typeIndex )
 , mAlignment( 1 )
 , mNumBytes( 0 )
@@ -78,12 +78,12 @@ StructVocabulary::DefineInstance( void )
     int nBytes = mMaxNumBytes;
     char *pHere;
     int32_t val = 0;
-    ForthVocabulary *pVocab;
+    Vocabulary *pVocab;
     forthop* pEntry;
     int32_t typeCode;
     bool isPtr = false;
     TypesManager* pManager = TypesManager::GetInstance();
-    ForthCoreState *pCore = mpEngine->GetCoreState();        // so we can GET_VAR_OPERATION
+    CoreState *pCore = mpEngine->GetCoreState();        // so we can GET_VAR_OPERATION
 
     // if new instance name ends in '!', chop the '!' and initialize the new instance
     size_t instanceNameLen = strlen(pInstanceName);
@@ -379,13 +379,13 @@ StructVocabulary::FindSymbol( const char *pSymName, ucell serial )
 {
     int32_t tmpSym[SYM_MAX_LONGS];
     forthop* pEntry;
-    ForthParseInfo parseInfo( tmpSym, SYM_MAX_LONGS );
+    ParseInfo parseInfo( tmpSym, SYM_MAX_LONGS );
 
     parseInfo.SetToken( pSymName );
     StructVocabulary* pVocab = this;
     while ( pVocab )
     {
-        pEntry = pVocab->ForthVocabulary::FindSymbol( &parseInfo, serial );
+        pEntry = pVocab->Vocabulary::FindSymbol( &parseInfo, serial );
         if ( pEntry )
         {
             return pEntry;
@@ -402,7 +402,7 @@ StructVocabulary::PrintEntry( forthop*   pEntry )
 #define BUFF_SIZE 256
     char buff[BUFF_SIZE];
     char nameBuff[128];
-    ForthCoreState* pCore = mpEngine->GetCoreState();
+    CoreState* pCore = mpEngine->GetCoreState();
     int32_t typeCode = pEntry[1];
 
     // print out the base class stuff - name and value fields
@@ -533,7 +533,7 @@ StructVocabulary::GetTypeName( void )
 }
 
 void
-StructVocabulary::ShowData(const void* pData, ForthCoreState* pCore, bool showId)
+StructVocabulary::ShowData(const void* pData, CoreState* pCore, bool showId)
 {
     GET_SHOW_CONTEXT;
 
@@ -551,7 +551,7 @@ StructVocabulary::ShowData(const void* pData, ForthCoreState* pCore, bool showId
 }
 
 int
-StructVocabulary::ShowDataInner(const void* pData, ForthCoreState* pCore, StructVocabulary* pEndVocab)
+StructVocabulary::ShowDataInner(const void* pData, CoreState* pCore, StructVocabulary* pEndVocab)
 {
     forthop* pEntry = GetNewestEntry();
     if (pEntry == nullptr)

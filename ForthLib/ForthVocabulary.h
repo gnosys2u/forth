@@ -1,7 +1,7 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthVocabulary.h: interface for the ForthVocabulary class.
+// Vocabulary.h: interface for the Vocabulary class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -9,8 +9,8 @@
 #include "ForthForgettable.h"
 #include "ForthObject.h"
 
-class ForthParseInfo;
-class ForthEngine;
+class ParseInfo;
+class Engine;
 class OuterInterpreter;
 
 // default initial vocab size in bytes
@@ -23,14 +23,14 @@ class OuterInterpreter;
 // maximum length of a symbol in longwords
 #define SYM_MAX_LONGS 64
 
-class ForthVocabulary;
+class Vocabulary;
 
 // vocabulary object defs
 struct oVocabularyStruct
 {
     forthop*            pMethods;
     REFCOUNTER          refCount;
-	ForthVocabulary*	vocabulary;
+	Vocabulary*	vocabulary;
 };
 
 struct oVocabularyIterStruct
@@ -39,7 +39,7 @@ struct oVocabularyIterStruct
     REFCOUNTER          refCount;
     ForthObject			parent;
     forthop*            cursor;
-	ForthVocabulary*	vocabulary;
+	Vocabulary*	vocabulary;
 };
 
 enum class VocabularyType :ucell
@@ -52,19 +52,19 @@ enum class VocabularyType :ucell
     kInterface
 };
 
-class ForthVocabulary : public Forgettable
+class Vocabulary : public Forgettable
 {
 public:
-    ForthVocabulary( const char *pName = NULL,
+    Vocabulary( const char *pName = NULL,
                      int valueLongs = DEFAULT_VALUE_FIELD_LONGS,
                      int storageBytes = DEFAULT_VOCAB_STORAGE,
                      void* pForgetLimit = NULL,
                      forthop op = 0 );
-    virtual ~ForthVocabulary();
+    virtual ~Vocabulary();
 
     virtual void        ForgetCleanup( void *pForgetLimit, forthop op );
 
-    virtual void        DoOp( ForthCoreState *pCore );
+    virtual void        DoOp( CoreState *pCore );
 
     void                SetName( const char *pVocabName );
     virtual const char *GetName( void );
@@ -107,9 +107,9 @@ public:
     // return pointer to symbol entry, NULL if not found
     // pSymName is required to be a longword aligned address, and to be padded with 0's
     // to the next longword boundary
-    virtual forthop*    FindSymbol( ForthParseInfo *pInfo, ucell serial=0 );
+    virtual forthop*    FindSymbol( ParseInfo *pInfo, ucell serial=0 );
 	// continue searching a vocabulary 
-    virtual forthop*    FindNextSymbol( ForthParseInfo *pInfo, forthop* pStartEntry, ucell serial=0 );
+    virtual forthop*    FindNextSymbol( ParseInfo *pInfo, forthop* pStartEntry, ucell serial=0 );
 
     // compile/interpret entry returned by FindSymbol
     virtual OpResult ProcessEntry(forthop* pEntry );
@@ -194,13 +194,13 @@ public:
     // returns number of chars in name
     virtual int                 GetEntryName( const forthop* pEntry, char *pDstBuff, int buffSize );
 
-    static ForthVocabulary *FindVocabulary( const char* pName );
+    static Vocabulary *FindVocabulary( const char* pName );
 
-    static inline ForthVocabulary *GetVocabularyChainHead( void ) {
+    static inline Vocabulary *GetVocabularyChainHead( void ) {
         return mpChainHead;
     };
 
-    inline ForthVocabulary *GetNextChainVocabulary( void ) {
+    inline Vocabulary *GetNextChainVocabulary( void ) {
         return mpChainNext;
     };
 
@@ -222,9 +222,9 @@ public:
 
 protected:
 
-    static ForthVocabulary *mpChainHead;
-    ForthEngine         *mpEngine;
-    ForthVocabulary     *mpChainNext;
+    static Vocabulary *mpChainHead;
+    Engine         *mpEngine;
+    Vocabulary     *mpChainNext;
     int                 mNumSymbols;
     int                 mStorageLongs;
     forthop*            mpStorageBase;

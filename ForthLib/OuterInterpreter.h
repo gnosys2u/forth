@@ -17,9 +17,9 @@
 #include "VocabularyStack.h"
 
 class ForthFiber;
-class ForthShell;
-class ForthOpcodeCompiler;
-class ForthVocabulary;
+class Shell;
+class OpcodeCompiler;
+class Vocabulary;
 class LocalVocabulary;
 
 typedef enum {
@@ -124,7 +124,7 @@ public:
 // ForthEnumInfo is compiled with each enum defining word
 struct ForthEnumInfo
 {
-    ForthVocabulary* pVocab;    // ptr to vocabulary enum is defined in
+    Vocabulary* pVocab;    // ptr to vocabulary enum is defined in
     int32_t size;                  // enum size in bytes (default to 4)
     int32_t numEnums;              // number of enums defined
     int32_t vocabOffset;           // offset in longs from top of vocabulary to last enum symbol defined
@@ -134,7 +134,7 @@ struct ForthEnumInfo
 class OuterInterpreter
 {
 public:
-    OuterInterpreter(ForthEngine* pEngine);
+    OuterInterpreter(Engine* pEngine);
     virtual         ~OuterInterpreter();
     void            Initialize();
 
@@ -175,7 +175,7 @@ public:
     char *          GetNextSimpleToken( void );
 
     // returns pointer to new vocabulary entry
-    forthop*        StartOpDefinition(const char *pName = NULL, bool smudgeIt = false, forthOpType opType = kOpUserDef, ForthVocabulary* pDefinitionVocab = nullptr);
+    forthop*        StartOpDefinition(const char *pName = NULL, bool smudgeIt = false, forthOpType opType = kOpUserDef, Vocabulary* pDefinitionVocab = nullptr);
     void            EndOpDefinition(bool unsmudgeIt = false);
     // return pointer to symbol entry, NULL if not found
     forthop*        FindSymbol( const char *pSymName );
@@ -190,7 +190,7 @@ public:
     int32_t            AddLocalArray( const char *pName, int32_t typeCode, int32_t varSize );
 	bool			HasLocalVariables();
 
-    OpResult    ProcessToken( ForthParseInfo *pInfo );
+    OpResult    ProcessToken( ParseInfo *pInfo );
     char *          GetLastInputToken( void );
 
     inline cell* GetCompileStatePtr(void) { return &mCompileState; };
@@ -220,14 +220,14 @@ public:
     void                    ProcessConstant( int64_t value, bool isOffset=false, bool isSingle=true );
 	inline TokenStack*      GetTokenStack() { return &mTokenStack; };
 
-    inline ForthVocabulary  *GetSearchVocabulary( void )   { return mpVocabStack->GetTop(); };
-    inline void             SetSearchVocabulary( ForthVocabulary* pVocab )  { mpVocabStack->SetTop( pVocab ); };
-    inline ForthVocabulary  *GetDefinitionVocabulary( void )   { return mpDefinitionVocab; };
-    inline void             SetDefinitionVocabulary( ForthVocabulary* pVocab )  { mpDefinitionVocab = pVocab; };
+    inline Vocabulary  *GetSearchVocabulary( void )   { return mpVocabStack->GetTop(); };
+    inline void             SetSearchVocabulary( Vocabulary* pVocab )  { mpVocabStack->SetTop( pVocab ); };
+    inline Vocabulary  *GetDefinitionVocabulary( void )   { return mpDefinitionVocab; };
+    inline void             SetDefinitionVocabulary( Vocabulary* pVocab )  { mpDefinitionVocab = pVocab; };
     inline LocalVocabulary  *GetLocalVocabulary( void )   { return mpLocalVocab; };
 	void					ShowSearchInfo();
-    inline ForthVocabulary  *GetForthVocabulary(void) { return mpForthVocab; };
-    inline ForthVocabulary  *GetLiteralsVocabulary(void) { return mpLiteralsVocab; };
+    inline Vocabulary  *GetForthVocabulary(void) { return mpForthVocab; };
+    inline Vocabulary  *GetLiteralsVocabulary(void) { return mpLiteralsVocab; };
     inline bool             InStructDefinition( void ) { return ((mCompileFlags & kEngineFlagInStructDefinition) != 0); };
     inline bool             HasLocalVars( void ) { return (mpLocalAllocOp != NULL); };
     inline int32_t             GetFlags( void ) { return mCompileFlags; };
@@ -272,10 +272,10 @@ public:
 	char*					AddTempString(const char* inText = nullptr, cell inNumChars = -1);
     inline cell             UnusedTempStringSpace() { return (mStringBufferASize - (mpStringBufferANext - mpStringBufferA)); }
 
-    void                    AddGlobalObjectVariable(ForthObject* pObject, ForthVocabulary* pVocab, const char* pName);
+    void                    AddGlobalObjectVariable(ForthObject* pObject, Vocabulary* pVocab, const char* pName);
     void                    CleanupGlobalObjectVariables(forthop* pNewDP);
 
-    forthop*                FindUserDefinition(ForthVocabulary* pVocab, forthop*& pClosestIP, forthop* pIP, forthop*& pBase);
+    forthop*                FindUserDefinition(Vocabulary* pVocab, forthop*& pClosestIP, forthop* pIP, forthop*& pBase);
 
 private:
     // NOTE: temporarily modifies string @pToken
@@ -285,21 +285,21 @@ private:
 
 
 
-    ForthEngine* mpEngine;
-    ForthShell* mpShell;
-    ForthCoreState* mpCore;             // core inner interpreter state of main thread first fiber
-    ForthMemorySection* mpDictionary;
+    Engine* mpEngine;
+    Shell* mpShell;
+    CoreState* mpCore;             // core inner interpreter state of main thread first fiber
+    MemorySection* mpDictionary;
 
     TokenStack mTokenStack;		// contains tokens which will be gotten by GetNextSimpleToken instead of from input stream
 
-    ForthVocabulary * mpForthVocab;              // main forth vocabulary
-    ForthVocabulary * mpLiteralsVocab;            // user-defined literals vocabulary
+    Vocabulary * mpForthVocab;              // main forth vocabulary
+    Vocabulary * mpLiteralsVocab;            // user-defined literals vocabulary
     LocalVocabulary * mpLocalVocab;         // local variable vocabulary
 
-    ForthVocabulary * mpDefinitionVocab;    // vocabulary which new definitions are added to
+    Vocabulary * mpDefinitionVocab;    // vocabulary which new definitions are added to
     VocabularyStack * mpVocabStack;
 
-	ForthOpcodeCompiler* mpOpcodeCompiler;
+	OpcodeCompiler* mpOpcodeCompiler;
     std::vector<ForthObject*> mGlobalObjectVariables;
 
     char        *mpStringBufferA;       // string buffer A is used for quoted strings when in interpreted mode

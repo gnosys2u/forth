@@ -1,17 +1,17 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthParseInfo.h: interface for the ForthParseInfo class.
+// ParseInfo.h: interface for the ParseInfo class.
 //
 //////////////////////////////////////////////////////////////////////
 
-class ForthEngine;
+class Engine;
 
-class ForthParseInfo
+class ParseInfo
 {
 public:
-	ForthParseInfo(int32_t *pBuffer, int numLongs);
-	~ForthParseInfo();
+	ParseInfo(int32_t *pBuffer, int numLongs);
+	~ParseInfo();
 
 	// SetToken copies symbol to token buffer (if pSrc not NULL), sets the length byte,
 	//   sets mNumLongs and pads end of token buffer with nuls to next longword boundary
@@ -28,7 +28,7 @@ public:
 	inline int      GetNumLongs(void) { return mNumLongs; };
 	inline int		GetMaxChars(void) const { return mMaxChars; };
 
-	const char*		ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, ForthEngine *pEngine, bool keepBackslashes = false);
+	const char*		ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, Engine *pEngine, bool keepBackslashes = false);
 	void	        ParseDoubleQuote(const char *&pSrc, const char *pSrcLimit, bool keepBackslashes = false);
 	
 	static char		BackslashChar(const char*& pSrc);
@@ -43,7 +43,7 @@ private:
     void UpdateLength(size_t symLen);
     
     int32_t*        mpToken;         // pointer to token buffer, first byte is strlen(token)
-	int             mFlags;          // flags set by ForthShell::ParseToken for ForthEngine::ProcessToken
+	int             mFlags;          // flags set by Shell::ParseToken for Engine::ProcessToken
 	int             mNumLongs;       // number of longwords for fast comparison algorithm
     int             mNumChars;
 	int				mMaxChars;

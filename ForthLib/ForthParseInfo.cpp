@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthParseInfo.cpp: implementation of the ForthParseInfo class.
+// ParseInfo.cpp: implementation of the ParseInfo class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -14,7 +14,7 @@
 #include "ForthVocabulary.h"
 #include "ForthExtension.h"
 
-ForthParseInfo::ForthParseInfo(int32_t *pBuffer, int numLongs)
+ParseInfo::ParseInfo(int32_t *pBuffer, int numLongs)
 	: mpToken(pBuffer)
 	, mMaxChars((numLongs << 2) - 2)
 	, mFlags(0)
@@ -30,7 +30,7 @@ ForthParseInfo::ForthParseInfo(int32_t *pBuffer, int numLongs)
 }
 
 
-ForthParseInfo::~ForthParseInfo()
+ParseInfo::~ParseInfo()
 {
 	// NOTE: don't delete mpToken, it doesn't belong to us
 }
@@ -39,7 +39,7 @@ ForthParseInfo::~ForthParseInfo()
 // copy string to mpToken buffer, set length, and pad with nulls to a longword boundary
 // if pSrc is null, just set length and do padding
 void
-ForthParseInfo::SetToken(const char* pSrc)
+ParseInfo::SetToken(const char* pSrc)
 {
     size_t symLen, padChars;
     char* pDst;
@@ -67,7 +67,7 @@ ForthParseInfo::SetToken(const char* pSrc)
     UpdateLength(symLen);
 }
 
-void ForthParseInfo::UpdateLength(size_t symLen)
+void ParseInfo::UpdateLength(size_t symLen)
 {
     // set length byte
     char* pDst = ((char*)mpToken) + symLen + 2;
@@ -119,7 +119,7 @@ int hexValue(char c)
 }
 
 char
-ForthParseInfo::BackslashChar(const char*& pSrc)
+ParseInfo::BackslashChar(const char*& pSrc)
 {
     char c = *pSrc;
     char cResult = c;
@@ -167,7 +167,7 @@ ForthParseInfo::BackslashChar(const char*& pSrc)
 
 
 const char *
-ForthParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, ForthEngine *pEngine, bool keepBackslashes)
+ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, Engine *pEngine, bool keepBackslashes)
 {
 	char cc[9];
 	bool isQuotedChar = false;
@@ -256,7 +256,7 @@ ForthParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, Fort
 
 
 void
-ForthParseInfo::ParseDoubleQuote(const char *&pSrc, const char *pSrcLimit, bool keepBackslashes)
+ParseInfo::ParseDoubleQuote(const char *&pSrc, const char *pSrcLimit, bool keepBackslashes)
 {
 	char  *pDst = GetToken();
 
@@ -298,7 +298,7 @@ ForthParseInfo::ParseDoubleQuote(const char *&pSrc, const char *pSrcLimit, bool 
 	SetToken();
 }
 
-VarOperation ForthParseInfo::CheckVaropSuffix()
+VarOperation ParseInfo::CheckVaropSuffix()
 {
     VarOperation varop = VarOperation::kVarDefaultOp;
 
@@ -553,7 +553,7 @@ VarOperation ForthParseInfo::CheckVaropSuffix()
     return varop;
 }
 
-void ForthParseInfo::ChopVaropSuffix()
+void ParseInfo::ChopVaropSuffix()
 {
     if (mpSuffix != nullptr)
     {
@@ -567,7 +567,7 @@ void ForthParseInfo::ChopVaropSuffix()
     }
 }
 
-void ForthParseInfo::UnchopVaropSuffix()
+void ParseInfo::UnchopVaropSuffix()
 {
     if (mpSuffix != nullptr)
     {
@@ -577,7 +577,7 @@ void ForthParseInfo::UnchopVaropSuffix()
 }
 
 
-const char* ForthParseInfo::GetVaropSuffix(VarOperation varop)
+const char* ParseInfo::GetVaropSuffix(VarOperation varop)
 {
     const static char* varopNames[] =
     {

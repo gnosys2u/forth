@@ -6,7 +6,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-class ForthEngine;
+class Engine;
 
-int ForthClientMainLoop( ForthEngine *pEngine, const char* pServerStr, unsigned short portNum );
+int ForthClientMainLoop( Engine *pEngine, const char* pServerStr, unsigned short portNum );
 

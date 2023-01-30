@@ -48,201 +48,201 @@ using namespace std;
 
 namespace
 {
-    void consoleOutToClient( ForthCoreState   *pCore,
+    void consoleOutToClient( CoreState   *pCore,
 							 void             *pData,
                              const char       *pMessage )
     {
     #ifdef DEBUG_WITH_NDS_EMULATOR
 	    iprintf( "%s", pMessage );
     #else
-        ForthServerShell* pShell = (ForthServerShell *) (((ForthEngine *)(pCore->pEngine))->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (((Engine *)(pCore->pEngine))->GetShell());
         pShell->SendTextToClient( pMessage );
     #endif
     }
 
     FILE* fileOpen( const char* pPath, const char* pAccess )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileOpen( pPath, pAccess );
     }
 
     int fileClose( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileClose( pFile );
     }
 
     size_t fileRead( void* data, size_t itemSize, size_t numItems, FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return (size_t)pShell->FileRead( pFile, data, (int)itemSize, (int)numItems );
     }
 
     size_t fileWrite( const void* data, size_t itemSize, size_t numItems, FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return (size_t)pShell->FileWrite( pFile, data, (int)itemSize, (int)numItems );
     }
 
     int fileGetChar( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileGetChar( pFile );
     }
 
     int filePutChar( int val, FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FilePutChar( pFile, val );
     }
 
     int fileAtEnd( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileAtEOF( pFile );
     }
 
     int fileExists( const char* pPath )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileCheckExists( pPath );
     }
 
     int fileSeek( FILE* pFile, long offset, int ctrl )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileSeek( pFile, offset, ctrl );
     }
 
     long fileTell( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileGetPosition( pFile );
     }
 
     int32_t fileGetLength( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileGetLength( pFile );
     }
 
     char* fileGetString( char* buffer, int bufferLength, FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileGetString( pFile, buffer, bufferLength );
     }
 
     int filePutString( const char* buffer, FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FilePutString( pFile, buffer );
     }
 
 	int fileRemove( const char* buffer )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileRemove( buffer );
     }
 
 	int fileDup( int fileHandle )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileDup( fileHandle );
     }
 
 	int fileDup2( int srcFileHandle, int dstFileHandle )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileDup2( srcFileHandle, dstFileHandle );
     }
 
 	int fileNo( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileNo( pFile );
     }
 
 	int fileFlush( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileFlush( pFile );
     }
 
 	int renameFile( const char* pOldName, const char* pNewName )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->RenameFile( pOldName, pNewName );
     }
 
 	int runSystem( const char* pCmdline )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->RunSystem( pCmdline );
     }
 
 	int setWorkDir( const char* pPath )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->SetWorkDir( pPath );
     }
 
     int getWorkDir(char* pDstPath, int dstPathMax)
     {
-        ForthServerShell* pShell = (ForthServerShell*)(ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell*)(Engine::GetInstance()->GetShell());
         return pShell->GetWorkDir(pDstPath, dstPathMax);
     }
 
 	int makeDir( const char* pPath, int mode )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->MakeDir( pPath, mode );
     }
 
 	int removeDir( const char* pPath )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->RemoveDir( pPath );
     }
 
 	FILE* getStdIn()
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->GetStdIn();
     }
 
 	FILE* getStdOut()
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->GetStdOut();
     }
 
 	FILE* getStdErr()
     {
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->GetStdErr();
     }
 
 	void* serverOpenDir( const char* pPath )
 	{
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->OpenDir( pPath );
 	}
 
 	void* serverReadDir( void* pDir, void* pEntry )
 	{
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->ReadDir( pDir, pEntry );
 	}
 
 	int serverCloseDir( void* pDir )
 	{
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->CloseDir( pDir );
 	}
 
 	void serverRewindDir( void* pDir )
 	{
-        ForthServerShell* pShell = (ForthServerShell *) (ForthEngine::GetInstance()->GetShell());
+        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
         pShell->RewindDir( pDir );
 	}
 
@@ -251,7 +251,7 @@ namespace
 	{
 		(void)pData;
 
-		ForthEngine* pEngine = ForthEngine::GetInstance();
+		Engine* pEngine = Engine::GetInstance();
 		if ((pEngine->GetTraceFlags() & kLogToConsole) != 0)
 		{
 			vprintf(pFormat, argList);
@@ -275,7 +275,7 @@ namespace
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-int ForthServerMainLoop( ForthEngine *pEngine, bool doAutoload, unsigned short portNum )
+int ForthServerMainLoop( Engine *pEngine, bool doAutoload, unsigned short portNum )
 {
     SOCKET ServerSocket;
     struct sockaddr_in ServerInfo;
@@ -396,7 +396,7 @@ int ForthServerMainLoop( ForthEngine *pEngine, bool doAutoload, unsigned short p
             }
             else
             {
-				ForthShell* pOldShell = pEngine->GetShell();
+				Shell* pOldShell = pEngine->GetShell();
                 pShell = new ForthServerShell( doAutoload, pEngine );
 
 				traceOutRoutine oldTraceRoutine;
@@ -434,7 +434,7 @@ int ForthServerMainLoop( ForthEngine *pEngine, bool doAutoload, unsigned short p
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ForthServerInputStream::ForthServerInputStream( ForthPipe* pPipe, bool isFile, int bufferLen )
-:   ForthInputStream( bufferLen )
+:   InputStream( bufferLen )
 ,   mpMsgPipe( pPipe )
 ,   mIsFile( isFile )
 {
@@ -595,8 +595,8 @@ ForthServerInputStream::GetType(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-ForthServerShell::ForthServerShell( bool doAutoload, ForthEngine *pEngine, ForthExtension *pExtension, int shellStackLongs )
-:   ForthShell( 0, nullptr, nullptr, pEngine, pExtension, shellStackLongs )
+ForthServerShell::ForthServerShell( bool doAutoload, Engine *pEngine, Extension *pExtension, int shellStackLongs )
+:   Shell( 0, nullptr, nullptr, pEngine, pExtension, shellStackLongs )
 ,   mDoAutoload( doAutoload )
 ,   mpMsgPipe( NULL )
 ,	mClientSocket( -1 )
@@ -715,7 +715,7 @@ void ForthServerShell::setupFileInterface(bool useLocalFiles)
     }
 }
 
-int ForthServerShell::Run( ForthInputStream *pInputStream )
+int ForthServerShell::Run( InputStream *pInputStream )
 {
     ForthServerInputStream* pStream = (ForthServerInputStream *) pInputStream;
     mpMsgPipe = pStream->GetPipe();
@@ -726,7 +726,7 @@ int ForthServerShell::Run( ForthInputStream *pInputStream )
     OpResult result = OpResult::kOk;
     bool bInteractiveMode = pStream->IsInteractive();
 
-	ForthCoreState* pCore = mpEngine->GetCoreState();
+	CoreState* pCore = mpEngine->GetCoreState();
 	CreateForthFunctionOutStream( pCore, mConsoleOutObject, NULL, NULL, consoleOutToClient, pCore );
 	mpEngine->ResetConsoleOut( *pCore );
     mpInput->PushInputStream( pStream );
@@ -828,9 +828,9 @@ bool ForthServerShell::PushInputFile( const char *pFileName )
 bool
 ForthServerShell::PopInputStream( void )
 {
-    //printf("ForthServerShell::PopInputStream %s  gen:%d   file:%d\n", mpInput->InputStream()->GetType(),
-    //    mpInput->InputStream()->IsGenerated(), mpInput->InputStream()->IsFile());
-    if (mpInput->InputStream()->IsFile())
+    //printf("ForthServerShell::PopInputStream %s  gen:%d   file:%d\n", mpInput->Top()->GetType(),
+    //    mpInput->Top()->IsGenerated(), mpInput->Top()->IsFile());
+    if (mpInput->Top()->IsFile())
     {
         mpMsgPipe->StartMessage(kClientMsgPopStream);
         mpMsgPipe->SendMessage();
@@ -1090,7 +1090,7 @@ ForthServerShell::FileGetLength( FILE* pFile )
 {
     if (mUseLocalFiles)
     {
-        return ForthShell::FileGetLength(pFile);
+        return Shell::FileGetLength(pFile);
     }
 
     int msgType, msgLen;
@@ -1118,7 +1118,7 @@ ForthServerShell::FileCheckExists( const char* pFilename )
 {
     if (mUseLocalFiles)
     {
-        return ForthShell::FileCheckExists(pFilename);
+        return Shell::FileCheckExists(pFilename);
     }
 
     int msgType, msgLen;
@@ -1635,7 +1635,7 @@ ForthServerShell::ReadDir(void* pDir, void* pDstEntry)
 {
     if (mUseLocalFiles)
     {
-        return ForthShell::ReadDir(pDir, pDstEntry);
+        return Shell::ReadDir(pDir, pDstEntry);
     }
 
     int msgType, msgLen;
@@ -1721,7 +1721,7 @@ ForthServerShell::RewindDir( void* pDir )
 int
 ForthServerShell::ProcessConnection( SOCKET serverSocket )
 {
-    ForthInputStream *pInStream = NULL;
+    InputStream *pInStream = NULL;
 
     printf( "Waiting for a client to connect.\n" );
     mClientSocket = accept( serverSocket, NULL, NULL );

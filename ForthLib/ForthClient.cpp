@@ -57,7 +57,7 @@ namespace
 
 static FILE* openForthFile(const char* pPath, const char* pSystemPath)
 {
-    // it would be good if this could be combined with ForthShell::OpenForthFile
+    // it would be good if this could be combined with Shell::OpenForthFile
     // see if file is an internal file, and if so use it
     FILE *pFile = fopen(pPath, "r");
     bool pathIsRelative = true;
@@ -90,7 +90,7 @@ static FILE* openForthFile(const char* pPath, const char* pSystemPath)
 }
 
 
-int ForthClientMainLoop( ForthEngine *pEngine, const char* pServerStr, unsigned short portNum )
+int ForthClientMainLoop( Engine *pEngine, const char* pServerStr, unsigned short portNum )
 {
     char workingDirPath[MAX_PATH + 1];
     char errorMessage[128];

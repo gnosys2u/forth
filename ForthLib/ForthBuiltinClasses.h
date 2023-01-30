@@ -100,8 +100,8 @@ typedef enum
 } eBuiltinClassIndex;
 
 // ForthShowAlreadyShownObject returns true if object was already shown (or null), does display for those cases
-bool ForthShowAlreadyShownObject(ForthObject obj, ForthCoreState* pCore, bool addIfUnshown);
-void ForthShowObject(ForthObject& obj, ForthCoreState* pCore);
+bool ForthShowAlreadyShownObject(ForthObject obj, CoreState* pCore, bool addIfUnshown);
+void ForthShowObject(ForthObject& obj, CoreState* pCore);
 
 extern "C"
 {

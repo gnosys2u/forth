@@ -1,7 +1,7 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthObjectReader.h: interfaces for the JSON Object reader.
+// ObjectReader.h: interfaces for the JSON Object reader.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -19,14 +19,14 @@ typedef struct
     char* pData;
 } CustomReaderContext;
 
-class ForthObjectReader
+class ObjectReader
 {
 public:
-    ForthObjectReader();
-    ~ForthObjectReader();
+    ObjectReader();
+    ~ObjectReader();
 
     // returns true if there were no errors
-    bool ReadObjects(ForthObject& inStream, ForthObject& outObjects, ForthCoreState* pCore);
+    bool ReadObjects(ForthObject& inStream, ForthObject& outObjects, CoreState* pCore);
     const std::string& GetError() const { return mError; }
 
     char getChar();
@@ -45,7 +45,7 @@ public:
     void throwError(const char* message);
     void throwError(const std::string& message);
     CustomReaderContext& getCustomReaderContext();
-    ForthCoreState* GetCoreState() { return mpCore; }
+    CoreState* GetCoreState() { return mpCore; }
 
 private:
 
@@ -61,8 +61,8 @@ private:
 
     knownObjectMap mKnownObjects;
 
-    ForthEngine *mpEngine;
-    ForthCoreState* mpCore;
+    Engine *mpEngine;
+    CoreState* mpCore;
 
     std::string mError;
 

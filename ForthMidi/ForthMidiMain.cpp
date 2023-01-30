@@ -172,8 +172,8 @@ void OutputToLogger(const char* pBuffer)
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
 	int nRetCode = 0;
-    ForthShell *pShell = NULL;
-    ForthInputStream *pInStream = NULL;
+    Shell *pShell = NULL;
+    InputStream *pInStream = NULL;
 
 	// initialize MFC and print and error on failure
 	if (!AfxWinInit(::GetModuleHandle(NULL), NULL, ::GetCommandLine(), 0))
@@ -200,7 +200,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
         }
 #else
         ForthMidiExtension* pMidiExtension = new ForthMidiExtension;
-        pShell = new ForthShell( argc, (const char **)(argv), (const char **)envp,
+        pShell = new Shell( argc, (const char **)(argv), (const char **)envp,
             nullptr, pMidiExtension);
 #if 0
         if ( argc > 1 )
@@ -212,7 +212,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
             FILE *pInFile = fopen( argv[1], "r" );
             if ( pInFile != NULL )
             {
-                pInStream = new ForthFileInputStream(pInFile);
+                pInStream = new FileInputStream(pInFile);
                 nRetCode = pShell->Run( pInStream );
                 fclose( pInFile );
 
@@ -225,7 +225,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
             //
             // run forth in interactive mode
             //
-            pInStream = new ForthConsoleInputStream;
+            pInStream = new ConsoleInputStream;
             nRetCode = pShell->Run( pInStream );
 
         }

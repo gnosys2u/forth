@@ -1,7 +1,7 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthInput.h: interface for the ForthInputStack class.
+// ForthInput.h: interface for the InputStack class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -21,15 +21,15 @@ enum
     kInputTypeBlock
 };
 
-class ForthInputStack;
-class ForthParseInfo;
-class ForthBlockFileManager;
+class InputStack;
+class ParseInfo;
+class BlockFileManager;
 
-class ForthInputStream
+class InputStream
 {
 public:
-    ForthInputStream( int bufferLen );
-    virtual ~ForthInputStream();
+    InputStream( int bufferLen );
+    virtual ~InputStream();
 
     virtual char    *GetLine( const char *pPrompt ) = 0;
 
@@ -67,10 +67,10 @@ public:
 	virtual bool	    DeleteWhenEmpty();
     virtual void        SetDeleteWhenEmpty(bool deleteIt);
 
-    friend class ForthInputStack;
+    friend class InputStack;
 
 protected:
-    ForthInputStream    *mpNext;
+    InputStream    *mpNext;
     cell                mReadOffset;
     cell                mWriteOffset;
     char                *mpBufferBase;
@@ -87,11 +87,11 @@ protected:
 //  4   writeOffset (count of valid bytes in buffer)
 //  5   lineStartOffset
 
-class ForthFileInputStream : public ForthInputStream
+class FileInputStream : public InputStream
 {
 public:
-    ForthFileInputStream( FILE *pInFile, const char* pFilename, int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
-    virtual ~ForthFileInputStream();
+    FileInputStream( FILE *pInFile, const char* pFilename, int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
+    virtual ~FileInputStream();
 
     virtual char    *GetLine( const char *pPrompt );
     virtual bool    IsInteractive(void) { return false; };
@@ -127,11 +127,11 @@ protected:
 //  3   readOffset
 //  4   writeOffset (count of valid bytes in buffer)
 
-class ForthConsoleInputStream : public ForthInputStream
+class ConsoleInputStream : public InputStream
 {
 public:
-    ForthConsoleInputStream( int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
-    virtual ~ForthConsoleInputStream();
+    ConsoleInputStream( int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
+    virtual ~ConsoleInputStream();
 
     virtual char    *GetLine( const char *pPrompt );
     virtual bool    IsInteractive(void) { return true; };
@@ -155,11 +155,11 @@ protected:
 //  3   readOffset
 //  4   writeOffset (count of valid bytes in buffer)
 
-class ForthBufferInputStream : public ForthInputStream
+class BufferInputStream : public InputStream
 {
 public:
-    ForthBufferInputStream( const char *pDataBuffer, int dataBufferLen, bool isInteractive = true, int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
-    virtual ~ForthBufferInputStream();
+    BufferInputStream( const char *pDataBuffer, int dataBufferLen, bool isInteractive = true, int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
+    virtual ~BufferInputStream();
 
     virtual cell    GetSourceID();
     virtual char    *GetLine( const char *pPrompt );
@@ -194,11 +194,11 @@ protected:
 //  2   blockNumber
 //  3   readOffset
 
-class ForthBlockInputStream : public ForthInputStream
+class BlockInputStream : public InputStream
 {
 public:
-    ForthBlockInputStream(ForthBlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock);
-    virtual ~ForthBlockInputStream();
+    BlockInputStream(BlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock);
+    virtual ~BlockInputStream();
 
     virtual cell    GetSourceID();
     virtual char    *GetLine( const char *pPrompt );
@@ -217,7 +217,7 @@ public:
 protected:
     bool            ReadBlock();
 
-    ForthBlockFileManager* mpManager;
+    BlockFileManager* mpManager;
     uint32_t    mCurrentBlock;
     uint32_t    mLastBlock;
     char			*mpDataBuffer;
@@ -225,14 +225,14 @@ protected:
 };
 
 
-class ForthExpressionInputStream : public ForthInputStream
+class ExpressionInputStream : public InputStream
 {
 public:
-	ForthExpressionInputStream();
-	virtual ~ForthExpressionInputStream();
+	ExpressionInputStream();
+	virtual ~ExpressionInputStream();
 
 	// returns true IFF expression was processed successfully
-	bool ProcessExpression(ForthInputStream* pInputStream);
+	bool ProcessExpression(InputStream* pInputStream);
 
 	virtual cell    GetSourceID();
 	virtual char*   GetLine(const char *pPrompt);
@@ -266,21 +266,21 @@ protected:
 	char*				mpRightBase;
 	char*				mpRightCursor;
 	char*				mpRightTop;
-	ForthParseInfo*		mpParseInfo;
+	ParseInfo*		mpParseInfo;
 };
 
 
-class ForthInputStack
+class InputStack
 {
 public:
-    ForthInputStack();
-    virtual ~ForthInputStack();
+    InputStack();
+    virtual ~InputStack();
 
-    void                    PushInputStream( ForthInputStream *pStream );
+    void                    PushInputStream( InputStream *pStream );
     bool                    PopInputStream();
     void                    Reset( void );
     const char              *GetLine( const char *pPrompt );
-    inline ForthInputStream *InputStream( void ) { return mpHead; };
+    inline InputStream      *Top( void ) { return mpHead; };
 	// returns NULL if no filename can be found, else returns name & number of topmost input stream on stack which has info available
 	const char*             GetFilenameAndLineNumber(int& lineNumber);
 
@@ -296,6 +296,6 @@ public:
 	virtual bool			IsEmpty();
 
 protected:
-    ForthInputStream        *mpHead;
+    InputStream        *mpHead;
 };
 

@@ -29,7 +29,7 @@ TypesManager::TypesManager()
 {
 	ASSERT(mpInstance == NULL);
 	mpInstance = this;
-	mpCodeGenerator = new ForthStructCodeGenerator(this);
+	mpCodeGenerator = new StructCodeGenerator(this);
 
 	ForthTypeInfo structInfo;
 	structInfo.pVocab = NULL;
@@ -76,8 +76,8 @@ void TypesManager::ForgetCleanup( void *pForgetLimit, forthop op )
 
 StructVocabulary* TypesManager::StartStructDefinition( const char *pName )
 {
-    ForthEngine *pEngine = ForthEngine::GetInstance();
-    ForthVocabulary* pDefinitionsVocab = pEngine->GetOuterInterpreter()->GetDefinitionVocabulary();
+    Engine *pEngine = Engine::GetInstance();
+    Vocabulary* pDefinitionsVocab = pEngine->GetOuterInterpreter()->GetDefinitionVocabulary();
 
     forthop *pEntry = pEngine->GetOuterInterpreter()->StartOpDefinition( pName, true, kOpUserDefImmediate );
 	mNewestTypeIndex = static_cast<int>(mStructInfo.size());
@@ -90,7 +90,7 @@ StructVocabulary* TypesManager::StartStructDefinition( const char *pName )
 void TypesManager::EndStructDefinition()
 {
     SPEW_STRUCTS( "EndStructDefinition\n" );
-    ForthEngine *pEngine = ForthEngine::GetInstance();
+    Engine *pEngine = Engine::GetInstance();
     pEngine->GetOuterInterpreter()->EndOpDefinition( true );
     GetNewestStruct()->EndDefinition();
 	DefineInitOpcode();
@@ -104,10 +104,10 @@ void TypesManager::DefineInitOpcode()
 	// TODO: define new init opcode
 	if (mFieldInitInfos.size() > 0)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
         OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
 
-		ForthVocabulary* pOldDefinitionsVocab = pOuter->GetDefinitionVocabulary();
+		Vocabulary* pOldDefinitionsVocab = pOuter->GetDefinitionVocabulary();
         pOuter->SetDefinitionVocabulary(pVocab);
 
 		forthop* pEntry = pOuter->StartOpDefinition("_init", true, kOpUserDef);
@@ -212,9 +212,9 @@ void TypesManager::DefineInitOpcode()
 
 ClassVocabulary* TypesManager::StartClassDefinition(const char *pName, int classIndex, bool isInterface)
 {
-    ForthEngine *pEngine = ForthEngine::GetInstance();
+    Engine *pEngine = Engine::GetInstance();
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    ForthVocabulary* pDefinitionsVocab = pOuter->GetDefinitionVocabulary();
+    Vocabulary* pDefinitionsVocab = pOuter->GetDefinitionVocabulary();
 	ForthTypeInfo *pInfo = NULL;
 
 	if (classIndex >= kNumBuiltinClasses)
@@ -240,7 +240,7 @@ ClassVocabulary* TypesManager::StartClassDefinition(const char *pName, int class
 void TypesManager::EndClassDefinition()
 {
     SPEW_STRUCTS( "EndClassDefinition\n" );
-    ForthEngine *pEngine = ForthEngine::GetInstance();
+    Engine *pEngine = Engine::GetInstance();
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     pOuter->EndOpDefinition( false );
 	DefineInitOpcode();
@@ -381,12 +381,12 @@ ClassVocabulary * TypesManager::GetNewestClass( void )
 
 
 // compile/interpret symbol if is a valid structure accessor
-bool TypesManager::ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus )
+bool TypesManager::ProcessSymbol( ParseInfo *pInfo, OpResult& exitStatus )
 {
-    ForthEngine *pEngine = ForthEngine::GetInstance();
+    Engine *pEngine = Engine::GetInstance();
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    ForthCoreState* pCore = pEngine->GetCoreState();
-    ForthVocabulary *pFoundVocab = NULL;
+    CoreState* pCore = pEngine->GetCoreState();
+    Vocabulary *pFoundVocab = NULL;
     // ProcessSymbol will compile opcodes into temporary buffer mCode
     forthop *pDst = &(mCode[0]);
 
@@ -416,13 +416,13 @@ bool TypesManager::ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus )
 }
 
 // compile symbol if it is a member variable or method
-bool TypesManager::ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus, VarOperation varop)
+bool TypesManager::ProcessMemberSymbol( ParseInfo *pInfo, OpResult& exitStatus, VarOperation varop)
 {
-    ForthEngine *pEngine = ForthEngine::GetInstance();
+    Engine *pEngine = Engine::GetInstance();
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     forthop *pDst = &(mCode[0]);
-    ForthVocabulary *pFoundVocab = NULL;
-    ForthCoreState* pCore = pEngine->GetCoreState();
+    Vocabulary *pFoundVocab = NULL;
+    CoreState* pCore = pEngine->GetCoreState();
 
     ClassVocabulary* pVocab = GetNewestClass();
     if ( pVocab == NULL )

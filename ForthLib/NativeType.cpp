@@ -74,7 +74,7 @@ NativeType::~NativeType()
 {
 }
 
-void NativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_t flags )
+void NativeType::DefineInstance( Engine *pEngine, void *pInitialVal, int32_t flags )
 {
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     char *pToken = pOuter->GetNextSimpleToken();
@@ -83,11 +83,11 @@ void NativeType::DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_
     int i;
     int32_t val = 0;
     BaseType baseType = mBaseType;
-    ForthVocabulary *pVocab;
+    Vocabulary *pVocab;
     forthop* pEntry;
     int32_t typeCode, len, varOffset, storageLen;
     char *pStr;
-    ForthCoreState *pCore = pEngine->GetCoreState();        // so we can SPOP maxbytes
+    CoreState *pCore = pEngine->GetCoreState();        // so we can SPOP maxbytes
     TypesManager* pManager = TypesManager::GetInstance();
     int tokenLen = (int)strlen(pToken);
 

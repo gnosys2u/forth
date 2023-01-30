@@ -11,7 +11,7 @@
 #include <atomic>
 #include "ForthMemoryManager.h"
 
-struct ForthCoreState;
+struct CoreState;
 
 #define ATOMIC_REFCOUNTS 1
 
@@ -38,18 +38,18 @@ struct ForthCoreState;
 
 // these are opcode types, they are held in the top byte of an opcode, and in
 // a vocabulary entry value field
-// NOTE: if you add or reorder op types, make sure that you update ForthEngine::opTypeNames
+// NOTE: if you add or reorder op types, make sure that you update Engine::opTypeNames
 typedef enum
 {
     kOpNative = 0,
     kOpNativeImmediate,
-    kOpUserDef,         // low 24 bits is op number (index into ForthCoreState userOps table)
+    kOpUserDef,         // low 24 bits is op number (index into CoreState userOps table)
     kOpUserDefImmediate,
-    kOpCCode,         // low 24 bits is op number (index into ForthCoreState userOps table)
+    kOpCCode,         // low 24 bits is op number (index into CoreState userOps table)
     kOpCCodeImmediate,
     kOpRelativeDef,         // low 24 bits is offset from dictionary base
     kOpRelativeDefImmediate,
-    kOpDLLEntryPoint,   // bits 0:18 are index into ForthCoreState userOps table, 19:23 are arg count
+    kOpDLLEntryPoint,   // bits 0:18 are index into CoreState userOps table, 19:23 are arg count
     // 9 is unused
 
     kOpBranch = 10,          // low 24 bits is signed branch offset
@@ -234,12 +234,12 @@ typedef enum
 #endif
 
 // there is an action routine with this signature for each forthOpType
-// user can add new optypes with ForthEngine::AddOpType
-typedef void (*optypeActionRoutine)( ForthCoreState *pCore, forthop theData );
+// user can add new optypes with Engine::AddOpType
+typedef void (*optypeActionRoutine)( CoreState *pCore, forthop theData );
 
-typedef void  (*ForthCOp)( ForthCoreState * );
+typedef void  (*ForthCOp)( CoreState * );
 
-// user will also have to add an external interpreter with ForthEngine::SetInterpreterExtension
+// user will also have to add an external interpreter with Engine::SetInterpreterExtension
 // to compile/interpret these new optypes
 // return true if the extension has recognized and processed the symbol
 typedef bool (*interpreterExtensionRoutine)( char *pToken );
@@ -351,7 +351,7 @@ enum class ForthError:ucell
 	kBadArrayIndex,
     kIllegalOperation,
     kOSException,
-	// NOTE: if you add errors, make sure that you update ForthEngine::GetErrorString
+	// NOTE: if you add errors, make sure that you update Engine::GetErrorString
     kForthNumErrors
 };
 
@@ -407,7 +407,7 @@ typedef struct {
     forthop*            pCurrent;
     forthop*            pBase;
     ucell               len;
-} ForthMemorySection;
+} MemorySection;
 
 #if defined(ATOMIC_REFCOUNTS)
 #define REFCOUNTER      std::atomic<ucell>
@@ -453,37 +453,37 @@ typedef union
 
 
 // stream character output routine type
-typedef void (*streamCharOutRoutine) ( ForthCoreState* pCore, void *pData, char ch );
+typedef void (*streamCharOutRoutine) ( CoreState* pCore, void *pData, char ch );
 
 // stream block output routine type
-typedef void (*streamBytesOutRoutine) ( ForthCoreState* pCore, void *pData, const char *pBuff, int numChars );
+typedef void (*streamBytesOutRoutine) ( CoreState* pCore, void *pData, const char *pBuff, int numChars );
 
 // stream string output routine type
-typedef void (*streamStringOutRoutine) ( ForthCoreState* pCore, void *pData, const char *pBuff );
+typedef void (*streamStringOutRoutine) ( CoreState* pCore, void *pData, const char *pBuff );
 
 // stream character input routine type - returns 1 for char gotten, 0 for EOF
-typedef int (*streamCharInRoutine) (ForthCoreState* pCore, void *pData, int& ch);
+typedef int (*streamCharInRoutine) (CoreState* pCore, void *pData, int& ch);
 
 // stream block input routine type - returns number of chars gotten
-typedef int (*streamBytesInRoutine) (ForthCoreState* pCore, void *pData, char *pBuff, int numChars);
+typedef int (*streamBytesInRoutine) (CoreState* pCore, void *pData, char *pBuff, int numChars);
 
 // stream string input routine type - returns number of chars gotten
-typedef int(*streamStringInRoutine) (ForthCoreState* pCore, void *pData, ForthObject& dstString);
+typedef int(*streamStringInRoutine) (CoreState* pCore, void *pData, ForthObject& dstString);
 
 // stream line input routine type - returns number of chars gotten
-typedef int(*streamLineInRoutine) (ForthCoreState* pCore, void *pData, char *pBuff, int maxChars);
+typedef int(*streamLineInRoutine) (CoreState* pCore, void *pData, char *pBuff, int maxChars);
 
 // these routines allow code external to forth to redirect the forth output stream
-extern void GetForthConsoleOutStream( ForthCoreState* pCore, ForthObject& outObject );
-extern void CreateForthFileOutStream( ForthCoreState* pCore, ForthObject& outObject, FILE* pOutFile );
-extern void CreateForthFunctionOutStream( ForthCoreState* pCore, ForthObject& outObject, streamCharOutRoutine outChar,
+extern void GetForthConsoleOutStream( CoreState* pCore, ForthObject& outObject );
+extern void CreateForthFileOutStream( CoreState* pCore, ForthObject& outObject, FILE* pOutFile );
+extern void CreateForthFunctionOutStream( CoreState* pCore, ForthObject& outObject, streamCharOutRoutine outChar,
 											  streamBytesOutRoutine outBlock, streamStringOutRoutine outString, void* pUserData );
-extern void GetForthErrorOutStream(ForthCoreState* pCore, ForthObject& outObject);
+extern void GetForthErrorOutStream(CoreState* pCore, ForthObject& outObject);
 
-extern void ForthConsoleCharOut( ForthCoreState* pCore, char ch );
-extern void ForthConsoleBytesOut( ForthCoreState* pCore, const char* pBuffer, int numChars );
-extern void ForthConsoleStringOut(ForthCoreState* pCore, const char* pBuffer);
-extern void ForthErrorStringOut(ForthCoreState* pCore, const char* pBuffer);
+extern void ForthConsoleCharOut( CoreState* pCore, char ch );
+extern void ForthConsoleBytesOut( CoreState* pCore, const char* pBuffer, int numChars );
+extern void ForthConsoleStringOut(CoreState* pCore, const char* pBuffer);
+extern void ForthErrorStringOut(CoreState* pCore, const char* pBuffer);
 
 // the bottom 24 bits of a forth opcode is a value field
 // the top 8 bits is the type field
@@ -692,9 +692,9 @@ enum
 
 #ifdef TRACE_OUTER_INTERPRETER
 #if defined(WINDOWS_BUILD)
-#define SPEW_OUTER_INTERPRETER(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogOuterInterpreter) { ForthEngine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
+#define SPEW_OUTER_INTERPRETER(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogOuterInterpreter) { Engine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
 #else
-#define SPEW_OUTER_INTERPRETER(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogOuterInterpreter) { ForthEngine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
+#define SPEW_OUTER_INTERPRETER(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogOuterInterpreter) { Engine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
 #endif
 #else
 #define SPEW_OUTER_INTERPRETER(...)
@@ -702,9 +702,9 @@ enum
 
 #ifdef TRACE_INNER_INTERPRETER
 #if defined(WINDOWS_BUILD)
-#define SPEW_INNER_INTERPRETER(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogInnerInterpreter) { ForthEngine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
+#define SPEW_INNER_INTERPRETER(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogInnerInterpreter) { Engine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
 #else
-#define SPEW_INNER_INTERPRETER(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogInnerInterpreter) { ForthEngine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
+#define SPEW_INNER_INTERPRETER(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogInnerInterpreter) { Engine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
 #endif
 #else
 #define SPEW_INNER_INTERPRETER(...)
@@ -712,9 +712,9 @@ enum
 
 #ifdef TRACE_SHELL
 #if defined(WINDOWS_BUILD)
-#define SPEW_SHELL(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogShell) { ForthEngine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
+#define SPEW_SHELL(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogShell) { Engine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
 #else
-#define SPEW_SHELL(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogShell) { ForthEngine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
+#define SPEW_SHELL(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogShell) { Engine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
 #endif
 #else
 #define SPEW_SHELL(...)
@@ -722,9 +722,9 @@ enum
 
 #ifdef TRACE_VOCABULARY
 #if defined(WINDOWS_BUILD)
-#define SPEW_VOCABULARY(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogVocabulary) { ForthEngine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
+#define SPEW_VOCABULARY(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogVocabulary) { Engine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
 #else
-#define SPEW_VOCABULARY(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogVocabulary) { ForthEngine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
+#define SPEW_VOCABULARY(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogVocabulary) { Engine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
 #endif
 #else
 #define SPEW_VOCABULARY(...)
@@ -732,9 +732,9 @@ enum
 
 #ifdef TRACE_STRUCTS
 #if defined(WINDOWS_BUILD)
-#define SPEW_STRUCTS(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogStructs) { ForthEngine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
+#define SPEW_STRUCTS(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogStructs) { Engine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
 #else
-#define SPEW_STRUCTS(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogStructs) { ForthEngine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
+#define SPEW_STRUCTS(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogStructs) { Engine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
 #endif
 #else
 #define SPEW_STRUCTS(...)
@@ -742,9 +742,9 @@ enum
 
 #ifdef TRACE_IO
 #if defined(WINDOWS_BUILD)
-#define SPEW_IO(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogIO) { ForthEngine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
+#define SPEW_IO(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogIO) { Engine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
 #else
-#define SPEW_IO(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogIO) { ForthEngine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
+#define SPEW_IO(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogIO) { Engine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
 #endif
 #else
 #define SPEW_IO(...)
@@ -752,9 +752,9 @@ enum
 
 #ifdef TRACE_ENGINE
 #if defined(WINDOWS_BUILD)
-#define SPEW_ENGINE(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogEngine) { ForthEngine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
+#define SPEW_ENGINE(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogEngine) { Engine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
 #else
-#define SPEW_ENGINE(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogEngine) { ForthEngine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
+#define SPEW_ENGINE(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogEngine) { Engine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
 #endif
 #else
 #define SPEW_ENGINE(...)
@@ -762,9 +762,9 @@ enum
 
 #ifdef TRACE_COMPILATION
 #if defined(WINDOWS_BUILD)
-#define SPEW_COMPILATION(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogCompilation) { ForthEngine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
+#define SPEW_COMPILATION(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogCompilation) { Engine::GetInstance()->TraceOut(FORMAT, __VA_ARGS__); }
 #else
-#define SPEW_COMPILATION(FORMAT, ...)  if (ForthEngine::GetInstance()->GetTraceFlags() & kLogCompilation) { ForthEngine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
+#define SPEW_COMPILATION(FORMAT, ...)  if (Engine::GetInstance()->GetTraceFlags() & kLogCompilation) { Engine::GetInstance()->TraceOut(FORMAT, ##__VA_ARGS__); }
 #endif
 #else
 #define SPEW_COMPILATION(...)
@@ -792,9 +792,9 @@ enum
 //      which take a pointer to the ForthFiber they are being run in
 //      the thread is accessed through "pCore->" in the code
 
-#define FORTHOP(NAME) void NAME( ForthCoreState *pCore )
+#define FORTHOP(NAME) void NAME( CoreState *pCore )
 // GFORTHOP is used for forthops which are defined outside of the dictionary source module
-#define GFORTHOP(NAME) void NAME( ForthCoreState *pCore )
+#define GFORTHOP(NAME) void NAME( CoreState *pCore )
 
 //////////////////////////////////////////////////////////////////////
 ////

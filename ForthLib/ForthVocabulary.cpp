@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthVocabulary.cpp: implementation of the ForthVocabulary class.
+// Vocabulary.cpp: implementation of the Vocabulary class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -39,15 +39,15 @@
 #define VOCAB_EXPANSION_INCREMENT   128
 
 // this is head of a chain which links all vocabs
-ForthVocabulary *ForthVocabulary::mpChainHead = NULL;
+Vocabulary *Vocabulary::mpChainHead = NULL;
 
 //////////////////////////////////////////////////////////////////////
 ////
-///     ForthVocabulary
+///     Vocabulary
 //
 //
 
-ForthVocabulary::ForthVocabulary( const char    *pName,
+Vocabulary::Vocabulary( const char    *pName,
                                   int           valueLongs,
                                   int           storageBytes,
                                   void*         pForgetLimit,
@@ -69,7 +69,7 @@ ForthVocabulary::ForthVocabulary( const char    *pName,
     {
         SetName( pName );
     }
-    mpEngine = ForthEngine::GetInstance();
+    mpEngine = Engine::GetInstance();
     Empty();
 
 	mVocabStruct.refCount = 10000;
@@ -78,11 +78,11 @@ ForthVocabulary::ForthVocabulary( const char    *pName,
 	mVocabObject = nullptr;
 }
 
-ForthVocabulary::~ForthVocabulary()
+Vocabulary::~Vocabulary()
 {
     delete [] mpStorageBase;
 
-    ForthVocabulary **ppNext = &mpChainHead;
+    Vocabulary **ppNext = &mpChainHead;
     while ( ppNext != NULL )
     {
         if ( *ppNext == this )
@@ -98,7 +98,7 @@ ForthVocabulary::~ForthVocabulary()
 
 
 void
-ForthVocabulary::ForgetCleanup( void *pForgetLimit, forthop op )
+Vocabulary::ForgetCleanup( void *pForgetLimit, forthop op )
 {
    // this is invoked from the Forgettable chain to propagate a "forget"
    ForgetOp( op );
@@ -106,7 +106,7 @@ ForthVocabulary::ForgetCleanup( void *pForgetLimit, forthop op )
 
 
 void
-ForthVocabulary::SetName( const char *pVocabName )
+Vocabulary::SetName( const char *pVocabName )
 {
     if ( pVocabName != NULL )
     {
@@ -122,18 +122,18 @@ ForthVocabulary::SetName( const char *pVocabName )
 
 
 const char *
-ForthVocabulary::GetName( void )
+Vocabulary::GetName( void )
 {
     return (mpName == NULL) ? "Unknown" : mpName;
 }
 
 const char *
-ForthVocabulary::GetTypeName( void )
+Vocabulary::GetTypeName( void )
 {
     return "vocabulary";
 }
 
-int ForthVocabulary::GetEntryName( const forthop* pEntry, char *pDstBuff, int buffSize )
+int Vocabulary::GetEntryName( const forthop* pEntry, char *pDstBuff, int buffSize )
 {
     int symLen = GetEntryNameLength( pEntry );
     int len = (symLen < buffSize) ? symLen : buffSize - 1;
@@ -144,7 +144,7 @@ int ForthVocabulary::GetEntryName( const forthop* pEntry, char *pDstBuff, int bu
 }
 
 void
-ForthVocabulary::Empty( void )
+Vocabulary::Empty( void )
 {
     mNumSymbols = 0;
     mpStorageTop = mpStorageBase + mStorageLongs;
@@ -155,7 +155,7 @@ ForthVocabulary::Empty( void )
 
 #ifdef MAP_LOOKUP
 void
-ForthVocabulary::InitLookupMap( void )
+Vocabulary::InitLookupMap( void )
 {
     mLookupMap.RemoveAll();
     forthop* pEntry = mpStorageBottom;
@@ -169,7 +169,7 @@ ForthVocabulary::InitLookupMap( void )
 }
 #endif
 
-forthop* ForthVocabulary::AddSymbol( const char *pSymName, forthop symValue)
+forthop* Vocabulary::AddSymbol( const char *pSymName, forthop symValue)
 {
     char *pVC;
     forthop *pBase, *pSrc, *pDst;
@@ -252,7 +252,7 @@ forthop* ForthVocabulary::AddSymbol( const char *pSymName, forthop symValue)
 
 // copy a symbol table entry, presumably from another vocabulary
 void
-ForthVocabulary::CopyEntry(forthop* pEntry )
+Vocabulary::CopyEntry(forthop* pEntry )
 {
     int numLongs;
 
@@ -268,7 +268,7 @@ ForthVocabulary::CopyEntry(forthop* pEntry )
 
 // delete single symbol entry
 void
-ForthVocabulary::DeleteEntry(forthop* pEntry)
+Vocabulary::DeleteEntry(forthop* pEntry)
 {
     forthop* pNextEntry;
     int numLongs, entryLongs;
@@ -298,13 +298,13 @@ ForthVocabulary::DeleteEntry(forthop* pEntry)
 // delete symbol entry and all newer entries
 // return true IFF symbol was forgotten
 bool
-ForthVocabulary::ForgetSymbol( const char *pSymName )
+Vocabulary::ForgetSymbol( const char *pSymName )
 {
     int j, symLen, symbolsLeft;
     forthop *pEntry, *pTmp, *pNewBottom;
     bool done;
     int32_t tmpSym[SYM_MAX_LONGS];
-    ForthParseInfo parseInfo( tmpSym, SYM_MAX_LONGS );
+    ParseInfo parseInfo( tmpSym, SYM_MAX_LONGS );
 
     parseInfo.SetToken( pSymName );
 
@@ -372,7 +372,7 @@ ForthVocabulary::ForgetSymbol( const char *pSymName )
 
 // forget all ops with a greater op#
 void
-ForthVocabulary::ForgetOp( forthop op )
+Vocabulary::ForgetOp( forthop op )
 {
     int symbolsLeft;
     forthop *pEntry;
@@ -466,17 +466,17 @@ ForthVocabulary::ForgetOp( forthop op )
 
 // return ptr to vocabulary entry for symbol
 forthop*
-ForthVocabulary::FindSymbol( const char *pSymName, ucell serial )
+Vocabulary::FindSymbol( const char *pSymName, ucell serial )
 {
     return FindNextSymbol( pSymName, NULL, serial );
 }
 
 
 forthop*
-ForthVocabulary::FindNextSymbol( const char *pSymName, forthop* pEntry, ucell serial )
+Vocabulary::FindNextSymbol( const char *pSymName, forthop* pEntry, ucell serial )
 {
     int32_t tmpSym[SYM_MAX_LONGS];
-    ForthParseInfo parseInfo( tmpSym, SYM_MAX_LONGS );
+    ParseInfo parseInfo( tmpSym, SYM_MAX_LONGS );
 
 #ifdef MAP_LOOKUP
     void *pEntryVoid;
@@ -493,13 +493,13 @@ ForthVocabulary::FindNextSymbol( const char *pSymName, forthop* pEntry, ucell se
 
 // return ptr to vocabulary entry for symbol
 forthop *
-ForthVocabulary::FindSymbol( ForthParseInfo *pInfo, ucell serial )
+Vocabulary::FindSymbol( ParseInfo *pInfo, ucell serial )
 {
 	return FindNextSymbol( pInfo, NULL, serial );
 }
 
 forthop *
-ForthVocabulary::FindNextSymbol( ForthParseInfo *pInfo, forthop* pStartEntry, ucell serial )
+Vocabulary::FindNextSymbol( ParseInfo *pInfo, forthop* pStartEntry, ucell serial )
 {
     int j, symLen;
     forthop *pEntry, *pTmp;
@@ -554,7 +554,7 @@ ForthVocabulary::FindNextSymbol( ForthParseInfo *pInfo, forthop* pStartEntry, uc
 
 // return ptr to vocabulary entry given its value
 forthop *
-ForthVocabulary::FindSymbolByValue(forthop val, ucell serial)
+Vocabulary::FindSymbolByValue(forthop val, ucell serial)
 
 {
 	return FindNextSymbolByValue( val, mpStorageBottom, serial );
@@ -562,7 +562,7 @@ ForthVocabulary::FindSymbolByValue(forthop val, ucell serial)
 
 // return pointer to symbol entry, NULL if not found, given its value
 forthop *
-ForthVocabulary::FindNextSymbolByValue(forthop val, forthop* pStartEntry, ucell serial)
+Vocabulary::FindNextSymbolByValue(forthop val, forthop* pStartEntry, ucell serial)
 {
     int i;
 
@@ -597,7 +597,7 @@ ForthVocabulary::FindNextSymbolByValue(forthop val, forthop* pStartEntry, ucell 
 }
 
 // process symbol entry
-OpResult ForthVocabulary::ProcessEntry( forthop* pEntry )
+OpResult Vocabulary::ProcessEntry( forthop* pEntry )
 {
     OpResult exitStatus = OpResult::kOk;
     bool compileIt = false;
@@ -628,7 +628,7 @@ OpResult ForthVocabulary::ProcessEntry( forthop* pEntry )
 
 
 void
-ForthVocabulary::SmudgeNewestSymbol( void )
+Vocabulary::SmudgeNewestSymbol( void )
 {
     // smudge by setting highest bit of 1st character of name
     ASSERT( mpNewestSymbol != NULL );
@@ -637,7 +637,7 @@ ForthVocabulary::SmudgeNewestSymbol( void )
 
 
 void
-ForthVocabulary::UnSmudgeNewestSymbol( void )
+Vocabulary::UnSmudgeNewestSymbol( void )
 {
     // unsmudge by clearing highest bit of 1st character of name
     ASSERT( mpNewestSymbol != NULL );
@@ -645,7 +645,7 @@ ForthVocabulary::UnSmudgeNewestSymbol( void )
 }
 
 ForthObject&
-ForthVocabulary::GetVocabularyObject(void)
+Vocabulary::GetVocabularyObject(void)
 {
 	if (mVocabObject == nullptr)
 	{
@@ -657,14 +657,14 @@ ForthVocabulary::GetVocabularyObject(void)
 	return mVocabObject;
 }
 
-const char* ForthVocabulary::GetDescription( void )
+const char* Vocabulary::GetDescription( void )
 {
     return "userOp";
 }
 
 
 void
-ForthVocabulary::DoOp( ForthCoreState *pCore )
+Vocabulary::DoOp( CoreState *pCore )
 {
     VocabularyStack* pVocabStack;
 
@@ -674,11 +674,11 @@ ForthVocabulary::DoOp( ForthCoreState *pCore )
 
 
 void
-ForthVocabulary::PrintEntry( forthop*   pEntry )
+Vocabulary::PrintEntry( forthop*   pEntry )
 {
 #define BUFF_SIZE 512
     char buff[BUFF_SIZE];
-    ForthCoreState* pCore = mpEngine->GetCoreState();
+    CoreState* pCore = mpEngine->GetCoreState();
     forthOpType entryType = GetEntryType( pEntry );
     uint32_t entryValue = GetEntryValue( pEntry );
     sprintf( buff, "  %02x:%06x    ", entryType, entryValue );
@@ -736,9 +736,9 @@ ForthVocabulary::PrintEntry( forthop*   pEntry )
     CONSOLE_STRING_OUT( buff );
 }
 
-ForthVocabulary* ForthVocabulary::FindVocabulary( const char* pName )
+Vocabulary* Vocabulary::FindVocabulary( const char* pName )
 {
-    ForthVocabulary *pVocab = mpChainHead;
+    Vocabulary *pVocab = mpChainHead;
     while ( pVocab != NULL )
     {
         if ( strcmp( pName, pVocab->mpName ) == 0 )
@@ -751,36 +751,36 @@ ForthVocabulary* ForthVocabulary::FindVocabulary( const char* pName )
 }
 
 bool
-ForthVocabulary::IsStruct()
+Vocabulary::IsStruct()
 {
     // TODO: eliminate this and IsClass, just use GetType
 	return (mType == VocabularyType::kStruct || mType == VocabularyType::kClass);
 }
 
 bool
-ForthVocabulary::IsClass()
+Vocabulary::IsClass()
 {
     return (mType == VocabularyType::kClass || mType == VocabularyType::kInterface);
 }
 
-VocabularyType ForthVocabulary::GetType()
+VocabularyType Vocabulary::GetType()
 {
     return mType;
 }
 
 void
-ForthVocabulary::AfterStart()
+Vocabulary::AfterStart()
 {
 }
 
 int
-ForthVocabulary::Save( FILE* pOutFile )
+Vocabulary::Save( FILE* pOutFile )
 {
     return 0;
 }
 
 bool
-ForthVocabulary::Restore( const char* pBuffer, uint32_t numBytes )
+Vocabulary::Restore( const char* pBuffer, uint32_t numBytes )
 {
     return true;
 }
@@ -794,7 +794,7 @@ namespace OVocabulary
 
 	FORTHOP(oVocabularyNew)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a Vocabulary object");
 	}
 
@@ -809,7 +809,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyGetNameMethod)
 	{
 		GET_THIS(oVocabularyStruct, pVocabulary);
-		ForthVocabulary* pVocab = pVocabulary->vocabulary;
+		Vocabulary* pVocab = pVocabulary->vocabulary;
 		SPUSH((pVocab != NULL) ? (cell)(pVocab->GetName()) : NULL);
 		METHOD_RETURN;
 	}
@@ -817,10 +817,10 @@ namespace OVocabulary
 	FORTHOP(oVocabularySetDefinitionsVocabMethod)
 	{
 		GET_THIS(oVocabularyStruct, pVocabulary);
-		ForthVocabulary* pVocab = pVocabulary->vocabulary;
+		Vocabulary* pVocab = pVocabulary->vocabulary;
 		if (pVocab != NULL)
 		{
-			ForthEngine *pEngine = GET_ENGINE;
+			Engine *pEngine = GET_ENGINE;
 			VocabularyStack* pVocabStack = pEngine->GetVocabularyStack();
 			pEngine->SetDefinitionVocabulary(pVocabStack->GetTop());
 		}
@@ -830,10 +830,10 @@ namespace OVocabulary
 	FORTHOP(oVocabularySetSearchVocabMethod)
 	{
 		GET_THIS(oVocabularyStruct, pVocabulary);
-		ForthVocabulary* pVocab = pVocabulary->vocabulary;
+		Vocabulary* pVocab = pVocabulary->vocabulary;
 		if (pVocab != NULL)
 		{
-			ForthEngine *pEngine = GET_ENGINE;
+			Engine *pEngine = GET_ENGINE;
 			VocabularyStack* pVocabStack = pEngine->GetVocabularyStack();
 			pVocabStack->SetTop(pVocab);
 		}
@@ -843,10 +843,10 @@ namespace OVocabulary
 	FORTHOP(oVocabularyPushSearchVocabMethod)
 	{
 		GET_THIS(oVocabularyStruct, pVocabulary);
-		ForthVocabulary* pVocab = pVocabulary->vocabulary;
+		Vocabulary* pVocab = pVocabulary->vocabulary;
 		if (pVocab != NULL)
 		{
-			ForthEngine *pEngine = GET_ENGINE;
+			Engine *pEngine = GET_ENGINE;
 			VocabularyStack* pVocabStack = pEngine->GetVocabularyStack();
 			pVocabStack->DupTop();
 			pVocabStack->SetTop(pVocab);
@@ -864,7 +864,7 @@ namespace OVocabulary
         pIter->pMethods = pIterVocab->GetMethods();
         pIter->refCount = 0;
 		pIter->parent = reinterpret_cast<ForthObject>(pVocabulary);
-		ForthVocabulary* pVocab = pVocabulary->vocabulary;
+		Vocabulary* pVocab = pVocabulary->vocabulary;
 		pIter->vocabulary = pVocab;
 		pIter->cursor = pVocab->GetNewestEntry();
 		PUSH_OBJECT(pIter);
@@ -874,7 +874,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyFindEntryByNameMethod)
 	{
 		GET_THIS(oVocabularyStruct, pVocabulary);
-		ForthVocabulary* pVocab = pVocabulary->vocabulary;
+		Vocabulary* pVocab = pVocabulary->vocabulary;
 		forthop* pEntry = NULL;
 		const char* pName = (const char *)(SPOP);
 		if (pVocab != NULL)
@@ -888,7 +888,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyGetNewestEntryMethod)
 	{
 		GET_THIS(oVocabularyStruct, pVocabulary);
-		ForthVocabulary* pVocab = pVocabulary->vocabulary;
+		Vocabulary* pVocab = pVocabulary->vocabulary;
 		SPUSH((pVocab != NULL) ? (cell)(pVocab->GetNewestEntry()) : 0);
 		METHOD_RETURN;
 	}
@@ -896,7 +896,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyGetNumEntriesMethod)
 	{
 		GET_THIS(oVocabularyStruct, pVocabulary);
-		ForthVocabulary* pVocab = pVocabulary->vocabulary;
+		Vocabulary* pVocab = pVocabulary->vocabulary;
 		SPUSH((pVocab != NULL) ? (pVocab->GetNumEntries()) : 0);
 		METHOD_RETURN;
 	}
@@ -904,7 +904,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyGetValueLengthMethod)
 	{
 		GET_THIS(oVocabularyStruct, pVocabulary);
-		ForthVocabulary* pVocab = pVocabulary->vocabulary;
+		Vocabulary* pVocab = pVocabulary->vocabulary;
 		SPUSH((pVocab != NULL) ? (pVocab->GetValueLength()) : 0);
 		METHOD_RETURN;
 	}
@@ -912,7 +912,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyAddSymbolMethod)
 	{
 		GET_THIS(oVocabularyStruct, pVocabulary);
-		ForthVocabulary* pVocab = pVocabulary->vocabulary;
+		Vocabulary* pVocab = pVocabulary->vocabulary;
         cell addToEngineFlags = SPOP;
 		forthop opVal = SPOP;
         cell opType = SPOP;
@@ -924,7 +924,7 @@ namespace OVocabulary
 
             if (addToEngineOps)
             {
-                ForthEngine *pEngine = ForthEngine::GetInstance();
+                Engine *pEngine = Engine::GetInstance();
                 opVal = pEngine->GetOuterInterpreter()->AddOp(reinterpret_cast<void *>(opVal));
             }
             opVal = COMPILED_OP(opType, opVal);
@@ -937,7 +937,7 @@ namespace OVocabulary
     FORTHOP(oVocabularyChainNextMethod)
     {
         GET_THIS(oVocabularyStruct, pVocabulary);
-        ForthVocabulary* nextVocabInChain = pVocabulary->vocabulary->GetNextChainVocabulary();
+        Vocabulary* nextVocabInChain = pVocabulary->vocabulary->GetNextChainVocabulary();
         cell result = 0;
         if (nextVocabInChain != nullptr)
         {
@@ -980,7 +980,7 @@ namespace OVocabulary
 
 	FORTHOP(oVocabularyIterNew)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a Vocabulary object");
 	}
 
@@ -994,7 +994,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyIterSeekHeadMethod)
 	{
 		GET_THIS(oVocabularyIterStruct, pIter);
-		ForthVocabulary* pVocab = pIter->vocabulary;
+		Vocabulary* pVocab = pIter->vocabulary;
 		forthop* pEntry = NULL;
 		if (pVocab != NULL)
 		{
@@ -1008,7 +1008,7 @@ namespace OVocabulary
     FORTHOP(oVocabularyIterNextMethod)
     {
         GET_THIS(oVocabularyIterStruct, pIter);
-        ForthVocabulary* pVocab = pIter->vocabulary;
+        Vocabulary* pVocab = pIter->vocabulary;
         int found = 0;
         if ((pVocab != NULL) && (pIter->cursor != NULL))
         {
@@ -1023,7 +1023,7 @@ namespace OVocabulary
     FORTHOP(oVocabularyIterFindEntryByNameMethod)
 	{
 		GET_THIS(oVocabularyIterStruct, pIter);
-		ForthVocabulary* pVocab = pIter->vocabulary;
+		Vocabulary* pVocab = pIter->vocabulary;
 		forthop* pEntry = NULL;
 		const char* pName = (const char *)(SPOP);
 		if (pVocab != NULL)
@@ -1038,7 +1038,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyIterFindNextEntryByNameMethod)
 	{
 		GET_THIS(oVocabularyIterStruct, pIter);
-		ForthVocabulary* pVocab = pIter->vocabulary;
+		Vocabulary* pVocab = pIter->vocabulary;
 		forthop* pEntry = NULL;
 		const char* pName = (const char *)(SPOP);
 		if (pVocab != NULL)
@@ -1053,7 +1053,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyIterFindEntryByValueMethod)
 	{
 		GET_THIS(oVocabularyIterStruct, pIter);
-		ForthVocabulary* pVocab = pIter->vocabulary;
+		Vocabulary* pVocab = pIter->vocabulary;
 		forthop* pEntry = NULL;
 		int32_t val = SPOP;
 		if (pVocab != NULL)
@@ -1068,7 +1068,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyIterFindNextEntryByValueMethod)
 	{
 		GET_THIS(oVocabularyIterStruct, pIter);
-		ForthVocabulary* pVocab = pIter->vocabulary;
+		Vocabulary* pVocab = pIter->vocabulary;
 		forthop* pEntry = NULL;
 		int32_t val = SPOP;
 		if (pVocab != NULL)
@@ -1085,7 +1085,7 @@ namespace OVocabulary
 	FORTHOP(oVocabularyIterRemoveEntryMethod)
 	{
 		GET_THIS(oVocabularyIterStruct, pIter);
-		ForthVocabulary* pVocab = pIter->vocabulary;
+		Vocabulary* pVocab = pIter->vocabulary;
 		forthop* pEntry = (forthop *)(SPOP);
 		if ((pEntry != NULL) && (pVocab != NULL) && (pIter->cursor != NULL))
 		{

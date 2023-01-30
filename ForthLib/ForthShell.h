@@ -1,7 +1,7 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthShell.h: interface for the ForthShell class.
+// Shell.h: interface for the Shell class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -14,9 +14,9 @@
 #include <vector>
 #include <string>
 
-class ForthInputStack;
-class ForthExtension;
-class ForthExpressionInputStream;
+class InputStack;
+class Extension;
+class ExpressionInputStream;
 
 #if defined(WINDOWS_BUILD)
 #define PATH_SEPARATOR "\\"
@@ -25,14 +25,14 @@ class ForthExpressionInputStream;
 #endif
 
 //
-// the ForthParseInfo class exists to support fast vocabulary searches.
+// the ParseInfo class exists to support fast vocabulary searches.
 // these searches are sped up by doing symbol comparisons using longwords
 // instead of characters
 //
 #define TOKEN_BUFF_LONGS    (DEFAULT_INPUT_BUFFER_LEN >> 2)
 #define TOKEN_BUFF_CHARS    DEFAULT_INPUT_BUFFER_LEN
 
-// These are the flags that can be passed to ForthEngine::ProcessToken
+// These are the flags that can be passed to Engine::ProcessToken
 #define PARSE_FLAG_QUOTED_STRING        1
 #define PARSE_FLAG_QUOTED_CHARACTER     2
 #define PARSE_FLAG_HAS_PERIOD           4
@@ -63,7 +63,7 @@ typedef enum
    kShellTagExcept   = 0x00020000,
    kShellTagFinally  = 0x00040000,
    kShellLastTag = kShellTagFinally  // update this when you add a new tag
-   // if you add tags, remember to update TagStrings in ForthShell.cpp
+   // if you add tags, remember to update TagStrings in Shell.cpp
 } eShellTag;
 
 // NUM_FORTH_ENV_VARS is the number of environment variables which forth uses:
@@ -108,7 +108,7 @@ protected:
     forthop**           mSSB;       // shell stack base
     forthop**           mSST;       // empty shell stack pointer
 	ucell               mSSLen;     // size of shell stack in longwords
-	ForthEngine         *mpEngine;
+	Engine         *mpEngine;
 };
 
 #define SHELL_FLAG_CREATED_ENGINE   1
@@ -120,28 +120,28 @@ protected:
 
 #define SHELL_FLAGS_NOT_RESET_ON_ERROR (SHELL_FLAG_CREATED_ENGINE)
 
-class ForthShell  
+class Shell  
 {
 public:
 
-    // if the creator of a ForthShell passes in non-NULL engine and/or thread params,
+    // if the creator of a Shell passes in non-NULL engine and/or thread params,
     //   that creator is responsible for deleting the engine and/or thread
-    ForthShell(int argc, const char ** argv, const char ** envp, ForthEngine *pEngine = NULL, ForthExtension *pExtension = NULL, int shellStackLongs = 1024);
-    virtual ~ForthShell();
+    Shell(int argc, const char ** argv, const char ** envp, Engine *pEngine = NULL, Extension *pExtension = NULL, int shellStackLongs = 1024);
+    virtual ~Shell();
 
     // returns true IFF file opened successfully
     virtual bool            PushInputFile( const char *pInFileName );
     virtual void            PushInputBuffer( const char *pDataBuffer, int dataBufferLen );
-    virtual void            PushInputBlocks(ForthBlockFileManager*  pManager, uint32_t firstBlock, uint32_t lastBlock);
+    virtual void            PushInputBlocks(BlockFileManager*  pManager, uint32_t firstBlock, uint32_t lastBlock);
     virtual bool            PopInputStream( void );
-    // NOTE: the input stream passed to Run will be deleted by ForthShell
-	virtual int             Run(ForthInputStream *pStream);
-	virtual int             RunOneStream(ForthInputStream *pStream);
+    // NOTE: the input stream passed to Run will be deleted by Shell
+	virtual int             Run(InputStream *pStream);
+	virtual int             RunOneStream(InputStream *pStream);
 	char *                  GetNextSimpleToken(void);
     char *                  GetToken( char delim, bool bSkipLeadingWhiteSpace = true );
 
-    inline ForthEngine *    GetEngine( void ) { return mpEngine; };
-    inline ForthInputStack * GetInput( void ) { return mpInput; };
+    inline Engine *    GetEngine( void ) { return mpEngine; };
+    inline InputStack * GetInput( void ) { return mpInput; };
 	inline ForthShellStack * GetShellStack( void ) { return mpStack; };
     inline bool             InputLineReadyToProcess() { return !mInContinuationLine; }
     char*                   AddToInputLine(const char* pBuffer);
@@ -201,10 +201,10 @@ protected:
 
     // parse next token from input stream into mTokenBuff, padded with 0's up
     // to next longword boundary
-    bool                    ParseToken( ForthParseInfo *pInfo );
+    bool                    ParseToken( ParseInfo *pInfo );
     // parse next string from input stream into mTokenBuff, padded with 0's up
     // to next longword boundary
-    bool                    ParseString( ForthParseInfo *pInfo );
+    bool                    ParseString( ParseInfo *pInfo );
     void                    ReportError(void);
     void                    ReportWarning(const char* pMessage);
     void                    ErrorReset(void);
@@ -217,11 +217,11 @@ protected:
     virtual DWORD           ConsoleInputThreadLoop();
 #endif
 
-    ForthInputStack *       mpInput;
-    ForthEngine *           mpEngine;
+    InputStack *       mpInput;
+    Engine *           mpEngine;
     ForthShellStack *       mpStack;
     ForthFileInterface      mFileInterface;
-	ForthExpressionInputStream* mExpressionInputStream;
+	ExpressionInputStream* mExpressionInputStream;
 
     int32_t                    mTokenBuffer[ TOKEN_BUFF_LONGS ];
 

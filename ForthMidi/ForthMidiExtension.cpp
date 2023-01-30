@@ -224,18 +224,18 @@ ForthMidiExtension::~ForthMidiExtension()
 }
 
 
-void ForthMidiExtension::Initialize( ForthEngine* pEngine )
+void ForthMidiExtension::Initialize( Engine* pEngine )
 {
     if (mpThread != NULL )
     {
         delete mpThread;
     }
-    mpThread = ForthEngine::GetInstance()->CreateThread();
+    mpThread = Engine::GetInstance()->CreateThread();
     mpThread->SetName("MidiThread");
     mpFiber = mpThread->GetFiber(0);
     mpFiber->SetName("MidiThread");
 
-    ForthExtension::Initialize( pEngine );
+    Extension::Initialize( pEngine );
     pEngine->AddBuiltinOps( midiDictionary );
 }
 
@@ -255,7 +255,7 @@ void ForthMidiExtension::Shutdown()
 #if 0
 	if (mpThread != NULL )
 	{
-		ForthEngine::GetInstance()->DestroyThread(mpThread);
+		Engine::GetInstance()->DestroyThread(mpThread);
         mpThread = NULL;
 	}
 #endif

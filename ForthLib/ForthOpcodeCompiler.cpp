@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthOpcodeCompiler.cpp: implementation of the ForthOpcodeCompiler class.
+// OpcodeCompiler.cpp: implementation of the OpcodeCompiler class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -27,10 +27,10 @@ enum
 //////////////////////////////////////////////////////////////////////
 ////
 ///
-//                     ForthOpcodeCompiler
+//                     OpcodeCompiler
 // 
 
-ForthOpcodeCompiler::ForthOpcodeCompiler(ForthMemorySection*	pDictionarySection)
+OpcodeCompiler::OpcodeCompiler(MemorySection*	pDictionarySection)
 : mpDictionarySection( pDictionarySection )
 , mCompileComboOpFlags(ENABLED_COMBO_OPS)
 {
@@ -41,11 +41,11 @@ ForthOpcodeCompiler::ForthOpcodeCompiler(ForthMemorySection*	pDictionarySection)
 	Reset();
 }
 
-ForthOpcodeCompiler::~ForthOpcodeCompiler()
+OpcodeCompiler::~OpcodeCompiler()
 {
 } 
 
-void ForthOpcodeCompiler::Reset()
+void OpcodeCompiler::Reset()
 {
 	mPeepholeIndex = 0;
 	mPeepholeValidCount = 0;
@@ -56,7 +56,7 @@ void ForthOpcodeCompiler::Reset()
 // VAL must already have high 8 bits zeroed
 #define FITS_IN_SIGNED_BITS( VAL, NBITS )  (((VAL) < (1 << (NBITS - 1))) || ((VAL) > (((1 << 24) - (1 << NBITS)) + 1)))
 
-void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
+void OpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
 {
     forthop* pOpcode = mpDictionarySection->pCurrent;
     forthop* pPreviousOpcode = GetPreviousOpcodeAddress();
@@ -335,7 +335,7 @@ void ForthOpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
     mpDictionarySection->pCurrent = pOpcode;
 }
 
-void ForthOpcodeCompiler::PatchOpcode(forthOpType opType, forthop opVal, forthop* pOpcode)
+void OpcodeCompiler::PatchOpcode(forthOpType opType, forthop opVal, forthop* pOpcode)
 {
     if ((opType == kOpBranchZ) || (opType == kOpBranchNZ))
     {
@@ -374,7 +374,7 @@ void ForthOpcodeCompiler::PatchOpcode(forthOpType opType, forthop opVal, forthop
     }
 }
 
-void ForthOpcodeCompiler::UncompileLastOpcode()
+void OpcodeCompiler::UncompileLastOpcode()
 {
 	if (mPeepholeValidCount > 0)
 	{
@@ -390,27 +390,27 @@ void ForthOpcodeCompiler::UncompileLastOpcode()
 	}
 }
 
-uint32_t ForthOpcodeCompiler::PeepholeValidCount()
+uint32_t OpcodeCompiler::PeepholeValidCount()
 {
 	return (mPeepholeValidCount > MAX_PEEPHOLE_PTRS) ? MAX_PEEPHOLE_PTRS : mPeepholeValidCount;
 }
 
-void ForthOpcodeCompiler::ClearPeephole()
+void OpcodeCompiler::ClearPeephole()
 {
 	Reset();
 }
 
-forthop* ForthOpcodeCompiler::GetLastCompiledOpcodePtr( void )
+forthop* OpcodeCompiler::GetLastCompiledOpcodePtr( void )
 {
 	return (mPeepholeValidCount > 0) ? mPeephole[mPeepholeIndex] : NULL;
 }
 
-forthop* ForthOpcodeCompiler::GetLastCompiledIntoPtr( void )
+forthop* OpcodeCompiler::GetLastCompiledIntoPtr( void )
 {
 	return mpLastIntoOpcode;
 }
 
-bool ForthOpcodeCompiler::GetPreviousOpcode( forthOpType& opType, forthop& opVal, uint32_t index )
+bool OpcodeCompiler::GetPreviousOpcode( forthOpType& opType, forthop& opVal, uint32_t index )
 {
     // index of 0 means most recent opcode
 	if ( mPeepholeValidCount > index )
@@ -424,7 +424,7 @@ bool ForthOpcodeCompiler::GetPreviousOpcode( forthOpType& opType, forthop& opVal
 	return false;
 }
 
-forthop* ForthOpcodeCompiler::GetPreviousOpcodeAddress(uint32_t index)
+forthop* OpcodeCompiler::GetPreviousOpcodeAddress(uint32_t index)
 {
     // index of 0 means most recent opcode
     if (mPeepholeValidCount > index)

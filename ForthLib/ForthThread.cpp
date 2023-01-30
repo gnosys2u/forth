@@ -49,10 +49,10 @@ struct oFiberStruct
 //////////////////////////////////////////////////////////////////////
 ////
 ///
-//                     ForthCoreState struct
+//                     CoreState struct
 // 
 
-ForthCoreState::ForthCoreState(int paramStackSize, int returnStackSize)
+CoreState::CoreState(int paramStackSize, int returnStackSize)
     : SLen(paramStackSize)
     , RLen(returnStackSize)
 	, SP(nullptr)
@@ -114,14 +114,14 @@ ForthCoreState::ForthCoreState(int paramStackSize, int returnStackSize)
 }
 
 
-void ForthCoreState::InitializeFromEngine(void* engineIn)
+void CoreState::InitializeFromEngine(void* engineIn)
 {
-    ForthEngine* engine = (ForthEngine *)engineIn;
+    Engine* engine = (Engine *)engineIn;
     pEngine = engineIn;
     pDictionary = engine->GetDictionaryMemorySection();
     //    core.pFileFuncs = mpShell->GetFileInterface();
 
-    ForthCoreState* pEngineCore = engine->GetCoreState();
+    CoreState* pEngineCore = engine->GetCoreState();
     if (pEngineCore != NULL)
     {
         // fill in optype & opcode action tables from engine thread
@@ -145,7 +145,7 @@ void ForthCoreState::InitializeFromEngine(void* engineIn)
 //                     ForthFiber
 // 
 
-ForthFiber::ForthFiber(ForthEngine *pEngine, ForthThread *pParentThread, int fiberIndex, int paramStackLongs, int returnStackLongs)
+ForthFiber::ForthFiber(Engine *pEngine, ForthThread *pParentThread, int fiberIndex, int paramStackLongs, int returnStackLongs)
 : mpEngine( pEngine )
 , mpParentThread(pParentThread)
 , mIndex(fiberIndex)
@@ -239,7 +239,7 @@ ForthFiber::CheckGaurdAreas( void )
 
 void ForthFiber::InitTables(ForthFiber* pSourceThread)
 {
-	ForthCoreState& sourceCore = pSourceThread->mCore;
+	CoreState& sourceCore = pSourceThread->mCore;
 	mCore.optypeAction = sourceCore.optypeAction;
 	mCore.numBuiltinOps = sourceCore.numBuiltinOps;
 	mCore.numOps = sourceCore.numOps;
@@ -289,7 +289,7 @@ void ForthFiber::Run()
 	mCore.IP = &(mOps[0]);
 	//mCore.IP = nullptr;
 	// the user defined ops could have changed since this thread was created, update it to match the engine
-	ForthCoreState* pEngineState = mpEngine->GetCoreState();
+	CoreState* pEngineState = mpEngine->GetCoreState();
 	mCore.ops = pEngineState->ops;
 	mCore.numOps = pEngineState->numOps;
 #ifdef ASM_INNER_INTERPRETER
@@ -340,13 +340,13 @@ void ForthFiber::WakeAllJoiningFibers()
 #if defined(ATOMIC_REFCOUNTS)
 			if (joiner->refCount.fetch_sub(1) == 1)
 			{
-				((ForthEngine*)(mCore.pEngine))->DeleteObject(&mCore, joiner);
+				((Engine*)(mCore.pEngine))->DeleteObject(&mCore, joiner);
 			}
 #else
 			joiner->refCount -= 1;
 			if (joiner->refCount == 0)
 			{
-				((ForthEngine*)(mCore.pEngine))->DeleteObject(&mCore, joiner);
+				((Engine*)(mCore.pEngine))->DeleteObject(&mCore, joiner);
 			}
 #endif
 		}
@@ -356,11 +356,11 @@ void ForthFiber::WakeAllJoiningFibers()
     mpJoinHead = nullptr;
 }
 
-ForthShowContext* ForthFiber::GetShowContext()
+ShowContext* ForthFiber::GetShowContext()
 {
 	if (mpShowContext == NULL)
 	{
-		mpShowContext = new ForthShowContext;
+		mpShowContext = new ShowContext;
 	}
 	return mpShowContext;
 }
@@ -430,7 +430,7 @@ void ForthFiber::FreeObjects()
 //                     ForthThread
 // 
 
-ForthThread::ForthThread(ForthEngine *pEngine, int paramStackLongs, int returnStackLongs)
+ForthThread::ForthThread(Engine *pEngine, int paramStackLongs, int returnStackLongs)
 	: mHandle(0)
 #ifdef WIN32
 	, mThreadId(0)
@@ -507,7 +507,7 @@ void* ForthThread::RunLoop(void *pUserData)
 {
     ForthThread* pThisThread = (ForthThread*)pUserData;
 	ForthFiber* pActiveFiber = pThisThread->GetActiveFiber();
-	ForthEngine* pEngine = pActiveFiber->GetEngine();
+	Engine* pEngine = pActiveFiber->GetEngine();
     //printf("Starting thread %x\n", pThisThread);
 
     pThisThread->mRunState = FiberState::kReady;
@@ -516,7 +516,7 @@ void* ForthThread::RunLoop(void *pUserData)
 	while (keepRunning)
 	{
 		bool checkForAllDone = false;
-		ForthCoreState* pCore = pActiveFiber->GetCore();
+		CoreState* pCore = pActiveFiber->GetCore();
 #ifdef ASM_INNER_INTERPRETER
 		if (pEngine->GetFastMode())
 		{
@@ -634,14 +634,14 @@ void ForthThread::InnerLoop()
 {
     ForthFiber* pMainFiber = mFibers[0];
     ForthFiber* pActiveFiber = pMainFiber;
-    ForthEngine* pEngine = pActiveFiber->GetEngine();
+    Engine* pEngine = pActiveFiber->GetEngine();
     pMainFiber->SetRunState(FiberState::kReady);
 
     OpResult exitStatus = OpResult::kOk;
     bool keepRunning = true;
     while (keepRunning)
     {
-        ForthCoreState* pCore = pActiveFiber->GetCore();
+        CoreState* pCore = pActiveFiber->GetCore();
 #ifdef ASM_INNER_INTERPRETER
         if (pEngine->GetFastMode())
         {
@@ -886,7 +886,7 @@ void ForthThread::Join()
 #endif
 }
 
-ForthFiber* ForthThread::CreateFiber(ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
+ForthFiber* ForthThread::CreateFiber(Engine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
 {
 	ForthFiber* pFiber = new ForthFiber(pEngine, this, (int)mFibers.size(), paramStackLongs, returnStackLongs);
 	pFiber->SetOp(threadOp);
@@ -941,7 +941,7 @@ namespace OThread
 	static ClassVocabulary* gpThreadVocabulary;
 	static ClassVocabulary* gpFiberVocabulary;
 
-	void CreateThreadObject(ForthObject& outThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
+	void CreateThreadObject(ForthObject& outThread, Engine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
 	{
 		ALLOCATE_OBJECT(oThreadStruct, pThreadStruct, gpThreadVocabulary);
         pThreadStruct->pMethods = gpThreadVocabulary->GetMethods();
@@ -986,7 +986,7 @@ namespace OThread
 		ForthThread* pThread = pThreadStruct->pThread;
 		ForthFiber* pFiber = pThread->GetFiber(0);
 		pFiber->Reset();
-		ForthCoreState* pDstCore = pFiber->GetCore();
+		CoreState* pDstCore = pFiber->GetCore();
 		cell numArgs = SPOP;
 		if (numArgs > 0)
 		{
@@ -1006,7 +1006,7 @@ namespace OThread
 	FORTHOP(oThreadCreateFiberMethod)
 	{
 		GET_THIS(oThreadStruct, pThreadStruct);
-		ForthEngine* pEngine = GET_ENGINE;
+		Engine* pEngine = GET_ENGINE;
 		ForthObject fiber;
 
 		ForthThread* pThread = pThreadStruct->pThread;
@@ -1091,7 +1091,7 @@ namespace OThread
 	//                 oFiber
 	//
 
-	void CreateFiberObject(ForthObject& outFiber, ForthThread *pParentThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
+	void CreateFiberObject(ForthObject& outFiber, ForthThread *pParentThread, Engine *pEngine, forthop threadOp, int paramStackLongs, int returnStackLongs)
 	{
 		ALLOCATE_OBJECT(oFiberStruct, pFiberStruct, gpFiberVocabulary);
         pFiberStruct->pMethods = gpFiberVocabulary->GetMethods();
@@ -1151,7 +1151,7 @@ namespace OThread
 	{
 		GET_THIS(oFiberStruct, pFiberStruct);
 		ForthFiber* pFiber = pFiberStruct->pFiber;
-		ForthCoreState* pDstCore = pFiber->GetCore();
+		CoreState* pDstCore = pFiber->GetCore();
 		int numArgs = SPOP;
 		if (numArgs > 0)
 		{
@@ -1251,11 +1251,11 @@ namespace OThread
 	{
 		GET_THIS(oFiberStruct, pFiberStruct);
 		ForthFiber* pFiber = pFiberStruct->pFiber;
-		ForthCoreState* pFiberCore = pFiber->GetCore();
+		CoreState* pFiberCore = pFiber->GetCore();
 		forthop op = *(pFiberCore->IP)++;
 		OpResult result;
 #ifdef ASM_INNER_INTERPRETER
-        ForthEngine *pEngine = GET_ENGINE;
+        Engine *pEngine = GET_ENGINE;
 		if (pEngine->GetFastMode())
 		{
 			result = InterpretOneOpFast(pFiberCore, op);
@@ -1370,7 +1370,7 @@ namespace OLock
 
 	static ClassVocabulary* gpAsyncLockVocabulary;
 
-	void CreateAsyncLockObject(ForthObject& outAsyncLock, ForthEngine *pEngine)
+	void CreateAsyncLockObject(ForthObject& outAsyncLock, Engine *pEngine)
 	{
 		ALLOCATE_OBJECT(oAsyncLockStruct, pLockStruct, gpAsyncLockVocabulary);
         pLockStruct->pMethods = gpAsyncLockVocabulary->GetMethods();
@@ -1860,7 +1860,7 @@ namespace OLock
 
     static ClassVocabulary* gpSemaphoreVocabulary;
 
-    void CreateAsyncSemaphoreObject(ForthObject& outSemaphore, ForthEngine *pEngine)
+    void CreateAsyncSemaphoreObject(ForthObject& outSemaphore, Engine *pEngine)
     {
         ALLOCATE_OBJECT(oAsyncSemaphoreStruct, pSemaphoreStruct, gpSemaphoreVocabulary);
         pSemaphoreStruct->pMethods = gpSemaphoreVocabulary->GetMethods();

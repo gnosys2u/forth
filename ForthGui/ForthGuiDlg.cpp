@@ -6,9 +6,9 @@
 #include "ForthGuiDlg.h"
 #include "ForthBlankDlg.h"
 
-#include "../ForthLib/ForthShell.h"
+#include "../ForthLib/Shell.h"
 #include "../ForthLib/ForthInput.h"
-#include "../ForthLib/ForthEngine.h"
+#include "../ForthLib/Engine.h"
 #include ".\forthguidlg.h"
 
 #include "anchor.h"
@@ -179,7 +179,7 @@ void StreamToOutputPane( CRichEditCtrl* pOutEdit, const char* pMessage )
 }
 
 CRichEditCtrl* gpOutEdit = NULL;
-void ForthOutRoutine(ForthCoreState* pCore, void *pCBData, const char *pBuff)
+void ForthOutRoutine(CoreState* pCore, void *pCBData, const char *pBuff)
 {
 	StreamToOutputPane( gpOutEdit, pBuff );
 }
@@ -193,7 +193,7 @@ void ForthTraceOutRoutine(void *pCBData, const char* pFormat, va_list argList)
 	TCHAR buffer[1000];
 #endif
 
-	ForthEngine* pEngine = ForthEngine::GetInstance();
+	Engine* pEngine = Engine::GetInstance();
 #ifdef LINUX
 	vsnprintf(buffer, sizeof(buffer), pFormat, argList);
 #else
@@ -390,9 +390,9 @@ void CForthGuiDlg::RunForthThreadLoop()
 void CForthGuiDlg::CreateForth()
 {
 	char autoloadBuffer[64];
-    mpShell = new ForthShell(__argc, const_cast<const char **>(__argv), const_cast<const char **>(_environ));
-	ForthEngine* pEngine = mpShell->GetEngine();
-	ForthCoreState* pCore = pEngine->GetCoreState();
+    mpShell = new Shell(__argc, const_cast<const char **>(__argv), const_cast<const char **>(_environ));
+	Engine* pEngine = mpShell->GetEngine();
+	CoreState* pCore = pEngine->GetCoreState();
 	CreateForthFunctionOutStream( pCore, mConsoleOutObject, NULL, NULL, ForthOutRoutine, GetDlgItem( IDC_RICHEDIT_OUTPUT ) );
 
 	CreateDialogOps();
@@ -401,9 +401,9 @@ void CForthGuiDlg::CreateForth()
 	pEngine->ResetConsoleOut(*pCore);
 	//pEngine->SetTraceOutRoutine(ForthTraceOutRoutine, GetDlgItem(IDC_RICHEDT_DEBUG));
 	mInBuffer[0] = '\0';
-    mpInStream = new ForthBufferInputStream( mInBuffer, INPUT_BUFFER_SIZE, true );
+    mpInStream = new BufferInputStream( mInBuffer, INPUT_BUFFER_SIZE, true );
     mpShell->GetInput()->PushInputStream( mpInStream );
-	strncpy(autoloadBuffer, "\"forth_autoload.txt\" $load", sizeof(autoloadBuffer) - 1);
+	strncpy(autoloadBuffer, "\"forth_autoload.fs\" $load", sizeof(autoloadBuffer) - 1);
 	ProcessLine(autoloadBuffer);
 
     AfxBeginThread(ForthWorkerThread, this);
@@ -429,7 +429,7 @@ void CForthGuiDlg::DestroyForth()
 {
 	if ( mpShell )
 	{
-		ForthEngine* pEngine = mpShell->GetEngine();
+		Engine* pEngine = mpShell->GetEngine();
 		pEngine->ReleaseObject(pEngine->GetCoreState(), mConsoleOutObject);
 		delete mpShell;
 		// the shell destructor deletes all the streams on the input stack, including mpInStream
@@ -610,7 +610,7 @@ void CForthGuiDlg::OnBnClickedOk()
 
 OpResult CForthGuiDlg::ProcessLine( char* pLine )
 {
-	ForthInputStack* pInput = mpShell->GetInput();
+	InputStack* pInput = mpShell->GetInput();
     OpResult result = OpResult::kResultOk;
 
 	//pEdit->GetWindowText( mInBuffer, INPUT_BUFFER_SIZE - 4 );
@@ -624,7 +624,7 @@ OpResult CForthGuiDlg::ProcessLine( char* pLine )
 	if ( result == OpResult::kResultOk )
 	{
 		// to implement the "load" op, we must do 
-		while ( pInput->InputStream() != mpInStream )
+		while ( pInput->Top() != mpInStream )
 		{
 			// get a line
 			// interpret the line
@@ -678,7 +678,7 @@ baseDictionaryEntry dialogDict[] =
 
 void CForthGuiDlg::CreateDialogOps()
 {
-	ForthEngine* pEngine = mpShell->GetEngine();
+	Engine* pEngine = mpShell->GetEngine();
     pEngine->AddBuiltinOps( dialogDict );
 }
 

@@ -338,7 +338,7 @@ namespace OList
 		METHOD_RETURN;
 	}
 
-    void listAddTail(oListStruct* pList, ForthObject& obj, ForthCoreState* pCore)
+    void listAddTail(oListStruct* pList, ForthObject& obj, CoreState* pCore)
     {
         ALLOCATE_LINK(oListElement, newElem);
         newElem->obj = obj;
@@ -585,7 +585,7 @@ namespace OList
 
 	FORTHOP(oListIterNew)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a ListIter object");
 	}
 
@@ -601,7 +601,7 @@ namespace OList
 	{
 		GET_THIS(oListIterStruct, pIter);
         char buffer[32];
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         oListElement* pCur = reinterpret_cast<oListStruct *>(pIter->parent)->head;
         int cursor = 0;
@@ -935,11 +935,11 @@ namespace OList
 		END_MEMBERS
 	};
 
-    bool customListReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customListReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "elements")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oListStruct *dstList = (oListStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('[');
             ForthObject obj;

@@ -22,7 +22,7 @@ VocabularyStack::VocabularyStack( int maxDepth )
 , mTop( 0 )
 , mSerial( 0 )
 {
-    mpEngine = ForthEngine::GetInstance();
+    mpEngine = Engine::GetInstance();
 }
 
 VocabularyStack::~VocabularyStack()
@@ -34,7 +34,7 @@ void VocabularyStack::Initialize( void )
 {
     delete mStack;
     mTop = 0;
-    mStack = new ForthVocabulary* [ mMaxDepth ];
+    mStack = new Vocabulary* [ mMaxDepth ];
 }
 
 void VocabularyStack::DupTop( void )
@@ -70,17 +70,17 @@ void VocabularyStack::Clear( void )
 //    mStack[1] = mpEngine->GetPrecedenceVocabulary();
 }
 
-void VocabularyStack::SetTop( ForthVocabulary* pVocab )
+void VocabularyStack::SetTop( Vocabulary* pVocab )
 {
     mStack[mTop] = pVocab;
 }
 
-ForthVocabulary* VocabularyStack::GetTop( void )
+Vocabulary* VocabularyStack::GetTop( void )
 {
     return mStack[mTop];
 }
 
-ForthVocabulary* VocabularyStack::GetElement( int depth )
+Vocabulary* VocabularyStack::GetElement( int depth )
 {
     return (depth > mTop) ? NULL : mStack[mTop - depth];
 }
@@ -88,7 +88,7 @@ ForthVocabulary* VocabularyStack::GetElement( int depth )
 // return pointer to symbol entry, NULL if not found
 // ppFoundVocab will be set to the vocabulary the symbol was actually found in
 // set ppFoundVocab to NULL to search just this vocabulary (not the search chain)
-forthop* VocabularyStack::FindSymbol( const char *pSymName, ForthVocabulary** ppFoundVocab )
+forthop* VocabularyStack::FindSymbol( const char *pSymName, Vocabulary** ppFoundVocab )
 {
     forthop* pEntry = NULL;
     mSerial++;
@@ -138,7 +138,7 @@ forthop* VocabularyStack::FindSymbol( const char *pSymName, ForthVocabulary** pp
 }
 
 // return pointer to symbol entry, NULL if not found, given its value
-forthop * VocabularyStack::FindSymbolByValue( int32_t val, ForthVocabulary** ppFoundVocab )
+forthop * VocabularyStack::FindSymbolByValue( int32_t val, Vocabulary** ppFoundVocab )
 {
     forthop *pEntry = NULL;
 
@@ -161,7 +161,7 @@ forthop * VocabularyStack::FindSymbolByValue( int32_t val, ForthVocabulary** ppF
 // return pointer to symbol entry, NULL if not found
 // pSymName is required to be a longword aligned address, and to be padded with 0's
 // to the next longword boundary
-forthop * VocabularyStack::FindSymbol( ForthParseInfo *pInfo, ForthVocabulary** ppFoundVocab )
+forthop * VocabularyStack::FindSymbol( ParseInfo *pInfo, Vocabulary** ppFoundVocab )
 {
     forthop *pEntry = NULL;
 

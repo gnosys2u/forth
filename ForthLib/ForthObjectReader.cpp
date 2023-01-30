@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthObjectReader.cpp: implementation of the JSON Object reader.
+// ObjectReader.cpp: implementation of the JSON Object reader.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -19,21 +19,21 @@
     ? look for elements in same order as they would be printed, or just search for them?
 */
 
-ForthObjectReader::ForthObjectReader()
+ObjectReader::ObjectReader()
 : mInStream(nullptr)
 , mSavedChar('\0')
 , mHaveSavedChar(false)
 , mOutArrayObject(nullptr)
 , mInStreamObject(nullptr)
 {
-    mpEngine = ForthEngine::GetInstance();
+    mpEngine = Engine::GetInstance();
 }
 
-ForthObjectReader::~ForthObjectReader()
+ObjectReader::~ObjectReader()
 {
 }
 
-bool ForthObjectReader::ReadObjects(ForthObject& inStream, ForthObject& outArray, ForthCoreState *pCore)
+bool ObjectReader::ReadObjects(ForthObject& inStream, ForthObject& outArray, CoreState *pCore)
 {
     mInStreamObject = inStream;
     mOutArrayObject = outArray;
@@ -75,7 +75,7 @@ bool ForthObjectReader::ReadObjects(ForthObject& inStream, ForthObject& outArray
 }
 
 
-char ForthObjectReader::getRawChar()
+char ObjectReader::getRawChar()
 {
     int ch;
     mInStream->pInFuncs->inChar(mpCore, mInStreamObject, ch);
@@ -98,7 +98,7 @@ char ForthObjectReader::getRawChar()
 }
 
 
-char ForthObjectReader::getChar()
+char ObjectReader::getChar()
 {
     if (mHaveSavedChar)
     {
@@ -115,7 +115,7 @@ char ForthObjectReader::getChar()
     return getRawChar();
 }
 
-void ForthObjectReader::getRequiredChar(char requiredChar)
+void ObjectReader::getRequiredChar(char requiredChar)
 {
     char actualChar = getChar();
     if (actualChar != requiredChar)
@@ -124,7 +124,7 @@ void ForthObjectReader::getRequiredChar(char requiredChar)
     }
 }
 
-void ForthObjectReader::ungetChar(char ch)
+void ObjectReader::ungetChar(char ch)
 {
     if (mHaveSavedChar)
     {
@@ -137,12 +137,12 @@ void ForthObjectReader::ungetChar(char ch)
     }
 }
 
-void ForthObjectReader::getName(std::string& name)
+void ObjectReader::getName(std::string& name)
 {
     getString(name);
 }
 
-void ForthObjectReader::getString(std::string& str)
+void ObjectReader::getString(std::string& str)
 {
     getRequiredChar('\"');
     str.clear();
@@ -153,7 +153,7 @@ void ForthObjectReader::getString(std::string& str)
     }
 }
 
-void ForthObjectReader::getNumber(std::string& str)
+void ObjectReader::getNumber(std::string& str)
 {
     str.clear();
     skipWhitespace();
@@ -172,7 +172,7 @@ void ForthObjectReader::getNumber(std::string& str)
     }
 }
 
-void ForthObjectReader::skipWhitespace()
+void ObjectReader::skipWhitespace()
 {
     const char* whitespace = " \t\r\n";
     if (mHaveSavedChar)
@@ -196,7 +196,7 @@ void ForthObjectReader::skipWhitespace()
     }
 }
 
-void ForthObjectReader::getObject(ForthObject* pDst)
+void ObjectReader::getObject(ForthObject* pDst)
 {
     getRequiredChar('{');
     mContextStack.push_back(mContext);
@@ -242,7 +242,7 @@ void ForthObjectReader::getObject(ForthObject* pDst)
     mContextStack.pop_back();
 }
 
-void ForthObjectReader::getObjectOrLink(ForthObject* pDst)
+void ObjectReader::getObjectOrLink(ForthObject* pDst)
 {
     char ch = getChar();
     std::string str;
@@ -293,7 +293,7 @@ void ForthObjectReader::getObjectOrLink(ForthObject* pDst)
     }
 }
 
-void ForthObjectReader::getStruct(StructVocabulary* pVocab, int offset, char *pDstData)
+void ObjectReader::getStruct(StructVocabulary* pVocab, int offset, char *pDstData)
 {
     getRequiredChar('{');
     mContextStack.push_back(mContext);
@@ -332,7 +332,7 @@ void ForthObjectReader::getStruct(StructVocabulary* pVocab, int offset, char *pD
     mContextStack.pop_back();
 }
 
-void ForthObjectReader::processElement(const std::string& name)
+void ObjectReader::processElement(const std::string& name)
 {
     if (mContext.pVocab == nullptr)
     {
@@ -353,7 +353,7 @@ void ForthObjectReader::processElement(const std::string& name)
             }
             std::string className = classId.substr(0, lastUnderscore);
 
-            ForthCoreState *pCore = mpCore;
+            CoreState *pCore = mpCore;
             StructVocabulary* newClassVocab = TypesManager::GetInstance()->GetStructVocabulary(className.c_str());
             if (newClassVocab->IsClass())
             {
@@ -614,7 +614,7 @@ void ForthObjectReader::processElement(const std::string& name)
     }
 }
 
-void ForthObjectReader::processCustomElement(const std::string& name)
+void ObjectReader::processCustomElement(const std::string& name)
 {
     if (mContext.pVocab->IsClass())
     {
@@ -637,12 +637,12 @@ void ForthObjectReader::processCustomElement(const std::string& name)
     throwError("name not found");
 }
 
-CustomReaderContext& ForthObjectReader::getCustomReaderContext()
+CustomReaderContext& ObjectReader::getCustomReaderContext()
 {
     return mContext;
 }
 
-void ForthObjectReader::throwError(const char* message)
+void ObjectReader::throwError(const char* message)
 {
     // TODO: add line, offset to message
     char buffer[128];
@@ -652,7 +652,7 @@ void ForthObjectReader::throwError(const char* message)
     throw std::runtime_error(buffer);
 }
 
-void ForthObjectReader::throwError(const std::string& message)
+void ObjectReader::throwError(const std::string& message)
 {
     // TODO: add line, offset to message
     throwError(message.c_str());

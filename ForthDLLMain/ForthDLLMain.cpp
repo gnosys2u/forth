@@ -15,8 +15,8 @@ static bool InitSystem()
 int main(int argc, char* argv[], char* envp[])
 {
     int nRetCode = 0;
-    ForthShell* pShell = NULL;
-    ForthInputStream* pInStream = NULL;
+    Shell* pShell = NULL;
+    InputStream* pInStream = NULL;
 
     if (!InitSystem())
     {

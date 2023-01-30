@@ -24,7 +24,7 @@ DLLVocabulary::DLLVocabulary(const char      *pName,
     int             storageBytes,
     void*           pForgetLimit,
     forthop         op)
-    : ForthVocabulary(pName, valueLongs, storageBytes, pForgetLimit, op)
+    : Vocabulary(pName, valueLongs, storageBytes, pForgetLimit, op)
     , mDLLFlags(0)
 {
     int len = strlen(pDLLName) + 1;
@@ -43,8 +43,8 @@ DLLVocabulary::~DLLVocabulary()
 void* DLLVocabulary::LoadDLL( void )
 {
 
-    ForthEngine* pEngine = ForthEngine::GetInstance();
-    ForthShell* pShell = pEngine->GetShell();
+    Engine* pEngine = Engine::GetInstance();
+    Shell* pShell = pEngine->GetShell();
     char* pDLLPath = nullptr;
     const char *pDLLSrc = mpDLLName;
     int len = strlen(mpDLLName) + 1;

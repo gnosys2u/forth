@@ -50,7 +50,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	const char* serverStr = (argc > 1) ? argv[1] : "127.0.0.1";
 	unsigned short portNum = FORTH_SERVER_PORT;
 
-    ForthShell* pShell = new ForthShell(argc, (const char **)(argv), (const char **)envp);
+    Shell* pShell = new Shell(argc, (const char **)(argv), (const char **)envp);
 
     int retVal = ForthClientMainLoop(pShell->GetEngine(), serverStr, portNum);
 

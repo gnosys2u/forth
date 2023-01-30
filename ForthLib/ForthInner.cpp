@@ -26,16 +26,16 @@ extern "C"
 {
 
 // NativeAction is used to execute user ops which are defined in assembler
-extern void NativeAction( ForthCoreState *pCore, forthop opVal );
+extern void NativeAction( CoreState *pCore, forthop opVal );
 
-void NativeActionOuter( ForthCoreState *pCore, forthop opVal )
+void NativeActionOuter( CoreState *pCore, forthop opVal )
 {
 	NativeAction(pCore, opVal);
 }
 
 VAR_ACTION(BadVarOperation)
 {
-    ForthEngine* pEngine = GET_ENGINE;
+    Engine* pEngine = GET_ENGINE;
     pEngine->SetError(ForthError::kBadVarOperation);
 }
 
@@ -329,9 +329,9 @@ VarAction ubytePtrOps[] =
     doByteDecAtSet,
 };
 
-void _doByteVarop( ForthCoreState* pCore, signed char* pVar )
+void _doByteVarop( CoreState* pCore, signed char* pVar )
 {
-    ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
+    Engine *pEngine = (Engine *)pCore->pEngine;
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
@@ -447,9 +447,9 @@ VarAction ubyteOps[] =
     doUByteGetDec
 };
 
-static void _doUByteVarop( ForthCoreState* pCore, unsigned char* pVar )
+static void _doUByteVarop( CoreState* pCore, unsigned char* pVar )
 {
-    ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
+    Engine *pEngine = (Engine *)pCore->pEngine;
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
@@ -741,9 +741,9 @@ VarAction shortOps[] =
     doShortGetDec
 };
 
-static void _doShortVarop( ForthCoreState* pCore, short* pVar )
+static void _doShortVarop( CoreState* pCore, short* pVar )
 {
-    ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
+    Engine *pEngine = (Engine *)pCore->pEngine;
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
@@ -1027,9 +1027,9 @@ VarAction ushortOps[] =
     doUShortGetDec
 };
 
-static void _doUShortVarop( ForthCoreState* pCore, unsigned short* pVar )
+static void _doUShortVarop( CoreState* pCore, unsigned short* pVar )
 {
-    ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
+    Engine *pEngine = (Engine *)pCore->pEngine;
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
@@ -1321,9 +1321,9 @@ VarAction intOps[] =
     doIntGetDec
 };
 
-void _doIntVarop( ForthCoreState* pCore, int* pVar )
+void _doIntVarop( CoreState* pCore, int* pVar )
 {
-    ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
+    Engine *pEngine = (Engine *)pCore->pEngine;
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
@@ -1346,7 +1346,7 @@ void _doIntVarop( ForthCoreState* pCore, int* pVar )
     }
 }
 
-void intVarAction( ForthCoreState* pCore, int* pVar )
+void intVarAction( CoreState* pCore, int* pVar )
 {
 	_doIntVarop( pCore, pVar );
 }
@@ -1619,9 +1619,9 @@ VarAction uintOps[] =
 };
 
 
-static void _doUIntVarop(ForthCoreState* pCore, uint32_t* pVar)
+static void _doUIntVarop(CoreState* pCore, uint32_t* pVar)
 {
-    ForthEngine* pEngine = (ForthEngine*)pCore->pEngine;
+    Engine* pEngine = (Engine*)pCore->pEngine;
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
@@ -1867,9 +1867,9 @@ VarAction floatOps[] =
     doFloatMinus,
 };
 
-static void _doFloatVarop( ForthCoreState* pCore, float* pVar )
+static void _doFloatVarop( CoreState* pCore, float* pVar )
 {
-    ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
+    Engine *pEngine = (Engine *)pCore->pEngine;
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
@@ -2153,9 +2153,9 @@ VarAction doubleOps[] =
     doDoubleMinus,
 };
 
-static void _doDoubleVarop( ForthCoreState* pCore, double* pVar )
+static void _doDoubleVarop( CoreState* pCore, double* pVar )
 {
-    ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
+    Engine *pEngine = (Engine *)pCore->pEngine;
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
@@ -2450,9 +2450,9 @@ VarAction stringOps[] =
     doStringClear
 };
 
-static void _doStringVarop( ForthCoreState* pCore, char* pVar )
+static void _doStringVarop( CoreState* pCore, char* pVar )
 {
-    ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
+    Engine *pEngine = (Engine *)pCore->pEngine;
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
@@ -2578,7 +2578,7 @@ OPTYPE_ACTION( MemberStringArrayAction )
 
 VAR_ACTION( doOpExecute ) 
 {
-    ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore,  *(int32_t *)(SPOP) );
+    ((Engine *)pCore->pEngine)->ExecuteOp(pCore,  *(int32_t *)(SPOP) );
 }
 
 VarAction opOps[] =
@@ -2589,9 +2589,9 @@ VarAction opOps[] =
     doIntStore,
 };
 
-static void _doOpVarop( ForthCoreState* pCore, int32_t* pVar )
+static void _doOpVarop( CoreState* pCore, int32_t* pVar )
 {
-    ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
+    Engine *pEngine = (Engine *)pCore->pEngine;
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
@@ -2706,9 +2706,9 @@ OPTYPE_ACTION( MemberOpArrayAction )
 // 
 
 
-static void _doObjectVarop( ForthCoreState* pCore, ForthObject* pVar )
+static void _doObjectVarop( CoreState* pCore, ForthObject* pVar )
 {
-    ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
+    Engine *pEngine = (Engine *)pCore->pEngine;
 
     VarOperation varOp = GET_VAR_OPERATION;
 	CLEAR_VAR_OPERATION;
@@ -3067,9 +3067,9 @@ VarAction longOps[] =
     doLongGetDec
 };
 
-void longVarAction( ForthCoreState* pCore, int64_t* pVar )
+void longVarAction( CoreState* pCore, int64_t* pVar )
 {
-    ForthEngine *pEngine = (ForthEngine *)pCore->pEngine;
+    Engine *pEngine = (Engine *)pCore->pEngine;
     VarOperation varOp = GET_VAR_OPERATION;
     if (varOp != VarOperation::kVarDefaultOp)
     {
@@ -3617,7 +3617,7 @@ OPTYPE_ACTION( MemberRefAction )
     SPUSH( ((cell)GET_TP) + opVal );
 }
 
-// bits 0..15 are index into ForthCoreState userOps table, 16..18 are flags, 19..23 are arg count
+// bits 0..15 are index into CoreState userOps table, 16..18 are flags, 19..23 are arg count
 OPTYPE_ACTION( DLLEntryPointAction )
 {
 #ifdef WIN32
@@ -3696,7 +3696,7 @@ OPTYPE_ACTION(MethodWithThisAction)
 {
     // this is called when an object method invokes another method on itself
     // opVal is the method number
-    ForthEngine *pEngine = GET_ENGINE;
+    Engine *pEngine = GET_ENGINE;
     ForthObject thisObject = (ForthObject)(GET_TP);
     forthop* pMethods = thisObject->pMethods;
     RPUSH( ((cell) GET_TP) );
@@ -3718,7 +3718,7 @@ OPTYPE_ACTION(MethodWithSuperAction)
         return;
     }
 
-    ForthEngine *pEngine = GET_ENGINE;
+    Engine *pEngine = GET_ENGINE;
     ForthObject thisObject = (ForthObject)(GET_TP);
     forthop* pMethods = thisObject->pMethods;
     // save old methods on rstack to be restored by unsuper, which is compiled in next opcode
@@ -3742,7 +3742,7 @@ OPTYPE_ACTION( MethodWithTOSAction )
     // method in the same class - the difference is that in this case
     // there is no explicit source for the "this" pointer, we just keep
     // on using the current "this" pointer
-    ForthEngine *pEngine = GET_ENGINE;
+    Engine *pEngine = GET_ENGINE;
 	//pEngine->TraceOut(">>MethodWithTOSAction IP %p  RP %p\n", GET_IP, GET_RP);
     RPUSH( ((cell) GET_TP) );
 
@@ -3769,7 +3769,7 @@ OPTYPE_ACTION(MethodWithLocalObjectAction)
     // bits 0..11 are method index, bits 12..23 are object offset in longs
     ForthObject obj = *((ForthObject*)(GET_FP - (opVal >> 12)));
     int methodIndex = opVal & 0xFFF;
-    ForthEngine* pEngine = GET_ENGINE;
+    Engine* pEngine = GET_ENGINE;
     //pEngine->TraceOut(">>MethodWithLocalObjectAction IP %p  RP %p\n", GET_IP, GET_RP);
     RPUSH(((cell)GET_TP));
 
@@ -3794,7 +3794,7 @@ OPTYPE_ACTION(MethodWithMemberObjectAction)
     // bits 0..11 are method index, bits 12..23 are frame offset in longs
     ForthObject obj = *((ForthObject*)(((cell)(GET_TP)) + (opVal >> 12)));
     int methodIndex = opVal & 0xFFF;
-    ForthEngine* pEngine = GET_ENGINE;
+    Engine* pEngine = GET_ENGINE;
     //pEngine->TraceOut(">>MethodWithLocalObjectAction IP %p  RP %p\n", GET_IP, GET_RP);
     RPUSH(((cell)GET_TP));
 
@@ -3845,7 +3845,7 @@ OPTYPE_ACTION( NumVaropOpComboAction )
 
 	// execute op in bits 13:23
 	forthop op = COMPILED_OP(NATIVE_OPTYPE, (opVal >> 13));
-    ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore,  op );
+    ((Engine *)pCore->pEngine)->ExecuteOp(pCore,  op );
 }
 
 OPTYPE_ACTION( NumVaropComboAction )
@@ -3886,7 +3886,7 @@ OPTYPE_ACTION( NumOpComboAction )
 
 	// execute op in bits 13:23
     forthop op = COMPILED_OP(NATIVE_OPTYPE, (opVal >> 13) );
-    ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore,  op );
+    ((Engine *)pCore->pEngine)->ExecuteOp(pCore,  op );
 }
 
 OPTYPE_ACTION( VaropOpComboAction )
@@ -3898,14 +3898,14 @@ OPTYPE_ACTION( VaropOpComboAction )
 
 	// execute op in bits 2:23
     forthop op = COMPILED_OP(NATIVE_OPTYPE, (opVal >> 2) );
-    ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore,  op );
+    ((Engine *)pCore->pEngine)->ExecuteOp(pCore,  op );
 }
 
 OPTYPE_ACTION( OpZBranchComboAction )
 {
 	// bits 0..11 are opcode, bits 12-23 are signed integer branch offset in longs
     forthop op = COMPILED_OP(NATIVE_OPTYPE, (opVal & 0xFFF));
-    ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore,  op );
+    ((Engine *)pCore->pEngine)->ExecuteOp(pCore,  op );
     if ( SPOP == 0 )
     {
 		int32_t branchOffset = opVal >> 12;
@@ -3922,7 +3922,7 @@ OPTYPE_ACTION(OpNZBranchComboAction)
 {
     // bits 0..11 are opcode, bits 12-23 are signed integer branch offset in longs
     forthop op = COMPILED_OP(NATIVE_OPTYPE, (opVal & 0xFFF));
-    ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore, op);
+    ((Engine *)pCore->pEngine)->ExecuteOp(pCore, op);
     if (SPOP != 0)
     {
         int32_t branchOffset = opVal >> 12;
@@ -3937,24 +3937,24 @@ OPTYPE_ACTION(OpNZBranchComboAction)
 
 OPTYPE_ACTION( SquishedFloatAction )
 {
-	float fval = ((ForthEngine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishFloat( opVal );
+	float fval = ((Engine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishFloat( opVal );
 	FPUSH( fval );
 }
 
 OPTYPE_ACTION( SquishedDoubleAction )
 {
-	double dval = ((ForthEngine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishDouble( opVal );
+	double dval = ((Engine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishDouble( opVal );
 	DPUSH( dval );
 }
 
 OPTYPE_ACTION( SquishedLongAction )
 {
 #if defined(FORTH64)
-    int64_t lval = ((ForthEngine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishLong(opVal);
+    int64_t lval = ((Engine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishLong(opVal);
     SPUSH(lval);
 #else
     stackInt64 lval;
-    lval.s64 = ((ForthEngine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishLong(opVal);
+    lval.s64 = ((Engine *)pCore->pEngine)->GetOuterInterpreter()->UnsquishLong(opVal);
     LPUSH(lval);
 #endif
 }
@@ -3966,7 +3966,7 @@ OPTYPE_ACTION( LocalRefOpComboAction )
 
 	// execute op in bits 12:23
     forthop op = COMPILED_OP(NATIVE_OPTYPE, (opVal >> 12));
-    ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore,  op );
+    ((Engine *)pCore->pEngine)->ExecuteOp(pCore,  op );
 }
 
 OPTYPE_ACTION( MemberRefOpComboAction )
@@ -3977,7 +3977,7 @@ OPTYPE_ACTION( MemberRefOpComboAction )
 
 	// execute op in bits 12:23
     forthop op = COMPILED_OP(NATIVE_OPTYPE, (opVal >> 12));
-    ((ForthEngine *)pCore->pEngine)->ExecuteOp(pCore,  op );
+    ((Engine *)pCore->pEngine)->ExecuteOp(pCore,  op );
 }
 
 OPTYPE_ACTION(NativeU32Action)
@@ -4391,7 +4391,7 @@ optypeActionRoutine builtinOptypeAction[] =
     NULL            // this must be last to end the list
 };
 
-void InitDispatchTables( ForthCoreState* pCore )
+void InitDispatchTables( CoreState* pCore )
 {
     int i;
 
@@ -4410,7 +4410,7 @@ void InitDispatchTables( ForthCoreState* pCore )
     }
 }
 
-void CoreSetError( ForthCoreState *pCore, ForthError error, bool isFatal )
+void CoreSetError( CoreState *pCore, ForthError error, bool isFatal )
 {
     pCore->error =  error;
     pCore->state = (isFatal) ? OpResult::kFatalError : OpResult::kError;
@@ -4425,7 +4425,7 @@ void CoreSetError( ForthCoreState *pCore, ForthError error, bool isFatal )
 
 
 
-OpResult InnerInterpreter( ForthCoreState *pCore )
+OpResult InnerInterpreter( CoreState *pCore )
 {
     SET_STATE( OpResult::kOk );
 
@@ -4433,7 +4433,7 @@ OpResult InnerInterpreter( ForthCoreState *pCore )
 	while (bContinueLooping)
 	{
 #ifdef TRACE_INNER_INTERPRETER
-		ForthEngine* pEngine = GET_ENGINE;
+		Engine* pEngine = GET_ENGINE;
 		int traceFlags = pEngine->GetTraceFlags();
 		if (traceFlags & kLogInnerInterpreter)
 		{
@@ -4478,12 +4478,12 @@ OpResult InnerInterpreter( ForthCoreState *pCore )
     return GET_STATE;
 }
 
-OpResult InterpretOneOp( ForthCoreState *pCore, forthop op )
+OpResult InterpretOneOp( CoreState *pCore, forthop op )
 {
     SET_STATE( OpResult::kOk );
 
 #ifdef TRACE_INNER_INTERPRETER
-	ForthEngine* pEngine = GET_ENGINE;
+	Engine* pEngine = GET_ENGINE;
 	int traceFlags = pEngine->GetTraceFlags();
 	if ( traceFlags & kLogInnerInterpreter )
 	{
@@ -4510,7 +4510,7 @@ OpResult InterpretOneOp( ForthCoreState *pCore, forthop op )
 }
 
 #if 0
-OpResult InnerInterpreter( ForthCoreState *pCore )
+OpResult InnerInterpreter( CoreState *pCore )
 {
     forthop opVal;
     ucell numBuiltinOps;
@@ -4522,7 +4522,7 @@ OpResult InnerInterpreter( ForthCoreState *pCore )
     SET_STATE( OpResult::kOk );
 
 #ifdef TRACE_INNER_INTERPRETER
-	ForthEngine* pEngine = GET_ENGINE;
+	Engine* pEngine = GET_ENGINE;
 	int traceFlags = pEngine->GetTraceFlags();
 	if ( traceFlags & kLogInnerInterpreter )
 	{

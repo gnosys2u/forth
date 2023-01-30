@@ -26,7 +26,7 @@
 extern "C"
 {
 	uint32_t SuperFastHash (const char * data, int len, uint32_t hash);
-	extern cell oStringFormatSub( ForthCoreState* pCore, char* pBuffer, int bufferSize );
+	extern cell oStringFormatSub( CoreState* pCore, char* pBuffer, int bufferSize );
 };
 
 namespace OString
@@ -379,7 +379,7 @@ namespace OString
         int32_t newLen = SPOP;
         if (newLen < 0)
         {
-            ForthEngine *pEngine = ForthEngine::GetInstance();
+            Engine *pEngine = Engine::GetInstance();
             pEngine->SetError(ForthError::kBadParameter, " String.keepLeft negative length");
             newLen = 0;
         }
@@ -400,7 +400,7 @@ namespace OString
         char* data = &(str->data[0]);
         if (newLen < 0)
         {
-            ForthEngine *pEngine = ForthEngine::GetInstance();
+            Engine *pEngine = Engine::GetInstance();
             pEngine->SetError(ForthError::kBadParameter, " String.keepRight negative length");
             newLen = 0;
         }
@@ -424,7 +424,7 @@ namespace OString
         oString* str = pString->str;
         int32_t newLen = SPOP;
         int32_t firstChar = SPOP;
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         if (firstChar < 0)
         {
             pEngine->SetError(ForthError::kBadParameter, " String.keepMiddle negative first character");
@@ -472,7 +472,7 @@ namespace OString
         int32_t newLen = SPOP;
         if (newLen < 0)
         {
-            ForthEngine *pEngine = ForthEngine::GetInstance();
+            Engine *pEngine = Engine::GetInstance();
             pEngine->SetError(ForthError::kBadParameter, " String.leftBytes negative length");
             newLen = 0;
         }
@@ -493,7 +493,7 @@ namespace OString
         char* data = &(str->data[0]);
         if (newLen < 0)
         {
-            ForthEngine *pEngine = ForthEngine::GetInstance();
+            Engine *pEngine = Engine::GetInstance();
             pEngine->SetError(ForthError::kBadParameter, " String.rightBytes negative length");
             newLen = 0;
         }
@@ -516,7 +516,7 @@ namespace OString
         oString* str = pString->str;
         int32_t newLen = SPOP;
         int32_t firstChar = SPOP;
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         char* pBytes = &(str->data[0]);
         if (firstChar < 0)
         {
@@ -946,7 +946,7 @@ namespace OString
 	//
 
 
-    void setStringMap(oStringMapStruct* pMap, std::string& key, ForthObject& obj, ForthCoreState* pCore)
+    void setStringMap(oStringMapStruct* pMap, std::string& key, ForthObject& obj, CoreState* pCore)
     {
         oStringMap& a = *(pMap->elements);
         oStringMap::iterator iter = a.find(key);
@@ -1017,7 +1017,7 @@ namespace OString
 		GET_THIS(oStringMapStruct, pMap);
 		oStringMap::iterator iter;
 		oStringMap& a = *(pMap->elements);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("map");
         pShowContext->ShowTextReturn("{");
@@ -1281,7 +1281,7 @@ namespace OString
 
 	FORTHOP(oStringMapIterNew)
 	{
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a oStringMapIter object");
 	}
 
@@ -1462,7 +1462,7 @@ namespace OString
 	};
 
     // functions for string output streams
-	void stringCharOut( ForthCoreState* pCore, void *pData, char ch )
+	void stringCharOut( CoreState* pCore, void *pData, char ch )
 	{
         oStringStruct* pString = reinterpret_cast<oStringStruct*>(static_cast<oStringOutStreamStruct*>(pData)->outString);
         if (pString != nullptr)
@@ -1475,7 +1475,7 @@ namespace OString
         }
 	}
 
-	void stringBlockOut( ForthCoreState* pCore, void *pData, const char *pBuffer, int numChars )
+	void stringBlockOut( CoreState* pCore, void *pData, const char *pBuffer, int numChars )
 	{
         oStringStruct* pString = reinterpret_cast<oStringStruct*>(static_cast<oStringOutStreamStruct*>(pData)->outString);
         if (pString != nullptr)
@@ -1488,7 +1488,7 @@ namespace OString
         }
 	}
 
-	void stringStringOut( ForthCoreState* pCore, void *pData, const char *pBuffer )
+	void stringStringOut( CoreState* pCore, void *pData, const char *pBuffer )
 	{
 		oStringStruct* pString = reinterpret_cast<oStringStruct*>(static_cast<oStringOutStreamStruct*>(pData)->outString);
         if (pString != nullptr)
@@ -1502,7 +1502,7 @@ namespace OString
         }
 	}
 
-    bool customStringReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customStringReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "value")
         {
@@ -1516,7 +1516,7 @@ namespace OString
             }
             else
             {
-                ForthEngine::GetInstance()->SetError(ForthError::kBadParameter, "customStringReader destination string null");
+                Engine::GetInstance()->SetError(ForthError::kBadParameter, "customStringReader destination string null");
                 return false;
             }
         }
@@ -1532,15 +1532,15 @@ namespace OString
         return false;
     }
 
-    bool customStringMapReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customStringMapReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "map")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oStringMapStruct *dstMap = (oStringMapStruct *)(reader->getCustomReaderContext().pData);
             if (dstMap == nullptr)
             {
-                ForthEngine::GetInstance()->SetError(ForthError::kBadParameter, "customStringMapReader destination map null");
+                Engine::GetInstance()->SetError(ForthError::kBadParameter, "customStringMapReader destination map null");
                 return false;
             }
             reader->getRequiredChar('{');

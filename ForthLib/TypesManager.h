@@ -7,7 +7,7 @@
 
 #include "ForthForgettable.h"
 
-class ForthStructCodeGenerator;
+class StructCodeGenerator;
 class StructVocabulary;
 class ClassVocabulary;
 class ForthInterface;
@@ -24,13 +24,13 @@ public:
     virtual void    ForgetCleanup( void *pForgetLimit, forthop op );
 
     // compile/interpret symbol if it is a valid structure accessor
-    virtual bool    ProcessSymbol( ForthParseInfo *pInfo, OpResult& exitStatus );
+    virtual bool    ProcessSymbol( ParseInfo *pInfo, OpResult& exitStatus );
 
     // compile symbol if it is a class member variable or method
-    virtual bool    ProcessMemberSymbol( ForthParseInfo *pInfo, OpResult& exitStatus, VarOperation varop = VarOperation::kVarDefaultOp );
+    virtual bool    ProcessMemberSymbol( ParseInfo *pInfo, OpResult& exitStatus, VarOperation varop = VarOperation::kVarDefaultOp );
 
     void            AddBuiltinClasses(OuterInterpreter* pOuter);
-    void            ShutdownBuiltinClasses(ForthEngine* pEngine);
+    void            ShutdownBuiltinClasses(Engine* pEngine);
 
     // add a new structure type
     StructVocabulary*          StartStructDefinition( const char *pName );
@@ -69,11 +69,11 @@ protected:
     // mStructInfo is an array with an entry for each defined structure type
 	std::vector<ForthTypeInfo>      mStructInfo;
     static TypesManager*       mpInstance;
-    ForthVocabulary*                mpSavedDefinitionVocab;
+    Vocabulary*                mpSavedDefinitionVocab;
     char                            mToken[ DEFAULT_INPUT_BUFFER_LEN ];
     forthop                         mCode[ MAX_ACCESSOR_LONGS ];
     forthop*                        mpClassMethods;
-	ForthStructCodeGenerator*		mpCodeGenerator;
+	StructCodeGenerator*		mpCodeGenerator;
 	std::vector<ForthFieldInitInfo>	mFieldInitInfos;
 	cell							mNewestTypeIndex;
 };

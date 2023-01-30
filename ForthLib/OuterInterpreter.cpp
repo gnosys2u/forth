@@ -117,7 +117,7 @@ void TokenStack::Clear()
 //                     OuterInterpreter
 // 
 
-OuterInterpreter::OuterInterpreter(ForthEngine* pEngine)
+OuterInterpreter::OuterInterpreter(Engine* pEngine)
     : mpEngine(pEngine)
     , mpForthVocab(nullptr)
     , mpLiteralsVocab(nullptr)
@@ -153,15 +153,15 @@ OuterInterpreter::OuterInterpreter(ForthEngine* pEngine)
 
     mTokenStack.Initialize(4);
 
-    mpOpcodeCompiler = new ForthOpcodeCompiler(mpEngine->GetDictionaryMemorySection());
+    mpOpcodeCompiler = new OpcodeCompiler(mpEngine->GetDictionaryMemorySection());
 
     if (mpTypesManager == nullptr)
     {
         mpTypesManager = new TypesManager();
     }
 
-    mpForthVocab = new ForthVocabulary("forth", NUM_FORTH_VOCAB_VALUE_LONGS);
-    mpLiteralsVocab = new ForthVocabulary("literals", NUM_FORTH_VOCAB_VALUE_LONGS);
+    mpForthVocab = new Vocabulary("forth", NUM_FORTH_VOCAB_VALUE_LONGS);
+    mpLiteralsVocab = new Vocabulary("literals", NUM_FORTH_VOCAB_VALUE_LONGS);
     mpLocalVocab = new LocalVocabulary("locals", NUM_LOCALS_VOCAB_VALUE_LONGS);
     mStringBufferASize = 3 * MAX_STRING_SIZE;
     mpStringBufferA = new char[mStringBufferASize];
@@ -506,7 +506,7 @@ void OuterInterpreter::ForgetOp(forthop opNumber, bool quietMode )
         }
     }
 
-    ForthExtension* pExtension = mpEngine->GetExtension();
+    Extension* pExtension = mpEngine->GetExtension();
     if (pExtension != nullptr)
     {
         pExtension->ForgetOp( opNumber );
@@ -523,13 +523,13 @@ bool OuterInterpreter::ForgetSymbol( const char *pSym, bool quietMode )
     char buff[256];
     buff[0] = '\0';
 
-    ForthVocabulary* pFoundVocab = nullptr;
+    Vocabulary* pFoundVocab = nullptr;
     pEntry = GetVocabularyStack()->FindSymbol( pSym, &pFoundVocab );
 
     if ( pFoundVocab != nullptr )
     {
-        op = ForthVocabulary::GetEntryValue( pEntry );
-        opType = ForthVocabulary::GetEntryType( pEntry );
+        op = Vocabulary::GetEntryValue( pEntry );
+        opType = Vocabulary::GetEntryType( pEntry );
 		uint32_t opIndex = ((uint32_t)FORTH_OP_VALUE( op ));
         switch ( opType )
         {
@@ -581,7 +581,7 @@ void OuterInterpreter::ShowSearchInfo()
 	ForthConsoleStringOut(mpCore, "vocab stack:");
 	while (true)
 	{
-		ForthVocabulary* pVocab = pVocabStack->GetElement(depth);
+		Vocabulary* pVocab = pVocabStack->GetElement(depth);
 		if (pVocab == nullptr)
 		{
 			break;
@@ -602,7 +602,7 @@ char * OuterInterpreter::GetNextSimpleToken( void )
 }
 
 forthop* OuterInterpreter::StartOpDefinition(const char *pName, bool smudgeIt,
-    forthOpType opType, ForthVocabulary* pDefinitionVocab)
+    forthOpType opType, Vocabulary* pDefinitionVocab)
 {
     mpLocalVocab->Empty();
     mpLocalVocab->ClearFrame();
@@ -660,7 +660,7 @@ void OuterInterpreter::EndOpDefinition( bool unsmudgeIt )
 
 forthop* OuterInterpreter::FindSymbol( const char *pSymName )
 {
-    ForthVocabulary* pFoundVocab = nullptr;
+    Vocabulary* pFoundVocab = nullptr;
     return GetVocabularyStack()->FindSymbol( pSymName, &pFoundVocab );
 }
 
@@ -696,7 +696,7 @@ void OuterInterpreter::DescribeOp( const char* pSymName, forthop op, int32_t aux
         if (*curIP == gCompiledOps[OP_DO_ENUM])
         {
             ForthEnumInfo* pEnumInfo = (ForthEnumInfo *)(curIP + 1);
-            ForthVocabulary* pVocab = pEnumInfo->pVocab;
+            Vocabulary* pVocab = pEnumInfo->pVocab;
             int32_t numEnums = pEnumInfo->numEnums;
             forthop* pEntry = pVocab->GetEntriesEnd() - pEnumInfo->vocabOffset;
             SNPRINTF(buff, sizeof(buff), "Enum size %d entries %d\n", pEnumInfo->size, numEnums);
@@ -723,7 +723,7 @@ void OuterInterpreter::DescribeOp( const char* pSymName, forthop op, int32_t aux
                 mpEngine->ConsoleOut(buff);
                 SNPRINTF(buff, sizeof(buff), "\n");
                 mpEngine->ConsoleOut(buff);
-                if (((line & 31) == 0) && (mpShell != nullptr) && mpShell->GetInput()->InputStream()->IsInteractive())
+                if (((line & 31) == 0) && (mpShell != nullptr) && mpShell->GetInput()->Top()->IsInteractive())
                 {
                     mpEngine->ConsoleOut("Hit ENTER to continue, 'q' & ENTER to quit\n");
                     c = mpShell->GetChar();
@@ -746,7 +746,7 @@ void OuterInterpreter::DescribeSymbol( const char *pSymName )
     forthop *pEntry = nullptr;
     char buff[256];
 
-    ForthVocabulary* pFoundVocab = nullptr;
+    Vocabulary* pFoundVocab = nullptr;
     pEntry = GetVocabularyStack()->FindSymbol( pSymName, &pFoundVocab );
     if ( pEntry )
     {
@@ -1506,7 +1506,7 @@ OuterInterpreter::EndEnumDefinition( void )
     ClearFlag( kEngineFlagInEnumDefinition );
 }
 
-forthop * OuterInterpreter::FindUserDefinition( ForthVocabulary* pVocab, forthop*& pClosestIP, forthop* pIP, forthop*& pBase  )
+forthop * OuterInterpreter::FindUserDefinition( Vocabulary* pVocab, forthop*& pClosestIP, forthop* pIP, forthop*& pBase  )
 {
     forthop* pClosest = nullptr;
 	forthop* pEntry = pVocab->GetNewestEntry();
@@ -1760,7 +1760,7 @@ bool OuterInterpreter::HasPendingContinuations()
 }
 
 
-void OuterInterpreter::AddGlobalObjectVariable(ForthObject* pObject, ForthVocabulary* pVocab, const char* pName)
+void OuterInterpreter::AddGlobalObjectVariable(ForthObject* pObject, Vocabulary* pVocab, const char* pName)
 {
     mpEngine->TraceOut("Adding %s global object [%d] @%p of class %s\n", pName, mGlobalObjectVariables.size(), pObject, pVocab->GetName());
     mGlobalObjectVariables.push_back(pObject);
@@ -1830,7 +1830,7 @@ bool OuterInterpreter::CompileLocalVariableOpcode(forthop* pEntry, VarOperation 
 //############################################################################
 
 // return true to exit forth shell
-OpResult OuterInterpreter::ProcessToken( ForthParseInfo   *pInfo )
+OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
 {
     forthop* pEntry;
     int64_t lvalue;
@@ -1843,7 +1843,7 @@ OpResult OuterInterpreter::ProcessToken( ForthParseInfo   *pInfo )
 	bool isAQuotedCharacter = (pInfo->GetFlags() & PARSE_FLAG_QUOTED_CHARACTER) != 0;
     bool isSingle, isOffset, isApproximate;
     double* pDPD;
-    ForthVocabulary* pFoundVocab = nullptr;
+    Vocabulary* pFoundVocab = nullptr;
 
     mpLastToken = pToken;
     if ( (pToken == nullptr)   ||   ((len == 0) && !(isAString || isAQuotedCharacter)) )
@@ -1966,7 +1966,7 @@ OpResult OuterInterpreter::ProcessToken( ForthParseInfo   *pInfo )
             ////////////////////////////////////
             char* pColon = strchr( pToken, ':' );
             *pColon = '\0';
-            ForthVocabulary* pVocab = ForthVocabulary::FindVocabulary( pToken );
+            Vocabulary* pVocab = Vocabulary::FindVocabulary( pToken );
             if ( pVocab != nullptr )
             {
                 pEntry = pVocab->FindSymbol( pColon + 1 );
@@ -2204,7 +2204,7 @@ OpResult OuterInterpreter::ProcessToken( ForthParseInfo   *pInfo )
                     // symbol is a local variable with a varop suffix
                     //
                     ////////////////////////////////////
-                    SPEW_OUTER_INTERPRETER("Local variable with varop {%s%s}\n", pToken, ForthParseInfo::GetVaropSuffix(varop));
+                    SPEW_OUTER_INTERPRETER("Local variable with varop {%s%s}\n", pToken, ParseInfo::GetVaropSuffix(varop));
                     if (CompileLocalVariableOpcode(pEntry, varop))
                     {
                         return OpResult::kOk;
@@ -2241,7 +2241,7 @@ OpResult OuterInterpreter::ProcessToken( ForthParseInfo   *pInfo )
                 // symbol is a global variable with varop suffix
                 //
                 ////////////////////////////////////
-                SPEW_OUTER_INTERPRETER("Global variable with varop {%s%s}\n", pToken, ForthParseInfo::GetVaropSuffix(varop));
+                SPEW_OUTER_INTERPRETER("Global variable with varop {%s%s}\n", pToken, ParseInfo::GetVaropSuffix(varop));
 
                 if (mCompileState)
                 {

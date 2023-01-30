@@ -31,7 +31,7 @@ SECTION .text
 	mov r10, rcx		            ; r10 = routine address
     mov rdi, r8                     ; rdi = flags
     
-    mov r12, r9                     ; r12 -> ForthCoreState
+    mov r12, r9                     ; r12 -> CoreState
 	mov	r14, [r12 + FCore.SPtr]
 
     ; TOS: argN..arg1
@@ -121,7 +121,7 @@ CallDLL4:
 	ret
 
 
-; extern void NativeAction( ForthCoreState *pCore, ulong opVal );
+; extern void NativeAction( CoreState *pCore, ulong opVal );
 ;-----------------------------------------------
 ;
 ; inner interpreter entry point for ops defined in assembler
@@ -155,7 +155,7 @@ CallDLL4:
     push rip
 	; stack should be 16-byte aligned at this point
 
-    mov rcore, rcx                        ; rcore -> ForthCoreState
+    mov rcore, rcx                        ; rcore -> CoreState
 	mov	rpsp, [rcore + FCore.SPtr]
 	mov rrp, [rcore + FCore.RPtr]
 	mov	rfp, [rcore + FCore.FPtr]

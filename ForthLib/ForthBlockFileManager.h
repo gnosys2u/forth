@@ -1,7 +1,7 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthBlockFileManager.h: interface for the ForthBlockFileManager class.
+// ForthBlockFileManager.h: interface for the BlockFileManager class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -12,15 +12,15 @@
 #endif
 #define BYTES_PER_BLOCK 1024
 
-class ForthBlockInputStream;
-class ForthEngine;
+class BlockInputStream;
+class Engine;
 class OuterInterpreter;
 
-class ForthBlockFileManager
+class BlockFileManager
 {
 public:
-    ForthBlockFileManager(const char* pBlockFilename, ucell numBuffers = NUM_BLOCK_BUFFERS, ucell bytesPerBlock = BYTES_PER_BLOCK);
-    ~ForthBlockFileManager();
+    BlockFileManager(const char* pBlockFilename, ucell numBuffers = NUM_BLOCK_BUFFERS, ucell bytesPerBlock = BYTES_PER_BLOCK);
+    ~BlockFileManager();
 
     const char*     GetBlockFilename();
     char*           GetBlock( ucell blockNum, bool readContents );

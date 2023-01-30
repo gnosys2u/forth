@@ -10,7 +10,7 @@
 #define MAX_LOCAL_DEPTH 16
 #define LOCAL_STACK_STRIDE 3
 
-class LocalVocabulary : public ForthVocabulary
+class LocalVocabulary : public Vocabulary
 {
 public:
     LocalVocabulary( const char *pName=NULL,

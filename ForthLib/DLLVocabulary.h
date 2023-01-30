@@ -8,7 +8,7 @@
 #include "Forth.h"
 #include "ForthVocabulary.h"
 
-class DLLVocabulary : public ForthVocabulary
+class DLLVocabulary : public Vocabulary
 {
 public:
     DLLVocabulary( const char *pVocabName,

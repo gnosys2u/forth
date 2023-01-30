@@ -23,5 +23,5 @@ namespace OSystem
     };
 
     void AddClasses(OuterInterpreter* pOuter);
-    void Shutdown(ForthEngine* pEngine);
+    void Shutdown(Engine* pEngine);
 }

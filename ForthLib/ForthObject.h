@@ -20,7 +20,7 @@
 
 #define END_MEMBERS { nullptr, 0, 0 }
 
-#define FULLY_EXECUTE_METHOD( _pCore, _obj, _methodNum ) ((ForthEngine *) (_pCore->pEngine))->FullyExecuteMethod( _pCore, _obj, _methodNum )
+#define FULLY_EXECUTE_METHOD( _pCore, _obj, _methodNum ) ((Engine *) (_pCore->pEngine))->FullyExecuteMethod( _pCore, _obj, _methodNum )
 
 #define PUSH_OBJECT( _obj )             SPUSH((cell)(_obj))
 #define POP_OBJECT( _obj )              _obj = (ForthObject)(SPOP)
@@ -31,7 +31,7 @@
 
 #define SAFE_RELEASE( _pCore, _obj ) \
 	if ( _obj != nullptr ) { \
-		if ( _obj->refCount.fetch_sub(1) == 1 ) { ((ForthEngine *) (_pCore->pEngine))->DeleteObject( _pCore, _obj ); } \
+		if ( _obj->refCount.fetch_sub(1) == 1 ) { ((Engine *) (_pCore->pEngine))->DeleteObject( _pCore, _obj ); } \
 	} TRACK_RELEASE
 
 #else
@@ -39,7 +39,7 @@
 #define SAFE_RELEASE( _pCore, _obj ) \
 	if ( _obj != nullptr ) { \
 		_obj->refCount -= 1; \
-		if ( _obj->refCount == 0 ) { ((ForthEngine *) (_pCore->pEngine))->DeleteObject( _pCore, _obj ); } \
+		if ( _obj->refCount == 0 ) { ((Engine *) (_pCore->pEngine))->DeleteObject( _pCore, _obj ); } \
 	} TRACK_RELEASE
 
 #endif
@@ -54,7 +54,7 @@
 #define OBJECT_ASSIGN( _pCore, _dstObj, _srcObj ) \
     if ( (_dstObj) != (_srcObj) ) { SAFE_KEEP( (_srcObj) ); SAFE_RELEASE( (_pCore), (_dstObj) ); _dstObj = _srcObj; }
 
-#define GET_SHOW_CONTEXT ForthShowContext* pShowContext = static_cast<ForthFiber*>(pCore->pFiber)->GetShowContext();
+#define GET_SHOW_CONTEXT ShowContext* pShowContext = static_cast<ForthFiber*>(pCore->pFiber)->GetShowContext();
 
 enum
 {

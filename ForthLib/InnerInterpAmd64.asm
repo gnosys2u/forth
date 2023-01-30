@@ -246,7 +246,7 @@ extOpType1:
 ;
 ; InitAsmTables - initializes first part of optable, where op positions are referenced by constants
 ;
-; extern void InitAsmTables( ForthCoreState *pCore );
+; extern void InitAsmTables( CoreState *pCore );
 entry InitAsmTables
 
 	; rcx -> ForthCore struct (rdi in Linux)
@@ -284,7 +284,7 @@ entry InitAsmTables
 ;
 ; single step a thread
 ;
-; extern OpResult InterpretOneOpFast( ForthCoreState *pCore, forthop op );
+; extern OpResult InterpretOneOpFast( CoreState *pCore, forthop op );
 entry InterpretOneOpFast
     ; rcx is pCore	(rdi in Linux)
     ; rdx is op		(rsi in Linux)
@@ -303,7 +303,7 @@ entry InterpretOneOpFast
 	mov rdx, rsi
 %endif
 	; stack should be 16-byte aligned at this point
-    mov rcore, rcx                        ; rcore -> ForthCoreState
+    mov rcore, rcx                        ; rcore -> CoreState
 	mov	rpsp, [rcore + FCore.SPtr]
 	mov rrp, [rcore + FCore.RPtr]
 	mov	rfp, [rcore + FCore.FPtr]
@@ -350,7 +350,7 @@ InterpretOneOpFastExit2:	; this is exit for state != OK
 ;
 ; inner interpreter C entry point
 ;
-; extern OpResult InnerInterpreterFast( ForthCoreState *pCore );
+; extern OpResult InnerInterpreterFast( CoreState *pCore );
 entry InnerInterpreterFast
 	push rbx
     push rdi
@@ -362,9 +362,9 @@ entry InnerInterpreterFast
 	; stack should be 16-byte aligned at this point
     
 %ifdef LINUX
-    mov rcore, rdi                        ; rcore -> ForthCoreState
+    mov rcore, rdi                        ; rcore -> CoreState
 %else
-    mov rcore, rcx                        ; rcore -> ForthCoreState
+    mov rcore, rcx                        ; rcore -> CoreState
 %endif
 	call	interpFunc
 
@@ -724,8 +724,8 @@ entry relativeDefType
 	and	rbx, 00FFFFFFh
 	sal	rbx, 2
 	mov	rax, [rcore + FCore.DictionaryPtr]
-	add	rbx, [rax + ForthMemorySection.pBase]
-	cmp	rbx, [rax + ForthMemorySection.pCurrent]
+	add	rbx, [rax + MemorySection.pBase]
+	cmp	rbx, [rax + MemorySection.pCurrent]
 	jge	badUserDef
 	; push IP on rstack
 	sub	rrp, 8
@@ -832,8 +832,8 @@ entry relativeDataType
 	and	rbx, 00FFFFFFh
 	sal	rbx, 2
 	mov	rax, [rcore + FCore.DictionaryPtr]
-	add	rbx, [rax + ForthMemorySection.pBase]
-	cmp	rbx, [rax + ForthMemorySection.pCurrent]
+	add	rbx, [rax + MemorySection.pBase]
+	cmp	rbx, [rax + MemorySection.pCurrent]
 	jge	badUserDef
 	; push address of data on pstack
 	sub	rpsp, 8
@@ -848,7 +848,7 @@ entry relativeDefBranchType
 	; push relativeDef opcode for immediately following anonymous definition (IP in rip points to it)
 	; compute offset from dictionary base to anonymous def
 	mov	rax, [rcore + FCore.DictionaryPtr]
-	mov	rcx, [rax + ForthMemorySection.pBase]
+	mov	rcx, [rax + MemorySection.pBase]
 	mov	rax, rip
 	sub	rax, rcx
 	sar	rax, 2
@@ -6231,7 +6231,7 @@ entry endTupleBop
 
 entry hereBop
 	mov	rax, [rcore + FCore.DictionaryPtr]
-    mov	rbx, [rax + ForthMemorySection.pCurrent]
+    mov	rbx, [rax + MemorySection.pCurrent]
     sub rpsp, 8
     mov [rpsp], rbx
     jmp rnext
@@ -6240,7 +6240,7 @@ entry hereBop
 
 entry dpBop
     mov	rax, [rcore + FCore.DictionaryPtr]
-    lea	rbx, [rax + ForthMemorySection.pCurrent]
+    lea	rbx, [rax + MemorySection.pCurrent]
     sub rpsp, 8
     mov [rpsp], rbx
     jmp rnext
@@ -7507,9 +7507,9 @@ entry	setTraceBop
 
 ;========================================
 
-;extern void snprintfSub( ForthCoreState* pCore );
-;extern void fscanfSub( ForthCoreState* pCore );
-;extern void sscanfSub( ForthCoreState* pCore );
+;extern void snprintfSub( CoreState* pCore );
+;extern void fscanfSub( CoreState* pCore );
+;extern void sscanfSub( CoreState* pCore );
 
 ;========================================
 
@@ -7520,7 +7520,7 @@ entry	setTraceBop
 ; fprintfOp (assembler version)
 ;  fprintfSubCore
 
-; extern void fprintfSub( ForthCoreState* pCore );
+; extern void fprintfSub( CoreState* pCore );
 entry fprintfSub
     ; called from C++
     ; rcx is pCore
@@ -7531,7 +7531,7 @@ entry fprintfSub
     ; params refer to parameters passed to fprintf: formatStr filePtr arg1..argN
     ; arguments refer to things which are to be printed: arg1..argN
     
-    mov rcore, rcx                        ; rcore -> ForthCoreState
+    mov rcore, rcx                        ; rcore -> CoreState
 	mov	rpsp, [rcore + FCore.SPtr]
 
     ; TOS: N argN..arg1 formatStr filePtr       (arg1 to argN are optional)
@@ -7604,7 +7604,7 @@ entry snprintfSub
     ; params refer to parameters passed to snprintf: bufferPtr bufferSize formatStr arg1..argN
     ; arguments refer to things which are to be printed: arg1..argN
     
-    mov rcore, rcx                        ; rcore -> ForthCoreState
+    mov rcore, rcx                        ; rcore -> CoreState
 	mov	rpsp, [rcore + FCore.SPtr]
 
     ; TOS: N argN ... arg1 formatStr bufferSize bufferPtr       (arg1 to argN are optional)
@@ -7665,7 +7665,7 @@ entry snprintfSub
 
 ;========================================
 
-; extern int oStringFormatSub( ForthCoreState* pCore, char* pBuffer, int bufferSize );
+; extern int oStringFormatSub( CoreState* pCore, char* pBuffer, int bufferSize );
 entry oStringFormatSub
     ; called from C++
     ; rcx is pCore
@@ -7680,7 +7680,7 @@ entry oStringFormatSub
     ; params refer to parameters passed to snprintf: bufferPtr bufferSize formatStr arg1..argN
     ; arguments refer to things which are to be printed: arg1..argN
     
-    mov rcore, rcx                        ; rcore -> ForthCoreState
+    mov rcore, rcx                        ; rcore -> CoreState
 	mov	rpsp, [rcore + FCore.SPtr]
 
     ; TOS: N argN ... arg1 formatStr bufferSize bufferPtr       (arg1 to argN are optional)
@@ -7752,7 +7752,7 @@ entry fscanfSub
     ; params refer to parameters passed to fscanf: formatStr filePtr arg1..argN
     ; arguments refer to things which are to be printed: arg1..argN
     
-    mov rcore, rcx                        ; rcore -> ForthCoreState
+    mov rcore, rcx                        ; rcore -> CoreState
 	mov	rpsp, [rcore + FCore.SPtr]
 
     ; TOS: N argN..arg1 formatStr filePtr       (arg1 to argN are optional)
@@ -7822,7 +7822,7 @@ entry sscanfSub
     ; params refer to parameters passed to sscanf: formatStr bufferPtr arg1..argN
     ; arguments refer to things which are to be printed: arg1..argN
     
-    mov rcore, rcx                        ; rcore -> ForthCoreState
+    mov rcore, rcx                        ; rcore -> CoreState
 	mov	rpsp, [rcore + FCore.SPtr]
 
     ; TOS: N argN..arg1 formatStr filePtr       (arg1 to argN are optional)
@@ -7885,7 +7885,7 @@ entry sscanfSub
 ;========================================
 entry dllEntryPointType
 	; rbx is opcode:
-	; bits 0..15 are index into ForthCoreState userOps table
+	; bits 0..15 are index into CoreState userOps table
 	; 16..18 are flags
 	; 19..23 are arg count
 	; args are on TOS
@@ -8268,7 +8268,7 @@ entry mroComboType
 ;=================================================================================================
 entry opTypesTable
 ; TBD: check the order of these
-; TBD: copy these into base of ForthCoreState, fill unused slots with badOptype
+; TBD: copy these into base of CoreState, fill unused slots with badOptype
 ;	00 - 09
 	DQ	externalBuiltin		; kOpNative = 0,
 	DQ	nativeImmediate		; kOpNativeImmediate,

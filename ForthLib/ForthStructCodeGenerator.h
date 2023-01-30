@@ -9,15 +9,15 @@
 
 class TypesManager;
 class StructVocabulary;
-class ForthParseInfo;
+class ParseInfo;
 
-class ForthStructCodeGenerator {
+class StructCodeGenerator {
 
 public:
-	ForthStructCodeGenerator( TypesManager* pTypeManager );
-	~ForthStructCodeGenerator();
+	StructCodeGenerator( TypesManager* pTypeManager );
+	~StructCodeGenerator();
 	
-	bool Generate( ForthParseInfo *pInfo, forthop*& pDst, int dstLongs );
+	bool Generate( ParseInfo *pInfo, forthop*& pDst, int dstLongs );
 	bool UncompileLastOpcode() { return mCompileVarop != 0; }
 
 protected:
@@ -30,7 +30,7 @@ protected:
 	uint32_t mTOSTypeCode;
 	uint32_t mTypeCode;
 
-	ForthParseInfo* mpParseInfo;
+	ParseInfo* mpParseInfo;
     StructVocabulary* mpStructVocab;
     StructVocabulary* mpContainedClassVocab;
     TypesManager* mpTypeManager;

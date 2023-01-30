@@ -36,9 +36,9 @@ namespace OString
 	extern void prependOString(oStringStruct* pString, const char* pSrc, int numNewBytes);
 
     // functions for string output streams
-	extern void stringCharOut( ForthCoreState* pCore, void *pData, char ch );
-	extern void stringBlockOut( ForthCoreState* pCore, void *pData, const char *pBuffer, int numChars );
-	extern void stringStringOut( ForthCoreState* pCore, void *pData, const char *pBuffer );
+	extern void stringCharOut( CoreState* pCore, void *pData, char ch );
+	extern void stringBlockOut( CoreState* pCore, void *pData, const char *pBuffer, int numChars );
+	extern void stringStringOut( CoreState* pCore, void *pData, const char *pBuffer );
     
 	void AddClasses(OuterInterpreter* pOuter);
     oStringMapStruct* createStringMapObject(ClassVocabulary *pClassVocab);

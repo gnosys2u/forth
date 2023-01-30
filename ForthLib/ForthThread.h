@@ -15,8 +15,8 @@
 #include <semaphore.h>
 #endif
 
-class ForthEngine;
-class ForthShowContext;
+class Engine;
+class ShowContext;
 class ForthThread;
 class OuterInterpreter;
 
@@ -36,7 +36,7 @@ class OuterInterpreter;
 class ForthFiber
 {
 public:
-    ForthFiber(ForthEngine *pEngine, ForthThread *pParentThread, int threadIndex, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
+    ForthFiber(Engine *pEngine, ForthThread *pParentThread, int threadIndex, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
     virtual ~ForthFiber();
     void Destroy();
 
@@ -70,16 +70,16 @@ public:
 	
 	void				FreeObjects();
 
-	ForthShowContext*	GetShowContext();
+	ShowContext*	GetShowContext();
 
 	inline FiberState GetRunState() { return mRunState; }
 	void				SetRunState(FiberState newState);
 	inline ForthThread* GetParent() { return mpParentThread; }
-	inline ForthEngine* GetEngine() { return mpEngine; }
+	inline Engine* GetEngine() { return mpEngine; }
 
-    friend class ForthEngine;
+    friend class Engine;
 
-	inline ForthCoreState* GetCore() { return &mCore; };
+	inline CoreState* GetCore() { return &mCore; };
 
 	inline ForthObject& GetFiberObject() { return mObject; }
 	inline void SetFiberObject(ForthObject& inObject) { mObject = inObject; }
@@ -93,11 +93,11 @@ protected:
     void    WakeAllJoiningFibers();
 
 	ForthObject			mObject;
-    ForthEngine         *mpEngine;
+    Engine         *mpEngine;
     void                *mpPrivate;
-	ForthShowContext	*mpShowContext;
+	ShowContext	*mpShowContext;
 	ForthThread	*mpParentThread;
-    ForthCoreState      mCore;
+    CoreState      mCore;
     forthop             mOps[2];
     uint32_t				mWakeupTime;
 	FiberState mRunState;
@@ -110,7 +110,7 @@ protected:
 class ForthThread
 {
 public:
-	ForthThread(ForthEngine *pEngine, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
+	ForthThread(Engine *pEngine, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
 	virtual ~ForthThread();
 
 	void                Reset(void);
@@ -130,7 +130,7 @@ public:
 
     void                InnerLoop();
 
-	ForthFiber*		    CreateFiber(ForthEngine *pEngine, forthop fiberOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
+	ForthFiber*		    CreateFiber(Engine *pEngine, forthop fiberOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
 	void				DeleteFiber(ForthFiber* pFiber);
 
 	inline ForthObject& GetThreadObject() { return mObject; }
@@ -145,7 +145,7 @@ public:
 	static unsigned __stdcall RunLoop(void *pThis);
 #endif
 
-	friend class ForthEngine;
+	friend class Engine;
 
 protected:
 	ForthObject			mObject;
@@ -171,9 +171,9 @@ namespace OThread
 {
 	void AddClasses(OuterInterpreter* pOuter);
 
-	void CreateThreadObject(ForthObject& outThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
+	void CreateThreadObject(ForthObject& outThread, Engine *pEngine, forthop threadOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
 	void FixupThread(ForthThread* pThread);
-	void CreateFiberObject(ForthObject& outThread, ForthThread *pParentThread, ForthEngine *pEngine, forthop threadOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
+	void CreateFiberObject(ForthObject& outThread, ForthThread *pParentThread, Engine *pEngine, forthop threadOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
 	void FixupFiber(ForthFiber* pThread);
 }
 
@@ -181,6 +181,6 @@ namespace OLock
 {
 	void AddClasses(OuterInterpreter* pOuter);
 
-	void CreateAsyncLockObject(ForthObject& outAsyncLock, ForthEngine *pEngine);
-    void CreateAsyncSemaphoreObject(ForthObject& outSemaphore, ForthEngine *pEngine);
+	void CreateAsyncLockObject(ForthObject& outAsyncLock, Engine *pEngine);
+    void CreateAsyncSemaphoreObject(ForthObject& outSemaphore, Engine *pEngine);
 }

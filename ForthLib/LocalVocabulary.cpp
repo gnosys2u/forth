@@ -17,7 +17,7 @@
 LocalVocabulary::LocalVocabulary( const char    *pName,
                                             int           valueLongs,
                                             int           storageBytes )
-: ForthVocabulary( pName, valueLongs, storageBytes )
+: Vocabulary( pName, valueLongs, storageBytes )
 , mDepth( 0 )
 , mFrameCells( 0 )
 , mpAllocOp( NULL )

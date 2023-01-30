@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthShowContext.cpp: implementation of the ForthShowContext class.
+// ShowContext.cpp: implementation of the ShowContext class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -15,10 +15,10 @@
 //////////////////////////////////////////////////////////////////////
 ////
 ///
-//                     ForthShowContext
+//                     ShowContext
 // 
 
-ForthShowContext::ForthShowContext()
+ShowContext::ShowContext()
 	: mDepth(0)
 	, mShowIDElement(true)
 	, mShowRefCount(true)
@@ -26,32 +26,32 @@ ForthShowContext::ForthShowContext()
     , mArrayElementsPerLine(10)
     , mNumShown(0)
 {
-	mpEngine = ForthEngine::GetInstance();
+	mpEngine = Engine::GetInstance();
 }
 
-ForthShowContext::~ForthShowContext()
+ShowContext::~ShowContext()
 {
 }
 
-void ForthShowContext::Reset()
+void ShowContext::Reset()
 {
 	mShownObjects.clear();
 	mObjects.clear();
 	mDepth = 0;
 }
 
-ucell ForthShowContext::GetDepth()
+ucell ShowContext::GetDepth()
 {
 	return mDepth;
 }
 
 
-void ForthShowContext::BeginIndent()
+void ShowContext::BeginIndent()
 {
 	mDepth++;
 }
 
-void ForthShowContext::EndIndent()
+void ShowContext::EndIndent()
 {
     if (mDepth > 0)
     {
@@ -70,7 +70,7 @@ void ForthShowContext::EndIndent()
     */
 }
 
-void ForthShowContext::ShowIndent(const char* pText)
+void ShowContext::ShowIndent(const char* pText)
 {
     if (mShowSpaces)
     {
@@ -87,7 +87,7 @@ void ForthShowContext::ShowIndent(const char* pText)
 	}
 }
 
-void ForthShowContext::BeginElement(const char* pName)
+void ShowContext::BeginElement(const char* pName)
 {
     if (mNumShown != 0)
     {
@@ -100,7 +100,7 @@ void ForthShowContext::BeginElement(const char* pName)
     mNumShown++;
 }
 
-void ForthShowContext::BeginRawElement(const char* pName)
+void ShowContext::BeginRawElement(const char* pName)
 {
     if (mNumShown != 0)
     {
@@ -113,7 +113,7 @@ void ForthShowContext::BeginRawElement(const char* pName)
     mNumShown++;
 }
 
-void ForthShowContext::BeginLinkElement(const ForthObject& obj)
+void ShowContext::BeginLinkElement(const ForthObject& obj)
 {
     if (mNumShown != 0)
     {
@@ -126,7 +126,7 @@ void ForthShowContext::BeginLinkElement(const ForthObject& obj)
     mNumShown++;
 }
 
-void ForthShowContext::BeginArrayElement(int elementsPerLine)
+void ShowContext::BeginArrayElement(int elementsPerLine)
 {
     if (elementsPerLine == 0)
     {
@@ -146,14 +146,14 @@ void ForthShowContext::BeginArrayElement(int elementsPerLine)
     mNumShown++;
 }
 
-void ForthShowContext::BeginFirstElement(const char* pText)
+void ShowContext::BeginFirstElement(const char* pText)
 {
 	ShowIndent("\"");
 	ShowText(pText);
     ShowText(mShowSpaces ? "\" : " : "\":");
 }
 
-void ForthShowContext::BeginNextElement(const char* pText)
+void ShowContext::BeginNextElement(const char* pText)
 {
 	ShowComma();
 	ShowIndent("\"");
@@ -161,12 +161,12 @@ void ForthShowContext::BeginNextElement(const char* pText)
     ShowText(mShowSpaces ? "\" : " : "\":");
 }
 
-void ForthShowContext::EndElement(const char* pEndText)
+void ShowContext::EndElement(const char* pEndText)
 {
     ShowText(pEndText);
 }
 
-void ForthShowContext::AddObject(ForthObject& obj)
+void ShowContext::AddObject(ForthObject& obj)
 {
 	if (mShownObjects.insert(obj).second)
 	{
@@ -174,18 +174,18 @@ void ForthShowContext::AddObject(ForthObject& obj)
 	}
 }
 
-bool ForthShowContext::ObjectAlreadyShown(ForthObject& obj)
+bool ShowContext::ObjectAlreadyShown(ForthObject& obj)
 {
 	return obj == nullptr
         || mShownObjects.find(obj) != mShownObjects.end();
 }
 
-std::vector<ForthObject>& ForthShowContext::GetObjects()
+std::vector<ForthObject>& ShowContext::GetObjects()
 {
 	return mObjects;
 }
 
-void ForthShowContext::ShowHeader(ForthCoreState* pCore, const char* pTypeName, const void* pData)
+void ShowContext::ShowHeader(CoreState* pCore, const char* pTypeName, const void* pData)
 {
 	char buffer[16];
 
@@ -209,7 +209,7 @@ void ForthShowContext::ShowHeader(ForthCoreState* pCore, const char* pTypeName, 
 	}
 }
 
-void ForthShowContext::ShowID(const char* pTypeName, const void* pData)
+void ShowContext::ShowID(const char* pTypeName, const void* pData)
 {
 	char buffer[32];
 
@@ -222,7 +222,7 @@ void ForthShowContext::ShowID(const char* pTypeName, const void* pData)
 	ShowText(buffer);
 }
 
-void ForthShowContext::ShowIDElement(const char* pTypeName, const void* pData)
+void ShowContext::ShowIDElement(const char* pTypeName, const void* pData)
 {
 	if (mShowIDElement)
 	{
@@ -233,7 +233,7 @@ void ForthShowContext::ShowIDElement(const char* pTypeName, const void* pData)
     }
 }
 
-void ForthShowContext::ShowText(const char* pText)
+void ShowContext::ShowText(const char* pText)
 {
     if (pText != NULL)
     {
@@ -241,7 +241,7 @@ void ForthShowContext::ShowText(const char* pText)
     }
 }
 
-void ForthShowContext::ShowQuotedText(const char* pText)
+void ShowContext::ShowQuotedText(const char* pText)
 {
     if (pText != NULL)
     {
@@ -251,7 +251,7 @@ void ForthShowContext::ShowQuotedText(const char* pText)
     }
 }
 
-void ForthShowContext::ShowTextReturn(const char* pText)
+void ShowContext::ShowTextReturn(const char* pText)
 {
     ShowText(pText);
     if (mShowSpaces)
@@ -260,36 +260,36 @@ void ForthShowContext::ShowTextReturn(const char* pText)
     }
 }
 
-void ForthShowContext::ShowComma()
+void ShowContext::ShowComma()
 {
     ShowText(mShowSpaces ? ", " : ",");
 }
 
-void ForthShowContext::ShowCommaReturn()
+void ShowContext::ShowCommaReturn()
 {
     ShowTextReturn(",");
 }
 
-void ForthShowContext::BeginNestedShow()
+void ShowContext::BeginNestedShow()
 {
     mNumShownStack.push_back(mNumShown);
     mNumShown = 0;
 }
 
-void ForthShowContext::EndNestedShow()
+void ShowContext::EndNestedShow()
 {
     mNumShown = mNumShownStack.back();
     mNumShownStack.pop_back();
 }
 
-void ForthShowContext::BeginArray()
+void ShowContext::BeginArray()
 {
     ShowText("[");
     BeginNestedShow();
     BeginIndent();
 }
 
-void ForthShowContext::EndArray()
+void ShowContext::EndArray()
 {
     EndIndent();
     EndNestedShow();
@@ -298,7 +298,7 @@ void ForthShowContext::EndArray()
 }
 
 
-void ForthShowContext::BeginObject(const char* pName, const void* pData, bool showId)
+void ShowContext::BeginObject(const char* pName, const void* pData, bool showId)
 {
     BeginNestedShow();
     ShowTextReturn("{");
@@ -310,7 +310,7 @@ void ForthShowContext::BeginObject(const char* pName, const void* pData, bool sh
 }
 
 
-void ForthShowContext::EndObject()
+void ShowContext::EndObject()
 {
     EndIndent();
     ShowTextReturn();
@@ -318,7 +318,7 @@ void ForthShowContext::EndObject()
     EndNestedShow();
 }
 
-void ForthShowContext::ShowObjectLink(const ForthObject& obj)
+void ShowContext::ShowObjectLink(const ForthObject& obj)
 {
     ShowText("\"@");
 

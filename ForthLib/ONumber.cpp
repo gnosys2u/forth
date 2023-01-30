@@ -259,7 +259,7 @@ namespace ONumber
     {
         char buff[32];
         GET_THIS(oFloatStruct, pFloat);
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("value");
         sprintf(buff, "%f", pFloat->val);
@@ -340,7 +340,7 @@ namespace ONumber
 	{
 		char buff[128];
 		GET_THIS(oDoubleStruct, pDouble);
-		ForthEngine *pEngine = ForthEngine::GetInstance();
+		Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("value");
         sprintf(buff, "%f", pDouble->val);

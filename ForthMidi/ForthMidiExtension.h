@@ -16,13 +16,13 @@
 
 class ForthThread;
 
-class ForthMidiExtension : public ForthExtension
+class ForthMidiExtension : public Extension
 {
 public:
     ForthMidiExtension();
     virtual ~ForthMidiExtension();
 
-    virtual void Initialize( ForthEngine* pEngine );
+    virtual void Initialize( Engine* pEngine );
     virtual void Reset();
     virtual void Shutdown();
     virtual void ForgetOp( uint32_t opNumber );

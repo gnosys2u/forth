@@ -325,39 +325,39 @@ void PassThruMemoryManager::free(void* pBlock)
 void* DebugPassThruMemoryManager::allocate(size_t numBytes)
 {
     void * pData = MemoryManager::allocate(numBytes);
-    ForthEngine::GetInstance()->TraceOut("allocate %d bytes @ 0x%p\n", numBytes, pData);
+    Engine::GetInstance()->TraceOut("allocate %d bytes @ 0x%p\n", numBytes, pData);
     return pData;
 }
 
 void DebugPassThruMemoryManager::deallocate(void* pBlock, size_t numBytes)
 {
-    ForthEngine::GetInstance()->TraceOut("deallocate @ 0x%p\n", pBlock);
+    Engine::GetInstance()->TraceOut("deallocate @ 0x%p\n", pBlock);
     MemoryManager::deallocate(pBlock, numBytes);
 }
 
 void DebugPassThruMemoryManager::deallocateObject(void* pObject)
 {
-    ForthEngine::GetInstance()->TraceOut("deallocateObject @ 0x%p\n", pObject);
+    Engine::GetInstance()->TraceOut("deallocateObject @ 0x%p\n", pObject);
     MemoryManager::deallocateObject(pObject);
 }
 
 void* DebugPassThruMemoryManager::malloc(size_t numBytes)
 {
     void* pData = ::malloc(numBytes);
-    ForthEngine::GetInstance()->TraceOut("malloc %d bytes @ 0x%p\n", numBytes, pData);
+    Engine::GetInstance()->TraceOut("malloc %d bytes @ 0x%p\n", numBytes, pData);
     return pData;
 }
 
 void* DebugPassThruMemoryManager::realloc(void *pMemory, size_t numBytes)
 {
     void *pData = ::realloc(pMemory, numBytes);
-    ForthEngine::GetInstance()->TraceOut("realloc %d bytes @ 0x%p\n", numBytes, pData);
+    Engine::GetInstance()->TraceOut("realloc %d bytes @ 0x%p\n", numBytes, pData);
     return pData;
 }
 
 void DebugPassThruMemoryManager::free(void* pBlock)
 {
-    ForthEngine::GetInstance()->TraceOut("free @ 0x%p\n", pBlock);
+    Engine::GetInstance()->TraceOut("free @ 0x%p\n", pBlock);
     ::free(pBlock);
 }
 

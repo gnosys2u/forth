@@ -33,7 +33,7 @@ static void ReportBadArrayIndex(const char* pWhere, ucell ix, size_t arraySize)
 #elif defined(LINUX) || defined(MACOSX)
     snprintf(buff, sizeof(buff), " in %s index:%d size:%d", pWhere, ix, arraySize);
 #endif
-	ForthEngine::GetInstance()->SetError(ForthError::kBadArrayIndex, buff);
+	Engine::GetInstance()->SetError(ForthError::kBadArrayIndex, buff);
 }
 
 namespace OArray
@@ -56,7 +56,7 @@ namespace OArray
         return pArray;
     }
 
-    oArrayIterStruct* createArrayIterator(ForthCoreState* pCore, oArrayStruct* pArray)
+    oArrayIterStruct* createArrayIterator(CoreState* pCore, oArrayStruct* pArray)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIArrayIter);
         ALLOCATE_ITER(oArrayIterStruct, pIter, pIterVocab);
@@ -66,11 +66,11 @@ namespace OArray
         return pIter;
     }
 
-    bool customArrayReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customArrayReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "elements")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oArrayStruct *dstArray = (oArrayStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('[');
             ForthObject obj;
@@ -539,14 +539,14 @@ namespace OArray
 		METHOD_RETURN;
 	}
 
-    cell objectArrayQuicksortPartition(ForthCoreState* pCore, ForthObject* pData, cell left, cell right)
+    cell objectArrayQuicksortPartition(CoreState* pCore, ForthObject* pData, cell left, cell right)
 	{
 		ForthObject* pLeft = pData + left;
 		ForthObject* pRight = pData + right;
 		ForthObject pivot = *pLeft;
 		ForthObject tmp;
 		cell compareResult;
-		ForthEngine* pEngine = ForthEngine::GetInstance();
+		Engine* pEngine = Engine::GetInstance();
 
 		left--;
 		pLeft--;
@@ -584,7 +584,7 @@ namespace OArray
 		}
 	}
 
-	void objectArrayQuicksortStep(ForthCoreState* pCore, ForthObject* pData, cell left, cell right)
+	void objectArrayQuicksortStep(CoreState* pCore, ForthObject* pData, cell left, cell right)
 	{
 		if (left < right)
 		{
@@ -1019,7 +1019,7 @@ namespace OArray
         return pBag;
     }
 
-    oArrayIterStruct* createBagIterator(ForthCoreState* pCore, oBagStruct* pBag)
+    oArrayIterStruct* createBagIterator(CoreState* pCore, oBagStruct* pBag)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIBagIter);
         ALLOCATE_ITER(oArrayIterStruct, pIter, pIterVocab);
@@ -1029,11 +1029,11 @@ namespace OArray
         return pIter;
     }
 
-    bool customBagReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customBagReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "elements")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oBagStruct *dstBag = (oBagStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('{');
             std::string tag;
@@ -1097,7 +1097,7 @@ namespace OArray
         oBag::iterator iter;
         oBag& a = *(pBag->elements);
         char tag[12] = "12345678\0";
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         GET_SHOW_CONTEXT;
         pShowContext->BeginElement("elements");
         pShowContext->ShowTextReturn("{");
@@ -1986,7 +1986,7 @@ namespace OArray
 		ucell			cursor;
 	};
 
-    oByteArrayIterStruct* createByteArrayIterator(ForthCoreState* pCore, oByteArrayStruct* pArray)
+    oByteArrayIterStruct* createByteArrayIterator(CoreState* pCore, oByteArrayStruct* pArray)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIByteArrayIter);
         ALLOCATE_ITER(oByteArrayIterStruct, pIter, pIterVocab);
@@ -1996,11 +1996,11 @@ namespace OArray
         return pIter;
     }
 
-    bool customByteArrayReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customByteArrayReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "elements")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oByteArrayStruct *dstArray = (oByteArrayStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('[');
             std::string number;
@@ -2703,7 +2703,7 @@ namespace OArray
 		ucell			cursor;
 	};
 
-    oShortArrayIterStruct* createShortArrayIterator(ForthCoreState* pCore, oShortArrayStruct* pArray)
+    oShortArrayIterStruct* createShortArrayIterator(CoreState* pCore, oShortArrayStruct* pArray)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIShortArrayIter);
         ALLOCATE_ITER(oShortArrayIterStruct, pIter, pIterVocab);
@@ -2713,11 +2713,11 @@ namespace OArray
         return pIter;
     }
 
-    bool customShortArrayReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customShortArrayReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "elements")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oShortArrayStruct *dstArray = (oShortArrayStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('[');
             std::string number;
@@ -3166,7 +3166,7 @@ namespace OArray
 
 	FORTHOP(oShortArrayIterNew)
 	{
-		ForthEngine *pEngine = GET_ENGINE;
+		Engine *pEngine = GET_ENGINE;
 		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a ShortArrayIter object");
 	}
 
@@ -3410,7 +3410,7 @@ namespace OArray
 		ucell			cursor;
 	};
 
-    oIntArrayIterStruct* createIntArrayIterator(ForthCoreState* pCore, oIntArrayStruct* pArray)
+    oIntArrayIterStruct* createIntArrayIterator(CoreState* pCore, oIntArrayStruct* pArray)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIIntArrayIter);
         ALLOCATE_ITER(oIntArrayIterStruct, pIter, pIterVocab);
@@ -3420,11 +3420,11 @@ namespace OArray
         return pIter;
     }
 
-    bool customIntArrayReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customIntArrayReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "elements")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oIntArrayStruct *dstArray = (oIntArrayStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('[');
             std::string number;
@@ -4099,11 +4099,11 @@ namespace OArray
 	//                 FloatArray
 	//
 
-    bool customFloatArrayReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customFloatArrayReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "elements")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oIntArrayStruct *dstArray = (oIntArrayStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('[');
             std::string number;
@@ -4220,7 +4220,7 @@ namespace OArray
         ucell			cursor;
 	};
 
-    oLongArrayIterStruct* createLongArrayIterator(ForthCoreState* pCore, oLongArrayStruct* pArray)
+    oLongArrayIterStruct* createLongArrayIterator(CoreState* pCore, oLongArrayStruct* pArray)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCILongArrayIter);
         ALLOCATE_ITER(oLongArrayIterStruct, pIter, pIterVocab);
@@ -4230,11 +4230,11 @@ namespace OArray
         return pIter;
     }
 
-    bool customLongArrayReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customLongArrayReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "elements")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oLongArrayStruct *dstArray = (oLongArrayStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('[');
             std::string number;
@@ -4949,7 +4949,7 @@ namespace OArray
 		ucell			cursor;
 	};
 
-    oDoubleArrayIterStruct* createDoubleArrayIterator(ForthCoreState* pCore, oDoubleArrayStruct* pArray)
+    oDoubleArrayIterStruct* createDoubleArrayIterator(CoreState* pCore, oDoubleArrayStruct* pArray)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIDoubleArrayIter);
         ALLOCATE_ITER(oDoubleArrayIterStruct, pIter, pIterVocab);
@@ -4959,11 +4959,11 @@ namespace OArray
         return pIter;
     }
 
-    bool customDoubleArrayReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customDoubleArrayReader(const std::string& elementName, ObjectReader* reader)
     {
         if (elementName == "elements")
         {
-            ForthCoreState* pCore = reader->GetCoreState();
+            CoreState* pCore = reader->GetCoreState();
             oDoubleArrayStruct *dstArray = (oDoubleArrayStruct *)(reader->getCustomReaderContext().pData);
             reader->getRequiredChar('[');
             std::string number;
@@ -5287,7 +5287,7 @@ namespace OArray
         ucell			cursor;
     };
 
-    oStructArrayIterStruct* createStructArrayIterator(ForthCoreState* pCore, oStructArrayStruct* pArray)
+    oStructArrayIterStruct* createStructArrayIterator(CoreState* pCore, oStructArrayStruct* pArray)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIStructArrayIter);
         ALLOCATE_ITER(oStructArrayIterStruct, pIter, pIterVocab);
@@ -5297,7 +5297,7 @@ namespace OArray
         return pIter;
     }
 
-    bool customStructArrayReader(const std::string& elementName, ForthObjectReader* reader)
+    bool customStructArrayReader(const std::string& elementName, ObjectReader* reader)
     {
         oStructArrayStruct *dstArray = (oStructArrayStruct *)(reader->getCustomReaderContext().pData);
         if (elementName == "structType")
@@ -5369,7 +5369,7 @@ namespace OArray
         GET_THIS(oStructArrayStruct, pArray);
         if (pArray->pVocab != nullptr)
         {
-            ForthEngine *pEngine = GET_ENGINE;
+            Engine *pEngine = GET_ENGINE;
             GET_SHOW_CONTEXT;
             oStructArray& a = *(pArray->elements);
 
@@ -5979,7 +5979,7 @@ namespace OArray
 	};
 
 
-    oPairIterStruct* createPairIterator(ForthCoreState* pCore, oPairStruct* pPair)
+    oPairIterStruct* createPairIterator(CoreState* pCore, oPairStruct* pPair)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCIPairIter);
         ALLOCATE_ITER(oPairIterStruct, pIter, pIterVocab);
@@ -6314,7 +6314,7 @@ namespace OArray
 	};
 
 
-    oTripleIterStruct* createTripleIterator(ForthCoreState* pCore, oTripleStruct* pTriple)
+    oTripleIterStruct* createTripleIterator(CoreState* pCore, oTripleStruct* pTriple)
     {
         ClassVocabulary *pIterVocab = TypesManager::GetInstance()->GetClassVocabulary(kBCITripleIter);
         ALLOCATE_ITER(oTripleIterStruct, pIter, pIterVocab);

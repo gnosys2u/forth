@@ -12,7 +12,7 @@ class NativeType
 public:
     NativeType( const char* pName, int numBytes, BaseType nativeType );
     virtual ~NativeType();
-    virtual void DefineInstance( ForthEngine *pEngine, void *pInitialVal, int32_t flags=0 );
+    virtual void DefineInstance( Engine *pEngine, void *pInitialVal, int32_t flags=0 );
 
     inline int32_t GetGlobalOp( void ) { return (int32_t)mBaseType + gCompiledOps[OP_DO_BYTE]; };
     inline int32_t GetGlobalArrayOp( void ) { return (int32_t)mBaseType + gCompiledOps[OP_DO_BYTE_ARRAY]; };

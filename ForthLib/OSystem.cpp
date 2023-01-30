@@ -88,7 +88,7 @@ namespace OSystem
 
 	FORTHOP(oSystemGetDefinitionsVocabMethod)
 	{
-        ForthVocabulary* pVocab = GET_ENGINE->GetOuterInterpreter()->GetDefinitionVocabulary();
+        Vocabulary* pVocab = GET_ENGINE->GetOuterInterpreter()->GetDefinitionVocabulary();
 		if (pVocab != NULL)
 		{
 			PUSH_OBJECT(pVocab->GetVocabularyObject());
@@ -106,7 +106,7 @@ namespace OSystem
 		POP_OBJECT(vocabObj);
 		oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct *>(vocabObj);
 
-		ForthVocabulary* pVocab = pVocabStruct->vocabulary;
+		Vocabulary* pVocab = pVocabStruct->vocabulary;
 		if (pVocab != NULL)
 		{
             GET_ENGINE->GetOuterInterpreter()->SetDefinitionVocabulary(pVocab);
@@ -135,7 +135,7 @@ namespace OSystem
 		int vocabStackIndex = (int) SPOP;
 
         VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
-		ForthVocabulary* pVocab = pVocabStack->GetElement(vocabStackIndex);
+		Vocabulary* pVocab = pVocabStack->GetElement(vocabStackIndex);
 		if (pVocab != NULL)
 		{
 			PUSH_OBJECT(pVocab->GetVocabularyObject());
@@ -150,7 +150,7 @@ namespace OSystem
 	FORTHOP(oSystemGetSearchVocabTopMethod)
 	{
         VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
-		ForthVocabulary* pVocab = pVocabStack->GetTop();
+		Vocabulary* pVocab = pVocabStack->GetTop();
 		if (pVocab != NULL)
 		{
 			PUSH_OBJECT(pVocab->GetVocabularyObject());
@@ -169,7 +169,7 @@ namespace OSystem
 		POP_OBJECT(vocabObj);
 		oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct *>(vocabObj);
 
-		ForthVocabulary* pVocab = pVocabStruct->vocabulary;
+		Vocabulary* pVocab = pVocabStruct->vocabulary;
 		if (pVocab != NULL)
 		{
 			VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
@@ -184,7 +184,7 @@ namespace OSystem
 		POP_OBJECT(vocabObj);
 		oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct *>(vocabObj);
 
-		ForthVocabulary* pVocab = pVocabStruct->vocabulary;
+		Vocabulary* pVocab = pVocabStruct->vocabulary;
 		if (pVocab != NULL)
 		{
 			VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
@@ -197,7 +197,7 @@ namespace OSystem
 	FORTHOP(oSystemGetVocabByNameMethod)
 	{
 		const char* pVocabName = reinterpret_cast<const char*>(SPOP);
-		ForthVocabulary* pVocab = ForthVocabulary::FindVocabulary(pVocabName);
+		Vocabulary* pVocab = Vocabulary::FindVocabulary(pVocabName);
 		if (pVocab != NULL)
 		{
 			PUSH_OBJECT(pVocab->GetVocabularyObject());
@@ -212,7 +212,7 @@ namespace OSystem
     FORTHOP(oSystemGetVocabChainHeadMethod)
     {
         const char* pVocabName = reinterpret_cast<const char*>(SPOP);
-        ForthVocabulary* pVocab = ForthVocabulary::GetVocabularyChainHead();
+        Vocabulary* pVocab = Vocabulary::GetVocabularyChainHead();
         PUSH_OBJECT(pVocab->GetVocabularyObject());
         METHOD_RETURN;
     }
@@ -291,8 +291,8 @@ namespace OSystem
 
     FORTHOP(oSystemGetInputInfoMethod)
     {
-        ForthEngine* pEngine = GET_ENGINE;
-        ForthInputStack* inputStack = pEngine->GetShell()->GetInput();
+        Engine* pEngine = GET_ENGINE;
+        InputStack* inputStack = pEngine->GetShell()->GetInput();
 
         int lineNumber;
         const char* filename = inputStack->GetFilenameAndLineNumber(lineNumber);
@@ -309,7 +309,7 @@ namespace OSystem
 
     FORTHOP(oSystemSetWorkDirMethod)
     {
-        ForthEngine* pEngine = GET_ENGINE;
+        Engine* pEngine = GET_ENGINE;
         ForthObject newWorkDirObj;
 
         POP_OBJECT(newWorkDirObj);
@@ -320,7 +320,7 @@ namespace OSystem
 
     FORTHOP(oSystemGetWorkDirMethod)
     {
-        ForthEngine* pEngine = GET_ENGINE;
+        Engine* pEngine = GET_ENGINE;
         ForthObject workDirObj;
 
         POP_OBJECT(workDirObj);
@@ -531,9 +531,9 @@ namespace OSystem
         pOuter->AddBuiltinClass("System", kBCISystem, kBCIObject, oSystemMembers);
 	}
 
-    void Shutdown(ForthEngine* pEngine)
+    void Shutdown(Engine* pEngine)
     {
-        ForthCoreState* pCore = pEngine->GetCoreState();
+        CoreState* pCore = pEngine->GetCoreState();
         SAFE_RELEASE(pCore, gSystemSingleton.args);
         SAFE_RELEASE(pCore, gSystemSingleton.env);
         SAFE_RELEASE(pCore, gSystemSingleton.namedObjects);

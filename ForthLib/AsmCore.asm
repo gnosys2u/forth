@@ -81,7 +81,7 @@ CallDLL5:
 	ret
 
 
-; extern void NativeAction( ForthCoreState *pCore, ulong opVal );
+; extern void NativeAction( CoreState *pCore, ulong opVal );
 ;-----------------------------------------------
 ;
 ; inner interpreter entry point for ops defined in assembler

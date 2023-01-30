@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////////////////////////
 //
-// ForthExtension.h: interface for the ForthExtension class.
+// Extension.h: interface for the Extension class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -11,17 +11,17 @@
 
 #include "Forth.h"
 
-class ForthEngine;
+class Engine;
 
-class ForthExtension
+class Extension
 {
 public:
-    ForthExtension();
-    virtual ~ForthExtension();
+    Extension();
+    virtual ~Extension();
 
     // Initialize is called by the engine when it is done initializing itself
     //   the extension should load its built-in ops (if any) when Initialize is called
-    virtual void Initialize( ForthEngine* pEngine );
+    virtual void Initialize( Engine* pEngine );
 
     // Reset is called by the engine every time there is an error reset
     virtual void Reset();
@@ -34,5 +34,5 @@ public:
     virtual void ForgetOp( uint32_t opNumber );
 
 protected:
-    ForthEngine*    mpEngine;
+    Engine*    mpEngine;
 };

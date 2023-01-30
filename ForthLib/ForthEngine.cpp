@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthEngine.cpp: implementation of the ForthEngine class.
+// Engine.cpp: implementation of the Engine class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -31,12 +31,12 @@ extern "C"
 {
 
     extern baseDictionaryEntry baseDictionary[];
-	extern void AddForthOps( ForthEngine* pEngine );
+	extern void AddForthOps( Engine* pEngine );
 #ifdef ASM_INNER_INTERPRETER
-    extern void InitAsmTables(  ForthCoreState *pCore );
+    extern void InitAsmTables(  CoreState *pCore );
 #endif
-    extern OpResult InnerInterp( ForthCoreState *pCore );
-    extern void consoleOutToFile( ForthCoreState   *pCore,  const char       *pMessage );
+    extern OpResult InnerInterp( CoreState *pCore );
+    extern void consoleOutToFile( CoreState   *pCore,  const char       *pMessage );
 };
 
 extern void OutputToLogger(const char* pBuffer);
@@ -50,7 +50,7 @@ void defaultTraceOutRoutine(void *pData, const char* pFormat, va_list argList)
 	TCHAR buffer[1000];
 #endif
 
-	ForthEngine* pEngine = ForthEngine::GetInstance();
+	Engine* pEngine = Engine::GetInstance();
     int32_t traceFlags = pEngine->GetTraceFlags();
 	if ((traceFlags & kLogToConsole) != 0)
 	{
@@ -92,11 +92,11 @@ void defaultTraceOutRoutine(void *pData, const char* pFormat, va_list argList)
 
 extern "C"
 {
-	void traceOp(ForthCoreState* pCore, forthop* pIP, forthop op)
+	void traceOp(CoreState* pCore, forthop* pIP, forthop op)
 	{
 		if (pCore->traceFlags != 0)
 		{
-		    ForthEngine* pEngine = (ForthEngine *)(pCore->pEngine);
+		    Engine* pEngine = (Engine *)(pCore->pEngine);
 			if ((pCore->traceFlags & kLogStack) != 0)
 			{
 				pEngine->TraceStack(pCore);
@@ -147,7 +147,7 @@ static const char *gOpNames[ NUM_TRACEABLE_OPS ];
 
 //#endif
 
-ForthEngine* ForthEngine::mpInstance = nullptr;
+Engine* Engine::mpInstance = nullptr;
 
 #define ERROR_STRING_MAX    256
 
@@ -220,10 +220,10 @@ static const char *pErrorStrings[] =
 //////////////////////////////////////////////////////////////////////
 ////
 ///
-//                     ForthEngine
+//                     Engine
 // 
 
-ForthEngine::ForthEngine()
+Engine::Engine()
 : mpOuter(nullptr)
 , mpThreads(nullptr)
 , mpMainThread( nullptr )
@@ -262,14 +262,14 @@ ForthEngine::ForthEngine()
     ResetExecutionProfile();
 
     // At this point, the main thread does not exist, it will be created later in Initialize, this
-    // is fairly screwed up, it is becauses originally ForthEngine was the center of the universe,
+    // is fairly screwed up, it is becauses originally Engine was the center of the universe,
     // and it created the shell, but now the shell is created first, and the shell or the main app
     // can create the engine, and then the shell calls OuterInterpreter::Initialize to hook the two up.
     // The main thread needs to get the file interface from the shell, so it can't be created until
     // after the engine is connected to the shell.  Did I mention its screwed up?
 }
 
-ForthEngine::~ForthEngine()
+Engine::~Engine()
 {
     if ( mpExtension != nullptr)
     {
@@ -333,8 +333,8 @@ ForthEngine::~ForthEngine()
     mpInstance = nullptr;
 }
 
-ForthEngine*
-ForthEngine::GetInstance( void )
+Engine*
+Engine::GetInstance( void )
 {
     ASSERT( mpInstance != nullptr);
     return mpInstance;
@@ -346,15 +346,15 @@ ForthEngine::GetInstance( void )
 //
 //############################################################################
 
-void ForthEngine::Initialize(
-    ForthShell*        pShell,
+void Engine::Initialize(
+    Shell*        pShell,
     int                totalLongs,
     bool               bAddBaseOps,
-    ForthExtension*    pExtension )
+    Extension*    pExtension )
 {
     mpShell = pShell;
 
-    mBlockFileManager = new ForthBlockFileManager(mpShell->GetBlockfilePath());
+    mBlockFileManager = new BlockFileManager(mpShell->GetBlockfilePath());
 
     size_t dictionarySize = totalLongs * sizeof(forthop);
 #ifdef WIN32
@@ -414,24 +414,24 @@ void ForthEngine::Initialize(
 
 
 void
-ForthEngine::ToggleFastMode( void )
+Engine::ToggleFastMode( void )
 {
     SetFastMode(!mFastMode );
 }
 
 bool
-ForthEngine::GetFastMode( void )
+Engine::GetFastMode( void )
 {
     return mFastMode;
 }
 
 void
-ForthEngine::SetFastMode( bool goFast )
+Engine::SetFastMode( bool goFast )
 {
     mFastMode = goFast;
 }
 
-void ForthEngine::Reset( void )
+void Engine::Reset( void )
 {
     mpOuter->Reset();
 
@@ -441,29 +441,29 @@ void ForthEngine::Reset( void )
     }
 }
 
-void ForthEngine::ErrorReset( void )
+void Engine::ErrorReset( void )
 {
     Reset();
 	mpMainThread->Reset();
 }
 
-cell* ForthEngine::GetCompileStatePtr(void)
+cell* Engine::GetCompileStatePtr(void)
 {
     return mpOuter->GetCompileStatePtr();
 }
 
-void ForthEngine::SetCompileState(cell v)
+void Engine::SetCompileState(cell v)
 {
     mpOuter->SetCompileState(v);
 }
 
-cell ForthEngine::IsCompiling(void)
+cell Engine::IsCompiling(void)
 {
     return mpOuter->IsCompiling();
 }
 
 
-void ForthEngine::ShowMemoryInfo()
+void Engine::ShowMemoryInfo()
 {
     std::vector<MemoryStats *> memoryStats;
     int numStorageBlocks;
@@ -486,7 +486,7 @@ void ForthEngine::ShowMemoryInfo()
     ForthConsoleStringOut(mpCore, buffer);
 }
 
-ForthThread * ForthEngine::CreateThread(forthop fiberOp, int paramStackSize, int returnStackSize )
+ForthThread * Engine::CreateThread(forthop fiberOp, int paramStackSize, int returnStackSize )
 {
 	ForthThread *pThread = new ForthThread(this, paramStackSize, returnStackSize);
 	ForthFiber *pNewThread = pThread->GetFiber(0);
@@ -501,7 +501,7 @@ ForthThread * ForthEngine::CreateThread(forthop fiberOp, int paramStackSize, int
 }
 
 
-void ForthEngine::InitCoreState(ForthCoreState& core)
+void Engine::InitCoreState(CoreState& core)
 {
    core.pEngine = this;
    core.pDictionary = &mDictionary;
@@ -522,7 +522,7 @@ void ForthEngine::InitCoreState(ForthCoreState& core)
 }
 
 
-void ForthEngine::DestroyThread(ForthThread *pThread)
+void Engine::DestroyThread(ForthThread *pThread)
 {
 	ForthThread *pNext, *pCurrent;
 
@@ -560,33 +560,33 @@ void ForthEngine::DestroyThread(ForthThread *pThread)
 // interpret named file, interpret from standard in if pFileName is nullptr
 // return 0 for normal exit
 bool
-ForthEngine::PushInputFile( const char *pInFileName )
+Engine::PushInputFile( const char *pInFileName )
 {
     return mpShell->PushInputFile( pInFileName );
 }
 
 void
-ForthEngine::PushInputBuffer( const char *pDataBuffer, int dataBufferLen )
+Engine::PushInputBuffer( const char *pDataBuffer, int dataBufferLen )
 {
     mpShell->PushInputBuffer( pDataBuffer, dataBufferLen );
 }
 
 void
-ForthEngine::PushInputBlocks(ForthBlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock)
+Engine::PushInputBlocks(BlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock)
 {
     mpShell->PushInputBlocks(pManager, firstBlock, lastBlock);
 }
 
 
 void
-ForthEngine::PopInputStream( void )
+Engine::PopInputStream( void )
 {
     mpShell->PopInputStream();
 }
 
 // TODO: tracing of built-in ops won't work for user-added builtins...
 const char *
-ForthEngine::GetOpTypeName( int32_t opType )
+Engine::GetOpTypeName( int32_t opType )
 {
     return (opType <= kOpLastBaseDefined) ? opTypeNames[opType] : "unknown";
 }
@@ -594,7 +594,7 @@ ForthEngine::GetOpTypeName( int32_t opType )
 static bool lookupUserTraces = true;
 
 
-void ForthEngine::TraceOut(const char* pFormat, ...)
+void Engine::TraceOut(const char* pFormat, ...)
 {
 	if (mTraceOutRoutine != nullptr)
 	{
@@ -608,19 +608,19 @@ void ForthEngine::TraceOut(const char* pFormat, ...)
 }
 
 
-void ForthEngine::SetTraceOutRoutine( traceOutRoutine traceRoutine, void* pTraceData )
+void Engine::SetTraceOutRoutine( traceOutRoutine traceRoutine, void* pTraceData )
 {
 	mTraceOutRoutine = traceRoutine;
 	mpTraceOutData = pTraceData;
 }
 
-void ForthEngine::GetTraceOutRoutine(traceOutRoutine& traceRoutine, void*& pTraceData) const
+void Engine::GetTraceOutRoutine(traceOutRoutine& traceRoutine, void*& pTraceData) const
 {
 	traceRoutine = mTraceOutRoutine;
 	pTraceData = mpTraceOutData;
 }
 
-void ForthEngine::TraceOp(forthop* pOp, forthop op)
+void Engine::TraceOp(forthop* pOp, forthop op)
 {
 #ifdef TRACE_INNER_INTERPRETER
     char buff[ 512 ];
@@ -654,7 +654,7 @@ void ForthEngine::TraceOp(forthop* pOp, forthop op)
 #endif
 }
 
-void ForthEngine::TraceStack( ForthCoreState* pCore )
+void Engine::TraceStack( CoreState* pCore )
 {
 	ucell i;
 
@@ -705,12 +705,12 @@ void ForthEngine::TraceStack( ForthCoreState* pCore )
     }
 }
 
-void ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUserDefs )
+void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUserDefs )
 {
     forthop op = *pOp;
     forthOpType opType = FORTH_OP_TYPE( op );
     uint32_t opVal = FORTH_OP_VALUE( op );
-    ForthVocabulary *pFoundVocab = nullptr;
+    Vocabulary *pFoundVocab = nullptr;
     forthop *pEntry = nullptr;
 
 	const char* preamble = "%02x:%06x    ";
@@ -895,7 +895,7 @@ void ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool loo
                 if ((opVal & 0xF00000) != 0)
                 {
                     VarOperation varOp = (VarOperation)(opVal >> 20);
-                    SNPRINTF(pBuffer, buffSize, "%s_%x%s", opTypeName, (opVal & 0xFFFFF), ForthParseInfo::GetVaropSuffix(varOp));
+                    SNPRINTF(pBuffer, buffSize, "%s_%x%s", opTypeName, (opVal & 0xFFFFF), ParseInfo::GetVaropSuffix(varOp));
                 }
                 else
                 {
@@ -1013,7 +1013,7 @@ void ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool loo
             pEntry = mpOuter->GetVocabularyStack()->FindSymbolByValue(op, &pFoundVocab);
             if (pEntry == nullptr)
             {
-                ForthVocabulary* pVocab = ForthVocabulary::GetVocabularyChainHead();
+                Vocabulary* pVocab = Vocabulary::GetVocabularyChainHead();
                 while (pVocab != nullptr)
                 {
                     pEntry = pVocab->FindSymbolByValue(op);
@@ -1051,7 +1051,7 @@ void ForthEngine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool loo
     }
 }
 
-void ForthEngine::AddOpExecutionToProfile(forthop op)
+void Engine::AddOpExecutionToProfile(forthop op)
 {
     forthOpType opType = FORTH_OP_TYPE(op);
     uint32_t opVal = FORTH_OP_VALUE(op);
@@ -1091,12 +1091,12 @@ void ForthEngine::AddOpExecutionToProfile(forthop op)
     mProfileOpcodeTypeCounts[opType] += 1;
 }
 
-void ForthEngine::DumpExecutionProfile()
+void Engine::DumpExecutionProfile()
 {
     char buffer[256];
     char opBuffer[128];
 
-    ForthVocabulary* pVocab = ForthVocabulary::GetVocabularyChainHead();
+    Vocabulary* pVocab = Vocabulary::GetVocabularyChainHead();
     while (pVocab != nullptr)
     {
         forthop *pEntry = pVocab->GetNewestEntry();
@@ -1196,7 +1196,7 @@ void ForthEngine::DumpExecutionProfile()
             op = i;
         }
 
-        ForthVocabulary *pVocab = opInfo.pVocabulary;
+        Vocabulary *pVocab = opInfo.pVocabulary;
         const char* pVocabName = (pVocab != nullptr) ? pVocab->GetName() : "UNKNOWN_VOCABULARY";
 
         const char* pOpName = "UNKNOWN_OP";
@@ -1240,7 +1240,7 @@ void ForthEngine::DumpExecutionProfile()
     }
 }
 
-void ForthEngine::ResetExecutionProfile()
+void Engine::ResetExecutionProfile()
 {
     for (int i = 0; i < mProfileOpcodeCounts.size(); ++i)
     {
@@ -1261,7 +1261,7 @@ void ForthEngine::ResetExecutionProfile()
 // FullyExecuteOp is used by the Outer Interpreter (OuterInterpreter::ProcessToken) to
 // execute forth ops, and is also how systems external to forth execute ops
 //
-OpResult ForthEngine::FullyExecuteOp(ForthCoreState* pCore, forthop opCode)
+OpResult Engine::FullyExecuteOp(CoreState* pCore, forthop opCode)
 {
     forthop opScratch[2];
 
@@ -1280,7 +1280,7 @@ OpResult ForthEngine::FullyExecuteOp(ForthCoreState* pCore, forthop opCode)
 // ExecuteOp executes a single op.  If the op is a user-defined op or method, only the
 //   very first op is executed before returning.
 //
-OpResult ForthEngine::ExecuteOp(ForthCoreState* pCore, forthop opCode)
+OpResult Engine::ExecuteOp(CoreState* pCore, forthop opCode)
 {
 #ifdef ASM_INNER_INTERPRETER
     OpResult exitStatus = InterpretOneOpFast(pCore, opCode);
@@ -1294,7 +1294,7 @@ OpResult ForthEngine::ExecuteOp(ForthCoreState* pCore, forthop opCode)
 // ExecuteOps executes a sequence of forth ops.
 // code at pOps must be terminated with OP_DONE
 //
-OpResult ForthEngine::ExecuteOps(ForthCoreState* pCore, forthop *pOps)
+OpResult Engine::ExecuteOps(CoreState* pCore, forthop *pOps)
 {
     forthop *savedIP;
 
@@ -1314,7 +1314,7 @@ OpResult ForthEngine::ExecuteOps(ForthCoreState* pCore, forthop *pOps)
     return exitStatus;
 }
 
-OpResult ForthEngine::FullyExecuteMethod(ForthCoreState* pCore, ForthObject& obj, int methodNum)
+OpResult Engine::FullyExecuteMethod(CoreState* pCore, ForthObject& obj, int methodNum)
 {
     forthop opScratch[2];
     forthop opCode = obj->pMethods[methodNum];
@@ -1340,7 +1340,7 @@ extern forthop gObjectDeleteOpcode;
 #ifdef DEBUG_DELETE_OBJECT
 static int deleteDepth = 0;
 #endif
-OpResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
+OpResult Engine::DeleteObject(CoreState* pCore, ForthObject& obj)
 {
     //
     // iterate up the class inheritance chain, calling the delete method at each step
@@ -1411,7 +1411,7 @@ OpResult ForthEngine::DeleteObject(ForthCoreState* pCore, ForthObject& obj)
     return exitStatus;
 }
 
-void ForthEngine::ReleaseObject(ForthCoreState* pCore, ForthObject& inObject)
+void Engine::ReleaseObject(CoreState* pCore, ForthObject& inObject)
 {
     // TODO: why isn't this just a ForthObject?
     oOutStreamStruct* pObjData = reinterpret_cast<oOutStreamStruct*>(inObject);
@@ -1435,12 +1435,12 @@ void ForthEngine::ReleaseObject(ForthCoreState* pCore, ForthObject& inObject)
 }
 
 
-void ForthEngine::AddErrorText( const char *pString )
+void Engine::AddErrorText( const char *pString )
 {
     strcat( mpErrorString, pString );
 }
 
-void ForthEngine::SetError( ForthError e, const char *pString )
+void Engine::SetError( ForthError e, const char *pString )
 {
     mpCore->error = e;
     if ( pString )
@@ -1459,7 +1459,7 @@ void ForthEngine::SetError( ForthError e, const char *pString )
     }
 }
 
-void ForthEngine::SetFatalError( ForthError e, const char *pString )
+void Engine::SetFatalError( ForthError e, const char *pString )
 {
     mpCore->state = OpResult::kFatalError;
     mpCore->error = e;
@@ -1469,7 +1469,7 @@ void ForthEngine::SetFatalError( ForthError e, const char *pString )
     }
 }
 
-void ForthEngine::GetErrorString( char *pBuffer, int bufferSize )
+void Engine::GetErrorString( char *pBuffer, int bufferSize )
 {
     int errorNum = (int) mpCore->error;
     if ( errorNum < (sizeof(pErrorStrings) / sizeof(char *)) )
@@ -1490,7 +1490,7 @@ void ForthEngine::GetErrorString( char *pBuffer, int bufferSize )
 }
 
 
-OpResult ForthEngine::CheckStacks( void )
+OpResult Engine::CheckStacks( void )
 {
     cell depth;
     OpResult result = OpResult::kOk;
@@ -1525,45 +1525,45 @@ OpResult ForthEngine::CheckStacks( void )
 }
 
 
-void ForthEngine::SetDefaultConsoleOut( ForthObject& newOutStream )
+void Engine::SetDefaultConsoleOut( ForthObject& newOutStream )
 {
 	SPEW_SHELL("SetDefaultConsoleOut pCore=%p  pMethods=%p  pData=%p\n", mpCore, newOutStream->pMethods, newOutStream);
     OBJECT_ASSIGN(mpCore, mDefaultConsoleOutStream, newOutStream);
 }
 
-void ForthEngine::SetConsoleOut(ForthCoreState* pCore, ForthObject& newOutStream)
+void Engine::SetConsoleOut(CoreState* pCore, ForthObject& newOutStream)
 {
     SPEW_SHELL("SetConsoleOut pCore=%p  pMethods=%p  pData=%p\n", pCore, newOutStream->pMethods, newOutStream);
     OBJECT_ASSIGN(pCore, pCore->consoleOutStream, newOutStream);
 }
 
-void ForthEngine::SetErrorOut(ForthCoreState* pCore, ForthObject& newOutStream)
+void Engine::SetErrorOut(CoreState* pCore, ForthObject& newOutStream)
 {
     SPEW_SHELL("SetErrorOut pCore=%p  pMethods=%p  pData=%p\n", pCore, newOutStream->pMethods, newOutStream);
     OBJECT_ASSIGN(pCore, mErrorOutStream, newOutStream);
 }
 
-void* ForthEngine::GetErrorOut(ForthCoreState* pCore)
+void* Engine::GetErrorOut(CoreState* pCore)
 {
     return mErrorOutStream;
 }
 
-void ForthEngine::PushConsoleOut( ForthCoreState* pCore )
+void Engine::PushConsoleOut( CoreState* pCore )
 {
 	PUSH_OBJECT( pCore->consoleOutStream );
 }
 
-void ForthEngine::PushDefaultConsoleOut( ForthCoreState* pCore )
+void Engine::PushDefaultConsoleOut( CoreState* pCore )
 {
 	PUSH_OBJECT( mDefaultConsoleOutStream );
 }
 
-void ForthEngine::PushErrorOut(ForthCoreState* pCore)
+void Engine::PushErrorOut(CoreState* pCore)
 {
     PUSH_OBJECT(mErrorOutStream);
 }
 
-void ForthEngine::ResetConsoleOut( ForthCoreState& core )
+void Engine::ResetConsoleOut( CoreState& core )
 {
 	// TODO: there is a dilemma here - either we just replace the current output stream
 	//  without doing a release, and possibly leak a stream object, or we do a release
@@ -1573,30 +1573,30 @@ void ForthEngine::ResetConsoleOut( ForthCoreState& core )
     OBJECT_ASSIGN(&core, core.consoleOutStream, mDefaultConsoleOutStream);
 }
 
-void ForthEngine::ResetConsoleOut()
+void Engine::ResetConsoleOut()
 {
     ResetConsoleOut(*mpCore);
 }
 
 
-void ForthEngine::ConsoleOut( const char* pBuff )
+void Engine::ConsoleOut( const char* pBuff )
 {
     ForthConsoleStringOut( mpCore, pBuff );
 }
 
 
-int32_t ForthEngine::GetTraceFlags( void )
+int32_t Engine::GetTraceFlags( void )
 {
 	return mpCore->traceFlags;
 }
 
-void ForthEngine::SetTraceFlags( int32_t flags )
+void Engine::SetTraceFlags( int32_t flags )
 {
 	mpCore->traceFlags = flags;
 }
 
 // return milliseconds since engine was created
-uint32_t ForthEngine::GetElapsedTime( void )
+uint32_t Engine::GetElapsedTime( void )
 {
 	uint32_t millisecondsElapsed = 0;
 #if defined(WIN32)
@@ -1633,7 +1633,7 @@ uint32_t ForthEngine::GetElapsedTime( void )
 }
 
 
-void ForthEngine::DumpCrashState()
+void Engine::DumpCrashState()
 {
 	char buff[256];
 
@@ -1697,15 +1697,15 @@ void ForthEngine::DumpCrashState()
 
 }
 
-void ForthEngine::DisplayUserDefCrash( forthop *pRVal, char* buff, int buffSize )
+void Engine::DisplayUserDefCrash( forthop *pRVal, char* buff, int buffSize )
 {
 	if ( (pRVal >= mDictionary.pBase) && (pRVal < mDictionary.pCurrent) )
 	{
         forthop* pDefBase = nullptr;
-		ForthVocabulary* pVocab = ForthVocabulary::GetVocabularyChainHead();
+		Vocabulary* pVocab = Vocabulary::GetVocabularyChainHead();
         forthop* pClosestIP = nullptr;
         forthop* pFoundClosest = nullptr;
-		ForthVocabulary* pFoundVocab = nullptr;
+		Vocabulary* pFoundVocab = nullptr;
 		while ( pVocab != nullptr)
 		{
             forthop* pClosest = mpOuter->FindUserDefinition( pVocab, pClosestIP, pRVal, pDefBase );
@@ -1744,34 +1744,34 @@ void ForthEngine::DisplayUserDefCrash( forthop *pRVal, char* buff, int buffSize 
 }
 
 // this was an inline, but sometimes that returned the wrong value for unknown reasons
-ForthCoreState*	ForthEngine::GetCoreState( void )
+CoreState*	Engine::GetCoreState( void )
 {
 	return mpCore;
 }
 
 
-ForthBlockFileManager* ForthEngine::GetBlockFileManager()
+BlockFileManager* Engine::GetBlockFileManager()
 {
     return mBlockFileManager;
 }
 
 
-bool ForthEngine::IsServer() const
+bool Engine::IsServer() const
 {
 	return mIsServer;
 }
 
-void ForthEngine::SetIsServer(bool isServer)
+void Engine::SetIsServer(bool isServer)
 {
 	mIsServer = isServer;
 }
 
-ClassVocabulary* ForthEngine::AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex, eBuiltinClassIndex parentClassIndex, baseMethodEntry* pEntries)
+ClassVocabulary* Engine::AddBuiltinClass(const char* pClassName, eBuiltinClassIndex classIndex, eBuiltinClassIndex parentClassIndex, baseMethodEntry* pEntries)
 {
     return mpOuter->AddBuiltinClass(pClassName, classIndex, parentClassIndex, pEntries);
 }
 
-void ForthEngine::RaiseException(ForthCoreState *pCore, cell newExceptionNum)
+void Engine::RaiseException(CoreState *pCore, cell newExceptionNum)
 {
     char errorMsg[64];
     ForthExceptionFrame *pExceptionFrame = pCore->pExceptionFrame;
@@ -1827,7 +1827,7 @@ void ForthEngine::RaiseException(ForthCoreState *pCore, cell newExceptionNum)
 }
 
 
-void ForthEngine::AddOpNameForTracing(const char* pName)
+void Engine::AddOpNameForTracing(const char* pName)
 {
     if ((mpCore->numOps - 1) < NUM_TRACEABLE_OPS)
     {

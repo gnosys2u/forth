@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthStructCodeGenerator.cpp: code generator for structures and objects
+// StructCodeGenerator.cpp: code generator for structures and objects
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -28,11 +28,11 @@
 
 //////////////////////////////////////////////////////////////////////
 ////
-///     ForthStructCodeGenerator
+///     StructCodeGenerator
 //
 //
 
-ForthStructCodeGenerator::ForthStructCodeGenerator( TypesManager* pTypeManager )
+StructCodeGenerator::StructCodeGenerator( TypesManager* pTypeManager )
     : mpParseInfo(nullptr)
     , mpTypeManager( pTypeManager )
     , mpStructVocab(nullptr)
@@ -56,17 +56,17 @@ ForthStructCodeGenerator::ForthStructCodeGenerator( TypesManager* pTypeManager )
 	mpBuffer = (char *)__MALLOC(mBufferBytes);
 }
 
-ForthStructCodeGenerator::~ForthStructCodeGenerator()
+StructCodeGenerator::~StructCodeGenerator()
 {
 	__FREE(mpBuffer);
 }
 
-bool ForthStructCodeGenerator::Generate( ForthParseInfo *pInfo, forthop*& pDst, int dstLongs )
+bool StructCodeGenerator::Generate( ParseInfo *pInfo, forthop*& pDst, int dstLongs )
 {
 	mpParseInfo = pInfo;
 	mpStructVocab = nullptr;
     mpContainedClassVocab = nullptr;
-    ForthEngine* pEngine = ForthEngine::GetInstance();
+    Engine* pEngine = Engine::GetInstance();
 
     mSuffixVarop = VarOperation::kVarDefaultOp;
     if (pEngine->GetOuterInterpreter()->CheckFeature(kFFAllowVaropSuffix))
@@ -125,14 +125,14 @@ bool ForthStructCodeGenerator::Generate( ForthParseInfo *pInfo, forthop*& pDst, 
 	return success;
 }
 
-void ForthStructCodeGenerator::HandlePreceedingVarop()
+void StructCodeGenerator::HandlePreceedingVarop()
 {
     // handle case where previous opcode was varAction setting op (one of [ref -> ->+ ->- oclear])
     // we need to execute the varAction setting op after the first op, since if the first op is
     // a pointer type, it will use the varAction and clear it, when the varAction is meant to be
     // used by the final field op
-    ForthEngine *pEngine = ForthEngine::GetInstance();
-    ForthCoreState *pCore = pEngine->GetCoreState();
+    Engine *pEngine = Engine::GetInstance();
+    CoreState *pCore = pEngine->GetCoreState();
 
 	mCompileVarop = 0;
     if ( pEngine->IsCompiling() )
@@ -165,11 +165,11 @@ void ForthStructCodeGenerator::HandlePreceedingVarop()
 #define COMPILE_SIMPLE_OP( _caption, _op ) SPEW_STRUCTS( " " _caption " 0x%x", _op ); *mpDst++ = _op
 #endif
 
-bool ForthStructCodeGenerator::HandleFirst()
+bool StructCodeGenerator::HandleFirst()
 {
 	bool success = true;
-    ForthEngine *pEngine = ForthEngine::GetInstance();
-	ForthVocabulary* pFoundVocab = NULL;
+    Engine *pEngine = Engine::GetInstance();
+	Vocabulary* pFoundVocab = NULL;
     mpStructVocab = nullptr;
     mpContainedClassVocab = nullptr;
     mUsesSuper = false;
@@ -199,7 +199,7 @@ bool ForthStructCodeGenerator::HandleFirst()
                 //
                 ////////////////////////////////////
                 *pColon = '\0';
-                ForthVocabulary* pVocab = ForthVocabulary::FindVocabulary( mpToken );
+                Vocabulary* pVocab = Vocabulary::FindVocabulary( mpToken );
                 if ( pVocab != NULL )
                 {
                     pEntry = pVocab->FindSymbol( pColon + 1 );
@@ -499,7 +499,7 @@ bool ForthStructCodeGenerator::HandleFirst()
 	return success;
 }
 	
-bool ForthStructCodeGenerator::HandleMiddle()
+bool StructCodeGenerator::HandleMiddle()
 {
     bool bUsesSuper = mUsesSuper;
     mUsesSuper = false;
@@ -514,7 +514,7 @@ bool ForthStructCodeGenerator::HandleMiddle()
 		return false;
 	}
 	bool success = true;
-    ForthEngine *pEngine = ForthEngine::GetInstance();
+    Engine *pEngine = Engine::GetInstance();
     
     forthop* pEntry = mpStructVocab->FindSymbol( mpToken );
 			
@@ -735,7 +735,7 @@ bool ForthStructCodeGenerator::HandleMiddle()
     return success;
 }
 
-bool ForthStructCodeGenerator::HandleLast()
+bool StructCodeGenerator::HandleLast()
 {
     if (mpStructVocab == NULL)
     {

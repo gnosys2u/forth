@@ -7,9 +7,9 @@
 #include "pch.h"
 #include "ForthBlankDlg.h"
 
-#include "../ForthLib/ForthShell.h"
+#include "../ForthLib/Shell.h"
 #include "../ForthLib/ForthInput.h"
-#include "../ForthLib/ForthEngine.h"
+#include "../ForthLib/Engine.h"
 
 ForthBlankDlg::ForthBlankDlg() : CDialog(ForthBlankDlg::IDD)
 {

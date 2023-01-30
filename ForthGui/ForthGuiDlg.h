@@ -9,11 +9,11 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "../ForthLib/ForthShell.h"
+#include "../ForthLib/Shell.h"
 #include <deque>
 
-class ForthShell;
-class ForthBufferInputStream;
+class Shell;
+class BufferInputStream;
 
 #define INPUT_BUFFER_SIZE 1024
 
@@ -52,8 +52,8 @@ protected:
 
 	HICON m_hIcon;
 
-    ForthShell*                 mpShell;
-    ForthBufferInputStream*     mpInStream;
+    Shell*                 mpShell;
+    BufferInputStream*     mpInStream;
 	ForthObject					mConsoleOutObject;
     char                        mInBuffer[INPUT_BUFFER_SIZE];
 	int							mSelectedTab;

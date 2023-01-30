@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthExtension.cpp: support for midi devices
+// Extension.cpp: support for midi devices
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -10,38 +10,38 @@
 
 //////////////////////////////////////////////////////////////////////
 ////
-///     ForthExtension
+///     Extension
 //
 //
 
-ForthExtension::ForthExtension()
+Extension::Extension()
 :   mpEngine( NULL )
 {
 }
 
 
-ForthExtension::~ForthExtension()
+Extension::~Extension()
 {
 }
 
-void ForthExtension::Initialize( ForthEngine* pEngine )
+void Extension::Initialize( Engine* pEngine )
 {
     mpEngine = pEngine;
     Reset();
 }
 
 
-void ForthExtension::Reset()
+void Extension::Reset()
 {
 }
 
 
-void ForthExtension::Shutdown()
+void Extension::Shutdown()
 {
 }
 
 
-void ForthExtension::ForgetOp( uint32_t opNumber )
+void Extension::ForgetOp( uint32_t opNumber )
 {
 }
 

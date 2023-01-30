@@ -85,12 +85,12 @@ void ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
     // - define a field of this class type
     int nBytes = sizeof(ForthObject *);
     ForthObject* pHere;
-    ForthVocabulary *pVocab;
+    Vocabulary *pVocab;
     forthop* pEntry;
     int32_t typeCode;
     bool isPtr = false;
     TypesManager* pManager = TypesManager::GetInstance();
-    ForthCoreState *pCore = mpEngine->GetCoreState();
+    CoreState *pCore = mpEngine->GetCoreState();
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     int32_t typeIndex = mTypeIndex;
 
@@ -106,7 +106,7 @@ void ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
 
     if (pContainedClassName != nullptr)
     {
-        ForthVocabulary* pFoundVocab;
+        Vocabulary* pFoundVocab;
         pEntry = pOuter->GetVocabularyStack()->FindSymbol(pContainedClassName, &pFoundVocab);
         if (pEntry != nullptr)
         {
@@ -433,7 +433,7 @@ void ClassVocabulary::PrintEntry(forthop*   pEntry )
     
     if (baseType == BaseType::kUserDefinition)
     {
-        ForthVocabulary::PrintEntry(pEntry);
+        Vocabulary::PrintEntry(pEntry);
         return;
     }
 
@@ -444,7 +444,7 @@ void ClassVocabulary::PrintEntry(forthop*   pEntry )
         return;
     }
 
-    ForthCoreState* pCore = mpEngine->GetCoreState();
+    CoreState* pCore = mpEngine->GetCoreState();
     forthop* pMethods = GetMethods();
 
     sprintf( buff, "  %08x    ", methodNum );
@@ -683,7 +683,7 @@ ForthInterface::SetMethod( int index, forthop method )
     }
     else
     {
-        ForthEngine::GetInstance()->SetError(ForthError::kBadArrayIndex, "attempt to set interface method with out-of-bounds index");
+        Engine::GetInstance()->SetError(ForthError::kBadArrayIndex, "attempt to set interface method with out-of-bounds index");
     }
 }
 

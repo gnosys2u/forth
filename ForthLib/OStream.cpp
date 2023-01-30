@@ -24,7 +24,7 @@
 
 extern "C"
 {
-	extern cell oStringFormatSub( ForthCoreState* pCore, char* pBuffer, int bufferSize );
+	extern cell oStringFormatSub( CoreState* pCore, char* pBuffer, int bufferSize );
 };
 
 namespace OStream
@@ -41,7 +41,7 @@ namespace OStream
     // they would be used if a builtin input stream type were defined that didn't have
     // all the streamInFuncs defined, right now there is only fileInStream and consoleInstream,
     // and they have all their funcs defined.
-    int streamCharIn(ForthCoreState* pCore, oInStreamStruct* pInStream, int& ch)
+    int streamCharIn(CoreState* pCore, oInStreamStruct* pInStream, int& ch)
     {
         int numWritten = 0;
         if (pInStream->pInFuncs->inChar != NULL)
@@ -58,14 +58,14 @@ namespace OStream
             }
             else
             {
-                ForthEngine::GetInstance()->SetError(ForthError::kIO, " input stream has no char input routines");
+                Engine::GetInstance()->SetError(ForthError::kIO, " input stream has no char input routines");
             }
         }
 
         return numWritten;
     }
 
-    int streamBytesIn(ForthCoreState* pCore, oInStreamStruct* pInStream, char *pBuff, int numChars)
+    int streamBytesIn(CoreState* pCore, oInStreamStruct* pInStream, char *pBuff, int numChars)
     {
         int numWritten = 0;
         if (pInStream->pInFuncs->inBytes != NULL)
@@ -91,14 +91,14 @@ namespace OStream
             }
             else
             {
-                ForthEngine::GetInstance()->SetError(ForthError::kIO, " input stream has no bytes input routines");
+                Engine::GetInstance()->SetError(ForthError::kIO, " input stream has no bytes input routines");
             }
         }
 
         return numWritten;
     }
 
-    int streamStringIn(ForthCoreState* pCore, oInStreamStruct* pInStream, ForthObject& dstString)
+    int streamStringIn(CoreState* pCore, oInStreamStruct* pInStream, ForthObject& dstString)
     {
         int numWritten = 0;
         if (pInStream->pInFuncs->inString != NULL)
@@ -115,7 +115,7 @@ namespace OStream
                 int maxBytes = dst->maxLen;
                 char* pBuffer = &(dst->data[0]);
 
-                ForthEngine *pEngine = ForthEngine::GetInstance();
+                Engine *pEngine = Engine::GetInstance();
                 ForthObject obj;
                 obj.pData = pCore->TPD;
                 obj.pMethodOps = pCore->TPM;
@@ -181,14 +181,14 @@ namespace OStream
             }
             else
             {
-                ForthEngine::GetInstance()->SetError(ForthError::kIO, " input stream has no string input routines");
+                Engine::GetInstance()->SetError(ForthError::kIO, " input stream has no string input routines");
             }
         }
 
         return numWritten;
     }
 
-    int streamLineIn(ForthCoreState* pCore, oInStreamStruct* pInStream, char *pBuffer, int maxBytes)
+    int streamLineIn(CoreState* pCore, oInStreamStruct* pInStream, char *pBuffer, int maxBytes)
     {
         int numWritten = 0;
         if (pInStream->pInFuncs->inLine != NULL)
@@ -201,7 +201,7 @@ namespace OStream
                 || (pInStream->pInFuncs->inBytes != NULL))
             {
 
-                ForthEngine *pEngine = ForthEngine::GetInstance();
+                Engine *pEngine = Engine::GetInstance();
 
                 char* pDst = pBuffer;
 
@@ -258,7 +258,7 @@ namespace OStream
             }
             else
             {
-                ForthEngine::GetInstance()->SetError(ForthError::kIO, " input stream has no string input routines");
+                Engine::GetInstance()->SetError(ForthError::kIO, " input stream has no string input routines");
             }
         }
         return numWritten;
@@ -310,7 +310,7 @@ namespace OStream
         {
             char* pDst = pBuffer;
 
-            ForthEngine *pEngine = ForthEngine::GetInstance();
+            Engine *pEngine = Engine::GetInstance();
             ForthObject obj = GET_TP;
             for (int i = 0; i < numBytes; i++)
             {
@@ -342,7 +342,7 @@ namespace OStream
         }
         else
         {
-            ForthEngine *pEngine = ForthEngine::GetInstance();
+            Engine *pEngine = Engine::GetInstance();
             ForthObject obj = GET_TP;
             char* pDst = pBuffer;
 
@@ -409,7 +409,7 @@ namespace OStream
             int maxBytes = dst->maxLen;
             char* pBuffer = &(dst->data[0]);
 
-            ForthEngine *pEngine = ForthEngine::GetInstance();
+            Engine *pEngine = Engine::GetInstance();
             ForthObject obj = GET_TP;
 
             bool atEOF = false;
@@ -479,7 +479,7 @@ namespace OStream
         }
         else
         {
-            ForthEngine *pEngine = ForthEngine::GetInstance();
+            Engine *pEngine = Engine::GetInstance();
             ForthObject obj = GET_TP;
             pEngine->FullyExecuteMethod(pCore, obj, kInStreamGetCharMethod);
             if (*(pCore->SP) == -1)
@@ -513,7 +513,7 @@ namespace OStream
         }
         else
         {
-            ForthEngine *pEngine = ForthEngine::GetInstance();
+            Engine *pEngine = Engine::GetInstance();
             ForthObject obj = GET_TP;
             pEngine->FullyExecuteMethod(pCore, obj, kInStreamGetBytesMethod);
             if (*(pCore->SP) == 0)
@@ -531,7 +531,7 @@ namespace OStream
 
     FORTHOP(oInStreamIterLineMethod)
     {
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         cell found = 0;
         ForthObject obj = GET_TP;
         pEngine->FullyExecuteMethod(pCore, obj, kInStreamGetLineMethod);
@@ -559,7 +559,7 @@ namespace OStream
 
     FORTHOP(oInStreamIterStringMethod)
     {
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         cell found = 0;
 
         ForthObject thisStream = GET_TP;
@@ -633,7 +633,7 @@ namespace OStream
         FILE*               pInFile;
     };
 
-    int fileCharIn(ForthCoreState* pCore, void *pData, int& ch)
+    int fileCharIn(CoreState* pCore, void *pData, int& ch)
     {
         oFileInStreamStruct* pFileInStreamStruct = static_cast<oFileInStreamStruct*>(pData);
         int numWritten = 0;
@@ -646,7 +646,7 @@ namespace OStream
         return numWritten;
     }
 
-    int fileBytesIn(ForthCoreState* pCore, void *pData, char *pBuff, int numChars)
+    int fileBytesIn(CoreState* pCore, void *pData, char *pBuff, int numChars)
     {
         oFileInStreamStruct* pFileInStreamStruct = static_cast<oFileInStreamStruct*>(pData);
         int numWritten = 0;
@@ -657,7 +657,7 @@ namespace OStream
         return numWritten;
     }
 
-    int fileStringIn(ForthCoreState* pCore, void *pData, ForthObject& dstString)
+    int fileStringIn(CoreState* pCore, void *pData, ForthObject& dstString)
     {
         oFileInStreamStruct* pFileInStreamStruct = static_cast<oFileInStreamStruct*>(pData);
         oStringStruct* pString = (oStringStruct *)(dstString);
@@ -666,7 +666,7 @@ namespace OStream
         int maxBytes = dst->maxLen + 1;
         char* pBuffer = &(dst->data[0]);
         *pBuffer = '\0';
-        ForthEngine *pEngine = GET_ENGINE;
+        Engine *pEngine = GET_ENGINE;
         int numWritten = 0;
 
         char* pResult = nullptr;
@@ -727,7 +727,7 @@ namespace OStream
         return numWritten;
     }
 
-    int fileLineIn(ForthCoreState* pCore, void *pData, char *pBuffer, int maxBytes)
+    int fileLineIn(CoreState* pCore, void *pData, char *pBuffer, int maxBytes)
     {
         oFileInStreamStruct* pFileInStreamStruct = static_cast<oFileInStreamStruct*>(pData);
         char* pResult = nullptr;
@@ -1072,7 +1072,7 @@ namespace OStream
 	//                 oOutStream
 	//
 
-	void streamCharOut(ForthCoreState* pCore, oOutStreamStruct* pOutStream, char ch)
+	void streamCharOut(CoreState* pCore, oOutStreamStruct* pOutStream, char ch)
 	{
 		if (pOutStream->pOutFuncs->outChar != NULL)
 		{
@@ -1091,7 +1091,7 @@ namespace OStream
 		}
 		else
 		{
-			ForthEngine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
+			Engine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
 		}
 	}
 
@@ -1101,7 +1101,7 @@ namespace OStream
 
 		if (pOutStream->pOutFuncs == NULL)
 		{
-			ForthEngine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
+			Engine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
 		}
 		else
 		{
@@ -1111,7 +1111,7 @@ namespace OStream
 		METHOD_RETURN;
 	}
 
-	void streamBytesOut(ForthCoreState* pCore, oOutStreamStruct* pOutStream, const char* pBuffer, int numBytes)
+	void streamBytesOut(CoreState* pCore, oOutStreamStruct* pOutStream, const char* pBuffer, int numBytes)
 	{
 		if (pOutStream->pOutFuncs->outBytes != NULL)
 		{
@@ -1136,7 +1136,7 @@ namespace OStream
 		}
 		else
 		{
-			ForthEngine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
+			Engine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
 		}
 	}
 
@@ -1148,7 +1148,7 @@ namespace OStream
 
 		if (pOutStream->pOutFuncs == NULL)
 		{
-			ForthEngine *pEngine = ForthEngine::GetInstance();
+			Engine *pEngine = Engine::GetInstance();
             ForthObject obj = GET_TP;
 			for (int i = 0; i < numBytes; i++)
 			{
@@ -1164,7 +1164,7 @@ namespace OStream
 		METHOD_RETURN;
 	}
 
-	void streamStringOut(ForthCoreState* pCore, oOutStreamStruct* pOutStream, const char* pBuffer)
+	void streamStringOut(CoreState* pCore, oOutStreamStruct* pOutStream, const char* pBuffer)
 	{
  		if (pOutStream->pOutFuncs->outString != NULL)
 		{
@@ -1186,7 +1186,7 @@ namespace OStream
 			}
 			else
 			{
-				ForthEngine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
+				Engine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
 			}
 		}
 	}
@@ -1198,7 +1198,7 @@ namespace OStream
 
 		if (pOutStream->pOutFuncs == NULL)
 		{
-			ForthEngine *pEngine = ForthEngine::GetInstance();
+			Engine *pEngine = Engine::GetInstance();
             ForthObject obj = GET_TP;
             int numBytes = (int)strlen(pBuffer);
 			for (int i = 0; i < numBytes; i++)
@@ -1223,7 +1223,7 @@ namespace OStream
 		pOutStream->eolChars[3] = '\0';
 		if (pOutStream->pOutFuncs == NULL)
 		{
-			ForthEngine *pEngine = ForthEngine::GetInstance();
+			Engine *pEngine = Engine::GetInstance();
             ForthObject obj = GET_TP;
             int numBytes = (int)strlen(pBuffer);
 			for (int i = 0; i < numBytes; i++)
@@ -1246,7 +1246,7 @@ namespace OStream
     FORTHOP(oOutStreamPrintfMethod)
     {
         GET_THIS(oOutStreamStruct, pOutStream);
-        ForthEngine* pEngine = GET_ENGINE;
+        Engine* pEngine = GET_ENGINE;
         OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
         // NOTE: this could lock your thread until temp buffer is available
         char* pBuffer = pOuter->GrabTempBuffer();
@@ -1301,17 +1301,17 @@ namespace OStream
 		FILE*					pOutFile;
 	};
 
-	void fileCharOut(ForthCoreState* pCore, void *pData, char ch)
+	void fileCharOut(CoreState* pCore, void *pData, char ch)
 	{
 		GET_ENGINE->GetShell()->GetFileInterface()->filePutChar(ch, static_cast<FILE *>(static_cast<oFileOutStreamStruct*>(pData)->pOutFile));
 	}
 
-	void fileBytesOut(ForthCoreState* pCore, void *pData, const char *pBuffer, int numChars)
+	void fileBytesOut(CoreState* pCore, void *pData, const char *pBuffer, int numChars)
 	{
 		GET_ENGINE->GetShell()->GetFileInterface()->fileWrite(pBuffer, 1, numChars, static_cast<FILE *>(static_cast<oFileOutStreamStruct*>(pData)->pOutFile));
 	}
 
-	void fileStringOut(ForthCoreState* pCore, void *pData, const char *pBuffer)
+	void fileStringOut(CoreState* pCore, void *pData, const char *pBuffer)
 	{
 		GET_ENGINE->GetShell()->GetFileInterface()->filePutString(pBuffer, static_cast<FILE *>(static_cast<oFileOutStreamStruct*>(pData)->pOutFile));
 	}
@@ -1677,24 +1677,24 @@ namespace OStream
         oOutStreamStruct		ostream;
 	};
 
-	void traceCharOut(ForthCoreState* pCore, void *pData, char ch)
+	void traceCharOut(CoreState* pCore, void *pData, char ch)
 	{
-		ForthEngine* pEngine = GET_ENGINE;
+		Engine* pEngine = GET_ENGINE;
 		pEngine->TraceOut("%c", ch);
 	}
 
-	void traceBytesOut(ForthCoreState* pCore, void *pData, const char *pBuffer, int numChars)
+	void traceBytesOut(CoreState* pCore, void *pData, const char *pBuffer, int numChars)
 	{
-		ForthEngine* pEngine = GET_ENGINE;
+		Engine* pEngine = GET_ENGINE;
 		for (int i = 0; i < numChars; ++i)
 		{
 			pEngine->TraceOut("%c", pBuffer[i]);
 		}
 	}
 
-	void traceStringOut(ForthCoreState* pCore, void *pData, const char *pBuffer)
+	void traceStringOut(CoreState* pCore, void *pData, const char *pBuffer)
 	{
-		ForthEngine* pEngine = GET_ENGINE;
+		Engine* pEngine = GET_ENGINE;
 		pEngine->TraceOut("%s", pBuffer);
 	}
 
@@ -1764,7 +1764,7 @@ namespace OStream
 
         cell ch = SPOP;
 
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
         
         if (pOutStream->streamA)
         {
@@ -1787,7 +1787,7 @@ namespace OStream
         cell numBytes = SPOP;
         cell pBuffer = SPOP;
 
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
 
         if (pOutStream->streamA)
         {
@@ -1811,7 +1811,7 @@ namespace OStream
         GET_THIS(oSplitOutStreamStruct, pOutStream);
         cell pBuffer = SPOP;
 
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
 
         if (pOutStream->streamA)
         {
@@ -1833,7 +1833,7 @@ namespace OStream
         GET_THIS(oSplitOutStreamStruct, pOutStream);
         cell pBuffer = SPOP;
 
-        ForthEngine *pEngine = ForthEngine::GetInstance();
+        Engine *pEngine = Engine::GetInstance();
 
         if (pOutStream->streamA)
         {
@@ -1853,7 +1853,7 @@ namespace OStream
     FORTHOP(oSplitOutStreamPrintfMethod)
     {
         GET_THIS(oSplitOutStreamStruct, pOutStream);
-        ForthEngine* pEngine = GET_ENGINE;
+        Engine* pEngine = GET_ENGINE;
         OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
         // NOTE: this could lock your thread until temp buffer is available
         char* pBuffer = pOuter->GrabTempBuffer();
@@ -1919,7 +1919,7 @@ namespace OStream
     }
 } // namespace OStream
 
-void GetForthConsoleOutStream(ForthCoreState* pCore, ForthObject& outObject)
+void GetForthConsoleOutStream(CoreState* pCore, ForthObject& outObject)
 {
     ClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIFileOutStream);
     OStream::consoleOutSingleton.ostream.pMethods = pClassVocab->GetMethods();
@@ -1930,7 +1930,7 @@ void GetForthConsoleOutStream(ForthCoreState* pCore, ForthObject& outObject)
 	outObject = reinterpret_cast<ForthObject>(&OStream::consoleOutSingleton);
 }
 
-void GetForthErrorOutStream(ForthCoreState* pCore, ForthObject& outObject)
+void GetForthErrorOutStream(CoreState* pCore, ForthObject& outObject)
 {
     ClassVocabulary* pClassVocab = GET_CLASS_VOCABULARY(kBCIFileOutStream);
     OStream::errorOutSingleton.ostream.pMethods = pClassVocab->GetMethods();
@@ -1942,7 +1942,7 @@ void GetForthErrorOutStream(ForthCoreState* pCore, ForthObject& outObject)
 }
 
 
-void CreateForthFileOutStream(ForthCoreState* pCore, ForthObject& outObject, FILE* pOutFile)
+void CreateForthFileOutStream(CoreState* pCore, ForthObject& outObject, FILE* pOutFile)
 {
     ClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIFileOutStream);
 	ALLOCATE_OBJECT(oOutStreamStruct, pFileOutStream, pClassVocab);
@@ -1953,7 +1953,7 @@ void CreateForthFileOutStream(ForthCoreState* pCore, ForthObject& outObject, FIL
     outObject = reinterpret_cast<ForthObject>(pFileOutStream);
 }
 
-void CreateForthStringOutStream(ForthCoreState* pCore, ForthObject& outObject)
+void CreateForthStringOutStream(CoreState* pCore, ForthObject& outObject)
 {
     // create the internal string object
     ClassVocabulary* pClassVocab = GET_CLASS_VOCABULARY(kBCIString);
@@ -1973,14 +1973,14 @@ void CreateForthStringOutStream(ForthCoreState* pCore, ForthObject& outObject)
     outObject = reinterpret_cast<ForthObject>(pStringOutStream);
 }
 
-const char* GetForthStringOutStreamData(ForthCoreState* pCore, ForthObject& streamObject)
+const char* GetForthStringOutStreamData(CoreState* pCore, ForthObject& streamObject)
 {
 	oStringOutStreamStruct* pStream = reinterpret_cast<oStringOutStreamStruct *>(streamObject);
 	oStringStruct* pString = reinterpret_cast<oStringStruct *>(pStream->outString);
 	return pString->str->data;
 }
 
-void CreateForthFunctionOutStream(ForthCoreState* pCore, ForthObject& outObject, streamCharOutRoutine outChar,
+void CreateForthFunctionOutStream(CoreState* pCore, ForthObject& outObject, streamCharOutRoutine outChar,
 	streamBytesOutRoutine outBytes, streamStringOutRoutine outString, void* pUserData)
 {
     ClassVocabulary *pClassVocab = GET_CLASS_VOCABULARY(kBCIFunctionOutStream);
@@ -1998,9 +1998,9 @@ void CreateForthFunctionOutStream(ForthCoreState* pCore, ForthObject& outObject,
 // ForthConsoleCharOut etc. exist so that stuff outside this module can do output
 //   without having to know about object innards
 // TODO: remove hard coded method numbers
-void ForthConsoleCharOut(ForthCoreState* pCore, char ch)
+void ForthConsoleCharOut(CoreState* pCore, char ch)
 {
-	ForthEngine *pEngine = GET_ENGINE;
+	Engine *pEngine = GET_ENGINE;
 	oOutStreamStruct* pOutStream = reinterpret_cast<oOutStreamStruct*>(pCore->consoleOutStream);
 	if ((pOutStream != nullptr) && (pOutStream->pOutFuncs != nullptr))
 	{
@@ -2020,9 +2020,9 @@ void ForthConsoleCharOut(ForthCoreState* pCore, char ch)
 	}
 }
 
-void ForthConsoleBytesOut(ForthCoreState* pCore, const char* pBuffer, int numChars)
+void ForthConsoleBytesOut(CoreState* pCore, const char* pBuffer, int numChars)
 {
-	ForthEngine *pEngine = GET_ENGINE;
+	Engine *pEngine = GET_ENGINE;
 	oOutStreamStruct* pOutStream = reinterpret_cast<oOutStreamStruct*>(pCore->consoleOutStream);
     if ((pOutStream != nullptr) && (pOutStream->pOutFuncs != nullptr))
     {
@@ -2043,9 +2043,9 @@ void ForthConsoleBytesOut(ForthCoreState* pCore, const char* pBuffer, int numCha
 	}
 }
 
-void ForthConsoleStringOut(ForthCoreState* pCore, const char* pBuffer)
+void ForthConsoleStringOut(CoreState* pCore, const char* pBuffer)
 {
-	ForthEngine *pEngine = GET_ENGINE;
+	Engine *pEngine = GET_ENGINE;
 	oOutStreamStruct* pOutStream = reinterpret_cast<oOutStreamStruct*>(pCore->consoleOutStream);
     if ((pOutStream != nullptr) && (pOutStream->pOutFuncs != nullptr))
 	{
@@ -2065,9 +2065,9 @@ void ForthConsoleStringOut(ForthCoreState* pCore, const char* pBuffer)
 	}
 }
 
-void ForthErrorStringOut(ForthCoreState* pCore, const char* pBuffer)
+void ForthErrorStringOut(CoreState* pCore, const char* pBuffer)
 {
-    ForthEngine* pEngine = GET_ENGINE;
+    Engine* pEngine = GET_ENGINE;
     oOutStreamStruct* pOutStream = reinterpret_cast<oOutStreamStruct*>(pEngine->GetErrorOut(pCore));
     if ((pOutStream != nullptr) && (pOutStream->pOutFuncs != nullptr))
     {
