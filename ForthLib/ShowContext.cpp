@@ -6,9 +6,9 @@
 
 #include "pch.h"
 
-#include "ForthShowContext.h"
+#include "ShowContext.h"
 
-#include "ForthEngine.h"
+#include "Engine.h"
 #include "ClassVocabulary.h"
 
 

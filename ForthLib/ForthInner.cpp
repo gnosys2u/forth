@@ -6,11 +6,11 @@
 
 #include "pch.h"
 
-#include "ForthEngine.h"
+#include "Engine.h"
 #include "OuterInterpreter.h"
 #include "ForthThread.h"
-#include "ForthShell.h"
-#include "ForthVocabulary.h"
+#include "Shell.h"
+#include "Vocabulary.h"
 #include "ForthObject.h"
 #include "ClassVocabulary.h"
 

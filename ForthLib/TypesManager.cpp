@@ -5,11 +5,11 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
-#include "ForthEngine.h"
+#include "Engine.h"
 #include "TypesManager.h"
 #include "NativeType.h"
 #include "OuterInterpreter.h"
-#include "ForthParseInfo.h"
+#include "ParseInfo.h"
 #include "ClassVocabulary.h"
 
 //////////////////////////////////////////////////////////////////////

@@ -5,9 +5,9 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
-#include "ForthForgettable.h"
-#include "ForthEngine.h"
-#include "ForthShell.h"
+#include "Forgettable.h"
+#include "Engine.h"
+#include "Shell.h"
 
 //############################################################################
 //

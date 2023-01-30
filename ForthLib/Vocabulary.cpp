@@ -5,13 +5,13 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
-#include "ForthVocabulary.h"
-#include "ForthEngine.h"
+#include "Vocabulary.h"
+#include "Engine.h"
 #include "OuterInterpreter.h"
-#include "ForthShell.h"
-#include "ForthForgettable.h"
-#include "ForthParseInfo.h"
-#include "ForthBuiltinClasses.h"
+#include "Shell.h"
+#include "Forgettable.h"
+#include "ParseInfo.h"
+#include "BuiltinClasses.h"
 #include "TypesManager.h"
 #include "ClassVocabulary.h"
 

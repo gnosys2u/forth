@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "Forth.h"
-#include "ForthForgettable.h"
+#include "Forgettable.h"
 #include "ForthObject.h"
 
 class ParseInfo;

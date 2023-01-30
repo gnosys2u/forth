@@ -3,8 +3,8 @@
 
 #include "pch.h"
 #include "ForthMidiMain.h"
-#include "ForthShell.h"
-#include "ForthEngine.h"
+#include "Shell.h"
+#include "Engine.h"
 #include "ForthInput.h"
 #include "ForthMidiExtension.h"
 

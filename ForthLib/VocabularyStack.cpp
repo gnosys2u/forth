@@ -6,9 +6,9 @@
 
 #include "pch.h"
 #include "VocabularyStack.h"
-#include "ForthEngine.h"
+#include "Engine.h"
 #include "OuterInterpreter.h"
-#include "ForthParseInfo.h"
+#include "ParseInfo.h"
 
 //////////////////////////////////////////////////////////////////////
 ////

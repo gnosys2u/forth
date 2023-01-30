@@ -7,8 +7,8 @@
 
 #include <map>
 #include <string>
-#include "ForthEngine.h"
-#include "ForthBuiltinClasses.h"
+#include "Engine.h"
+#include "BuiltinClasses.h"
 
 class ClassVocabulary;
 

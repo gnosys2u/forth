@@ -7,7 +7,7 @@
 
 
 #include "Forth.h"
-#include "ForthVocabulary.h"
+#include "Vocabulary.h"
 
 class VocabularyStack
 {

@@ -8,13 +8,13 @@
 #include <stdio.h>
 #include <deque>
 
-#include "ForthEngine.h"
+#include "Engine.h"
 #include "OuterInterpreter.h"
-#include "ForthVocabulary.h"
+#include "Vocabulary.h"
 #include "ForthObject.h"
-#include "ForthBuiltinClasses.h"
-#include "ForthShowContext.h"
-#include "ForthObjectReader.h"
+#include "BuiltinClasses.h"
+#include "ShowContext.h"
+#include "ObjectReader.h"
 
 #include "TypesManager.h"
 #include "ClassVocabulary.h"

@@ -5,7 +5,7 @@
 #include <winsock2.h>
 
 #include "Forth.h"
-#include "ForthShell.h"
+#include "Shell.h"
 #include "ForthClient.h"
 #include "ForthMessages.h"
 

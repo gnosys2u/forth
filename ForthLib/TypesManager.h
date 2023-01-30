@@ -5,7 +5,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "ForthForgettable.h"
+#include "Forgettable.h"
 
 class StructCodeGenerator;
 class StructVocabulary;

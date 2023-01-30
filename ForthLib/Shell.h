@@ -5,7 +5,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "ForthEngine.h"
+#include "Engine.h"
 #include "ForthInput.h"
 #if defined(LINUX) || defined(MACOSX)
 #include <limits.h>

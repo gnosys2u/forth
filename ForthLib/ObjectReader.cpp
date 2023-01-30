@@ -6,10 +6,10 @@
 
 #include "pch.h"
 #include <stdexcept>
-#include "ForthObjectReader.h"
+#include "ObjectReader.h"
 #include "TypesManager.h"
 #include "ClassVocabulary.h"
-//#include "ForthEngine.h"
+//#include "Engine.h"
 
 /*
     todos:

@@ -9,7 +9,7 @@
 //#include "pch.h"
 
 #include <atomic>
-#include "ForthMemoryManager.h"
+#include "MemoryManager.h"
 
 struct CoreState;
 

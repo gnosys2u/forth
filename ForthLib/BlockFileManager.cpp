@@ -5,8 +5,8 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
-#include "ForthBlockFileManager.h"
-#include "ForthEngine.h"
+#include "BlockFileManager.h"
+#include "Engine.h"
 #include "OuterInterpreter.h"
 #include "ClassVocabulary.h"
 

@@ -76,12 +76,12 @@
 
 #if 0
 #include "Forth.h"
-#include "ForthEngine.h"
-#include "ForthForgettable.h"
+#include "Engine.h"
+#include "Forgettable.h"
 #include "ForthInner.h"
 #include "ForthInput.h"
-#include "ForthShell.h"
+#include "Shell.h"
 #include "ForthStructs.h"
 #include "ForthThread.h"
-#include "ForthVocabulary.h"
+#include "Vocabulary.h"
 #endif

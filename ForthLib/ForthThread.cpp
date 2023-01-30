@@ -16,10 +16,10 @@
 #endif
 #include <deque>
 #include "ForthThread.h"
-#include "ForthEngine.h"
+#include "Engine.h"
 #include "OuterInterpreter.h"
-#include "ForthShowContext.h"
-#include "ForthBuiltinClasses.h"
+#include "ShowContext.h"
+#include "BuiltinClasses.h"
 #include "ClassVocabulary.h"
 
 // this is the number of extra longs to allocate at top and

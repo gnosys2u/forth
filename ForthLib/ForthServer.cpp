@@ -34,7 +34,7 @@
 #include "ForthServer.h"
 #include "ForthPipe.h"
 #include "ForthMessages.h"
-#include "ForthExtension.h"
+#include "Extension.h"
 
 #ifndef SOCKADDR
 #define SOCKADDR struct sockaddr

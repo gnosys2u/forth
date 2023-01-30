@@ -11,7 +11,7 @@
 #include <string>
 
 #include "Forth.h"
-#include "ForthShell.h"
+#include "Shell.h"
 #include "ForthInner.h"
 #include "ForthStructs.h"
 #include "VocabularyStack.h"

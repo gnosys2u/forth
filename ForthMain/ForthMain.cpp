@@ -10,7 +10,7 @@
 #if AFX_BUILD
 #include "ForthMain.h"
 #endif
-#include "ForthShell.h"
+#include "Shell.h"
 #include "ForthInput.h"
 
 

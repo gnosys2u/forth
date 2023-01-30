@@ -6,13 +6,13 @@
 
 #include "pch.h"
 
-#include "ForthEngine.h"
+#include "Engine.h"
 #include "OuterInterpreter.h"
-#include "ForthParseInfo.h"
-#include "ForthShell.h"
+#include "ParseInfo.h"
+#include "Shell.h"
 #include "ForthInput.h"
-#include "ForthVocabulary.h"
-#include "ForthExtension.h"
+#include "Vocabulary.h"
+#include "Extension.h"
 
 ParseInfo::ParseInfo(int32_t *pBuffer, int numLongs)
 	: mpToken(pBuffer)

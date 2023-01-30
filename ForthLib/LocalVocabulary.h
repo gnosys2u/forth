@@ -5,7 +5,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "ForthVocabulary.h"
+#include "Vocabulary.h"
 
 #define MAX_LOCAL_DEPTH 16
 #define LOCAL_STACK_STRIDE 3

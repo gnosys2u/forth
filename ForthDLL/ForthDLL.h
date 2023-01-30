@@ -23,7 +23,7 @@ extern FORTHDLL_API int nForthDLL;
 FORTHDLL_API int fnForthDLL(void);
 #endif
 
-#include "ForthEngine.h"
+#include "Engine.h"
 
 FORTHDLL_API Engine* CreateForthEngine();
 FORTHDLL_API Shell* CreateForthShell(int argc, const char** argv, const char** envp,

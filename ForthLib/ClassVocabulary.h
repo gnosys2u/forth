@@ -5,7 +5,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "ForthVocabulary.h"
+#include "Vocabulary.h"
 #include "ForthStructs.h"
 
 class ClassVocabulary;

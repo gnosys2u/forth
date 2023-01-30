@@ -6,7 +6,7 @@
 
 #include "pch.h"
 #include "DLLVocabulary.h"
-#include "ForthEngine.h"
+#include "Engine.h"
 #include "OuterInterpreter.h"
 #if defined(LINUX) || defined(MACOSX)
 #include <dlfcn.h>

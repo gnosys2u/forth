@@ -11,8 +11,8 @@
 #include <vector>
 
 #include "Forth.h"
-#include "ForthEngine.h"
-#include "ForthExtension.h"
+#include "Engine.h"
+#include "Extension.h"
 
 class ForthThread;
 

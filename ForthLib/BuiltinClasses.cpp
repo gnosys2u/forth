@@ -9,15 +9,15 @@
 #include <string.h>
 #include <map>
 
-#include "ForthEngine.h"
+#include "Engine.h"
 #include "OuterInterpreter.h"
-#include "ForthVocabulary.h"
+#include "Vocabulary.h"
 #include "ClassVocabulary.h"
 #include "TypesManager.h"
 #include "ForthObject.h"
-#include "ForthBuiltinClasses.h"
-#include "ForthShowContext.h"
-#include "ForthBlockFileManager.h"
+#include "BuiltinClasses.h"
+#include "ShowContext.h"
+#include "BlockFileManager.h"
 
 
 #include "OArray.h"

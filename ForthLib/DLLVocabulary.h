@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "Forth.h"
-#include "ForthVocabulary.h"
+#include "Vocabulary.h"
 
 class DLLVocabulary : public Vocabulary
 {

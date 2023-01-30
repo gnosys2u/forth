@@ -9,8 +9,8 @@
 #if defined(LINUX) || defined(MACOSX)
 #include <ctype.h>
 #endif
-#include "ForthEngine.h"
-#include "ForthOpcodeCompiler.h"
+#include "Engine.h"
+#include "OpcodeCompiler.h"
 
 // compile enable flags for peephole optimizer features
 enum

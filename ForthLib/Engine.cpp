@@ -12,18 +12,18 @@
 #include <sys/mman.h>
 #endif
 
-#include "ForthEngine.h"
+#include "Engine.h"
 #include "ForthThread.h"
-#include "ForthShell.h"
-#include "ForthVocabulary.h"
+#include "Shell.h"
+#include "Vocabulary.h"
 #include "ForthInner.h"
-#include "ForthExtension.h"
+#include "Extension.h"
 #include "ForthStructs.h"
-#include "ForthOpcodeCompiler.h"
+#include "OpcodeCompiler.h"
 #include "ForthPortability.h"
-#include "ForthBuiltinClasses.h"
-#include "ForthBlockFileManager.h"
-#include "ForthParseInfo.h"
+#include "BuiltinClasses.h"
+#include "BlockFileManager.h"
+#include "ParseInfo.h"
 #include "OuterInterpreter.h"
 #include "ClassVocabulary.h"
 

@@ -5,9 +5,9 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "ForthVocabulary.h"
-#include "ForthBuiltinClasses.h"
-#include "ForthStructCodeGenerator.h"
+#include "Vocabulary.h"
+#include "BuiltinClasses.h"
+#include "StructCodeGenerator.h"
 #include <vector>
 
 class Engine;

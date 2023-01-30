@@ -5,8 +5,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 #include "Forth.h"
-#include "ForthEngine.h"
-#include "ForthShell.h"
+#include "Engine.h"
+#include "Shell.h"
 #include "ForthInput.h"
 #include <string.h>
 #if defined(WINDOWS_BUILD)

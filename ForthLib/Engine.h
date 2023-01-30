@@ -17,9 +17,9 @@
 
 #include "Forth.h"
 #include "ForthThread.h"
-#include "ForthShell.h"
+#include "Shell.h"
 #include "ForthInner.h"
-#include "ForthVocabulary.h"
+#include "Vocabulary.h"
 #include "ForthStructs.h"
 
 class ForthThread;

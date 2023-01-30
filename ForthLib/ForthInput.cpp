@@ -6,9 +6,9 @@
 
 #include "pch.h"
 #include "ForthInput.h"
-#include "ForthEngine.h"
-#include "ForthBlockFileManager.h"
-#include "ForthParseInfo.h"
+#include "Engine.h"
+#include "BlockFileManager.h"
+#include "ParseInfo.h"
 
 #if defined(LINUX) || defined(MACOSX)
 #include <readline/readline.h>
