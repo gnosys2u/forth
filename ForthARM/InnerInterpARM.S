@@ -7457,7 +7457,59 @@ methodWithTOSType:
 badObject:
 	mov	r0, #kForthErrorBadObject
 	b	interpLoopErrorExit
+
+@ invoke a method on an object in a local variable
+methodWithLocalObjectType:
+	@ r1: bits 0..11 are method index, bits 12..23 are frame offset in longs
+	@ push this ptr on return stack
+	ldr	r2, [rcore, #tp]
+	stmdb	rrp!, {r2}
+
+	@ set this ptr from local object selected by r1 bits 12..23
+	mov r0, r1
+	lsr	r0, #10
+	ldr r2, =0x3FFC
+	and r0, r2
+	sub r2, rfp, r0
+	ldr r0, [r2]
+	orrs r0, r0
+	beq badObject
+	str r0, [rcore, #tp]
 	
+	@ get method opcode
+	ldr r2, =0xFFF
+	and r1, r2
+	ldr r2, [r0]			@ r2 is methods table
+	ldr	r0, [r2, r1, lsl #2]
+	ldr	r1, [rcore, #inner_execute]
+	bx	r1
+
+@ invoke a method on an object in a member variable
+methodWithMemberObjectType:
+	@ r1: bits 0..11 are method index, bits 12..23 are object offset in bytes
+	@ push this ptr on return stack
+	ldr	r2, [rcore, #tp]
+	stmdb	rrp!, {r2}
+
+	@ set this ptr from member object selected by r1 bits 12..23
+	mov r0, r1
+	lsr	r0, #12
+	ldr	r2, =0xFFF
+	and	r0, r2
+	ldr	r2, [rcore, #tp]
+	ldr r0, [r2, r0]
+	orrs r0, r0
+	beq badObject
+	str r0, [rcore, #tp]
+	
+	@ get method opcode
+	ldr r2, =0xFFF
+	and r1, r2				@ r1 is method number
+	ldr r2, [r0]			@ r2 is methods table
+	ldr	r0, [r2, r1, lsl #2]
+	ldr	r1, [rcore, #inner_execute]
+	bx	r1
+
 @ squished float literal
 squishedFloatType:
 	@ r1: bit 23 is sign, bits 22..18 are exponent, bits 17..0 are mantissa
@@ -7892,8 +7944,10 @@ opTypesTable:
     .word  userDef64Type
     .word  userDef64Type
 
-@	138 - 149
-	.word	extOpType,extOpType
+@	138 - 139
+	.word	methodWithLocalObjectType
+	.word	methodWithMemberObjectType
+@	140 - 149
 	.word	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 @	150 - 199
 	.word	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType

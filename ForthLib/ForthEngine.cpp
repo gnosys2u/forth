@@ -174,6 +174,7 @@ static const char *opTypeNames[] =
     "NativeU32", "NativeS32", "NativeF32", "NativeS64", "NativeF64",
     "CCodeU32", "CCodeS32", "CCodeF32", "CCodeS64", "CCodeF64",
     "UserDefU32", "UserDefS32", "UserDefF32", "UserDefS64", "UserDefF64",
+    "MethodWithLocalObject", "MethodWithMemberObject"
 };
 
 

@@ -67,7 +67,14 @@ SRCS = \
 	OSocket.cpp \
 	OStream.cpp \
 	OString.cpp \
-	OSystem.cpp
+	OSystem.cpp \
+	ClassVocabulary.cpp \
+	DLLVocabulary.cpp \
+	LocalVocabulary.cpp \
+	NativeType.cpp \
+	TypesManager.cpp \
+	VocabularyStack.cpp
+	
 	
 	
 #ASMSRCS = InnerInterpAmd64.asm \
