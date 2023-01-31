@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "Forth.h"
-#include "ForthShell.h"
+#include "Shell.h"
 
 static int loggerFD = -1;
 

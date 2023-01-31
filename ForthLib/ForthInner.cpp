@@ -8,10 +8,10 @@
 
 #include "Engine.h"
 #include "OuterInterpreter.h"
-#include "ForthThread.h"
+#include "Thread.h"
 #include "Shell.h"
 #include "Vocabulary.h"
-#include "ForthObject.h"
+#include "Object.h"
 #include "ClassVocabulary.h"
 
 // for combo optypes which include an op, the op optype is native if

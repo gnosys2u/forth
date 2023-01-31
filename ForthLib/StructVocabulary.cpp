@@ -1,13 +1,14 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthStructs.cpp: support for user-defined structures
+// StructVocabulary
+// .cpp: support for user-defined structures
 //
 //////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
 #include "Engine.h"
 #include "OuterInterpreter.h"
-#include "Vocabulary.h"
+#include "StructVocabulary.h"
 #include "Shell.h"
 #include "Forgettable.h"
 #include "ParseInfo.h"

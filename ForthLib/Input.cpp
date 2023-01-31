@@ -5,7 +5,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "pch.h"
-#include "ForthInput.h"
+#include "Input.h"
 #include "Engine.h"
 #include "BlockFileManager.h"
 #include "ParseInfo.h"

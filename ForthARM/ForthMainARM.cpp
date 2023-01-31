@@ -10,8 +10,8 @@
 #include <sys/time.h>
 #include <string.h>
  
-#include "ForthShell.h"
-#include "ForthInput.h"
+#include "Shell.h"
+#include "Input.h"
 
 static int loggerFD = -1;
 

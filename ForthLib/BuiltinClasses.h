@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "Forgettable.h"
-#include "ForthObject.h"
+#include "Object.h"
 
 class ClassVocabulary;
 

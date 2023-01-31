@@ -1,13 +1,13 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthServer.h: Forth server support
+// Server.h: Forth server support
 //
 //////////////////////////////////////////////////////////////////////
 #include "Forth.h"
 #include "Engine.h"
 #include "Shell.h"
-#include "ForthInput.h"
+#include "Input.h"
 #include <string.h>
 #if defined(WINDOWS_BUILD)
 #include <winsock2.h>

@@ -7,7 +7,7 @@
 
 #include "Forth.h"
 #include "Forgettable.h"
-#include "ForthObject.h"
+#include "Object.h"
 
 class ParseInfo;
 class Engine;

@@ -13,7 +13,7 @@
 #include "Forth.h"
 #include "Shell.h"
 #include "ForthInner.h"
-#include "ForthStructs.h"
+#include "StructVocabulary.h"
 #include "VocabularyStack.h"
 
 class Fiber;

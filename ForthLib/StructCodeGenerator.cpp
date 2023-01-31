@@ -8,7 +8,7 @@
 #include "Engine.h"
 #include "OuterInterpreter.h"
 #include "Vocabulary.h"
-#include "ForthStructs.h"
+#include "StructVocabulary.h"
 #include "StructCodeGenerator.h"
 #include "BuiltinClasses.h"
 #include "ParseInfo.h"

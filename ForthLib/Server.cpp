@@ -31,8 +31,8 @@
 #include <dirent.h>
 #endif
 
-#include "ForthServer.h"
-#include "ForthPipe.h"
+#include "Server.h"
+#include "Pipe.h"
 #include "ForthMessages.h"
 #include "Extension.h"
 

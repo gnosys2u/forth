@@ -26,9 +26,9 @@
 #endif
 #include "Engine.h"
 #include "OuterInterpreter.h"
-#include "ForthThread.h"
+#include "Thread.h"
 #include "Shell.h"
-#include "ForthInput.h"
+#include "Input.h"
 #include "Vocabulary.h"
 #include "Extension.h"
 #include "ParseInfo.h"

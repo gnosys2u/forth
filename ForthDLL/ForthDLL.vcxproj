@@ -501,26 +501,26 @@
     <ClInclude Include="..\ForthLib\Forth.h" />
     <ClInclude Include="..\ForthLib\BlockFileManager.h" />
     <ClInclude Include="..\ForthLib\BuiltinClasses.h" />
-    <ClInclude Include="..\ForthLib\ForthClient.h" />
+    <ClInclude Include="..\ForthLib\Client.h" />
     <ClInclude Include="..\ForthLib\Engine.h" />
     <ClInclude Include="..\ForthLib\Extension.h" />
     <ClInclude Include="..\ForthLib\Forgettable.h" />
     <ClInclude Include="..\ForthLib\ForthInner.h" />
-    <ClInclude Include="..\ForthLib\ForthInput.h" />
+    <ClInclude Include="..\ForthLib\Input.h" />
     <ClInclude Include="..\ForthLib\MemoryManager.h" />
     <ClInclude Include="..\ForthLib\ForthMessages.h" />
-    <ClInclude Include="..\ForthLib\ForthObject.h" />
+    <ClInclude Include="..\ForthLib\Object.h" />
     <ClInclude Include="..\ForthLib\ObjectReader.h" />
     <ClInclude Include="..\ForthLib\OpcodeCompiler.h" />
     <ClInclude Include="..\ForthLib\ParseInfo.h" />
-    <ClInclude Include="..\ForthLib\ForthPipe.h" />
+    <ClInclude Include="..\ForthLib\Pipe.h" />
     <ClInclude Include="..\ForthLib\ForthPortability.h" />
-    <ClInclude Include="..\ForthLib\ForthServer.h" />
+    <ClInclude Include="..\ForthLib\Server.h" />
     <ClInclude Include="..\ForthLib\Shell.h" />
     <ClInclude Include="..\ForthLib\ShowContext.h" />
     <ClInclude Include="..\ForthLib\StructCodeGenerator.h" />
-    <ClInclude Include="..\ForthLib\ForthStructs.h" />
-    <ClInclude Include="..\ForthLib\ForthThread.h" />
+    <ClInclude Include="..\ForthLib\StructVocabulary.h" />
+    <ClInclude Include="..\ForthLib\Thread.h" />
     <ClInclude Include="..\ForthLib\Vocabulary.h" />
     <ClInclude Include="..\ForthLib\LocalVocabulary.h" />
     <ClInclude Include="..\ForthLib\NativeType.h" />
@@ -546,7 +546,7 @@
     <ClCompile Include="..\ForthLib\DLLVocabulary.cpp" />
     <ClCompile Include="..\ForthLib\BlockFileManager.cpp" />
     <ClCompile Include="..\ForthLib\BuiltinClasses.cpp" />
-    <ClCompile Include="..\ForthLib\ForthClient.cpp" />
+    <ClCompile Include="..\ForthLib\Client.cpp" />
     <ClCompile Include="..\ForthLib\Engine.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">Disabled</Optimization>
@@ -626,7 +626,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">true</BrowseInformation>
     </ClCompile>
-    <ClCompile Include="..\ForthLib\ForthInput.cpp">
+    <ClCompile Include="..\ForthLib\Input.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
@@ -682,8 +682,8 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">true</BrowseInformation>
     </ClCompile>
     <ClCompile Include="..\ForthLib\ParseInfo.cpp" />
-    <ClCompile Include="..\ForthLib\ForthPipe.cpp" />
-    <ClCompile Include="..\ForthLib\ForthServer.cpp" />
+    <ClCompile Include="..\ForthLib\Pipe.cpp" />
+    <ClCompile Include="..\ForthLib\Server.cpp" />
     <ClCompile Include="..\ForthLib\Shell.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">Disabled</Optimization>
@@ -712,8 +712,8 @@
     </ClCompile>
     <ClCompile Include="..\ForthLib\ShowContext.cpp" />
     <ClCompile Include="..\ForthLib\StructCodeGenerator.cpp" />
-    <ClCompile Include="..\ForthLib\ForthStructs.cpp" />
-    <ClCompile Include="..\ForthLib\ForthThread.cpp">
+    <ClCompile Include="..\ForthLib\StructVocabulary.cpp" />
+    <ClCompile Include="..\ForthLib\Thread.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>

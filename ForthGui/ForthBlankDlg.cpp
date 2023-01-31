@@ -8,7 +8,7 @@
 #include "ForthBlankDlg.h"
 
 #include "../ForthLib/Shell.h"
-#include "../ForthLib/ForthInput.h"
+#include "../ForthLib/Input.h"
 #include "../ForthLib/Engine.h"
 
 ForthBlankDlg::ForthBlankDlg() : CDialog(ForthBlankDlg::IDD)

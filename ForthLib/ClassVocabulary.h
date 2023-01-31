@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "Vocabulary.h"
-#include "ForthStructs.h"
+#include "StructVocabulary.h"
 
 class ClassVocabulary;
 

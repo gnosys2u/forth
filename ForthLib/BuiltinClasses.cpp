@@ -14,7 +14,7 @@
 #include "Vocabulary.h"
 #include "ClassVocabulary.h"
 #include "TypesManager.h"
-#include "ForthObject.h"
+#include "Object.h"
 #include "BuiltinClasses.h"
 #include "ShowContext.h"
 #include "BlockFileManager.h"

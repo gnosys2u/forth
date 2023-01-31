@@ -10,7 +10,7 @@
 #include "OuterInterpreter.h"
 #include "ParseInfo.h"
 #include "Shell.h"
-#include "ForthInput.h"
+#include "Input.h"
 #include "Vocabulary.h"
 #include "Extension.h"
 

@@ -16,11 +16,11 @@
 #include <string>
 
 #include "Forth.h"
-#include "ForthThread.h"
+#include "Thread.h"
 #include "Shell.h"
 #include "ForthInner.h"
 #include "Vocabulary.h"
-#include "ForthStructs.h"
+#include "StructVocabulary.h"
 
 class Thread;
 class Fiber;

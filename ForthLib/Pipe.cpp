@@ -8,7 +8,7 @@
 
 //#define PIPE_SPEW
 #include "Forth.h"
-#include "ForthPipe.h"
+#include "Pipe.h"
 
 #define FORTH_PIPE_INITIAL_BYTES   		8192
 #define FORTH_PIPE_BUFFER_INCREMENT    	4096

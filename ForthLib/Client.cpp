@@ -26,8 +26,8 @@
 #include <netdb.h>
 #endif
 #include "Forth.h"
-#include "ForthPipe.h"
-#include "ForthClient.h"
+#include "Pipe.h"
+#include "Client.h"
 #include "ForthMessages.h"
 #if defined(WIN64) || defined(WIN32)
 #include "sys/dirent.h"

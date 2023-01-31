@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "Engine.h"
-#include "ForthInput.h"
+#include "Input.h"
 #if defined(LINUX) || defined(MACOSX)
 #include <limits.h>
 #define MAX_PATH PATH_MAX

@@ -5,7 +5,7 @@
 #include "ForthMidiMain.h"
 #include "Shell.h"
 #include "Engine.h"
-#include "ForthInput.h"
+#include "Input.h"
 #include "ForthMidiExtension.h"
 
 #ifdef _DEBUG

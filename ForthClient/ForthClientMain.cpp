@@ -6,7 +6,7 @@
 
 #include "Forth.h"
 #include "Shell.h"
-#include "ForthClient.h"
+#include "Client.h"
 #include "ForthMessages.h"
 
 #pragma comment(lib, "wininet.lib")

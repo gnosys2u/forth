@@ -25,10 +25,10 @@
 #include "Engine.h"
 #include "OuterInterpreter.h"
 #include "Vocabulary.h"
-#include "ForthObject.h"
+#include "Object.h"
 #include "BuiltinClasses.h"
 #include "ShowContext.h"
-#include "ForthPipe.h"
+#include "Pipe.h"
 
 #include "TypesManager.h"
 #include "ClassVocabulary.h"

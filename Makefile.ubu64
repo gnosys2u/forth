@@ -33,28 +33,28 @@ LDFLAGS = $(CFLAGS) -no-pie
 LD_LIBRARIES = -L ForthLib -lforth -lm -lc -lstdc++ -ldl -lpthread -lreadline
 
 SRCS = \
-	ForthShell.cpp \
-	ForthEngine.cpp \
+	Shell.cpp \
+	Engine.cpp \
 	OuterInterpreter.cpp \
 	ForthInner.cpp \
-	ForthInput.cpp \
-	ForthVocabulary.cpp \
-	ForthBuiltinClasses.cpp \
-	ForthExtension.cpp \
-	ForthShowContext.cpp \
-	ForthStructs.cpp \
-	ForthStructCodeGenerator.cpp \
+	Input.cpp \
+	Vocabulary.cpp \
+	BuiltinClasses.cpp \
+	Extension.cpp \
+	ShowContext.cpp \
+	StructVocabulary.cpp \
+	StructCodeGenerator.cpp \
 	ForthOps.cpp \
-	ForthServer.cpp \
-	ForthClient.cpp \
-	ForthOpcodeCompiler.cpp \
-	ForthBlockFileManager.cpp \
-	ForthParseInfo.cpp \
-	ForthPipe.cpp \
-	ForthForgettable.cpp \
-	ForthThread.cpp \
-	ForthObjectReader.cpp \
-	ForthMemoryManager.cpp \
+	Server.cpp \
+	Client.cpp \
+	OpcodeCompiler.cpp \
+	BlockFileManager.cpp \
+	ParseInfo.cpp \
+	Pipe.cpp \
+	Forgettable.cpp \
+	Thread.cpp \
+	ObjectReader.cpp \
+	MemoryManager.cpp \
 	kbhit.cpp \
 	OArray.cpp \
 	ODeque.cpp \

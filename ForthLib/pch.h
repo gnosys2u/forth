@@ -79,9 +79,9 @@
 #include "Engine.h"
 #include "Forgettable.h"
 #include "ForthInner.h"
-#include "ForthInput.h"
+#include "Input.h"
 #include "Shell.h"
-#include "ForthStructs.h"
-#include "ForthThread.h"
+#include "StructVocabulary.h"
+#include "Thread.h"
 #include "Vocabulary.h"
 #endif

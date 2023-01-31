@@ -12,10 +12,10 @@
 #include "Engine.h"
 #include "OuterInterpreter.h"
 #include "Vocabulary.h"
-#include "ForthObject.h"
+#include "Object.h"
 #include "BuiltinClasses.h"
 #include "ShowContext.h"
-#include "ForthThread.h"
+#include "Thread.h"
 #include "ForthPortability.h"
 
 #include "TypesManager.h"

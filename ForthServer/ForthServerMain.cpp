@@ -6,10 +6,10 @@
 #include <winsock2.h>
 #include "..\ForthLib\Shell.h"
 #include "..\ForthLib\Engine.h"
-#include "..\ForthLib\ForthInput.h"
-#include "..\ForthLib\ForthThread.h"
-#include "..\ForthLib\ForthPipe.h"
-#include "..\ForthLib\ForthServer.h"
+#include "..\ForthLib\Input.h"
+#include "..\ForthLib\Thread.h"
+#include "..\ForthLib\Pipe.h"
+#include "..\ForthLib\Server.h"
 #include "..\ForthLib\ForthMessages.h"
 
 

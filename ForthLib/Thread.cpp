@@ -15,7 +15,7 @@
 #include <sys/stat.h>
 #endif
 #include <deque>
-#include "ForthThread.h"
+#include "Thread.h"
 #include "Engine.h"
 #include "OuterInterpreter.h"
 #include "ShowContext.h"

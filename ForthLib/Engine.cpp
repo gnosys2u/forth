@@ -13,12 +13,12 @@
 #endif
 
 #include "Engine.h"
-#include "ForthThread.h"
+#include "Thread.h"
 #include "Shell.h"
 #include "Vocabulary.h"
 #include "ForthInner.h"
 #include "Extension.h"
-#include "ForthStructs.h"
+#include "StructVocabulary.h"
 #include "OpcodeCompiler.h"
 #include "ForthPortability.h"
 #include "BuiltinClasses.h"

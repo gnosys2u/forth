@@ -11,7 +11,7 @@
 #include "ForthMain.h"
 #endif
 #include "Shell.h"
-#include "ForthInput.h"
+#include "Input.h"
 
 
 #if AFX_BUILD
