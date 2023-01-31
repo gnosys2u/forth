@@ -151,7 +151,7 @@ kLogProfiler                EQU 1024
 
 kOpRelativeDef			EQU 6
 
-STRUC ForthMemorySection
+STRUC MemorySection
     .pCurrent: RESQ 1
     .pBase				RESQ 1
     .len					RESQ 1

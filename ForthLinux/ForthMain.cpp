@@ -45,8 +45,8 @@ void OutputToLogger(const char* pBuffer)
 int main(int argc, const char * argv[], char * envp[])
 {
     int nRetCode = 0;
-    ForthShell *pShell = NULL;
-    ForthInputStream *pInStream = NULL;
+    Shell *pShell = NULL;
+    InputStream *pInStream = NULL;
     
     /*
      if ( !InitSystem() )
@@ -56,7 +56,7 @@ int main(int argc, const char * argv[], char * envp[])
     else*/
     {
         nRetCode = 1;
-        pShell = new ForthShell(argc, (const char **)(argv), (const char **)envp);
+        pShell = new Shell(argc, (const char **)(argv), (const char **)envp);
 #if 0
         if ( argc > 1 )
         {
@@ -67,7 +67,7 @@ int main(int argc, const char * argv[], char * envp[])
             FILE *pInFile = fopen( argv[1], "r" );
             if ( pInFile != NULL )
             {
-                pInStream = new ForthFileInputStream(pInFile);
+                pInStream = new FileInputStream(pInFile);
                 nRetCode = pShell->Run( pInStream );
                 fclose( pInFile );
                 
@@ -79,7 +79,7 @@ int main(int argc, const char * argv[], char * envp[])
             //
             // run forth in interactive mode
             //
-            pInStream = new ForthConsoleInputStream;
+            pInStream = new ConsoleInputStream;
             nRetCode = pShell->Run( pInStream );
             
         }
