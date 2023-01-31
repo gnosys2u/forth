@@ -16,7 +16,7 @@
 #include "ForthStructs.h"
 #include "VocabularyStack.h"
 
-class ForthFiber;
+class Fiber;
 class Shell;
 class OpcodeCompiler;
 class Vocabulary;

@@ -54,7 +54,7 @@
 #define OBJECT_ASSIGN( _pCore, _dstObj, _srcObj ) \
     if ( (_dstObj) != (_srcObj) ) { SAFE_KEEP( (_srcObj) ); SAFE_RELEASE( (_pCore), (_dstObj) ); _dstObj = _srcObj; }
 
-#define GET_SHOW_CONTEXT ShowContext* pShowContext = static_cast<ForthFiber*>(pCore->pFiber)->GetShowContext();
+#define GET_SHOW_CONTEXT ShowContext* pShowContext = static_cast<Fiber*>(pCore->pFiber)->GetShowContext();
 
 enum
 {

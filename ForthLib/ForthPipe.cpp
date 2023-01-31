@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthPipe.cpp: implementation of the ForthPipe class.
+// Pipe.cpp: implementation of the Pipe class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -124,10 +124,10 @@ void shutdownSockets()
 //////////////////////////////////////////////////////////////////////
 ////
 ///
-//                     ForthPipe
+//                     Pipe
 // 
 
-ForthPipe::ForthPipe( SOCKET s, int messageTypeMin, int messageTypeLimit )
+Pipe::Pipe( SOCKET s, int messageTypeMin, int messageTypeLimit )
 :   mSocket( s )
 ,   mOutBuffer( NULL )
 ,   mOutOffset( 0 )
@@ -143,14 +143,14 @@ ForthPipe::ForthPipe( SOCKET s, int messageTypeMin, int messageTypeLimit )
 	mInBuffer = (char *)__MALLOC(mInLen);
 }
 
-ForthPipe::~ForthPipe()
+Pipe::~Pipe()
 {
     __FREE(mOutBuffer);
     __FREE(mInBuffer);
 }
 
 void
-ForthPipe::StartMessage( int messageType )
+Pipe::StartMessage( int messageType )
 {
 #ifdef PIPE_SPEW
     printf( "<<<< StartMessage %s  %d\n", MessageName( messageType ), messageType );
@@ -161,7 +161,7 @@ ForthPipe::StartMessage( int messageType )
 }
 
 void
-ForthPipe::WriteData( const void* pData, int numBytes )
+Pipe::WriteData( const void* pData, int numBytes )
 {
 #ifdef PIPE_SPEW
     printf( "   WriteData %d bytes\n", numBytes );
@@ -188,7 +188,7 @@ ForthPipe::WriteData( const void* pData, int numBytes )
 }
 
 void
-ForthPipe::WriteInt( int val )
+Pipe::WriteInt( int val )
 {
 #ifdef PIPE_SPEW
     printf( "   WriteInt %d\n", val );
@@ -197,7 +197,7 @@ ForthPipe::WriteInt( int val )
 }
 
 void
-ForthPipe::WriteCell(cell val)
+Pipe::WriteCell(cell val)
 {
 #ifdef PIPE_SPEW
 #ifdef FORTH64
@@ -210,7 +210,7 @@ ForthPipe::WriteCell(cell val)
 }
 
 void
-ForthPipe::WriteCountedData( const void* pSrc, int numBytes )
+Pipe::WriteCountedData( const void* pSrc, int numBytes )
 {
 #ifdef PIPE_SPEW
     printf( "   WriteCountedData %d bytes\n", numBytes );
@@ -220,7 +220,7 @@ ForthPipe::WriteCountedData( const void* pSrc, int numBytes )
 }
 
 void
-ForthPipe::WriteString( const char* pString )
+Pipe::WriteString( const char* pString )
 {
 #ifdef PIPE_SPEW
     printf( "   WriteString %s\n", (pString == NULL) ? "<NULL>" : pString );
@@ -230,7 +230,7 @@ ForthPipe::WriteString( const char* pString )
 }
 
 void
-ForthPipe::SendMessage()
+Pipe::SendMessage()
 {
     int numBytes = mOutOffset - (2 * sizeof(int));
 #ifdef PIPE_SPEW
@@ -243,7 +243,7 @@ ForthPipe::SendMessage()
 }
 
 const void*
-ForthPipe::ReceiveBytes( int numBytes )
+Pipe::ReceiveBytes( int numBytes )
 {
 #ifdef PIPE_SPEW
     printf( "ReceiveBytes %d bytes\n", numBytes );
@@ -290,7 +290,7 @@ ForthPipe::ReceiveBytes( int numBytes )
 }
 
 bool
-ForthPipe::GetMessage( int& msgTypeOut, int& msgLenOut )
+Pipe::GetMessage( int& msgTypeOut, int& msgLenOut )
 {
     bool responseValid = false;
     mInOffset = 0;
@@ -333,7 +333,7 @@ ForthPipe::GetMessage( int& msgTypeOut, int& msgLenOut )
 
 // return true IFF an int was available
 bool
-ForthPipe::ReadInt(int& intOut)
+Pipe::ReadInt(int& intOut)
 {
     if (mInAvailable >= sizeof(int))
     {
@@ -348,7 +348,7 @@ ForthPipe::ReadInt(int& intOut)
 
 // return true IFF an int was available
 bool
-ForthPipe::ReadCell(cell& cellOut)
+Pipe::ReadCell(cell& cellOut)
 {
     if (mInAvailable >= sizeof(cell))
     {
@@ -362,7 +362,7 @@ ForthPipe::ReadCell(cell& cellOut)
 }
 
 bool
-ForthPipe::ReadCountedData( const char*& pDataOut, int& numBytesOut )
+Pipe::ReadCountedData( const char*& pDataOut, int& numBytesOut )
 {
     if ( mInAvailable >= sizeof(int) )
     {
@@ -378,14 +378,14 @@ ForthPipe::ReadCountedData( const char*& pDataOut, int& numBytesOut )
 }
 
 bool
-ForthPipe::ReadString( const char*& pString )
+Pipe::ReadString( const char*& pString )
 {
     int len;
     return ReadCountedData( pString, len );
 }
 
 bool
-ForthPipe::ReadData( const char*& pDataOut, int numBytes )
+Pipe::ReadData( const char*& pDataOut, int numBytes )
 {
     if ( mInAvailable >= numBytes )
     {

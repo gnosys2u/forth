@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthServer.cpp: Forth server support
+// Server.cpp: Forth server support
 //
 //////////////////////////////////////////////////////////////////////
 #include "pch.h"
@@ -55,194 +55,194 @@ namespace
     #ifdef DEBUG_WITH_NDS_EMULATOR
 	    iprintf( "%s", pMessage );
     #else
-        ForthServerShell* pShell = (ForthServerShell *) (((Engine *)(pCore->pEngine))->GetShell());
+        ServerShell* pShell = (ServerShell *) (((Engine *)(pCore->pEngine))->GetShell());
         pShell->SendTextToClient( pMessage );
     #endif
     }
 
     FILE* fileOpen( const char* pPath, const char* pAccess )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileOpen( pPath, pAccess );
     }
 
     int fileClose( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileClose( pFile );
     }
 
     size_t fileRead( void* data, size_t itemSize, size_t numItems, FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return (size_t)pShell->FileRead( pFile, data, (int)itemSize, (int)numItems );
     }
 
     size_t fileWrite( const void* data, size_t itemSize, size_t numItems, FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return (size_t)pShell->FileWrite( pFile, data, (int)itemSize, (int)numItems );
     }
 
     int fileGetChar( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileGetChar( pFile );
     }
 
     int filePutChar( int val, FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FilePutChar( pFile, val );
     }
 
     int fileAtEnd( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileAtEOF( pFile );
     }
 
     int fileExists( const char* pPath )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileCheckExists( pPath );
     }
 
     int fileSeek( FILE* pFile, long offset, int ctrl )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileSeek( pFile, offset, ctrl );
     }
 
     long fileTell( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileGetPosition( pFile );
     }
 
     int32_t fileGetLength( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileGetLength( pFile );
     }
 
     char* fileGetString( char* buffer, int bufferLength, FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileGetString( pFile, buffer, bufferLength );
     }
 
     int filePutString( const char* buffer, FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FilePutString( pFile, buffer );
     }
 
 	int fileRemove( const char* buffer )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileRemove( buffer );
     }
 
 	int fileDup( int fileHandle )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileDup( fileHandle );
     }
 
 	int fileDup2( int srcFileHandle, int dstFileHandle )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileDup2( srcFileHandle, dstFileHandle );
     }
 
 	int fileNo( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileNo( pFile );
     }
 
 	int fileFlush( FILE* pFile )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->FileFlush( pFile );
     }
 
 	int renameFile( const char* pOldName, const char* pNewName )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->RenameFile( pOldName, pNewName );
     }
 
 	int runSystem( const char* pCmdline )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->RunSystem( pCmdline );
     }
 
 	int setWorkDir( const char* pPath )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->SetWorkDir( pPath );
     }
 
     int getWorkDir(char* pDstPath, int dstPathMax)
     {
-        ForthServerShell* pShell = (ForthServerShell*)(Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell*)(Engine::GetInstance()->GetShell());
         return pShell->GetWorkDir(pDstPath, dstPathMax);
     }
 
 	int makeDir( const char* pPath, int mode )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->MakeDir( pPath, mode );
     }
 
 	int removeDir( const char* pPath )
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->RemoveDir( pPath );
     }
 
 	FILE* getStdIn()
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->GetStdIn();
     }
 
 	FILE* getStdOut()
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->GetStdOut();
     }
 
 	FILE* getStdErr()
     {
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->GetStdErr();
     }
 
 	void* serverOpenDir( const char* pPath )
 	{
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->OpenDir( pPath );
 	}
 
 	void* serverReadDir( void* pDir, void* pEntry )
 	{
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->ReadDir( pDir, pEntry );
 	}
 
 	int serverCloseDir( void* pDir )
 	{
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         return pShell->CloseDir( pDir );
 	}
 
 	void serverRewindDir( void* pDir )
 	{
-        ForthServerShell* pShell = (ForthServerShell *) (Engine::GetInstance()->GetShell());
+        ServerShell* pShell = (ServerShell *) (Engine::GetInstance()->GetShell());
         pShell->RewindDir( pDir );
 	}
 
@@ -275,12 +275,12 @@ namespace
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-int ForthServerMainLoop( Engine *pEngine, bool doAutoload, unsigned short portNum )
+int ServerMainLoop( Engine *pEngine, bool doAutoload, unsigned short portNum )
 {
     SOCKET ServerSocket;
     struct sockaddr_in ServerInfo;
     int iRetVal = 0;
-    ForthServerShell *pShell;
+    ServerShell *pShell;
 
     startupSockets();
 
@@ -397,7 +397,7 @@ int ForthServerMainLoop( Engine *pEngine, bool doAutoload, unsigned short portNu
             else
             {
 				Shell* pOldShell = pEngine->GetShell();
-                pShell = new ForthServerShell( doAutoload, pEngine );
+                pShell = new ServerShell( doAutoload, pEngine );
 
 				traceOutRoutine oldTraceRoutine;
 				void* pOldTraceData;
@@ -433,25 +433,25 @@ int ForthServerMainLoop( Engine *pEngine, bool doAutoload, unsigned short portNu
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ForthServerInputStream::ForthServerInputStream( ForthPipe* pPipe, bool isFile, int bufferLen )
+ServerInputStream::ServerInputStream( Pipe* pPipe, bool isFile, int bufferLen )
 :   InputStream( bufferLen )
 ,   mpMsgPipe( pPipe )
 ,   mIsFile( isFile )
 {
 }
 
-ForthServerInputStream::~ForthServerInputStream()
+ServerInputStream::~ServerInputStream()
 {
 }
 
-cell ForthServerInputStream::GetSourceID()
+cell ServerInputStream::GetSourceID()
 {
     // this is wrong, but will compile
     return mIsFile ? 1 : 0;
 }
 
 
-char* ForthServerInputStream::GetLine( const char *pPrompt )
+char* ServerInputStream::GetLine( const char *pPrompt )
 {
     int msgType, msgLen;
     char* result = NULL;
@@ -493,14 +493,14 @@ char* ForthServerInputStream::GetLine( const char *pPrompt )
 
     default:
         // TODO: report unexpected message type error
-        printf( "ForthServerShell::GetLine unexpected message type %d\n", msgType );
+        printf( "ServerShell::GetLine unexpected message type %d\n", msgType );
         break;
     }
 
     return result;
 }
 
-char* ForthServerInputStream::AddContinuationLine()
+char* ServerInputStream::AddContinuationLine()
 {
     int msgType, msgLen;
     char* result = NULL;
@@ -546,47 +546,47 @@ char* ForthServerInputStream::AddContinuationLine()
 
     default:
         // TODO: report unexpected message type error
-        printf("ForthServerShell::GetLine unexpected message type %d\n", msgType);
+        printf("ServerShell::GetLine unexpected message type %d\n", msgType);
         break;
     }
 
     return result;
 }
 
-bool ForthServerInputStream::IsInteractive( void )
+bool ServerInputStream::IsInteractive( void )
 {
     return !mIsFile;
 }
 
-ForthPipe* ForthServerInputStream::GetPipe()
+Pipe* ServerInputStream::GetPipe()
 {
     return mpMsgPipe;
 }
 
 
 cell*
-ForthServerInputStream::GetInputState()
+ServerInputStream::GetInputState()
 {
     // TBD!
     return nullptr;
 }
 
 bool
-ForthServerInputStream::SetInputState(cell* pState)
+ServerInputStream::SetInputState(cell* pState)
 {
     // TBD!
     return false;
 }
 
 bool
-ForthServerInputStream::IsFile()
+ServerInputStream::IsFile()
 {
     // TBD!
     return mIsFile;
 }
 
 const char*
-ForthServerInputStream::GetType(void)
+ServerInputStream::GetType(void)
 {
     return "Server";
 }
@@ -595,7 +595,7 @@ ForthServerInputStream::GetType(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-ForthServerShell::ForthServerShell( bool doAutoload, Engine *pEngine, Extension *pExtension, int shellStackLongs )
+ServerShell::ServerShell( bool doAutoload, Engine *pEngine, Extension *pExtension, int shellStackLongs )
 :   Shell( 0, nullptr, nullptr, pEngine, pExtension, shellStackLongs )
 ,   mDoAutoload( doAutoload )
 ,   mpMsgPipe( NULL )
@@ -637,11 +637,11 @@ ForthServerShell::ForthServerShell( bool doAutoload, Engine *pEngine, Extension 
 	mConsoleOutObject = nullptr;
 }
 
-ForthServerShell::~ForthServerShell()
+ServerShell::~ServerShell()
 {
 }
 
-void ForthServerShell::setupFileInterface(bool useLocalFiles)
+void ServerShell::setupFileInterface(bool useLocalFiles)
 {
     mUseLocalFiles = useLocalFiles;
 
@@ -715,9 +715,9 @@ void ForthServerShell::setupFileInterface(bool useLocalFiles)
     }
 }
 
-int ForthServerShell::Run( InputStream *pInputStream )
+int ServerShell::Run( InputStream *pInputStream )
 {
-    ForthServerInputStream* pStream = (ForthServerInputStream *) pInputStream;
+    ServerInputStream* pStream = (ServerInputStream *) pInputStream;
     mpMsgPipe = pStream->GetPipe();
 
     const char *pBuffer;
@@ -798,7 +798,7 @@ int ForthServerShell::Run( InputStream *pInputStream )
     return retVal;
 }
 
-bool ForthServerShell::PushInputFile( const char *pFileName )
+bool ServerShell::PushInputFile( const char *pFileName )
 {
     int result = 0;
     int msgType, msgLen;
@@ -813,22 +813,22 @@ bool ForthServerShell::PushInputFile( const char *pFileName )
         mpMsgPipe->ReadInt( result );
         if ( result )
         {
-            mpInput->PushInputStream( new ForthServerInputStream( mpMsgPipe, true ) );
+            mpInput->PushInputStream( new ServerInputStream( mpMsgPipe, true ) );
         }
     }
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::PushInputFile unexpected message type %d\n", msgType );
+        printf( "ServerShell::PushInputFile unexpected message type %d\n", msgType );
     }
 
     return (result != 0);
 }
 
 bool
-ForthServerShell::PopInputStream( void )
+ServerShell::PopInputStream( void )
 {
-    //printf("ForthServerShell::PopInputStream %s  gen:%d   file:%d\n", mpInput->Top()->GetType(),
+    //printf("ServerShell::PopInputStream %s  gen:%d   file:%d\n", mpInput->Top()->GetType(),
     //    mpInput->Top()->IsGenerated(), mpInput->Top()->IsFile());
     if (mpInput->Top()->IsFile())
     {
@@ -840,14 +840,14 @@ ForthServerShell::PopInputStream( void )
 }
 
 
-void ForthServerShell::SendTextToClient( const char *pMessage )
+void ServerShell::SendTextToClient( const char *pMessage )
 {
     mpMsgPipe->StartMessage( kClientMsgDisplayText );
     mpMsgPipe->WriteString( pMessage );
     mpMsgPipe->SendMessage();
 }
 
-char ForthServerShell::GetChar()
+char ServerShell::GetChar()
 {
     int c;
     int msgType, msgLen;
@@ -863,13 +863,13 @@ char ForthServerShell::GetChar()
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::GetChar unexpected message type %d\n", msgType );
+        printf( "ServerShell::GetChar unexpected message type %d\n", msgType );
     }
     return (int) c;
 }
 
 FILE*
-ForthServerShell::FileOpen( const char* filePath, const char* openMode )
+ServerShell::FileOpen( const char* filePath, const char* openMode )
 {
     FILE* pFile = NULL;
     cell c;
@@ -889,13 +889,13 @@ ForthServerShell::FileOpen( const char* filePath, const char* openMode )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileOpen unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileOpen unexpected message type %d\n", msgType );
     }
     return pFile;
 }
 
 int
-ForthServerShell::FileClose( FILE* pFile )
+ServerShell::FileClose( FILE* pFile )
 {
     int msgType, msgLen;
     int result = -1;
@@ -912,13 +912,13 @@ ForthServerShell::FileClose( FILE* pFile )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileClose unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileClose unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileSeek( FILE* pFile, int offset, int control )
+ServerShell::FileSeek( FILE* pFile, int offset, int control )
 {
     int msgType, msgLen;
     int result = -1;
@@ -937,13 +937,13 @@ ForthServerShell::FileSeek( FILE* pFile, int offset, int control )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileSeek unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileSeek unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileRead( FILE* pFile, void* pDst, int itemSize, int numItems )
+ServerShell::FileRead( FILE* pFile, void* pDst, int itemSize, int numItems )
 {
     int msgType, msgLen;
     int result = -1;
@@ -970,26 +970,26 @@ ForthServerShell::FileRead( FILE* pFile, void* pDst, int itemSize, int numItems 
             else
             {
                 // TODO: report error
-                printf( "ForthServerShell::FileRead unexpected data size %d != itemsRead %d * itemSize %d\n",
+                printf( "ServerShell::FileRead unexpected data size %d != itemsRead %d * itemSize %d\n",
                             numBytes, result, itemSize );
             }
         }
         else
         {
             // TODO: report error
-            printf( "ForthServerShell::FileRead returned %d \n", result );
+            printf( "ServerShell::FileRead returned %d \n", result );
         }
     }
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileRead unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileRead unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileWrite( FILE* pFile, const void* pSrc, int itemSize, int numItems ) 
+ServerShell::FileWrite( FILE* pFile, const void* pSrc, int itemSize, int numItems ) 
 {
     int msgType, msgLen;
     int result = -1;
@@ -1010,13 +1010,13 @@ ForthServerShell::FileWrite( FILE* pFile, const void* pSrc, int itemSize, int nu
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileWrite unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileWrite unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileGetChar( FILE* pFile )
+ServerShell::FileGetChar( FILE* pFile )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1033,13 +1033,13 @@ ForthServerShell::FileGetChar( FILE* pFile )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileGetChar unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileGetChar unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FilePutChar( FILE* pFile, int outChar )
+ServerShell::FilePutChar( FILE* pFile, int outChar )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1057,13 +1057,13 @@ ForthServerShell::FilePutChar( FILE* pFile, int outChar )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FilePutChar unexpected message type %d\n", msgType );
+        printf( "ServerShell::FilePutChar unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileAtEOF( FILE* pFile )
+ServerShell::FileAtEOF( FILE* pFile )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1080,13 +1080,13 @@ ForthServerShell::FileAtEOF( FILE* pFile )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileAtEOF unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileAtEOF unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileGetLength( FILE* pFile )
+ServerShell::FileGetLength( FILE* pFile )
 {
     if (mUseLocalFiles)
     {
@@ -1108,13 +1108,13 @@ ForthServerShell::FileGetLength( FILE* pFile )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileGetLength unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileGetLength unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileCheckExists( const char* pFilename )
+ServerShell::FileCheckExists( const char* pFilename )
 {
     if (mUseLocalFiles)
     {
@@ -1136,13 +1136,13 @@ ForthServerShell::FileCheckExists( const char* pFilename )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileCheckExists unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileCheckExists unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileGetPosition( FILE* pFile )
+ServerShell::FileGetPosition( FILE* pFile )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1159,13 +1159,13 @@ ForthServerShell::FileGetPosition( FILE* pFile )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileGetPosition unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileGetPosition unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 char*
-ForthServerShell::FileGetString( FILE* pFile, char* pBuffer, int maxChars )
+ServerShell::FileGetString( FILE* pFile, char* pBuffer, int maxChars )
 {
     int msgType, msgLen;
     char* result = NULL;
@@ -1193,20 +1193,20 @@ ForthServerShell::FileGetString( FILE* pFile, char* pBuffer, int maxChars )
         else
         {
             // TODO: report error
-            printf( "ForthServerShell::FileGetString unexpected data size %d\n", numBytes );
+            printf( "ServerShell::FileGetString unexpected data size %d\n", numBytes );
         }
     }
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileGetString unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileGetString unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 
 int
-ForthServerShell::FilePutString( FILE* pFile, const char* pBuffer )
+ServerShell::FilePutString( FILE* pFile, const char* pBuffer )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1224,13 +1224,13 @@ ForthServerShell::FilePutString( FILE* pFile, const char* pBuffer )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FilePutString unexpected message type %d\n", msgType );
+        printf( "ServerShell::FilePutString unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileRemove( const char* pBuffer )
+ServerShell::FileRemove( const char* pBuffer )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1247,13 +1247,13 @@ ForthServerShell::FileRemove( const char* pBuffer )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileRemove unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileRemove unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileDup( int fileHandle )
+ServerShell::FileDup( int fileHandle )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1270,13 +1270,13 @@ ForthServerShell::FileDup( int fileHandle )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileDup unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileDup unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileDup2( int srcFileHandle, int dstFileHandle )
+ServerShell::FileDup2( int srcFileHandle, int dstFileHandle )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1294,13 +1294,13 @@ ForthServerShell::FileDup2( int srcFileHandle, int dstFileHandle )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileDup2 unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileDup2 unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileNo( FILE* pFile )
+ServerShell::FileNo( FILE* pFile )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1317,13 +1317,13 @@ ForthServerShell::FileNo( FILE* pFile )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileNo unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileNo unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::FileFlush( FILE* pFile )
+ServerShell::FileFlush( FILE* pFile )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1340,13 +1340,13 @@ ForthServerShell::FileFlush( FILE* pFile )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::FileFlush unexpected message type %d\n", msgType );
+        printf( "ServerShell::FileFlush unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::RenameFile( const char* pOldName, const char* pNewName )
+ServerShell::RenameFile( const char* pOldName, const char* pNewName )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1364,13 +1364,13 @@ ForthServerShell::RenameFile( const char* pOldName, const char* pNewName )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::RenameFile unexpected message type %d\n", msgType );
+        printf( "ServerShell::RenameFile unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::RunSystem( const char* pCmdline )
+ServerShell::RunSystem( const char* pCmdline )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1387,12 +1387,12 @@ ForthServerShell::RunSystem( const char* pCmdline )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::RunSystem unexpected message type %d\n", msgType );
+        printf( "ServerShell::RunSystem unexpected message type %d\n", msgType );
     }
     return result;
 }
 
-int ForthServerShell::SetWorkDir( const char* pPath )
+int ServerShell::SetWorkDir( const char* pPath )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1409,13 +1409,13 @@ int ForthServerShell::SetWorkDir( const char* pPath )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::SetWorkDir unexpected message type %d\n", msgType );
+        printf( "ServerShell::SetWorkDir unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 // return actual size of working directory path (including terminating null)
-int ForthServerShell::GetWorkDir(char* pDstPath, int dstPathMax)
+int ServerShell::GetWorkDir(char* pDstPath, int dstPathMax)
 {
     if (mUseLocalFiles)
     {
@@ -1451,12 +1451,12 @@ int ForthServerShell::GetWorkDir(char* pDstPath, int dstPathMax)
     else
     {
         // TODO: report error
-        printf("ForthServerShell::GetWorkDir unexpected message type %d\n", msgType);
+        printf("ServerShell::GetWorkDir unexpected message type %d\n", msgType);
     }
     return result;
 }
 
-int ForthServerShell::MakeDir( const char* pPath, int mode )
+int ServerShell::MakeDir( const char* pPath, int mode )
 {
     if (mUseLocalFiles)
     {
@@ -1483,13 +1483,13 @@ int ForthServerShell::MakeDir( const char* pPath, int mode )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::MakeDir unexpected message type %d\n", msgType );
+        printf( "ServerShell::MakeDir unexpected message type %d\n", msgType );
     }
     return result;
 }
 
 int
-ForthServerShell::RemoveDir( const char* pPath )
+ServerShell::RemoveDir( const char* pPath )
 {
     int msgType, msgLen;
     int result = -1;
@@ -1506,14 +1506,14 @@ ForthServerShell::RemoveDir( const char* pPath )
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::RemoveDir unexpected message type %d\n", msgType );
+        printf( "ServerShell::RemoveDir unexpected message type %d\n", msgType );
     }
 
     return result;
 }
 
 FILE*
-ForthServerShell::GetStdIn()
+ServerShell::GetStdIn()
 {
     if (mUseLocalFiles)
     {
@@ -1536,14 +1536,14 @@ ForthServerShell::GetStdIn()
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::kClientMsgStdIn unexpected message type %d\n", msgType );
+        printf( "ServerShell::kClientMsgStdIn unexpected message type %d\n", msgType );
     }
 
     return pFile;
 }
 
 FILE*
-ForthServerShell::GetStdOut()
+ServerShell::GetStdOut()
 {
     if (mUseLocalFiles)
     {
@@ -1566,14 +1566,14 @@ ForthServerShell::GetStdOut()
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::kClientMsgStdOut unexpected message type %d\n", msgType );
+        printf( "ServerShell::kClientMsgStdOut unexpected message type %d\n", msgType );
     }
 
     return pFile;
 }
 
 FILE*
-ForthServerShell::GetStdErr()
+ServerShell::GetStdErr()
 {
     if (mUseLocalFiles)
     {
@@ -1596,14 +1596,14 @@ ForthServerShell::GetStdErr()
     else
     {
         // TODO: report error
-        printf( "ForthServerShell::GetStdErr unexpected message type %d\n", msgType );
+        printf( "ServerShell::GetStdErr unexpected message type %d\n", msgType );
     }
 
     return pFile;
 }
 
 void *
-ForthServerShell::OpenDir( const char* pPath )
+ServerShell::OpenDir( const char* pPath )
 {
     if (mUseLocalFiles)
     {
@@ -1625,13 +1625,13 @@ ForthServerShell::OpenDir( const char* pPath )
     else
     {
         // TODO: report error
-        printf("ForthServerShell::OpenDir unexpected message type %d\n", msgType);
+        printf("ServerShell::OpenDir unexpected message type %d\n", msgType);
     }
     return (void *)(result);
 }
 
 void *
-ForthServerShell::ReadDir(void* pDir, void* pDstEntry)
+ServerShell::ReadDir(void* pDir, void* pDstEntry)
 {
     if (mUseLocalFiles)
     {
@@ -1664,7 +1664,7 @@ ForthServerShell::ReadDir(void* pDir, void* pDstEntry)
         }
         else
         {
-            printf("ForthServerShell::ReadDir unexpected direntry size, expected %d but got %d\n",
+            printf("ServerShell::ReadDir unexpected direntry size, expected %d but got %d\n",
                 expectedSize, srcLen);
             // TODO: throw exception?
         }
@@ -1672,13 +1672,13 @@ ForthServerShell::ReadDir(void* pDir, void* pDstEntry)
     else
     {
         // TODO: report error
-        printf("ForthServerShell::ReadDir unexpected message type %d\n", msgType);
+        printf("ServerShell::ReadDir unexpected message type %d\n", msgType);
     }
     return (void *)(result);
 }
 
 int
-ForthServerShell::CloseDir( void* pDir )
+ServerShell::CloseDir( void* pDir )
 {
     if (mUseLocalFiles)
     {
@@ -1700,13 +1700,13 @@ ForthServerShell::CloseDir( void* pDir )
     else
     {
         // TODO: report error
-        printf("ForthServerShell::CloseDir unexpected message type %d\n", msgType);
+        printf("ServerShell::CloseDir unexpected message type %d\n", msgType);
     }
     return result;
 }
 
 void
-ForthServerShell::RewindDir( void* pDir )
+ServerShell::RewindDir( void* pDir )
 {
     if (mUseLocalFiles)
     {
@@ -1719,7 +1719,7 @@ ForthServerShell::RewindDir( void* pDir )
 }
 
 int
-ForthServerShell::ProcessConnection( SOCKET serverSocket )
+ServerShell::ProcessConnection( SOCKET serverSocket )
 {
     InputStream *pInStream = NULL;
 
@@ -1727,15 +1727,15 @@ ForthServerShell::ProcessConnection( SOCKET serverSocket )
     mClientSocket = accept( serverSocket, NULL, NULL );
     printf("Incoming connection accepted!\n");
 
-    ForthPipe* pMsgPipe = new ForthPipe( mClientSocket, kServerMsgProcessLine, kServerMsgLimit );
-    pInStream = new ForthServerInputStream( pMsgPipe );
+    Pipe* pMsgPipe = new Pipe( mClientSocket, kServerMsgProcessLine, kServerMsgLimit );
+    pInStream = new ServerInputStream( pMsgPipe );
 	int result = Run( pInStream );
 	delete pMsgPipe;
     return result;
 }
 
 void
-ForthServerShell::CloseConnection()
+ServerShell::CloseConnection()
 {
 #ifdef WIN32
 	closesocket( mClientSocket );

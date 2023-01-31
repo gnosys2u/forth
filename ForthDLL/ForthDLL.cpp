@@ -97,7 +97,7 @@ FORTHDLL_API void DeleteForthShell(Shell* pShell)
     delete pShell;
 }
 
-FORTHDLL_API void DeleteForthFiber(ForthFiber* pFiber)
+FORTHDLL_API void DeleteForthFiber(Fiber* pFiber)
 {
     delete pFiber;
 }

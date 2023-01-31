@@ -14,7 +14,7 @@
 #include "Engine.h"
 #include "Extension.h"
 
-class ForthThread;
+class Thread;
 
 class ForthMidiExtension : public Extension
 {
@@ -91,8 +91,8 @@ protected:
     std::vector<InDeviceInfo>    mInputDevices;
     std::vector<OutDeviceInfo>   mOutputDevices;
 
-    ForthThread*             mpThread;
-    ForthFiber*             mpFiber;
+    Thread*             mpThread;
+    Fiber*             mpFiber;
     bool                    mbEnabled;
 };
 

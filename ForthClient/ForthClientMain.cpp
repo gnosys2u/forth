@@ -1,4 +1,4 @@
-// ForthClient.cpp : Defines the entry point for the console application.
+// Client.cpp : Defines the entry point for the console application.
 //
 
 #include "pch.h"
@@ -52,7 +52,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
     Shell* pShell = new Shell(argc, (const char **)(argv), (const char **)envp);
 
-    int retVal = ForthClientMainLoop(pShell->GetEngine(), serverStr, portNum);
+    int retVal = ClientMainLoop(pShell->GetEngine(), serverStr, portNum);
 
     delete pShell;
 

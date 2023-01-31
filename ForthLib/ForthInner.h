@@ -98,7 +98,7 @@ struct CoreState
 
     ucell               RLen;           // size of return stack in longwords
 
-    void                *pFiber;		// actually a ForthFiber
+    void                *pFiber;		// actually a Fiber
 
     MemorySection* pDictionary;
     ForthFileInterface* pFileFuncs;

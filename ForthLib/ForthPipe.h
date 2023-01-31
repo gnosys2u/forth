@@ -1,7 +1,7 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthPipe.h: interface for the ForthPipe class.
+// ForthPipe.h: interface for the Pipe class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -20,14 +20,14 @@
 extern void startupSockets();
 extern void shutdownSockets();
 
-class ForthPipe
+class Pipe
 {
 public:
 
-	// when you create a ForthPipe, you specify the range of valid
+	// when you create a Pipe, you specify the range of valid
     //  message types you expect to receive from the pipe
-	ForthPipe( SOCKET s, int messageTypeMin, int messageTypeLimit );
-    virtual ~ForthPipe();
+	Pipe( SOCKET s, int messageTypeMin, int messageTypeLimit );
+    virtual ~Pipe();
 
     void StartMessage( int messageType );
     // use this to add a fixed size piece of data to a message

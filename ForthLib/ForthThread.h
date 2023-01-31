@@ -1,7 +1,7 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
 //
-// ForthThread.h: interface for the ForthThread and ForthFiber classes.
+// ForthThread.h: interface for the Thread and Fiber classes.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -17,7 +17,7 @@
 
 class Engine;
 class ShowContext;
-class ForthThread;
+class Thread;
 class OuterInterpreter;
 
 #define DEFAULT_PSTACK_SIZE 128
@@ -33,18 +33,18 @@ class OuterInterpreter;
 #define CHECK_STACKS(THREAD_PTR)
 #endif
 
-class ForthFiber
+class Fiber
 {
 public:
-    ForthFiber(Engine *pEngine, ForthThread *pParentThread, int threadIndex, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
-    virtual ~ForthFiber();
+    Fiber(Engine *pEngine, Thread *pParentThread, int threadIndex, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
+    virtual ~Fiber();
     void Destroy();
 
 #ifdef CHECK_GAURD_AREAS
     bool CheckGaurdAreas();
 #endif
 
-	void				InitTables(ForthFiber* pSourceThread);
+	void				InitTables(Fiber* pSourceThread);
 
     void                Reset( void );
     void                ResetIP( void );
@@ -64,7 +64,7 @@ public:
 	void				Wake();
 	void				Stop();
 	void				Exit();
-    void                Join(ForthFiber* pJoiningThread);
+    void                Join(Fiber* pJoiningThread);
 
 	inline void			SetIP( forthop* newIP ) { mCore.IP = newIP; };
 	
@@ -74,7 +74,7 @@ public:
 
 	inline FiberState GetRunState() { return mRunState; }
 	void				SetRunState(FiberState newState);
-	inline ForthThread* GetParent() { return mpParentThread; }
+	inline Thread* GetParent() { return mpParentThread; }
 	inline Engine* GetEngine() { return mpEngine; }
 
     friend class Engine;
@@ -96,31 +96,31 @@ protected:
     Engine         *mpEngine;
     void                *mpPrivate;
 	ShowContext	*mpShowContext;
-	ForthThread	*mpParentThread;
+	Thread	*mpParentThread;
     CoreState      mCore;
     forthop             mOps[2];
     uint32_t				mWakeupTime;
 	FiberState mRunState;
-    ForthFiber*         mpJoinHead;
-    ForthFiber*         mpNextJoiner;
+    Fiber*         mpJoinHead;
+    Fiber*         mpNextJoiner;
     int                 mIndex;
     std::string         mName;
 };
 
-class ForthThread
+class Thread
 {
 public:
-	ForthThread(Engine *pEngine, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
-	virtual ~ForthThread();
+	Thread(Engine *pEngine, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
+	virtual ~Thread();
 
 	void                Reset(void);
 	cell                Start();
 	void                Exit();
-	ForthFiber*		    GetNextReadyFiber();
-	ForthFiber*		    GetNextSleepingFiber();
-	ForthFiber*		    GetFiber(int fiberIndex);
-	ForthFiber*		    GetActiveFiber();
-    void                SetActiveFiber(ForthFiber *pThread);
+	Fiber*		    GetNextReadyFiber();
+	Fiber*		    GetNextSleepingFiber();
+	Fiber*		    GetFiber(int fiberIndex);
+	Fiber*		    GetActiveFiber();
+    void                SetActiveFiber(Fiber *pThread);
 
 	void				FreeObjects();
 
@@ -130,8 +130,8 @@ public:
 
     void                InnerLoop();
 
-	ForthFiber*		    CreateFiber(Engine *pEngine, forthop fiberOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
-	void				DeleteFiber(ForthFiber* pFiber);
+	Fiber*		    CreateFiber(Engine *pEngine, forthop fiberOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
+	void				DeleteFiber(Fiber* pFiber);
 
 	inline ForthObject& GetThreadObject() { return mObject; }
 	inline void SetThreadObject(ForthObject& inObject) { mObject = inObject; }
@@ -149,8 +149,8 @@ public:
 
 protected:
 	ForthObject			mObject;
-	std::vector<ForthFiber*> mFibers;
-	ForthThread*   mpNext;
+	std::vector<Fiber*> mFibers;
+	Thread*   mpNext;
 	int					mActiveFiberIndex;
 	FiberState mRunState;
     std::string         mName;
@@ -172,9 +172,9 @@ namespace OThread
 	void AddClasses(OuterInterpreter* pOuter);
 
 	void CreateThreadObject(ForthObject& outThread, Engine *pEngine, forthop threadOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
-	void FixupThread(ForthThread* pThread);
-	void CreateFiberObject(ForthObject& outThread, ForthThread *pParentThread, Engine *pEngine, forthop threadOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
-	void FixupFiber(ForthFiber* pThread);
+	void FixupThread(Thread* pThread);
+	void CreateFiberObject(ForthObject& outThread, Thread *pParentThread, Engine *pEngine, forthop threadOp, int paramStackLongs = DEFAULT_PSTACK_SIZE, int returnStackLongs = DEFAULT_RSTACK_SIZE);
+	void FixupFiber(Fiber* pThread);
 }
 
 namespace OLock

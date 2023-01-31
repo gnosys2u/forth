@@ -2,11 +2,11 @@
 
 //////////////////////////////////////////////////////////////////////
 //
-// ForthClient.h: Forth client support
+// Client.h: Forth client support
 //
 //////////////////////////////////////////////////////////////////////
 
 class Engine;
 
-int ForthClientMainLoop( Engine *pEngine, const char* pServerStr, unsigned short portNum );
+int ClientMainLoop( Engine *pEngine, const char* pServerStr, unsigned short portNum );
 

@@ -1,5 +1,5 @@
 // pch.cpp : source file that includes just the standard includes
-// ForthServer.pch will be the pre-compiled header
+// Server.pch will be the pre-compiled header
 // pch.obj will contain the pre-compiled type information
 
 #include "pch.h"

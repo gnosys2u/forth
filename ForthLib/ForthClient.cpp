@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 //
-// ForthClient.cpp: Forth client support
+// Client.cpp: Forth client support
 //
 //////////////////////////////////////////////////////////////////////
 #include "pch.h"
@@ -90,7 +90,7 @@ static FILE* openForthFile(const char* pPath, const char* pSystemPath)
 }
 
 
-int ForthClientMainLoop( Engine *pEngine, const char* pServerStr, unsigned short portNum )
+int ClientMainLoop( Engine *pEngine, const char* pServerStr, unsigned short portNum )
 {
     char workingDirPath[MAX_PATH + 1];
     char errorMessage[128];
@@ -196,7 +196,7 @@ int ForthClientMainLoop( Engine *pEngine, const char* pServerStr, unsigned short
     }
 #endif
 
-    ForthPipe* pMsgPipe = new ForthPipe( ConnectSocket, kClientMsgDisplayText, kClientMsgLimit );
+    Pipe* pMsgPipe = new Pipe( ConnectSocket, kClientMsgDisplayText, kClientMsgLimit );
     bool done = false;
     char buffer[ 1024 ];
     int readBufferSize = 16384;

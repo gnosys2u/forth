@@ -6134,13 +6134,13 @@ FORTHOP( thruOp )
 
 FORTHOP(thisFiberOp)
 {
-	PUSH_OBJECT(((ForthFiber *)(pCore->pFiber))->GetFiberObject());
+	PUSH_OBJECT(((Fiber *)(pCore->pFiber))->GetFiberObject());
 }
 
 FORTHOP(thisThreadOp)
 {
-	ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
-	ForthThread* pThread = pFiber->GetParent();
+	Fiber* pFiber = (Fiber*)(pCore->pFiber);
+	Thread* pThread = pFiber->GetParent();
 	PUSH_OBJECT(pThread->GetThreadObject());
 }
 
@@ -6461,14 +6461,14 @@ FORTHOP( clientOp )
 {
 	const char* pServerStr = (const char*)(SPOP);
 	Engine *pEngine = GET_ENGINE;
-	int result = ForthClientMainLoop( pEngine, pServerStr, FORTH_SERVER_PORT );
+	int result = ClientMainLoop( pEngine, pServerStr, FORTH_SERVER_PORT );
 	SPUSH( result );
 }
 
 FORTHOP( serverOp )
 {
 	Engine *pEngine = GET_ENGINE;
-	int result = ForthServerMainLoop( pEngine, false, FORTH_SERVER_PORT );
+	int result = ServerMainLoop( pEngine, false, FORTH_SERVER_PORT );
 	SPUSH( result );
 }
 

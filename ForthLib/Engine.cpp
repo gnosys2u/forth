@@ -279,10 +279,10 @@ Engine::~Engine()
     delete mpOuter;
 
     // delete all thread and fiber objects
-    ForthThread* pThread = mpThreads;
+    Thread* pThread = mpThreads;
     while (pThread != nullptr)
     {
-        ForthThread* pNextThread = pThread->mpNext;
+        Thread* pNextThread = pThread->mpNext;
         pThread->FreeObjects();
         pThread = pNextThread;
     }
@@ -321,7 +321,7 @@ Engine::~Engine()
 	pThread = mpThreads;
 	while (pThread != nullptr)
     {
-		ForthThread *pNextThread = pThread->mpNext;
+		Thread *pNextThread = pThread->mpNext;
 		delete pThread;
 		pThread = pNextThread;
     }
@@ -486,10 +486,10 @@ void Engine::ShowMemoryInfo()
     ForthConsoleStringOut(mpCore, buffer);
 }
 
-ForthThread * Engine::CreateThread(forthop fiberOp, int paramStackSize, int returnStackSize )
+Thread * Engine::CreateThread(forthop fiberOp, int paramStackSize, int returnStackSize )
 {
-	ForthThread *pThread = new ForthThread(this, paramStackSize, returnStackSize);
-	ForthFiber *pNewThread = pThread->GetFiber(0);
+	Thread *pThread = new Thread(this, paramStackSize, returnStackSize);
+	Fiber *pNewThread = pThread->GetFiber(0);
 	pNewThread->SetOp(fiberOp);
 
     InitCoreState(pNewThread->mCore);
@@ -522,15 +522,15 @@ void Engine::InitCoreState(CoreState& core)
 }
 
 
-void Engine::DestroyThread(ForthThread *pThread)
+void Engine::DestroyThread(Thread *pThread)
 {
-	ForthThread *pNext, *pCurrent;
+	Thread *pNext, *pCurrent;
 
     if ( mpThreads == pThread )
     {
 
         // special case - thread is head of list
-		mpThreads = (ForthThread *)(mpThreads->mpNext);
+		mpThreads = (Thread *)(mpThreads->mpNext);
         delete pThread;
 
     }
@@ -541,7 +541,7 @@ void Engine::DestroyThread(ForthThread *pThread)
         pCurrent = mpThreads;
         while ( pCurrent != nullptr )
         {
-			pNext = (ForthThread *)(pCurrent->mpNext);
+			pNext = (Thread *)(pCurrent->mpNext);
             if ( pThread == pNext )
             {
                 pCurrent->mpNext = pNext->mpNext;
@@ -1300,7 +1300,7 @@ OpResult Engine::ExecuteOps(CoreState* pCore, forthop *pOps)
 
     savedIP = pCore->IP;
     pCore->IP = pOps;
-    ForthFiber* pFiber = (ForthFiber*)(pCore->pFiber);
+    Fiber* pFiber = (Fiber*)(pCore->pFiber);
     pFiber->GetParent()->InnerLoop();
 
     OpResult exitStatus = (OpResult)pCore->state;

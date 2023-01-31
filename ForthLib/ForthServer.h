@@ -16,16 +16,16 @@
 #define SOCKET  int
 #endif
 
-int ForthServerMainLoop( Engine *pEngine, bool doAutoload, unsigned short portNum );
+int ServerMainLoop( Engine *pEngine, bool doAutoload, unsigned short portNum );
 
-class ForthPipe;
+class Pipe;
 class Extension;
 
-class ForthServerInputStream : public InputStream
+class ServerInputStream : public InputStream
 {
 public:
-    ForthServerInputStream( ForthPipe* pMsgPipe, bool isFile = false, int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
-    virtual ~ForthServerInputStream();
+    ServerInputStream( Pipe* pMsgPipe, bool isFile = false, int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
+    virtual ~ServerInputStream();
 
     virtual cell    GetSourceID();
 
@@ -34,7 +34,7 @@ public:
 
     virtual bool    IsInteractive( void );
 
-    ForthPipe*      GetPipe();
+    Pipe*      GetPipe();
 
     virtual cell*   GetInputState();
     virtual bool    SetInputState(cell* pState);
@@ -43,17 +43,17 @@ public:
     virtual const char* GetType(void);
 
 protected:
-    ForthPipe*      mpMsgPipe;
+    Pipe*      mpMsgPipe;
     bool            mIsFile;
 };
 
 
 
-class ForthServerShell : public Shell
+class ServerShell : public Shell
 {
 public:
-    ForthServerShell( bool doAutoload = true, Engine *pEngine = NULL, Extension *pExtension = NULL, int shellStackLongs = 1024 );
-    virtual ~ForthServerShell();
+    ServerShell( bool doAutoload = true, Engine *pEngine = NULL, Extension *pExtension = NULL, int shellStackLongs = 1024 );
+    virtual ~ServerShell();
 
     virtual int             Run( InputStream *pInputStream );
 
@@ -102,7 +102,7 @@ public:
 protected:
     void    setupFileInterface(bool useLocalFiles);
 
-    ForthPipe*              mpMsgPipe;
+    Pipe*              mpMsgPipe;
     bool                    mDoAutoload;
     
     bool                    mUseLocalFiles;

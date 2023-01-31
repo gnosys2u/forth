@@ -497,8 +497,8 @@ extern void ForthErrorStringOut(CoreState* pCore, const char* pBuffer);
 #define NEEDS(A)
 #define RNEEDS(A)
 
-class ForthThread;
-class ForthFiber;
+class Thread;
+class Fiber;
 
 #define COMPILED_OP( OP_TYPE, VALUE ) ((forthop)(((OP_TYPE) << 24) | ((VALUE) & OPCODE_VALUE_MASK)))
 // These are opcodes that built-in ops must compile directly
@@ -789,7 +789,7 @@ enum
 //////////////////////////////////////////////////////////////////////
 ////
 ///     built-in forth ops are implemented with static C-style routines
-//      which take a pointer to the ForthFiber they are being run in
+//      which take a pointer to the Fiber they are being run in
 //      the thread is accessed through "pCore->" in the code
 
 #define FORTHOP(NAME) void NAME( CoreState *pCore )

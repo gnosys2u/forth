@@ -22,8 +22,8 @@
 #include "Vocabulary.h"
 #include "ForthStructs.h"
 
-class ForthThread;
-class ForthFiber;
+class Thread;
+class Fiber;
 class Shell;
 class Extension;
 class OpcodeCompiler;
@@ -84,7 +84,7 @@ public:
     void                    ShowMemoryInfo();
     inline Shell* GetShell(void) { return mpShell; };
     inline void				SetShell(Shell* pShell) { mpShell = pShell; };
-    inline ForthFiber* GetMainFiber(void) { return mpMainThread->GetFiber(0); };
+    inline Fiber* GetMainFiber(void) { return mpMainThread->GetFiber(0); };
 
     cell* GetCompileStatePtr(void);
     void            SetCompileState(cell v);
@@ -139,8 +139,8 @@ public:
 
     // create a thread which will be managed by the engine - the engine destructor will delete all threads
     //  which were created with CreateThread 
-    ForthThread* CreateThread(forthop fiberOp = OP_DONE, int paramStackSize = DEFAULT_PSTACK_SIZE, int returnStackSize = DEFAULT_RSTACK_SIZE);
-    void            DestroyThread(ForthThread* pThread);
+    Thread* CreateThread(forthop fiberOp = OP_DONE, int paramStackSize = DEFAULT_PSTACK_SIZE, int returnStackSize = DEFAULT_RSTACK_SIZE);
+    void            DestroyThread(Thread* pThread);
 
     void InitCoreState(CoreState& core);
 
@@ -172,8 +172,8 @@ private:
 
     MemorySection mDictionary;
 
-    ForthThread* mpThreads;
-    ForthThread* mpMainThread;
+    Thread* mpThreads;
+    Thread* mpMainThread;
     Shell* mpShell;
     int32_t* mpEngineScratch;
     char* mpErrorString;  // optional error information from shell
