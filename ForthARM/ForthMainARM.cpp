@@ -127,8 +127,8 @@ static bool InitSystem()
 int main(int argc, const char* argv[], const char* envp[] )
 {
     int nRetCode = 0;
-    ForthShell *pShell = NULL;
-    ForthInputStream *pInStream = NULL;
+    Shell *pShell = NULL;
+    InputStream *pInStream = NULL;
 
     tcgetattr( STDIN_FILENO, &oldTermSettings);
 
@@ -143,7 +143,7 @@ int main(int argc, const char* argv[], const char* envp[] )
     {
 		nRetCode = 1;
 //return 0;
-        pShell = new ForthShell( argc, (const char **) argv, (const char **) envp);
+        pShell = new Shell( argc, (const char **) argv, (const char **) envp);
 		OutputToLogger("created shell\n");
         //pShell->SetEnvironmentVars( (const char **) envp );
 #if 0
@@ -156,7 +156,7 @@ int main(int argc, const char* argv[], const char* envp[] )
             FILE *pInFile = fopen( argv[1], "r" );
             if ( pInFile != NULL )
             {
-                pInStream = new ForthFileInputStream(pInFile);
+                pInStream = new FileInputStream(pInFile);
                 nRetCode = pShell->Run( pInStream );
                 fclose( pInFile );
 
@@ -169,7 +169,7 @@ int main(int argc, const char* argv[], const char* envp[] )
             //
             // run forth in interactive mode
             //
-            pInStream = new ForthConsoleInputStream;
+            pInStream = new ConsoleInputStream;
 			OutputToLogger("running shell\n");
 			pShell->GetEngine()->SetTraceFlags(0);
             nRetCode = pShell->Run( pInStream );
