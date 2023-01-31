@@ -153,7 +153,7 @@ kLogProfiler                EQU 1024
 
 kOpRelativeDef			EQU 6
 
-STRUC ForthMemorySection
+STRUC MemorySection
     .pCurrent: RESD 1
     .pBase				RESD 1
     .len					RESD 1
