@@ -17,17 +17,31 @@
 ; the entry macro declares a label and makes it public
 ;
 %macro entry 1
+%ifdef ASM_UNDERSCORE_PREFIX
+GLOBAL _%1
+%else
 GLOBAL %1
+%endif
+_%1:
 %1:
 %endmacro
 	
 %macro cextern 1
+%ifdef ASM_UNDERSCORE_PREFIX
+EXTERN _%1
+%else
 EXTERN %1
+%endif
 %endmacro
 
 %macro xcall 1
+%ifdef ASM_UNDERSCORE_PREFIX
+EXTERN _%1
+    call _%1
+%else
 EXTERN %1
     call %1
+%endif
 %endmacro
 
 kVarDefaultOp		EQU		0

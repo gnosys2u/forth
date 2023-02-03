@@ -128,7 +128,7 @@ MemoryPoolBucket::MemoryPoolBucket(int size)
     , mpFreeChain(nullptr)
 {
     char buffer[32];
-#if defined(LINUX)
+#if defined(LINUX) || defined(MACOSX)
     sprintf(buffer, "bucket %d", size);
     mStats = new MemoryStats(buffer);
 #else

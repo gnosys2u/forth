@@ -1,0 +1,122 @@
+#####################################################################################
+# you will need to install nasm (the netwide assembler) if you don't already have it with:
+# sudo apt-get install nasm
+
+# you may need to install readline with this command:
+# sudo apt-get install libreadline6-dev libreadline6
+
+#.PHONY:	all clean depends
+
+MAINOBJ = ForthOSX/obj
+MAINSRC = ForthOSX
+LIBSRC = ForthLib
+LIBOBJ = ForthLib/objasm
+
+CC = g++
+ASM = nasm
+#GAS = as
+CDEBUG = -g
+
+DEFINES = -DMACOSX -DASM_INNER_INTERPRETER -DFORTH64 -DINCLUDE_TRACE
+
+# add '-save-temps=obj' to CFLAGS to see intermediate assembly files
+CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -std=c++17 -m64 -fno-stack-protector
+
+WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wno-sign-compare -Wno-conversion-null -Wno-pointer-arith
+CPPFLAGS = $(CFLAGS) -I ForthLib
+
+ASMFLAGS = -d ASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -d MACOSX -d LINUX -d FORTH64 -felf64 -i $(LIBSRC)
+
+LDFLAGS = $(CFLAGS)
+LD_LIBRARIES = -L ForthLib -lforthasm -lm -lc -lstdc++ -ldl -lpthread -lreadline
+
+SRCS = \
+	Shell.cpp \
+	Engine.cpp \
+	OuterInterpreter.cpp \
+	ForthInner.cpp \
+	Input.cpp \
+	Vocabulary.cpp \
+	BuiltinClasses.cpp \
+	Extension.cpp \
+	ShowContext.cpp \
+	StructVocabulary.cpp \
+	StructCodeGenerator.cpp \
+	ForthOps.cpp \
+	Server.cpp \
+	Client.cpp \
+	OpcodeCompiler.cpp \
+	BlockFileManager.cpp \
+	ParseInfo.cpp \
+	Pipe.cpp \
+	Forgettable.cpp \
+	Thread.cpp \
+	ObjectReader.cpp \
+	MemoryManager.cpp \
+	kbhit.cpp \
+	OArray.cpp \
+	ODeque.cpp \
+	OList.cpp \
+	OMap.cpp \
+	ONumber.cpp \
+	OSocket.cpp \
+	OStream.cpp \
+	OString.cpp \
+	OSystem.cpp \
+	ClassVocabulary.cpp \
+	LocalVocabulary.cpp \
+	DLLVocabulary.cpp \
+	NativeType.cpp \
+	TypesManager.cpp \
+	VocabularyStack.cpp
+	
+	
+	
+ASMSRCS = InnerInterpAmd64.asm \
+	AsmCore64.asm
+
+ASMOBJS := $(patsubst %.asm,$(LIBOBJ)/%.o,$(ASMSRCS))
+OBJS := $(patsubst %.cpp,$(LIBOBJ)/%.o,$(SRCS)) $(ASMOBJS)
+DEPDIR = dep
+DEPS := $(patsubst %.cpp,$(DEPDIR)/%.d,$(SRCS))
+# XDEFS is used to pass in defines from the make command line
+LIBS := -lm -lstdc++ -ldl -lpthread
+
+$(LIBSRC)/libforthasm.a:	$(OBJS)
+	ar rcs $(LIBSRC)/libforthasm.a $(OBJS)
+	
+-include $(DEPS)
+
+stuff:
+	echo "DEPS=" $(DEPS)
+	echo "OBJS=" $(OBJS)
+	echo "SRCS=" $(SRCS)
+
+$(LIBOBJ)/%.o: $(LIBSRC)/%.cpp
+	$(CC) $(CFLAGS) -o $(LIBOBJ)/$*.o $(LIBSRC)/$*.cpp
+    
+$(LIBOBJ)/%.o: $(LIBSRC)/%.asm
+	$(ASM) $(ASMFLAGS) -f macho64 -o $(LIBOBJ)/$*.o $(LIBSRC)/$*.asm
+
+$(MAINOBJ)/ForthMainOSX.o:	$(MAINSRC)/ForthMainOSX.cpp
+	echo "* " $*
+	echo "< " $<
+	echo "@ " $@
+	$(CC) $(CPPFLAGS) -o $(MAINOBJ)/ForthMainOSX.o $(MAINSRC)/ForthMainOSX.cpp
+
+forth:	$(MAINOBJ)/ForthMainOSX.o $(LIBSRC)/libforthasm.a
+	$(CC) $(MAINOBJ)/ForthMainOSX.o $(DEFINES) -o forth -I ForthLib $(LD_LIBRARIES) -Wl,-no_pie
+	cp forth Sandbox
+
+logger: $(MAINSRC)/ForthLoggerOSX.cpp
+	$(CC) $(MAINSRC)/ForthLoggerOSX.cpp -o logger
+
+clean:
+	-rm $(MAINOBJ)/*.*
+	-rm $(DEPDIR)/*.d
+	-rm $(LIBOBJ)/*.*
+	-rm $(LIBSRC)/libforthasm.a
+	-rm ./forth
+    
+all:	forth
+

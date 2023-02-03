@@ -7654,6 +7654,8 @@ entry	setTraceBop
 	mov	[rcore + FCore.IPtr], rip
 	jmp interpFunc
 
+%ifdef PRINTF_SUBS_IN_ASM
+
 ;========================================
 
 ;extern void fprintfSub( CoreState* pCore );
@@ -7954,6 +7956,8 @@ entry sscanfSub
 	pop ebx
 	leave
 	ret
+
+%endif
 
 ;========================================
 entry dllEntryPointType

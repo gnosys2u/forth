@@ -4104,10 +4104,6 @@ FORTHOP(addTempStringOp)
     SPUSH((cell)pDst);
 }
 
-#if defined(ASM_INNER_INTERPRETER) && (!defined(LINUX) || defined(RASPI))
-#define PRINTF_SUBS_IN_ASM
-#endif
-
 #ifdef PRINTF_SUBS_IN_ASM
 extern void fprintfSub( CoreState* pCore );
 extern void snprintfSub(CoreState* pCore);

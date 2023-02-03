@@ -320,7 +320,7 @@
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ASM_INNER_INTERPRETER;INCLUDE_TRACE;MSDEV;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;X86_ARCHITECTURE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ASM_INNER_INTERPRETER;INCLUDE_TRACE;MSDEV;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;X86_ARCHITECTURE;PRINTF_SUBS_IN_ASM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -353,7 +353,7 @@
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ASM_INNER_INTERPRETER;FORTH64;MSDEV;_WIN64;WIN64;INCLUDE_TRACE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ASM_INNER_INTERPRETER;FORTH64;MSDEV;_WIN64;WIN64;INCLUDE_TRACE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;PRINTF_SUBS_IN_ASM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -453,7 +453,7 @@
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ASM_INNER_INTERPRETER;MSDEV;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;X86_ARCHITECTURE;_NO_CRT_STDIO_INLINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ASM_INNER_INTERPRETER;MSDEV;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;X86_ARCHITECTURE;_NO_CRT_STDIO_INLINE;PRINTF_SUBS_IN_ASM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -486,7 +486,7 @@
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ASM_INNER_INTERPRETER;FORTH64;MSDEV;_WIN64;WIN64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ASM_INNER_INTERPRETER;FORTH64;MSDEV;_WIN64;WIN64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;PRINTF_SUBS_IN_ASM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1115,7 +1115,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dASM_INNER_INTERPRETER -dWIN32 -dPRINTF_SUBS_IN_ASM</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
@@ -1129,7 +1129,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32 -dATOMIC_REFCOUNTS</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm -f win64 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN64 -dATOMIC_REFCOUNTS</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32 -dATOMIC_REFCOUNTS</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">nasm -f win32 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN32 -dATOMIC_REFCOUNTS -dPRINTF_SUBS_IN_ASM</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win64 "%(FullPath)" -o $(OutDir)%(Filename).obj -dWIN64 -dATOMIC_REFCOUNTS</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">core.inc;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
@@ -1169,11 +1169,11 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dWIN64 -dATOMIC_REFCOUNTS</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dWIN64 -dATOMIC_REFCOUNTS -dPRINTF_SUBS_IN_ASM</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dWIN64 -dATOMIC_REFCOUNTS</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">nasm -f win64 "%(FullPath)" -o "$(OutDir)%(Filename).obj" -dWIN64 -dATOMIC_REFCOUNTS -dPRINTF_SUBS_IN_ASM</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">Assembling %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">core.inc;%(AdditionalInputs)</AdditionalInputs>

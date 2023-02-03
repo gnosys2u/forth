@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "Forth.h"
-#include "ForthShell.h"
+#include "Shell.h"
 
 static int loggerFD = -1;
 
@@ -29,7 +29,7 @@ void OutputToLogger(const char* pBuffer)
         {
             perror("error making fifo");
         }
-        loggerFD = open(myfifo, O_WRONLY |O_NONBLOCK);
+        loggerFD = open(myfifo, O_WRONLY);
     }
     write(loggerFD, pBuffer, strlen(pBuffer) + 1);
     //close(loggerFD);
@@ -41,8 +41,8 @@ void OutputToLogger(const char* pBuffer)
 int main(int argc, const char * argv[], const char * envp[])
 {
     int nRetCode = 0;
-    ForthShell *pShell = NULL;
-    ForthInputStream *pInStream = NULL;
+    Shell *pShell = NULL;
+    InputStream *pInStream = NULL;
     
     /*
      if ( !InitSystem() )
@@ -52,7 +52,7 @@ int main(int argc, const char * argv[], const char * envp[])
     else*/
     {
         nRetCode = 1;
-        pShell = new ForthShell(argc, (const char **)(argv), (const char **)envp);
+        pShell = new Shell(argc, (const char **)(argv), (const char **)envp);
 #if 0
         if ( argc > 1 )
         {
@@ -75,7 +75,7 @@ int main(int argc, const char * argv[], const char * envp[])
             //
             // run forth in interactive mode
             //
-            pInStream = new ForthConsoleInputStream;
+            pInStream = new ConsoleInputStream;
             nRetCode = pShell->Run( pInStream );
             
         }

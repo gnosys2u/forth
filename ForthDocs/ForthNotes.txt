@@ -252,6 +252,39 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+February 3 2023
+
+I decided to try getting an OSX build working.  It will just be 64-bit x86.
+I tried to use my 2011 Mac Mini, but its OS is stuck at 2 revs behind the current,
+I couldn't get a configuration there which supported C++17, filesystem and atomics,
+so I switched to my MacBook pro.
+
+Xcode 'upgrades' have broken many things since it was last running, including
+o copying the executable to a location outside the build directory doesn't work
+o environment variables aren't passed along to the executable, so I couldn't set FORTH_SCRIPTS.
+o paths relative to home (~) are broken
+
+I did finally get a build that somewhat works, but in test.fs it crashes in directory.fs
+most of the time, when the global object dd is destroyed, somewhere in the atomic
+decrement of the refcount.  It is very odd because:
+o there is nothing special/different about this global object
+o there is only one thread running
+? why doesn't it happen for other global object delete/clears?
+
+The xcode project build only works for the ForthDebug scheme, the Forth scheme gets
+a build error about multiple sources for AsmCore64.o.
+
+I added Makefile.osx and Makefile.osxasm for building forth on Mac outside of xcode.
+
+There was a build variable ASM_UNDERSCORE_PREFIX defined in the old xcode project,
+I'm now requiring all builds to define it if they need to, before it was defined
+based on LINUX and MACOSX being defined.
+Also, builds must define PRINTF_SUBS_IN_ASM if they want printf/scanf subroutines
+in assembler to be used.
+
+I haven't updated the Linux or Raspberry Pi with this latest change, but it
+should be pretty easy.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 January 28 2023
 
 I did more restructure work:

@@ -140,10 +140,10 @@ VAROP_SHIFT     EQU     20
 ; unaryDoubleFunc is used for dsin, dsqrt, dceil, ...
 ;
 %macro unaryDoubleFunc 2
-%ifdef LINUX
-GLOBAL %1
-EXTERN %2
-%1:
+%ifdef ASM_UNDERSCORE_PREFIX
+GLOBAL _%1
+EXTERN _%2
+_%1:
 %else
 GLOBAL %1
 EXTERN %2
@@ -155,7 +155,11 @@ EXTERN %2
 	push rnext
 %endif
 	sub rsp, kShadowSpace			; shadow space
+%ifdef ASM_UNDERSCORE_PREFIX
+	call	_%2
+%else
 	call	%2
+%endif
 	add rsp, kShadowSpace
 %ifdef LINUX
 	pop rnext
@@ -170,10 +174,10 @@ EXTERN %2
 ; unaryFloatFunc is used for fsin, fsqrt, fceil, ...
 ;
 %macro unaryFloatFunc 2
-%ifdef LINUX
-GLOBAL %1
-EXTERN %2
-%1:
+%ifdef ASM_UNDERSCORE_PREFIX
+GLOBAL _%1
+EXTERN _%2
+_%1:
 %else
 GLOBAL %1
 EXTERN %2
@@ -185,7 +189,11 @@ EXTERN %2
 	push rnext
 %endif
 	sub rsp, kShadowSpace			; shadow space
+%ifdef ASM_UNDERSCORE_PREFIX
+	call	_%2
+%else
 	call	%2
+%endif
 	add rsp, kShadowSpace
 %ifdef LINUX
 	pop rnext
@@ -248,7 +256,6 @@ extOpType1:
 ;
 ; extern void InitAsmTables( CoreState *pCore );
 entry InitAsmTables
-
 	; rcx -> ForthCore struct (rdi in Linux)
 	
 	; setup normal (non-debug) inner interpreter re-entry point
@@ -3958,7 +3965,13 @@ entry doneBop
 
 ;========================================
 
-entry yieldBop
+;entry yieldBop
+;__yieldBop:
+;GLOBAL __yieldBop
+_yieldBop:
+GLOBAL _yieldBop
+yieldBop:
+GLOBAL yieldBop
 	mov	rax, kResultYield
 	jmp	interpFuncExit
 
@@ -7503,7 +7516,7 @@ entry	setTraceBop
 	mov	[rcore + FCore.IPtr], rip
 	jmp interpFuncReenter
 
-%ifndef LINUX
+%ifdef PRINTF_SUBS_IN_ASM
 
 ;========================================
 
