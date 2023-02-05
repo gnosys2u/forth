@@ -15,10 +15,17 @@ void runLogger()
     const char* myfifo = "/tmp/forthLoggerFIFO";
     char buf[MAX_BUF];
 
-	unlink(myfifo);
+    unlink(myfifo);
     /* open, read, and display the message from the FIFO */
     printf("##################################################################################\n");
     printf("\nWaiting for named fifo connect on %s.  Hit CONTROL-C to exit.\n", myfifo);
+
+    /* create the FIFO (named pipe) */
+    if (mkfifo(myfifo, 0666) < 0)
+    {
+        perror("error making fifo");
+    }
+    
     fd = open(myfifo, O_RDONLY);
 	while (fd < 0)
 	{

@@ -24,14 +24,9 @@ void OutputToLogger(const char* pBuffer)
     {
         const char* myfifo = "/tmp/forthLoggerFIFO";
         
-        /* create the FIFO (named pipe) */
-        unlink(myfifo);
-        if (mkfifo(myfifo, 0666) < 0)
-        {
-            perror("error making fifo");
-        }
-        loggerFD = open(myfifo, O_WRONLY);
+        loggerFD = open(myfifo, O_WRONLY | O_NONBLOCK);
     }
+    
     if (loggerFD >= 0)
     {
         write(loggerFD, pBuffer, strlen(pBuffer) + 1);
