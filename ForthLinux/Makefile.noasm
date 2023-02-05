@@ -7,15 +7,16 @@
 
 #.PHONY:	all clean depends
 
-OBJ = objasm
+OBJ = obj
 MAINSRC = .
 LIBSRC = ../ForthLib
+
 
 CC = g++
 ASM = /usr/bin/nasm
 CDEBUG = -g
 
-DEFINES = -DLINUX -DASM_INNER_INTERPRETER -DFORTH64 -DINCLUDE_TRACE
+DEFINES = -DLINUX -DFORTH64 -DINCLUDE_TRACE
 
 # add '-save-temps=obj' to see intermediate assembly files
 CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -std=c++17 -m64 -fno-stack-protector
@@ -23,7 +24,7 @@ CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -std=c++17 -m64 -fno-stack-pro
 WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wno-sign-compare -Wno-conversion-null -Wno-pointer-arith
 CPPFLAGS = $(CFLAGS) -I $(LIBSRC)
 
-ASMFLAGS = -d ASM_INNER_INTERPRETER -d LINUX -felf64 -i $(LIBSRC)
+ASMFLAGS = -d LINUX -felf64 -i $(LIBSRC)
 
 LDFLAGS = $(CFLAGS) -no-pie
 LD_LIBRARIES = -L $(OBJ) -lforth -lm -lc -lstdc++ -ldl -lpthread -lreadline
@@ -70,8 +71,7 @@ SRCS = \
 	
 	
 	
-ASMSRCS = InnerInterpAmd64.asm \
-	AsmCore64.asm
+ASMSRCS = AsmCore64.asm
 
 ASMOBJS := $(patsubst %.asm,$(OBJ)/%.o,$(ASMSRCS))
 OBJS := $(patsubst %.cpp,$(OBJ)/%.o,$(SRCS)) $(ASMOBJS)
@@ -97,10 +97,10 @@ $(OBJ)/ForthMain.o:	$(MAINSRC)/ForthMain.cpp
 	mkdir -p $(OBJ)
 	$(CC) $(CPPFLAGS) -o $(OBJ)/ForthMain.o $(MAINSRC)/ForthMain.cpp
 
-forth:	$(OBJ)/ForthMain.o $(OBJ)/libforth.a
+forth_noasm:	$(OBJ)/ForthMain.o $(OBJ)/libforth.a
 	mkdir -p $(OBJ)
-	$(CC) $(OBJ)/ForthMain.o $(DEFINES) -o forth -I $(LIBSRC) $(LD_LIBRARIES) -no-pie
-	cp forth ../Sandbox
+	$(CC) $(OBJ)/ForthMain.o $(DEFINES) -o forth_noasm -I $(LIBSRC) $(LD_LIBRARIES) -no-pie
+	cp forth_noasm Sandbox
 
 logger: $(MAINSRC)/ForthLogger.cpp
 	$(CC) $(MAINSRC)/ForthLogger.cpp -o logger
