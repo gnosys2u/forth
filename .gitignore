@@ -134,5 +134,6 @@ ForthDLLxxx
 ForthDLLMainxxx
 forth
 logger
+forth_noasm
 enc_temp_folder
-ForthLinux/forth_noasm
+
