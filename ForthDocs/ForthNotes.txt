@@ -5,13 +5,32 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+- add a way to 'push' current arena to memory manager - used when running an app
+  o idea is that when app exits, entire arena is deleted
+  o each arena would need a memory to allocate from, and set of recycle buckets
+  o real advantage is preventing swiss-cheesing of memory, or stale pattern of allocations
+    from screwing up future performance - suppose you ran something which allocated tons of 80
+    byte objects, and later you use very few 80 byte objects, memory is wasted
+  o need to have a way to prevent cross arena references
+  ? should app define its own makeObject which uses its own arena
+  ? maybe have permanent stuff allocate from bottom up, arenas from top down
+  o things like an event system might screw this up
+
 ? add a '#ifdef _autoTest' section to all script files
 
-- support 32 and 64 bit DLLs - separate directories for each size?
+- add FORTH_RESOURCES environment variable for paths to things like fonts and bitmaps
+
+- generalize loading from multiple paths to more than just scripts - use for DLLs and resources
+? add ways to access script path array (and others) from forth code
+- support 32 and 64 bit DLLs
+  - add FORTH_DLL64 and FORTH_DLL32 optional environment variables which override FORTH_DLL
+
+- test network.fs and fix if necessary
 
 - test sdl audio
 
 + fix life.fs -> it was a pointer-stored-as-int 64-bit problem
+- test life.fs on linux and rpi
 
 - get wumpus.fs working
 

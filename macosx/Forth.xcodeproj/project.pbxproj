@@ -48,7 +48,7 @@
 		6EE5F0B21E8DF24000489D87 /* kbhit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EE5F0B11E8DF24000489D87 /* kbhit.cpp */; };
 		6EE5F0B51E8DF31E00489D87 /* libreadline.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EE5F0B41E8DF31E00489D87 /* libreadline.tbd */; };
 		6EE5F0B71E8DFD1F00489D87 /* forth in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6E7980531E8B0EA400FB03ED /* forth */; };
-		6EEB076A1E8F5E400099AA4E /* ForthMainOSX.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EEB07691E8F5E400099AA4E /* ForthMainOSX.cpp */; };
+		6EEB076A1E8F5E400099AA4E /* ForthMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6EEB07691E8F5E400099AA4E /* ForthMain.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -169,7 +169,7 @@
 		6EE5F0AF1E8DEDCF00489D87 /* core.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = core.inc; path = ../ForthLib/core.inc; sourceTree = "<group>"; };
 		6EE5F0B11E8DF24000489D87 /* kbhit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = kbhit.cpp; path = ../ForthLib/kbhit.cpp; sourceTree = "<group>"; };
 		6EE5F0B41E8DF31E00489D87 /* libreadline.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libreadline.tbd; path = usr/lib/libreadline.tbd; sourceTree = SDKROOT; };
-		6EEB07691E8F5E400099AA4E /* ForthMainOSX.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ForthMainOSX.cpp; sourceTree = "<group>"; };
+		6EEB07691E8F5E400099AA4E /* ForthMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ForthMain.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -187,7 +187,7 @@
 		6E79804A1E8B0EA400FB03ED = {
 			isa = PBXGroup;
 			children = (
-				6EEB07691E8F5E400099AA4E /* ForthMainOSX.cpp */,
+				6EEB07691E8F5E400099AA4E /* ForthMain.cpp */,
 				6E7980AF1E8B0F9000FB03ED /* ForthLib */,
 				6E7980541E8B0EA400FB03ED /* Products */,
 				6EE5F0B31E8DF31E00489D87 /* Frameworks */,
@@ -376,7 +376,7 @@
 				4400DAC8298A1AA600A4F370 /* ClassVocabulary.cpp in Sources */,
 				4400DAE1298A1E8C00A4F370 /* AsmCore64.asm in Sources */,
 				4400DAD6298A1AF600A4F370 /* ParseInfo.cpp in Sources */,
-				6EEB076A1E8F5E400099AA4E /* ForthMainOSX.cpp in Sources */,
+				6EEB076A1E8F5E400099AA4E /* ForthMain.cpp in Sources */,
 				6E7980AD1E8B0F5400FB03ED /* OString.cpp in Sources */,
 				4400DADC298A1B0B00A4F370 /* StructVocabulary.cpp in Sources */,
 				4400DADA298A1B0500A4F370 /* ShowContext.cpp in Sources */,

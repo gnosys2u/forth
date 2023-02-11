@@ -7,26 +7,27 @@
 
 #.PHONY:	all clean depends
 
-OBJ = ForthLinux/objasm
-MAINSRC = ForthLinux
-LIBSRC = ForthLib
+OBJ = obj
+MAINSRC = .
+LIBSRC = ../ForthLib
+
 
 CC = g++
-ASM = /usr/bin/nasm
+ASM = nasm
 CDEBUG = -g
 
-DEFINES = -DLINUX -DASM_INNER_INTERPRETER -DFORTH64 -DINCLUDE_TRACE
+DEFINES = -DMACOSX -DNO_ASM_INNER_INTERPRETER -DFORTH64 -DINCLUDE_TRACE
 
-# add '-save-temps=obj' to see intermediate assembly files
+# add '-save-temps=obj' to CFLAGS to see intermediate assembly files
 CFLAGS = -c $(CDEBUG) $(DEFINES) $(WARNING_FLAGS) -std=c++17 -m64 -fno-stack-protector
 
 WARNING_FLAGS = -Wall -Wno-format -Wno-reorder -Wno-unused-variable -Wno-sign-compare -Wno-conversion-null -Wno-pointer-arith
-CPPFLAGS = $(CFLAGS) -I ForthLib
+CPPFLAGS = $(CFLAGS) -I $(LIBSRC)
 
-ASMFLAGS = -d ASM_INNER_INTERPRETER -d LINUX -felf64 -i $(LIBSRC)
+ASMFLAGS = -d NOASM_INNER_INTERPRETER -DASM_UNDERSCORE_PREFIX -d MACOSX -d LINUX -d FORTH64 -felf64 -f macho64 -i $(LIBSRC)
 
-LDFLAGS = $(CFLAGS) -no-pie
-LD_LIBRARIES = -L ForthLib -lforth -lm -lc -lstdc++ -ldl -lpthread -lreadline
+LDFLAGS = $(CFLAGS)
+LD_LIBRARIES = -L $(OBJ) -lforth -lm -lc -lstdc++ -ldl -lpthread -lreadline
 
 SRCS = \
 	Shell.cpp \
@@ -70,22 +71,17 @@ SRCS = \
 	
 	
 	
-ASMSRCS = InnerInterpAmd64.asm \
-	AsmCore64.asm
+ASMSRCS = AsmCore64.asm
 
 ASMOBJS := $(patsubst %.asm,$(OBJ)/%.o,$(ASMSRCS))
 OBJS := $(patsubst %.cpp,$(OBJ)/%.o,$(SRCS)) $(ASMOBJS)
-DEPDIR = dep
-DEPS := $(patsubst %.cpp,$(DEPDIR)/%.d,$(SRCS))
 # XDEFS is used to pass in defines from the make command line
-LIBS := -lm -lstdc++ -ldl -lpthread -no-pie
+LIBS := -lm -lstdc++ -ldl -lpthread
 
-$(LIBSRC)/libforth.a:	$(OBJS)
+$(OBJ)/libforth.a:	$(OBJS)
 	mkdir -p $(OBJ)
-	ar rcs $(LIBSRC)/libforth.a $(OBJS)
+	ar rcs $(OBJ)/libforth.a $(OBJS)
 	
--include $(DEPS)
-
 stuff:
 	echo "DEPS=" $(DEPS)
 	echo "OBJS=" $(OBJS)
@@ -101,19 +97,17 @@ $(OBJ)/ForthMain.o:	$(MAINSRC)/ForthMain.cpp
 	mkdir -p $(OBJ)
 	$(CC) $(CPPFLAGS) -o $(OBJ)/ForthMain.o $(MAINSRC)/ForthMain.cpp
 
-forth:	$(OBJ)/ForthMain.o $(LIBSRC)/libforth.a
+forth_noasm:	$(OBJ)/ForthMain.o $(OBJ)/libforth.a
 	mkdir -p $(OBJ)
-	mkdir -p $(OBJ)
-	$(CC) $(OBJ)/ForthMain.o $(DEFINES) -o forth -I ForthLib $(LD_LIBRARIES) -no-pie
-	cp forth Sandbox
+	$(CC) $(OBJ)/ForthMain.o $(DEFINES) -o forth_noasm -I $(LIBSRC) $(LD_LIBRARIES)  -Wl,-no_pie
+	cp forth_noasm Sandbox
 
 logger: $(MAINSRC)/ForthLogger.cpp
 	$(CC) $(MAINSRC)/ForthLogger.cpp -o logger
 
 clean:
 	-rm $(OBJ)/*.o
-	-rm $(DEPDIR)/*.d
-	-rm $(LIBSRC)/libforth.a
+	-rm $(OBJ)/libforth.a
 	-rm ./forth
     
 all:	forth

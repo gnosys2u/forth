@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6E0B9AE71E8F65B00070976F /* ForthLoggerOSX.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E0B9AE61E8F65B00070976F /* ForthLoggerOSX.cpp */; };
+		6E0B9AE71E8F65B00070976F /* ForthLogger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E0B9AE61E8F65B00070976F /* ForthLogger.cpp */; };
 		6E1727D41E907B0E00174501 /* ForthLogger in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6E0B9ADC1E8F651C0070976F /* ForthLogger */; };
 /* End PBXBuildFile section */
 
@@ -35,7 +35,7 @@
 
 /* Begin PBXFileReference section */
 		6E0B9ADC1E8F651C0070976F /* ForthLogger */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ForthLogger; sourceTree = BUILT_PRODUCTS_DIR; };
-		6E0B9AE61E8F65B00070976F /* ForthLoggerOSX.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ForthLoggerOSX.cpp; sourceTree = "<group>"; };
+		6E0B9AE61E8F65B00070976F /* ForthLogger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ForthLogger.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,7 +52,7 @@
 		6E0B9AD31E8F651C0070976F = {
 			isa = PBXGroup;
 			children = (
-				6E0B9AE61E8F65B00070976F /* ForthLoggerOSX.cpp */,
+				6E0B9AE61E8F65B00070976F /* ForthLogger.cpp */,
 				6E0B9ADD1E8F651C0070976F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -107,6 +107,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 6E0B9AD31E8F651C0070976F;
@@ -124,7 +125,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E0B9AE71E8F65B00070976F /* ForthLoggerOSX.cpp in Sources */,
+				6E0B9AE71E8F65B00070976F /* ForthLogger.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
