@@ -165,20 +165,39 @@ class: SDLScreen extends SDLSurface
   m: selectFont // fontFilename fontSize ...
     mFontSize!
     mFontFile.set
-    TTF_OpenFont(mFontFile.get mFontSize) mFont!
+
+    mko String fullPath
+    findResource(mFontFile.get)   ptrTo byte containingDir!
+    if(containingDir)
+      fullPath.set(containingDir)
+      fullPath.append(mFontFile.get)
+    endif
+    
+    TTF_OpenFont(fullPath.get mFontSize) mFont!
     if(mFont null =)
       reportError("SDLScreen:selectFont")
       "Font file: " %s mFontFile.get %s " and size " %s mFontSize %d %nl
     endif
+
+    fullPath~
   ;m
   
   m: selectFontSize // fontSize ...
     mFontSize!
-    TTF_OpenFont(mFontFile.get mFontSize) mFont!
+
+    mko String fullPath
+    findResource(mFontFile.get)   ptrTo byte containingDir!
+    if(containingDir)
+      fullPath.set(containingDir)
+      fullPath.append(mFontFile.get)
+    endif
+    
+    TTF_OpenFont(fullPath.get mFontSize) mFont!
     if(mFont null =)
       reportError("SDLScreen:selectFontSize")
       "Font file: " %s mFontFile.get %s " and size " %s mFontSize %d %nl
     endif
+    fullPath~
   ;m
   
   m: end

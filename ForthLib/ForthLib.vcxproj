@@ -694,10 +694,10 @@
   <ItemGroup>
     <ClCompile Include="ClassVocabulary.cpp" />
     <ClCompile Include="DLLVocabulary.cpp" />
-    <ClCompile Include="ForthBlockFileManager.cpp" />
-    <ClCompile Include="ForthBuiltinClasses.cpp" />
-    <ClCompile Include="ForthClient.cpp" />
-    <ClCompile Include="ForthEngine.cpp">
+    <ClCompile Include="BlockFileManager.cpp" />
+    <ClCompile Include="BuiltinClasses.cpp" />
+    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="Engine.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">EnableFastChecks</BasicRuntimeChecks>
@@ -729,8 +729,8 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">MaxSpeed</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">MaxSpeed</Optimization>
     </ClCompile>
-    <ClCompile Include="ForthExtension.cpp" />
-    <ClCompile Include="ForthForgettable.cpp">
+    <ClCompile Include="Extension.cpp" />
+    <ClCompile Include="Forgettable.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">EnableFastChecks</BasicRuntimeChecks>
@@ -794,7 +794,7 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">MaxSpeed</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">MaxSpeed</Optimization>
     </ClCompile>
-    <ClCompile Include="ForthInput.cpp">
+    <ClCompile Include="Input.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">EnableFastChecks</BasicRuntimeChecks>
@@ -826,9 +826,9 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">MaxSpeed</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">MaxSpeed</Optimization>
     </ClCompile>
-    <ClCompile Include="ForthMemoryManager.cpp" />
-    <ClCompile Include="ForthObjectReader.cpp" />
-    <ClCompile Include="ForthOpcodeCompiler.cpp" />
+    <ClCompile Include="MemoryManager.cpp" />
+    <ClCompile Include="ObjectReader.cpp" />
+    <ClCompile Include="OpcodeCompiler.cpp" />
     <ClCompile Include="ForthOps.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">Disabled</Optimization>
@@ -861,10 +861,10 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">MaxSpeed</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">MaxSpeed</Optimization>
     </ClCompile>
-    <ClCompile Include="ForthParseInfo.cpp" />
-    <ClCompile Include="ForthPipe.cpp" />
-    <ClCompile Include="ForthServer.cpp" />
-    <ClCompile Include="ForthShell.cpp">
+    <ClCompile Include="ParseInfo.cpp" />
+    <ClCompile Include="Pipe.cpp" />
+    <ClCompile Include="Server.cpp" />
+    <ClCompile Include="Shell.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">EnableFastChecks</BasicRuntimeChecks>
@@ -896,10 +896,10 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">MaxSpeed</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">MaxSpeed</Optimization>
     </ClCompile>
-    <ClCompile Include="ForthShowContext.cpp" />
-    <ClCompile Include="ForthStructCodeGenerator.cpp" />
-    <ClCompile Include="ForthStructs.cpp" />
-    <ClCompile Include="ForthThread.cpp">
+    <ClCompile Include="ShowContext.cpp" />
+    <ClCompile Include="StructCodeGenerator.cpp" />
+    <ClCompile Include="StructVocabulary.cpp" />
+    <ClCompile Include="Thread.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">EnableFastChecks</BasicRuntimeChecks>
@@ -931,7 +931,7 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">MaxSpeed</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">MaxSpeed</Optimization>
     </ClCompile>
-    <ClCompile Include="ForthVocabulary.cpp">
+    <ClCompile Include="Vocabulary.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">Disabled</Optimization>
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">EnableFastChecks</BasicRuntimeChecks>
@@ -1183,29 +1183,29 @@
     <ClInclude Include="ClassVocabulary.h" />
     <ClInclude Include="DLLVocabulary.h" />
     <ClInclude Include="Forth.h" />
-    <ClInclude Include="ForthBlockFileManager.h" />
-    <ClInclude Include="ForthBuiltinClasses.h" />
-    <ClInclude Include="ForthClient.h" />
-    <ClInclude Include="ForthEngine.h" />
-    <ClInclude Include="ForthExtension.h" />
-    <ClInclude Include="ForthForgettable.h" />
+    <ClInclude Include="BlockFileManager.h" />
+    <ClInclude Include="BuiltinClasses.h" />
+    <ClInclude Include="Client.h" />
+    <ClInclude Include="Engine.h" />
+    <ClInclude Include="Extension.h" />
+    <ClInclude Include="Forgettable.h" />
     <ClInclude Include="ForthInner.h" />
-    <ClInclude Include="ForthInput.h" />
-    <ClInclude Include="ForthMemoryManager.h" />
+    <ClInclude Include="Input.h" />
+    <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="ForthMessages.h" />
-    <ClInclude Include="ForthObject.h" />
-    <ClInclude Include="ForthObjectReader.h" />
-    <ClInclude Include="ForthOpcodeCompiler.h" />
-    <ClInclude Include="ForthParseInfo.h" />
-    <ClInclude Include="ForthPipe.h" />
+    <ClInclude Include="Object.h" />
+    <ClInclude Include="ObjectReader.h" />
+    <ClInclude Include="OpcodeCompiler.h" />
+    <ClInclude Include="ParseInfo.h" />
+    <ClInclude Include="Pipe.h" />
     <ClInclude Include="ForthPortability.h" />
-    <ClInclude Include="ForthServer.h" />
-    <ClInclude Include="ForthShell.h" />
-    <ClInclude Include="ForthShowContext.h" />
-    <ClInclude Include="ForthStructCodeGenerator.h" />
-    <ClInclude Include="ForthStructs.h" />
-    <ClInclude Include="ForthThread.h" />
-    <ClInclude Include="ForthVocabulary.h" />
+    <ClInclude Include="Server.h" />
+    <ClInclude Include="Shell.h" />
+    <ClInclude Include="ShowContext.h" />
+    <ClInclude Include="StructCodeGenerator.h" />
+    <ClInclude Include="StructVocabulary.h" />
+    <ClInclude Include="Thread.h" />
+    <ClInclude Include="Vocabulary.h" />
     <ClInclude Include="LocalVocabulary.h" />
     <ClInclude Include="NativeType.h" />
     <ClInclude Include="OArray.h" />

@@ -47,6 +47,18 @@
 #define RSTACK_LONGS 8192
 #endif
 
+// split a string with delimiter
+void splitString(const std::string inString, std::vector<std::string>& tokens, char delim)
+{
+    std::stringstream stringStream(inString);
+    std::string token;
+
+    while (getline(stringStream, token, delim))
+    {
+        tokens.push_back(token);
+    }
+}
+
 namespace
 {
     const char * TagStrings[] =
@@ -197,19 +209,10 @@ uint32_t ConsoleInputThreadRoutine( void* pThreadData );
 Shell::Shell(int argc, const char ** argv, const char ** envp, Engine *pEngine, Extension *pExtension, int shellStackLongs)
 : mpEngine(pEngine)
 , mFlags(0)
-, mNumArgs(0)
-, mpArgs(NULL)
-, mNumEnvVars(0)
-, mpEnvVarNames(NULL)
-, mpEnvVarValues(NULL)
 , mPoundIfDepth(0)
 , mpInternalFiles(NULL)
 , mInternalFileCount(0)
 , mExpressionInputStream(NULL)
-, mSystemDir(NULL)
-, mDLLDir(NULL)
-, mTempDir(NULL)
-, mBlockfilePath(nullptr)
 , mContinuationBytesStored(0)
 , mInContinuationLine(false)
 {
@@ -323,10 +326,6 @@ Shell::~Shell()
 	{
 		delete mExpressionInputStream;
 	}
-    delete[] mTempDir;
-    delete[] mSystemDir;
-    delete[] mDLLDir;
-    delete[] mBlockfilePath;
     // engine will destroy thread for us if we created it
 	if (mFlags & SHELL_FLAG_CREATED_ENGINE)
 	{
@@ -1345,16 +1344,12 @@ Shell::SetCommandLine( int argc, const char ** argv )
     }
     DeleteCommandLine();
 
-    i = 0;
-    mpArgs = new char *[ argc ];
-    while ( i < argc )
+    mArgs.resize(argc);
+
+    for (i = 0; i < argc; ++i)
     {
-        len = (int)strlen( argv[i] ) + 1;
-        mpArgs[i] = new char [ len ];
-        strcpy( mpArgs[i], argv[i] );
-        i++;
+        mArgs[i].assign(argv[i]);
     }
-    mNumArgs = argc;
 
     // see if there are files appended to the executable file
     // the format is:
@@ -1463,82 +1458,75 @@ void
 Shell::SetEnvironmentVars( const char ** envp )
 {
     int i, nameLen;
-    char *pValue;
+    const char *pValue;
+    std::string tempDir;
 
     if (envp == nullptr)
     {
         return;
     }
     DeleteEnvironmentVars();
-
-    // count number of environment variables
-    mNumEnvVars = 0;
-    while ( envp[mNumEnvVars] != NULL )
-    {
-        mNumEnvVars++;
-    }
-    // leave room for 3 environment vars we may need to add: FORTH_ROOT, FORTH_TEMP and FORTH_BLOCKFILE
-    mpEnvVarNames = new char *[mNumEnvVars + NUM_FORTH_ENV_VARS];
-    mpEnvVarValues = new char *[mNumEnvVars + NUM_FORTH_ENV_VARS];
-    const char* tempDir = NULL;
+    mScriptPaths.clear();
+    mDllPaths.clear();
+    mResourcePaths.clear();
 
     // make copies of vars
     i = 0;
-    while ( i < mNumEnvVars )
+    std::vector<std::string> tokens;
+    while (envp[i] != nullptr)
     {
-        nameLen = (int)strlen( envp[i] ) + 1;
-        mpEnvVarNames[i] = new char[nameLen];
-        strcpy( mpEnvVarNames[i], envp[i] );
-        pValue = strchr( mpEnvVarNames[i], '=' );
-        if ( pValue != NULL )
+        std::string envString = envp[i];
+        tokens.clear();
+        splitString(envString, tokens, '=');
+
+        if (tokens.size() == 2)
         {
-            *pValue++ = '\0';
-            mpEnvVarValues[i] = pValue;
-            size_t valueLen = strlen(pValue);
-            if (strcmp(mpEnvVarNames[i], "FORTH_ROOT") == 0)
+            std::string& varName = tokens[0];
+            std::string& varValue = tokens[1];
+            mEnvVarNames.push_back(varName);
+            mEnvVarValues.push_back(varValue);
+            size_t valueLen = varValue.size();
+            if (varName == "FORTH_ROOT")
             {
-                mSystemDir = new char[valueLen + 1];
-                strcpy(mSystemDir, pValue);
+                mSystemDir.assign(varValue);
             }
-            else if (strcmp(mpEnvVarNames[i], "FORTH_DLL") == 0)
+#if defined(FORTH64)
+            else if (varName == "FORTH_DLL64")
+#else
+            else if (varName == "FORTH_DLL32")
+#endif
             {
-                mDLLDir = new char[valueLen + 1];
-                strcpy(mDLLDir, pValue);
+                // ignore paths already set from FORTH_DLL
+                mDllPaths.clear();
+                splitString(varValue, mDllPaths, ';');
             }
-            else if (strcmp(mpEnvVarNames[i], "FORTH_TEMP") == 0)
+            else if (varName == "FORTH_DLL")
             {
-                mTempDir = new char[valueLen + 1];
-                strcpy(mTempDir, pValue);
-            }
-            else if (strcmp(mpEnvVarNames[i], "FORTH_BLOCKFILE") == 0)
-            {
-                mBlockfilePath = new char[valueLen + 1];
-                strcpy(mBlockfilePath, pValue);
-            }
-            else if (strcmp(mpEnvVarNames[i], "FORTH_SCRIPTS") == 0)
-            {
-                char* pToken = strtok(pValue, ";");
-                if (pToken == nullptr)
+                // if DLL paths have already been set by FORTH_DLL64 or FORTH_DLL32, ignore FORTH_DLL
+                if (mDllPaths.empty())
                 {
-                    // scripts path has just one entry
-                    mScriptPaths.emplace_back(pValue);
-                }
-                else
-                {
-                    while (pValue != nullptr)
-                    {
-                        mScriptPaths.emplace_back(pValue);
-                        pValue = strtok(nullptr, ";");
-                    }
+                    splitString(varValue, mDllPaths, ';');
                 }
             }
-            else if (strcmp(mpEnvVarNames[i], "TMP") == 0)
+            else if (varName == "FORTH_TEMP")
             {
-                tempDir = mpEnvVarValues[i];
+                mTempDir = varValue;
             }
-            else if (strcmp(mpEnvVarNames[i], "TEMP") == 0)
+            else if (varName == "FORTH_BLOCKFILE")
             {
-                tempDir = mpEnvVarValues[i];
+                mBlockfilePath = varValue;
+            }
+            else if (varName == "FORTH_SCRIPTS")
+            {
+                splitString(varValue, mScriptPaths, ';');
+            }
+            else if (varName == "FORTH_RESOURCES")
+            {
+                splitString(varValue, mResourcePaths, ';');
+            }
+            else if (varName == "TMP" || varName == "TEMP")
+            {
+                tempDir = varValue;
             }
         }
         else
@@ -1548,21 +1536,21 @@ Shell::SetEnvironmentVars( const char ** envp )
         i++;
     }
 
-    if (mSystemDir == nullptr)
+    if (mSystemDir.empty())
     {
-        mSystemDir = new char[strlen(mWorkingDirPath) + 2];
-        strcpy(mSystemDir, mWorkingDirPath);
-        strcat(mSystemDir, PATH_SEPARATOR);
-        mpEnvVarNames[mNumEnvVars] = new char[16];
-        strcpy(mpEnvVarNames[mNumEnvVars], "FORTH_ROOT");
-        mpEnvVarValues[mNumEnvVars] = mSystemDir;
-        mNumEnvVars++;
+        // FORTH_ROOT environment variable is missing, define it as the current working dir
+        mSystemDir.assign(mWorkingDirPath);
+        mSystemDir.append(PATH_SEPARATOR);
+        mEnvVarNames.push_back("FORTH_ROOT");
+        mEnvVarValues.push_back(mSystemDir);
     }
 
-    if (mScriptPaths.size() == 0)
+    if (mScriptPaths.empty())
     {
+        // FORTH_SCRIPTS environment variable is missing, define it as FORTH_ROOT
         std::string path(mSystemDir);
         mScriptPaths.push_back(path);
+        // and also add the system subdir to script paths
         path.append("system/");
         mScriptPaths.push_back(path);
     }
@@ -1578,63 +1566,74 @@ Shell::SetEnvironmentVars( const char ** envp )
         }
     }
 
-    if (mDLLDir == nullptr)
+    if (mDllPaths.empty())
     {
-        mDLLDir = new char[strlen(mSystemDir) + 2];
-        strcpy(mDLLDir, mSystemDir);
-        mpEnvVarNames[mNumEnvVars] = new char[16];
-        strcpy(mpEnvVarNames[mNumEnvVars], "FORTH_DLL");
-        mpEnvVarValues[mNumEnvVars] = mDLLDir;
-        mNumEnvVars++;
+        // FORTH_DLL environment variable is missing, define it as FORTH_ROOT
+        mEnvVarNames.push_back("FORTH_DLL");
+        mEnvVarValues.push_back(mSystemDir);
+        mDllPaths.push_back(mSystemDir);
+    }
+    else
+    {
+        for (std::string& path : mDllPaths)
+        {
+            char delim = *PATH_SEPARATOR;
+            if (path.at(path.length() - 1) != delim)
+            {
+                path.append(PATH_SEPARATOR);
+            }
+        }
     }
 
-    if (mTempDir == nullptr)
+    if (mResourcePaths.empty())
     {
-        if (tempDir == nullptr)
+        // FORTH_RESOURCES environment variable is missing, define it as FORTH_ROOT
+        mEnvVarNames.push_back("FORTH_RESOURCES");
+        mEnvVarValues.push_back(mSystemDir);
+        mResourcePaths.push_back(mSystemDir);
+    }
+    else
+    {
+        for (std::string& path : mResourcePaths)
         {
-            mTempDir = new char[strlen(mSystemDir) + 1];
-            strcpy(mTempDir, mSystemDir);
+            char delim = *PATH_SEPARATOR;
+            if (path.at(path.length() - 1) != delim)
+            {
+                path.append(PATH_SEPARATOR);
+            }
+        }
+    }
+
+    if (mTempDir.empty())
+    {
+        // FORTH_TEMP environment variable is missing, if TEMP or TMP environment variables
+        // is defined, use those, else define it as FORTH_ROOT
+        if (tempDir.empty())
+        {
+            mTempDir = mSystemDir;
         }
         else
         {
-            mTempDir = new char[strlen(tempDir) + 2];
-            strcpy(mTempDir, tempDir);
-            strcat(mTempDir, PATH_SEPARATOR);
+            mTempDir = tempDir + PATH_SEPARATOR;
         }
-        mpEnvVarNames[mNumEnvVars] = new char[16];
-        strcpy(mpEnvVarNames[mNumEnvVars], "FORTH_TEMP");
-        mpEnvVarValues[mNumEnvVars] = mTempDir;
-        mNumEnvVars++;
+        mEnvVarNames.push_back("FORTH_TEMP");
+        mEnvVarValues.push_back(mTempDir);
     }
 
-    if (mBlockfilePath == nullptr)
+    if (mBlockfilePath.empty())
     {
-        if (tempDir == NULL)
-        {
-            tempDir = mSystemDir;
-        }
-        mBlockfilePath = new char[strlen(mSystemDir) + 16];
-        strcpy(mBlockfilePath, mSystemDir);
-        strcat(mBlockfilePath, "_blocks.blk");
-        mpEnvVarNames[mNumEnvVars] = new char[20];
-        strcpy(mpEnvVarNames[mNumEnvVars], "FORTH_BLOCKFILE");
-        mpEnvVarValues[mNumEnvVars] = mBlockfilePath;
-        mNumEnvVars++;
+        mBlockfilePath = mSystemDir + "_blocks.blk";
+        mEnvVarNames.push_back("FORTH_BLOCKFILE");
+        mEnvVarValues.push_back(mBlockfilePath);
     }
 }
 
 void
 Shell::DeleteCommandLine( void )
 {
-    while ( mNumArgs > 0 )
-    {
-        mNumArgs--;
-        delete [] mpArgs[mNumArgs];
-    }
-    delete [] mpArgs;
+    mArgs.clear();
 
-    mpArgs = NULL;
-
+    // Huh? why is this here?
     if ( mpInternalFiles != NULL )
     {
         for ( int i = 0; i < mInternalFileCount; i++ )
@@ -1654,16 +1653,8 @@ Shell::DeleteCommandLine( void )
 void
 Shell::DeleteEnvironmentVars( void )
 {
-    while ( mNumEnvVars > 0 )
-    {
-        mNumEnvVars--;
-        delete [] mpEnvVarNames[mNumEnvVars];
-    }
-    delete [] mpEnvVarNames;
-    delete [] mpEnvVarValues;
-
-    mpEnvVarNames = NULL;
-    mpEnvVarValues = NULL;
+    mEnvVarNames.clear();
+    mEnvVarValues.clear();
 }
 
 
@@ -1671,16 +1662,24 @@ const char*
 Shell::GetEnvironmentVar(const char* envVarName)
 {
     const char* envVarValue = NULL;
-    for (int i = 0; i < mNumEnvVars; i++)
+    for (int i = 0; i < mEnvVarNames.size(); i++)
     {
-        if (strcmp(envVarName, mpEnvVarNames[i]) == 0)
+        if (strcmp(envVarName, mEnvVarNames[i].c_str()) == 0)
         {
-            return mpEnvVarValues[i];
+            return mEnvVarValues[i].c_str();
         }
     }
-    return NULL;
+    return nullptr;
 }
 
+const char* Shell::GetArg(int argNum) const
+{
+    if (argNum < mArgs.size())
+    {
+        return mArgs[argNum].c_str();
+    }
+    return nullptr;
+}
 
 bool
 Shell::CheckSyntaxError(const char *pString, eShellTag tag, int32_t desiredTags)
@@ -1945,7 +1944,7 @@ FILE* Shell::OpenInternalFile( const char* pFilename )
         if ( strcmp( mpInternalFiles[i].pName, pFilename ) == 0 )
         {
             // there is an internal file, open this .exe and seek to internal file
-            pFile = fopen( mpArgs[0], "r" );
+            pFile = fopen( mArgs[0].c_str(), "r" );
             if ( fseek( pFile, mpInternalFiles[i].offset, 0 ) != 0 )
             {
                 fclose( pFile );
@@ -1995,27 +1994,37 @@ FILE* Shell::OpenForthFile(const char* pPath, std::string& containingDir)
 #endif
     if (pathIsRelative)
     {
-        for (std::string& path : mScriptPaths)
+        if (FindFileInPaths(pPath, mScriptPaths, containingDir))
         {
-            std::string leaf(path);
-            leaf.append(pPath);
-            pFile = fopen(leaf.c_str(), "r");
-            if (pFile != nullptr)
-            {
-                containingDir = path;
-                std::string inPath(pPath);
-                auto pathEnd = inPath.find_last_of("/\\");
-                if (pathEnd != std::string::npos)
-                {
-                    containingDir.append(inPath.substr(0, pathEnd));
-                }
-                break;
-            }
+            std::string path(containingDir);
+            path.append(pPath);
+            pFile = fopen(path.c_str(), "r");
         }
     }
 	return pFile;
 }
 
+bool Shell::FindFileInPaths(const char* pPath, const std::vector<std::string> paths, std::string& containingDir)
+{
+    for (const std::string& path : paths)
+    {
+        std::string leaf(path);
+        leaf.append(pPath);
+        if (mFileInterface.fileExists(leaf.c_str()))
+        {
+            containingDir = path;
+            std::string inPath(pPath);
+            auto pathEnd = inPath.find_last_of("/\\");
+            if (pathEnd != std::string::npos)
+            {
+                containingDir.append(inPath.substr(0, pathEnd));
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
 
 int32_t Shell::FourCharToLong(const char* pFourCC)
 {

@@ -781,6 +781,7 @@ addOp fputs|BUFFER FILE ...|write null-terminated string from BUFFER to FILE
 addOp stdin|... FILE|get standard in file
 addOp stdout|... FILE|get standard out file
 addOp stderr|... FILE|get standard error file
+addOp findResource|FILENAME ... PATH_PTR|return directory holding FILENAME in paths from FORTH_RESOURCES
 
 tags: long math
 addOp l+|LA LB ... (LA+LB)|

@@ -9,9 +9,6 @@
 #include "Engine.h"
 #include "ClassVocabulary.h"
 
-#if defined(LINUX) || defined(MACOSX)
-#endif
-
 bool __useStandardMemoryAllocation = true;
 
 MemoryManager* s_memoryManager = nullptr;

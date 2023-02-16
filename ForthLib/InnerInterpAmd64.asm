@@ -3965,13 +3965,7 @@ entry doneBop
 
 ;========================================
 
-;entry yieldBop
-;__yieldBop:
-;GLOBAL __yieldBop
-_yieldBop:
-GLOBAL _yieldBop
-yieldBop:
-GLOBAL yieldBop
+entry yieldBop
 	mov	rax, kResultYield
 	jmp	interpFuncExit
 

@@ -18,18 +18,10 @@ TBDs:
 
 ? add a '#ifdef _autoTest' section to all script files
 
-- add FORTH_RESOURCES environment variable for paths to things like fonts and bitmaps
-
-- generalize loading from multiple paths to more than just scripts - use for DLLs and resources
-? add ways to access script path array (and others) from forth code
-- support 32 and 64 bit DLLs
-  - add FORTH_DLL64 and FORTH_DLL32 optional environment variables which override FORTH_DLL
-
 - test network.fs and fix if necessary
 
 - test sdl audio
 
-+ fix life.fs -> it was a pointer-stored-as-int 64-bit problem
 - test life.fs on linux and rpi
 
 - get wumpus.fs working
@@ -98,6 +90,15 @@ TBDs:
 - also optimize stuff like offset,2@,drop
   -> these drops don't exist anymore, since getting rid of methods/data pair, right?
   
++ add FORTH_RESOURCES environment variable for paths to things like fonts and bitmaps
+
++ generalize loading from multiple paths to more than just scripts - use for DLLs and resources
+? add ways to access script path array (and others) from forth code
++ support 32 and 64 bit DLLs
+  + add FORTH_DLL64 and FORTH_DLL32 optional environment variables which override FORTH_DLL
+
++ fix life.fs -> it was a pointer-stored-as-int 64-bit problem
+
 + add '@~' suffix for object unref (same code as '!-')
 
 + fix super multi-fiber bug
@@ -270,6 +271,26 @@ Double has consistent layout, long is reversed on param stack.
 
 
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+February 15 2023
+
+I cleaned up the environment variable and command line argument handling.
+
+FORTH_DLL now takes a set of paths like FORTH_SCRIPTS.
+FORTH_DLL64 also takes a set of paths, it overrides FORTH_DLL on 64-bit systems,
+and FORTH_DLL32 does the same on 32-bit systems.
+
+I added FORTH_RESOURCES which takes a set of paths, these paths can be searched
+with a new 'findResource' op, which takes the leaf name, and returns a pointer
+to the directory where the named leaf was found, or null.
+
+I replaced getEnvironment with getEnvironmentPair, which takes an index of an
+environment variable, and returns char pointers to the variable name and value
+on TOS.  It returns 2 nulls if the variable index is out of range.
+
+I updated my own copies of all the SDL DLLs for both 32 and 64 bits.
+life.fs works on 32-bit windows, including SDL graphics!
+This also means that DLL loading in general still works on 32-bit windows.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 February 3 2023
 

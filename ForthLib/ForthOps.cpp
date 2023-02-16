@@ -153,7 +153,8 @@ FORTHOP( argvOp )
 
 FORTHOP( argcOp )
 {
-    SPUSH( GET_ENGINE->GetShell()->GetArgCount() );
+    Shell* pShell = GET_ENGINE->GetShell();
+    SPUSH( pShell->GetCommandLineArgs().size() );
 }
 
 //##############################
@@ -4642,12 +4643,24 @@ FORTHOP(getEnvironmentVarOp)
     SPUSH((cell)(pShell->GetEnvironmentVar(pVarName)));
 }
 
-FORTHOP(getEnvironmentOp)
+FORTHOP(getEnvironmentPairOp)
 {
     Shell *pShell = GET_ENGINE->GetShell();
-    SPUSH((cell)(pShell->GetEnvironmentVarNames()));
-    SPUSH((cell)(pShell->GetEnvironmentVarValues()));
-    SPUSH(pShell->GetEnvironmentVarCount());
+    const char* pName = nullptr;
+    const char* pValue = nullptr;
+    cell varIndex = SPOP;
+
+    const std::vector<std::string>& names = pShell->GetEnvironmentVarNames();
+    const std::vector<std::string>& values = pShell->GetEnvironmentVarValues();
+    
+    if (varIndex < names.size())
+    {
+        pName = names[varIndex].c_str();
+        pValue = values[varIndex].c_str();
+    }
+
+    SPUSH((cell)pName);
+    SPUSH((cell)pValue);
 }
 
 FORTHOP(getCwdOp)
@@ -6448,6 +6461,21 @@ FORTHOP(getConsoleSizesOp)
 #endif
 }
 
+FORTHOP(findResourceOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    const char* pResourceName = (const char*)(SPOP);
+    Shell* pShell = pEngine->GetShell();
+    std::string containingDir;
+    const char* pResult = nullptr;
+
+    if (pShell->FindFileInPaths(pResourceName, pShell->GetResourcePaths(), containingDir))
+    {
+        pResult = pEngine->GetOuterInterpreter()->AddTempString(containingDir.c_str());
+    }
+
+    SPUSH((cell)pResult);
+}
 
 ///////////////////////////////////////////
 //  Network support
@@ -10100,6 +10128,7 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(    fgetsBop,                "fgets" ),
     NATIVE_DEF(    fputsBop,                "fputs" ),
 #if !defined(FORTH64)
+    // ? what are these doing with file manipulation ops ?
     NATIVE_DEF(    lplusBop,                "l+" ),
     NATIVE_DEF(    lminusBop,               "l-" ),
     NATIVE_DEF(    ltimesBop,               "l*" ),
@@ -10126,7 +10155,9 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    fflushOp,               "fflush" ),
     OP_DEF(    errnoOp,			       "errno" ),
     OP_DEF(    strerrorOp,             "strerror" ),
-    OP_DEF(    getEnvironmentOp,       "getEnvironment" ),
+    OP_DEF(    findResourceOp,         "findResource"),
+
+    OP_DEF(    getEnvironmentPairOp,   "getEnvironmentPair" ),
     OP_DEF(    getEnvironmentVarOp,    "getEnvironmentVar" ),
 	OP_DEF(    getCwdOp,               "getCurrentDirectory"),
 

@@ -13,6 +13,7 @@
 #endif
 #include <vector>
 #include <string>
+#include <map>
 
 class InputStack;
 class Extension;
@@ -72,6 +73,8 @@ typedef enum
 //  FORTH_TEMP
 //  FORTH_BLOCKFILE
 #define NUM_FORTH_ENV_VARS 4
+
+typedef std::map<std::string, std::string> EnvironmentMap;
 
 class ForthShellStack
 {
@@ -145,16 +148,17 @@ public:
 	inline ForthShellStack * GetShellStack( void ) { return mpStack; };
     inline bool             InputLineReadyToProcess() { return !mInContinuationLine; }
     char*                   AddToInputLine(const char* pBuffer);
-    inline int              GetArgCount( void ) const { return mNumArgs; };
-    inline const char *     GetArg( int argNum ) const { return mpArgs[argNum]; };
+    const char*             GetArg(int argNum) const;
     const char*             GetEnvironmentVar(const char* envVarName);
-    inline char**           GetEnvironmentVarNames() { return mpEnvVarNames; }
-    inline char**           GetEnvironmentVarValues() const { return mpEnvVarValues; }
-    inline int              GetEnvironmentVarCount() const { return mNumEnvVars;  }
-    inline const char*      GetTempDir() const { return mTempDir; }
-    inline const char*      GetSystemDir() const { return mSystemDir; }
-    inline const char*      GetDLLDir() const { return mDLLDir; }
-    inline const char*      GetBlockfilePath() const { return mBlockfilePath; }
+    const std::vector<std::string>& GetCommandLineArgs() { return mArgs; }
+    const std::vector<std::string>& GetEnvironmentVarNames() { return mEnvVarNames; }
+    const std::vector<std::string>& GetEnvironmentVarValues() { return mEnvVarValues; }
+    inline const char*      GetTempDir() const { return mTempDir.c_str(); }
+    inline const char*      GetSystemDir() const { return mSystemDir.c_str(); }
+    inline const char*      GetBlockfilePath() const { return mBlockfilePath.c_str(); }
+    const std::vector<std::string>& GetScriptPaths() { return mScriptPaths; }
+    const std::vector<std::string>& GetDllPaths() { return mDllPaths; }
+    const std::vector<std::string>& GetResourcePaths() { return mResourcePaths; }
 
     bool                    CheckSyntaxError(const char *pString, eShellTag tag, int32_t desiredTag);
 	void					StartDefinition(const char*pDefinedSymbol, const char* pFourCharCode);
@@ -194,6 +198,7 @@ public:
     virtual void            GetWorkDir(std::string& dstString);
     virtual void            SetWorkDir(const std::string& workDir);
 
+    bool                    FindFileInPaths(const char* pPath, const std::vector<std::string> paths, std::string& containingDir);
 protected:
 
     void                    SetCommandLine(int argc, const char ** argv);
@@ -225,23 +230,23 @@ protected:
 
     int32_t                    mTokenBuffer[ TOKEN_BUFF_LONGS ];
 
-    int                     mNumArgs;
-    char **                 mpArgs;
-    int                     mNumEnvVars;
-    char **                 mpEnvVarNames;
-    char **                 mpEnvVarValues;
+    std::vector<std::string> mArgs;
+    std::vector<std::string> mEnvVarNames;
+    std::vector<std::string> mEnvVarValues;
     int                     mFlags;
     char                    mErrorString[ 128 ];
     char                    mToken[MAX_TOKEN_BYTES + 1];
     char                    mContinuationBuffer[DEFAULT_INPUT_BUFFER_LEN];
     int                     mContinuationBytesStored;
-    char*                   mTempDir;
-    char*                   mSystemDir;
-    char*                   mDLLDir;
-    char*                   mBlockfilePath;
+    std::string             mTempDir;
+    std::string             mSystemDir;
+    std::string             mBlockfilePath;
     int                     mPoundIfDepth;
 
     std::vector<std::string> mScriptPaths;
+    std::vector<std::string> mDllPaths;
+    std::vector<std::string> mResourcePaths;
+    EnvironmentMap          mEnvironment;
 
 #if defined(LINUX) || defined(MACOSX)
 #else

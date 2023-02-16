@@ -28,26 +28,26 @@ makeObject System system
 
   makeObject StringMap env
 
-  getEnvironment
-    int numVars!
-    ptrTo int envValues!
-    ptrTo int envNames!
-
-  ?do(numVars 0)
+  int varNum
+  ptrTo byte envName
+  ptrTo byte envValue
+  begin
+    getEnvironmentPair(varNum)
+    varNum++
+    envValue!
+    envName!
+  while(envName)
     makeObject String varValue
-    varValue.set(envValues p@)
-    //"adding environment variable " %s envNames @ %s " = " %s varValue.get %s %nl
-    cellsize envValues!+
-    env.set(varValue envNames p@)
-    cellsize envNames!+
+    varValue.set(envValue)
+    env.set(varValue envName)
     varValue~
-  loop
+  repeat
+  
   env system.env!
   env~
   
   makeObject Array args
   argc int numArgs!
-  args.resize(numArgs)
   ?do(numArgs 0)
     makeObject String arg
     arg.set(argv(i))

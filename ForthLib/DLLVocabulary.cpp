@@ -48,16 +48,17 @@ void* DLLVocabulary::LoadDLL( void )
     char* pDLLPath = nullptr;
     const char *pDLLSrc = mpDLLName;
     int len = strlen(mpDLLName) + 1;
-    if (!pEngine->GetCoreState()->pFileFuncs->fileExists(mpDLLName))
+    std::string containingDir;
+    std::string dllPath;
+
+    if (pShell->FindFileInPaths(mpDLLName, pShell->GetDllPaths(), containingDir))
     {
-        const char* pDLLDir = pShell->GetDLLDir();
-        pDLLPath = new char[strlen(pDLLDir) + len];
-        strcpy(pDLLPath, pDLLDir);
-        strcat(pDLLPath, mpDLLName);
-        pDLLSrc = pDLLPath;
+        dllPath = containingDir;
+        dllPath.append(mpDLLName);
     }
+
 #if defined(WINDOWS_BUILD)
-    mhDLL = LoadLibrary(pDLLSrc);
+    mhDLL = LoadLibrary(dllPath.c_str());
     if (mhDLL == 0)
     {
         pEngine->SetError(ForthError::kFileOpen, "failed to open DLL ");
