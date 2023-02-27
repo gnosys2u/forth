@@ -599,7 +599,10 @@ ConsoleInputStream::GetLine( const char *pPrompt )
 {
     char *pBuffer;
 
-	printf("\n%s ", pPrompt);
+    if (pPrompt)
+    {
+        printf("\n%s ", pPrompt);
+    }
 #if defined(LINUX) || defined(MACOSX)
     do
     {

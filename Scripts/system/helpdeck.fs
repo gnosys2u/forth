@@ -995,8 +995,9 @@ addOp features|... FEATURES|variable that allows you to enable and disable langu
 addOp .features||displays what features are currently enabled
 addOp source|... INPUT_BUFFER_ADDR LENGTH|return address of base of input buffer and its length
 addOp >in|... INPUT_OFFSET_ADDR|return pointer to input buffer offset variable
-addOp fillInBuffer|PROMPT_STRING ... INPUT_BUFFER_ADDR|display prompt, fill input buffer & return input buffer address
-
+addOp fillInputBuffer|PROMPT_STRING ... INPUT_BUFFER_ADDR|display prompt, fill input buffer & return input buffer address
+addOp consumeInputBuffer|STRING_OBJ ...|get a line from current input and append to specified string
+addOp emptyInputBuffer||empty the current input buffer
 addOp time|... TIME_AS_INT64|
 addOp strftime|BUFFADDR BUFFLEN FORMAT_STRING TIME_AS_INT64 ...|puts formatted string in buffer
 addOp ms@|... TIME_AS_INT32|returns milliseconds since forth started running

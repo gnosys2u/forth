@@ -8292,12 +8292,20 @@ FORTHOP(s0Bop)
 
 FORTHOP(fpBop)
 {
-	intVarAction( pCore, (int *)&(pCore->FP) );
+#if defined(FORTH64)
+    longVarAction(pCore, (int*)&(pCore->FP));
+#else
+    intVarAction(pCore, (int*)&(pCore->FP));
+#endif
 }
 
 FORTHOP(ipBop)
 {
-	intVarAction( pCore, (int *)&(pCore->IP) );
+#if defined(FORTH64)
+    longVarAction(pCore, (int*)&(pCore->IP));
+#else
+    intVarAction(pCore, (int*)&(pCore->IP));
+#endif
 }
 
 FORTHOP(ddupBop)
@@ -10419,7 +10427,7 @@ baseDictionaryEntry baseDictionary[] =
     PRECOP_DEF(slashCommentOp,         "\\" ),
     OP_DEF(    sourceOp,               "source" ),
     OP_DEF(    getInOffsetPointerOp,   ">in" ),
-    OP_DEF(    fillInBufferOp,         "fillInBuffer" ),
+    OP_DEF(    fillInBufferOp,         "fillInputBuffer" ),
     OP_DEF(    keyOp,                  "key" ),
     OP_DEF(    keyHitOp,               "key?" ),
 

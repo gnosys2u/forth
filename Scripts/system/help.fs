@@ -477,7 +477,7 @@ addHelp features			                                        variable that allows 
 addHelp .features                                                   displays what features are currently enabled
 addHelp source					... INPUT_BUFFER_ADDR LENGHT		return address of base of input buffer and its length
 addHelp >in						... INPUT_OFFSET_ADDR				return pointer to input buffer offset variable
-addHelp fillInBuffer			PROMPT_STRING ... INPUT_BUFFER_ADDR		display prompt, fill input buffer & return input buffer address
+addHelp fillInputBuffer			PROMPT_STRING ... INPUT_BUFFER_ADDR		display prompt, fill input buffer & return input buffer address
 
 addHelp vocNewestEntry	pVocab ... pNewestEntry						get ptr to newest entry in vocabulary
 addHelp vocNextEntry	pEntry pVocab ... pNextEntry				get ptr to next entry in vocabulary (can go past end of vocab)
