@@ -149,8 +149,8 @@ class: SDLScreen extends SDLSurface
       surface.pitch yPitch!
     else
       // set coordinates so center of screen is 0,0 and positive Y is up
-      width 2/ dup centerX!     dup rightLimit negate leftLimit!
-      height 2/ dup centerY!    dup bottomLimit negate topLimit!
+      width 2/ centerX!     rightLimit negate leftLimit!
+      height 2/ centerY!    bottomLimit negate topLimit!
       surface.pitch negate yPitch!
     endif
     
