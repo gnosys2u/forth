@@ -586,6 +586,34 @@ addHelp span    ... spanAddr    return address of variable holding char count of
 variable span
 : expect accept span ! ;
 
+addHelp emptyInputBuffer
+: emptyInputBuffer
+  // change the input state to have readOffset equal to writeOffset
+  save-input
+  dup if(4 =)
+    >r >r >r
+    drop dup
+    r> r> r> restore-input
+  else
+    0 do drop loop
+    error("emptyInputBuffer - save-input has wrong count")
+  endif
+;
+
+// get a line from current input and append to specified string
+// works with any input source (console, file, block)
+addHelp consumeInputBuffer stringObj ...    get a line from current input and append to specified string
+: consumeInputBuffer
+  String lineout!
+  // get line of text from current input, append to lineout
+  null fillInputBuffer lineout.append
+  lineout~
+
+  // empty buffer, otherwise the outer interpreter will try to interpret the line we just got
+  emptyInputBuffer
+;
+
+
 addHelp $enum       enumInfo enumValue ... str      convert an enum value into its string
 : $enum
   cell enumInfo!
