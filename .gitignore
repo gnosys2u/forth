@@ -136,4 +136,5 @@ forth
 logger
 forth_noasm
 enc_temp_folder
-
+rpi/*.txt
+rpi/*.fs
