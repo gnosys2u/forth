@@ -4,7 +4,7 @@ requires testbase
 
 : BUILTIN_CLASS_TEST ;
 
-// Object: delete show getClass compare(OBJ) keep release refCount
+\ Object: delete show getClass compare(OBJ) keep release refCount
 mko Object ollie
 ollie.show
 ollie.getClass.show
@@ -13,51 +13,51 @@ ollie.compare(ollieClass) "ollie cmp ollieClass = " %s %d %nl
 ollie.keep ollie.show
 ollie.release ollie.show
 
-// Class: delete create getParent getName getVocabulary getInterface("INTERFACE_NAME") setNew(OP)
+\ Class: delete create getParent getName getVocabulary getInterface("INTERFACE_NAME") setNew(OP)
 ollieClass.create -> Object ollie2
 ollieClass.getName "ollie has class " %s %s %nl
 ollieClass.getVocabulary <Vocabulary>.show
 oclear ollie
 
-// Iterable: headIter tailIter find clone count clear
-// Iter: seekNext seekPrev seekHead seekTail next prev current remove unref findNext(OBJ) clone
+\ Iterable: headIter tailIter find clone count clear
+\ Iter: seekNext seekPrev seekHead seekTail next prev current remove unref findNext(OBJ) clone
 
-// Array: resize(N) ref(N) unref(N) get(N) set(OBJ N) findIndex(OBJ) push(OBJ) popUnref load(N_OBJECTS N)
-// ArrayIter:
-// List: head tail addHead(OBJ) addTail(OBJ) removeHead removeTail unrefHead unrefTail load(N_OBJECTS N)
-// ListIter: swapNext swapPrev split
-// IntMap: get(KEY) set(OBJ KEY) findKey(OBJ) remove(KEY)
-// IntMapIter: nextPair prevPair
+\ Array: resize(N) ref(N) unref(N) get(N) set(OBJ N) findIndex(OBJ) push(OBJ) popUnref load(N_OBJECTS N)
+\ ArrayIter:
+\ List: head tail addHead(OBJ) addTail(OBJ) removeHead removeTail unrefHead unrefTail load(N_OBJECTS N)
+\ ListIter: swapNext swapPrev split
+\ IntMap: get(KEY) set(OBJ KEY) findKey(OBJ) remove(KEY)
+\ IntMapIter: nextPair prevPair
 
-// String: size length get set(STR) append(STR) resize(N) startsWith(STR) endsWith(STR) contains(STR) clear hash appendChar(CHAR)
+\ String: size length get set(STR) append(STR) resize(N) startsWith(STR) endsWith(STR) contains(STR) clear hash appendChar(CHAR)
 
-// Pair: setA(OBJ) getA setB(OBJ) getB   (no find, clone, count, clear)
-// PairIter: (no remove, findNext, clone)
-// Triple: setA(OBJ) getA setB(OBJ) getB setC(OBJ) getC   (no find, clone, count, clear)
-// TripleIter: (no remove, findNext, clone)
+\ Pair: setA(OBJ) getA setB(OBJ) getB   (no find, clone, count, clear)
+\ PairIter: (no remove, findNext, clone)
+\ Triple: setA(OBJ) getA setB(OBJ) getB setC(OBJ) getC   (no find, clone, count, clear)
+\ TripleIter: (no remove, findNext, clone)
 
-// ByteArray: resize ref(N) get(N) set(OBJ N) findIndex(OBJ) push(BYTE) pop base
-// ByteArrayIter: 
-// ShortArray: resize ref(N) get(N) set(OBJ N) findIndex(OBJ) push(BYTE) pop base
-// ShortArrayIter: 
-// IntArray: resize ref(N) get(N) set(OBJ N) findIndex(OBJ) push(BYTE) pop base
-// IntArrayIter: 
-// LongArray: resize ref(N) get(N) set(OBJ N) findIndex(OBJ) push(BYTE) pop base
-// LongArrayIter: 
+\ ByteArray: resize ref(N) get(N) set(OBJ N) findIndex(OBJ) push(BYTE) pop base
+\ ByteArrayIter: 
+\ ShortArray: resize ref(N) get(N) set(OBJ N) findIndex(OBJ) push(BYTE) pop base
+\ ShortArrayIter: 
+\ IntArray: resize ref(N) get(N) set(OBJ N) findIndex(OBJ) push(BYTE) pop base
+\ IntArrayIter: 
+\ LongArray: resize ref(N) get(N) set(OBJ N) findIndex(OBJ) push(BYTE) pop base
+\ LongArrayIter: 
 
-// Int Long Float Double: get set(N) show compare(N)
+\ Int Long Float Double: get set(N) show compare(N)
 
-// Thread: init(PSTACK_SIZE RSTACK_SIZE OP) start push(N) pop rpush(N) rpop getState step reset
+\ Thread: init(PSTACK_SIZE RSTACK_SIZE OP) start push(N) pop rpush(N) rpop getState step reset
 
-// Int Float Double Long
+\ Int Float Double Long
 mko Int mostRandomNumber   mostRandomNumber.set(17)
 mko Int theAnswer   theAnswer.set(42)
 test[ mostRandomNumber.value 2* 8+ theAnswer.get = ]
 test[ mostRandomNumber.compare(theAnswer) 0< ]
-test[ theAnswer.set(0xabcfe1a3)   theAnswer.getByte -0x5d =   theAnswer.getUByte 0xa3 = ]
-test[ theAnswer.getShort -0x1e5d =   theAnswer.getUShort 0xe1a3 = ]
-test[ theAnswer.set(0xabcf7123)   theAnswer.getByte 0x23 =   theAnswer.getUByte 0x23 = ]
-test[ theAnswer.getShort 0x7123 =   theAnswer.getUShort 0x7123 = ]
+test[ theAnswer.set($abcfe1a3)   theAnswer.getByte -$5d =   theAnswer.getUByte $a3 = ]
+test[ theAnswer.getShort -$1e5d =   theAnswer.getUShort $e1a3 = ]
+test[ theAnswer.set($abcf7123)   theAnswer.getByte $23 =   theAnswer.getUByte $23 = ]
+test[ theAnswer.getShort $7123 =   theAnswer.getUShort $7123 = ]
 
 mko Float fluffy   fluffy.set(5.625)
 mko Float froofy   froofy.set(i2f(44))
@@ -76,7 +76,7 @@ test[ face.get 1000000000000000000L l= ]
 test[ face.compare(howie) 0> howie.compare(face) 0< ]
 
 
-// String
+\ String
 
 mko Array arr
 mko String donner   donner.set("Donner")
@@ -135,7 +135,7 @@ class: tobj    extends Object
     1 ->+ nextObjId
   ;
 
-  // m: show    objId %d %bl  ;m
+  \ m: show    objId %d %bl  ;m
   
   m: delete
     objId -> lastTobjDeleted
@@ -152,11 +152,11 @@ mko tobj valC
 mko tobj valD
 mko tobj valE
 
-// Array:   clear   resize(N)   count   get(I)   set(O I)   findIndex(O)   push(O)   pop   headIter   tailIter   clone
-// List:   head   tail   addHead(O)   addTail(O)   removeHead   removeTail   headIter   tailIter   count   find(O)   clone
-// IntMap:   clear   count   get(KEY)   set(O KEY)   findIndex(O)   remove(KEY)   headIter   tailIter   
+\ Array:   clear   resize(N)   count   get(I)   set(O I)   findIndex(O)   push(O)   pop   headIter   tailIter   clone
+\ List:   head   tail   addHead(O)   addTail(O)   removeHead   removeTail   headIter   tailIter   count   find(O)   clone
+\ IntMap:   clear   count   get(KEY)   set(O KEY)   findIndex(O)   remove(KEY)   headIter   tailIter   
 
-//"(vb=" %s tb <tobj>.refCount %d " before adding to map)" %s
+\ "(vb=" %s tb <tobj>.refCount %d " before adding to map)" %s
 mko IntMap imapA
 imapA.set( valA `a` )  imapA.set( valB `b` )  imapA.set( valC `c` )  imapA.set( valD `d` )  imapA.set( valE `e` )
 %nl imapA.show %nl
@@ -236,16 +236,16 @@ arrayFromListA.show
 
 oclear listFromArrayA  oclear arrayFromListA
 
-//"{clearing map}" %s
+\ "{clearing map}" %s
 oclear imapA  oclear lmapA  oclear fmapA  oclear dmapA  oclear smapA
 
-//"{clearing list}" %s
+\ "{clearing list}" %s
 oclear listA
 
-//"{clearing array}" %s
+\ "{clearing array}" %s
 oclear arrayA
 
-// test odrop
+\ test odrop
 : test_odrop
   "testing odrop\n" %s
   
@@ -300,7 +300,7 @@ zz.clone -> List zz2
   drop dup %x %bl @ %d %bl
 ;
 
-// abra cad abra
+\ abra cad abra
 : ff
   -> Iterable oi
   "list " %s oi so %nl
@@ -315,11 +315,11 @@ zz.clone -> List zz2
   oclear oi
 ;
 
-// Iterable: headIter tailIter find clone count clear
-// Iter: seekNext seekPrev seekHead seekTail next prev current remove findNext(OBJ) clone
+\ Iterable: headIter tailIter find clone count clear
+\ Iter: seekNext seekPrev seekHead seekTail next prev current remove findNext(OBJ) clone
 
-// Array: resize(N) ref(N) get(N) set(OBJ N) findIndex(OBJ) push(OBJ) pop
-// ArrayIter:
+\ Array: resize(N) ref(N) get(N) set(OBJ N) findIndex(OBJ) push(OBJ) pop
+\ ArrayIter:
 
 : testArray
   mko Array aa

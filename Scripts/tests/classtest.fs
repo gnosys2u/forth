@@ -80,7 +80,7 @@ class: rgba
   ;m
   
   m: add
-    // TOS is object to add
+    \ TOS is object to add
     -> rgba t
     t.s.r ->+ s.r
     t.s.g ->+ s.g
@@ -94,7 +94,7 @@ class: rgba
 
 "\n==================\nusing global objects:\n" %s
 
-// test global pointer to structs
+\ test global pointer to structs
 ptrTo rgba gpp
 : %grgb32
   -> gpp
@@ -106,11 +106,11 @@ ptrTo rgba gpp
   -> gpp.s.alpha -> gpp.s.b -> gpp.s.g -> gpp.s.r
 ;
 
-// test global arrayOf pointers to objects
+\ test global arrayOf pointers to objects
 here
-2 arrayOf ptrTo rgba gapo		// expected size 12: gapo opcode (4) + pointers (2 x 4)
-new rgba -> rgba go0			// expected size 12: opcode (4) + object reference (8)
-new rgba -> rgba go1			// expected size 12: opcode (4) + object reference (8)
+2 arrayOf ptrTo rgba gapo		\ expected size 12: gapo opcode (4) + pointers (2 x 4)
+new rgba -> rgba go0			\ expected size 12: opcode (4) + object reference (8)
+new rgba -> rgba go1			\ expected size 12: opcode (4) + object reference (8)
 128 -> go0.num
 256 -> go1.num
 
@@ -127,7 +127,7 @@ here swap - "Expected size: 36 Actual size: " %s %d %nl
   ref go1 -> 1 gapo
   0 gapo %grgb32
   1 gapo %grgb32
-  // test assignment through pointers
+  \ test assignment through pointers
   22 0 -> gapo.s.g
   55 1 -> gapo.s.r
   33 -> go0.s.b
@@ -141,7 +141,7 @@ here swap - "Expected size: 36 Actual size: " %s %d %nl
 testGAPO
 
 "\n==================\nusing local objects:\n" %s
-// test local pointer to structs
+\ test local pointer to structs
 : %rgba
   -> ptrTo rgba pp
   pp.s.r %d %bl pp.s.g %d %bl pp.s.b %d %bl pp.s.alpha %d %bl %nl
@@ -152,7 +152,7 @@ testGAPO
   -> pp.s.alpha -> pp.s.b -> pp.s.g -> pp.s.r
 ;
 
-// test local arrayOf pointers to objects
+\ test local arrayOf pointers to objects
 : testLAPO
   2 arrayOf ptrTo rgba lapo
   new rgba -> rgba lo0
@@ -163,7 +163,7 @@ testGAPO
   ref lo1 -> 1 lapo
   0 lapo %rgba
   1 lapo %rgba
-  // test assignment through pointers
+  \ test assignment through pointers
   22 ->( 0 ) lapo.s.g
   55 ->( 1 ) lapo.s.r
   33 -> lo0.s.b
@@ -231,7 +231,7 @@ class: fakeRgba
   ;m
   
   m: add
-    // TOS is object to add
+    \ TOS is object to add
     -> rgba t
     t.s.r ->+ rrr
     t.s.g ->+ ggg

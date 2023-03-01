@@ -135,7 +135,7 @@ OuterInterpreter::OuterInterpreter(Engine* pEngine)
     , mpOpcodeCompiler(nullptr)
     , mFeatures(kFFCCharacterLiterals | kFFMultiCharacterLiterals | kFFCStringLiterals
         | kFFCHexLiterals | kFFDoubleSlashComment | kFFCFloatLiterals | kFFParenIsExpression
-        | kFFAllowVaropSuffix)
+        | kFFAllowVaropSuffix | kFFDollarHexLiterals | kFFParenIsComment)
     , mContinuationIx(0)
     , mContinueDestination(nullptr)
     , mContinueCount(0)
@@ -992,7 +992,11 @@ bool OuterInterpreter::ScanIntegerToken( char         *pToken,
 
     if ( (pToken[0] == '$') && CheckFeature(kFFDollarHexLiterals) )
     {
-        if ( sscanf( pToken + 1, "%llx", &value) == 1 )
+#if defined(WIN32)
+        if (sscanf(pToken + 1, "%I64x", &value) == 1)
+#else
+        if (sscanf(pToken + 1, "%llx", &value) == 1)
+#endif
         {
             if ( isNegative )
             {

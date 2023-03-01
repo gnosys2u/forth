@@ -3,7 +3,7 @@ autoforget EVIL
 : EVIL ;
 
 class: evil
-	// implements the 'evil' language - see http://web.archive.org/web/20070103000858/www1.pacific.edu/~twrensch/evil/index.html
+	\ implements the 'evil' language - see http://web.archive.org/web/20070103000858/www1.pacific.edu/~twrensch/evil/index.html
 
 	ByteArray wheel
 	ByteArray source
@@ -36,7 +36,7 @@ class: evil
 		source.count -> sourceSize
 	;m
 	
-	// TOS points to c-style string
+	\ TOS points to c-style string
 	m: init
 		new ByteArray source!
 		
@@ -235,7 +235,7 @@ class: evil
 	
 mko String evilProgram
 
-// this is "Hello World!" spelled out character by character
+\ this is "Hello World!" spelled out character by character
 r[
 "zaeeeaeeew"
 "zaeeaeeaeaw"

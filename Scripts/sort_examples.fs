@@ -1,13 +1,13 @@
-// example sort algorithms in forth    Pat McElhatton  2017-feb-25
-// sort algorithms are from wikipedia
+\ example sort algorithms in forth    Pat McElhatton  2017-feb-25
+\ sort algorithms are from wikipedia
 
-// insertion, selection, bubble, shell, comb, quick, heap, merge sorts
+\ insertion, selection, bubble, shell, comb, quick, heap, merge sorts
 
 autoforget SORT_EXAMPLES
 
 : SORT_EXAMPLES ;
 
-false extParam bool beNoisy   // set beNoisy to true to display sort array before and after sort
+false extParam bool beNoisy   \ set beNoisy to true to display sort array before and after sort
 3000 extParam int numElems
 
 mko IntArray v
@@ -67,7 +67,7 @@ int _time
   loop
 ;
 
-//========================== bubbleSort ==========================
+\ ========================== bubbleSort ==========================
 
 : bubbleSort
   fillArray(v)
@@ -92,7 +92,7 @@ int _time
   checkResult(v)
 ;
 
-//========================== bubble2Sort ==========================
+\ ========================== bubble2Sort ==========================
 
 : bubble2Sort
   fillArray(v)
@@ -132,7 +132,7 @@ int _time
   checkResult(v)
 ;
 
-//========================== shakerSort ==========================
+\ ========================== shakerSort ==========================
 
 : shakerSort
   fillArray(v)
@@ -186,7 +186,7 @@ int _time
   checkResult(v)
 ;
 
-//========================== gnomeSort ==========================
+\ ========================== gnomeSort ==========================
 : gsortInner
   -> int upperBound
   ->o IntArray a
@@ -221,7 +221,7 @@ int _time
   checkResult(v)
 ;
 
-//========================== selectionSort ==========================
+\ ========================== selectionSort ==========================
 
 : selectionSort
   fillArray(v)
@@ -249,7 +249,7 @@ int _time
   checkResult(v)
 ;
 
-//========================== insertionSort ==========================
+\ ========================== insertionSort ==========================
 
 : insertionSort
   fillArray(v)
@@ -263,7 +263,7 @@ int _time
     d[ `[` %c srcIndex %d `]` %c %bl ]d
     do(srcIndex 0)
       if(v.get(i) srcVal >)
-        // this is not optimized, it is to test insert and remove
+        \ this is not optimized, it is to test insert and remove
         v.remove(srcIndex) -> int tmpVal
         v.insert(tmpVal i)
         d[ "move " %s tmpVal %d " from " %s srcIndex . " to" %s i . showResult(v) ]d
@@ -277,7 +277,7 @@ int _time
   checkResult(v)
 ;
 
-//========================== combSort ==========================
+\ ========================== combSort ==========================
 : combSort
   fillArray(v)
   showResult(v)
@@ -289,7 +289,7 @@ int _time
   
   begin
   while(not(sorted))
-    // Update the gap value for a next comb
+    \ Update the gap value for a next comb
     gap i2f shrink f/ f2i -> gap
     if(gap 1 >)
       false -> sorted
@@ -298,7 +298,7 @@ int _time
       true -> sorted
     endif
     
-    // A single "comb" over the input list
+    \ A single "comb" over the input list
     0 -> int ii
     begin
     while(ii gap + v.count <)
@@ -306,8 +306,8 @@ int _time
         v.swap(ii ii gap +)
         d[ "  Swapping " %s ii . ii gap + . showResult(v) ]d
         false -> sorted
-        // If this assignment never happens within the loop,
-        // then there have been no swaps and the list is sorted.
+        \ If this assignment never happens within the loop,
+        \ then there have been no swaps and the list is sorted.
       endif
       1 ->+ ii
     repeat
@@ -318,13 +318,13 @@ int _time
   checkResult(v)
 ;
 
-//========================== heapSort ==========================
+\ ========================== heapSort ==========================
 : iParent       1- 2/ ;
 : iLeftChild    2* 1+ ;
-//: iRightChild   2* 2+ ;
+\ : iRightChild   2* 2+ ;
 
-// Repair the heap whose root element is at index 'start', assuming the heaps rooted at its children are valid
-: siftDown          // (a, start, end)
+\ Repair the heap whose root element is at index 'start', assuming the heaps rooted at its children are valid
+: siftDown          \ (a, start, end)
   -> int end
   -> int start
   ->o IntArray a
@@ -332,63 +332,63 @@ int _time
   d[ "siftDown " %s start . end . ]d
 
   begin
-  while(iLeftChild(root) end <=)    // While the root has at least one child
-    iLeftChild(root) -> int child   // Left child of root)
+  while(iLeftChild(root) end <=)    \ While the root has at least one child
+    iLeftChild(root) -> int child   \ Left child of root)
     root -> int swapChild
     if(a.get(swapChild) a.get(child) <)
       child -> swapChild
     endif
-    // If there is a right child and that child is greater
+    \ If there is a right child and that child is greater
     if(child 1+ end <=)
       if(a.get(swapChild) a.get(child 1+) <)
         child 1+ -> swapChild
       endif
     endif
     if(swapChild root =)
-        // The root holds the largest element. Since we assume the heaps rooted at the children are valid, this means that we are done.
+        \ The root holds the largest element. Since we assume the heaps rooted at the children are valid, this means that we are done.
       exit
     else
       d[ "  swapping " %s root . swapChild . showResult(v) ]d
       a.swap(root swapChild)
-      swapChild -> root              // repeat to continue sifting down the child now
+      swapChild -> root              \ repeat to continue sifting down the child now
     endif
   repeat
 ;
 
-// Put elements of 'a' in heap order, in-place
+\ Put elements of 'a' in heap order, in-place
 : heapify
   ->o IntArray a
-  // start is assigned the index in 'a' of the last parent node
-  // the last element in a 0-based array is at index count-1; find the parent of that element
+  \ start is assigned the index in 'a' of the last parent node
+  \ the last element in a 0-based array is at index count-1; find the parent of that element
   iParent(a.count 1-) -> int start
   begin
   while(start 0>=)
-    //sift down the node at index 'start' to the proper place such that all nodes below the start index are in heap order
+    \ sift down the node at index 'start' to the proper place such that all nodes below the start index are in heap order
     siftDown(a start a.count 1-)
-    // go to the next parent node
+    \ go to the next parent node
     1 ->- start
   repeat
-  //after sifting down the root all nodes/elements are in heap order)
+  \ after sifting down the root all nodes/elements are in heap order)
   d[ "heapify " %s showResult(a) ]d
 ;
     
 : hsort
-  // input: an unordered array a
+  \ input: an unordered array a
   ->o IntArray a
-  // Build the heap in array a so that largest value is at the root
+  \ Build the heap in array a so that largest value is at the root
   heapify(a)
 
-  // The following loop maintains the invariants that a[0:end] is a heap and every element
-  //   beyond end is greater than everything before it (so a[end:count] is in sorted order))
+  \ The following loop maintains the invariants that a[0:end] is a heap and every element
+  \   beyond end is greater than everything before it (so a[end:count] is in sorted order))
   a.count 1- -> int end
   begin
   while(end 0>)
-    // a[0] is the root and largest value. The swap moves it in front of the sorted elements.
+    \ a[0] is the root and largest value. The swap moves it in front of the sorted elements.
     a.swap(end 0)
     d[ "  swapping " %s end . "0 " %s showResult(a) ]d
-    // the heap size is reduced by one
+    \ the heap size is reduced by one
     1 ->- end
-    // the swap ruined the heap property, so restore it
+    \ the swap ruined the heap property, so restore it
     siftDown(a 0 end)
   repeat
 ;
@@ -403,7 +403,7 @@ int _time
   checkResult(v)
 ;
 
-//========================== mergeSort ==========================
+\ ========================== mergeSort ==========================
 : copyArray
   -> int n
   ->o IntArray dstArray
@@ -451,8 +451,8 @@ int _time
   tmpArray.resize(n)
   
   
-  // Each 1-element run in srcArray is already "sorted".
-  // Make successively longer sorted runs of length 2, 4, 8, 16... until whole array is sorted.
+  \ Each 1-element run in srcArray is already "sorted".
+  \ Make successively longer sorted runs of length 2, 4, 8, 16... until whole array is sorted.
   1 -> int width
   begin
   while(width n <)
@@ -479,7 +479,7 @@ int _time
   checkResult(v)
 ;
 
-//========================== shellSort ==========================
+\ ========================== shellSort ==========================
 
 1 arrayOf int gaps
 701 0 -> gaps 301 , 132 , 57 , 23 , 10 , 4 , 1 , 0 ,
@@ -519,9 +519,9 @@ int _time
   checkResult(v)
 ;
 
-//========================== quickSort ==========================
+\ ========================== quickSort ==========================
 
-: qsPartition  // hi lo IntArray
+: qsPartition  \ hi lo IntArray
   -> int hi
   -> int lo
   ->o IntArray a
@@ -572,9 +572,9 @@ int _time
 ;
 
 
-//========================== builtinQuickSort ==========================
+\ ========================== builtinQuickSort ==========================
 : builtinQuickSort
-  // qsort( ARRAY_ADDR NUM_ELEMENTS ELEMENT_SIZE COMPARE_TYPE COMPARE_OFFSET )
+  \ qsort( ARRAY_ADDR NUM_ELEMENTS ELEMENT_SIZE COMPARE_TYPE COMPARE_OFFSET )
   fillArray(v)
   showResult(v)
   startTime
@@ -587,7 +587,7 @@ int _time
 : go
   "for " %s numElems . "elements:\n" %s
   "bubbleSort " %s bubbleSort
-  //"bubble2Sort " %s bubble2Sort   // boring variation on bubble
+  \ "bubble2Sort " %s bubble2Sort   \ boring variation on bubble
   "shakerSort " %s shakerSort
   "gnomeSort " %s gnomeSort
   "selectionSort " %s selectionSort
@@ -608,7 +608,7 @@ int _time
 
 loaddone
 
-//========================== 2stackSort ==========================
+\ ========================== 2stackSort ==========================
 
 : peek
   ->o IntArray v
@@ -624,13 +624,13 @@ loaddone
   
   startTime
   false -> int done
-  //numElems 2+ -> int nc
+  \ numElems 2+ -> int nc
   0 -> int numPasses
   begin
   while(not(done))
 
     true -> done
-    // b is empty
+    \ b is empty
     b.push(a.pop)
     begin
     while(a.count)
@@ -642,9 +642,9 @@ loaddone
         a.pop b.push
       endif
     repeat
-    //showResult(b)
+    \ showResult(b)
     
-    // a is empty
+    \ a is empty
     a.push(b.pop)
     begin
     while(b.count)
@@ -656,7 +656,7 @@ loaddone
         b.pop a.push
       endif
     repeat
-    //showResult(a)
+    \ showResult(a)
     
     done numPasses numElems dup 2* * >= or -> done
     1 ->+ numPasses
@@ -674,7 +674,7 @@ loaddone
     -> beNoisy
   endif
   
-  //showResult(b)
+  \ showResult(b)
   checkResult(a)
   oclear a
   oclear b
@@ -689,7 +689,7 @@ loaddone
   
   startTime
   false -> int done
-//  0 -> int numPasses
+\  0 -> int numPasses
   begin
   while(a.count)
 
@@ -717,7 +717,7 @@ loaddone
   endTime
 
   
-  //showResult(b)
+  \ showResult(b)
   checkResult(a)
   oclear a
   oclear b

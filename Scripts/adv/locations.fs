@@ -1,34 +1,34 @@
-//========== Locations. ===================================================
-// This section corresponds to sections 18--62 in Knuth.
+\ ========== Locations. ===================================================
+\ This section corresponds to sections 18--62 in Knuth.
 
 : advLocations ;
 
-//struct Place places[MAX_LOC + 1];
+\ struct Place places[MAX_LOC + 1];
 
 null ptrTo Instruction __nextLoc!
 
-// make_loc(locationId longDescription shortDescription)
-//   adds a Place to game.places
-//   sets game.start[locationId] = first index in game.travels for this location
+\ make_loc(locationId longDescription shortDescription)
+\   adds a Place to game.places
+\   sets game.start[locationId] = first index in game.travels for this location
 
-// make_loc_hint(locationId longDescription shortDescription flags)
-//   adds a Place to game.places with hint flags
+\ make_loc_hint(locationId longDescription shortDescription flags)
+\   adds a Place to game.places with hint flags
 
-// make_inst(motionWord conditionId destLocationId)
-//   sets motion info in current entry in game.travels, doesn't increment current entry
+\ make_inst(motionWord conditionId destLocationId)
+\   sets motion info in current entry in game.travels, doesn't increment current entry
 
-// make_ins(motionWord destLocationId)
-//   adds a non-conditional entry to game.travels, increments current entry
+\ make_ins(motionWord destLocationId)
+\   adds a non-conditional entry to game.travels, increments current entry
 
-// make_cond_ins(motionWord conditionId destLocationId)
-//   adds a conditional entry to game.travels, increments current entry
+\ make_cond_ins(motionWord conditionId destLocationId)
+\   adds a conditional entry to game.travels, increments current entry
 
-// ditto(motionWord)
-//    adds another entry to game.travels, same as previous entry except for motionWord
+\ ditto(motionWord)
+\    adds another entry to game.travels, same as previous entry except for motionWord
 
-// void make_loc(Instruction *q, Location x, const char *l, const char *s, unsigned int f)
+\ void make_loc(Instruction *q, Location x, const char *l, const char *s, unsigned int f)
 
-// create a location with a hint
+\ create a location with a hint
 : make_loc_hint
   mko Place place
   place.init
@@ -41,24 +41,24 @@ null ptrTo Instruction __nextLoc!
     game.places.push(place)
   endif
   __nextLoc game.start!(place.locID)
-  //place.show
+  \ place.show
   place~
 ;
 
-// create a location with no hints
+\ create a location with no hints
 : make_loc 0 make_loc_hint ;
 
-// void make_inst(Instruction *q, MotionWord m, int cond, Location dest)
+\ void make_inst(Instruction *q, MotionWord m, int cond, Location dest)
 : make_inst
-//    assert(&travels[0] <= q && q < &travels[733]);
-//    assert(m == 0 || (MIN_MOTION <= m && m <= MAX_MOTION));
+\    assert(&travels[0] <= q && q < &travels[733]);
+\    assert(m == 0 || (MIN_MOTION <= m && m <= MAX_MOTION));
   __nextLoc.dest!
   __nextLoc.cond!
   __nextLoc.mot!
   d[ t{ "make_inst " %s __nextLoc.dest %d %nl }t ]d
 ;
 
-//#define make_ins(m, d) make_inst(q++, m, 0, d)
+\ #define make_ins(m, d) make_inst(q++, m, 0, d)
 : make_ins
   int d!
   int m!
@@ -66,13 +66,13 @@ null ptrTo Instruction __nextLoc!
   sizeOf Instruction __nextLoc!+
 ;
 
-//#define make_cond_ins(m, c, d) make_inst(q++, m, c, d)
+\ #define make_cond_ins(m, c, d) make_inst(q++, m, c, d)
 : make_cond_ins
   make_inst
   sizeOf Instruction __nextLoc!+
 ;
 
-//#define ditto(m) make_inst(q, m, q[-1].cond, q[-1].dest)  ++q;
+\ #define ditto(m) make_inst(q, m, q[-1].cond, q[-1].dest)  ++q;
 : ditto
   int m!
   __nextLoc sizeOf Instruction - ptrTo Instruction previousInstruction!
@@ -80,11 +80,11 @@ null ptrTo Instruction __nextLoc!
   sizeOf Instruction __nextLoc!+
 ;
 
-// cond values:
-// 0            no condition, always obey motion word
-// 100 - 199    obey command if carrying object(cond - 100)
-// 200 - 299    obey command if object(cond-200) is here
-// 300 - ?      obey command if property(cond % 100) has value ((cond-300) / 100)
+\ cond values:
+\ 0            no condition, always obey motion word
+\ 100 - 199    obey command if carrying object(cond - 100)
+\ 200 - 299    obey command if object(cond-200) is here
+\ 300 - ?      obey command if property(cond % 100) has value ((cond-300) / 100)
 : only_if_toting
   MIN_OBJ - 100+
 ;
@@ -93,7 +93,7 @@ null ptrTo Instruction __nextLoc!
   MIN_OBJ - 200+
 ;
 
-//#define unless_prop(t, p) (300 + (t-MIN_OBJ) + 100*p)
+\ #define unless_prop(t, p) (300 + (t-MIN_OBJ) + 100*p)
 : unless_prop
   100 * MIN_OBJ - + 300 +
 ;
@@ -124,7 +124,7 @@ null ptrTo Instruction __nextLoc!
 
 : build_travel_table
   0 ref game.travels __nextLoc!
-  game.places.push(null)   // TODO: why do we need to do this?
+  game.places.push(null)   \ TODO: why do we need to do this?
   
   make_loc(R_ROAD "You are standing at the end of a road before a small brick building.\n\+
 Around you is a forest.  A small stream flows out of the building and\n\+
@@ -228,7 +228,7 @@ passage ends here except for a small crack leading on." "You're at top of small 
   make_ins(DEBRIS  R_DEBRIS) 
   make_ins(PASSAGE  R_BIRD)  ditto(E) 
   make_cond_ins(D  only_if_toting(GOLD)  R_NECK)  ditto(PIT)  ditto(STEPS) 
-    // good thing you weren't loaded down with GOLD
+    \ good thing you weren't loaded down with GOLD
   make_ins(D R_EMIST) 
   make_ins(CRACK  remark(14)) ditto(W) 
 
@@ -345,7 +345,7 @@ passage 6 feet off the floor." "You're at west end of Hall of Mists.")
   make_loc_hint(R_LIKE13  all_alike  null F_TWIST_HINT) 
   make_ins(N R_BRINK) 
   make_ins(W R_LIKE12) 
-  make_ins(NW  R_PIRATES_NEST)   // NW: a dirty trick!
+  make_ins(NW  R_PIRATES_NEST)   \ NW: a dirty trick!
 
   make_loc_hint(R_LIKE14  all_alike  null F_TWIST_HINT) 
   make_ins(U R_LIKE4)  ditto(D) 
@@ -370,7 +370,7 @@ round two-foot hole slants down." "You're at east end of long hall.")
 joins up with a narrow north/south passage." "You're at west end of long hall.") 
   make_ins(E R_ELONG) 
   make_ins(N R_CROSS) 
-  make_cond_ins(S  100  R_DIFF0)   // 100: Dwarves Not Permitted.
+  make_cond_ins(S  100  R_DIFF0)   \ 100: Dwarves Not Permitted.
 
   twist(R_DIFF0 R_DIFF9 R_DIFF1 R_DIFF7 R_DIFF8 R_DIFF3 R_DIFF4 R_DIFF6 R_DIFF2 R_DIFF5 R_WLONG \+
         "You are in a maze of twisty little passages, all different.")
@@ -407,7 +407,7 @@ joins up with a narrow north/south passage." "You're at west end of long hall.")
   make_loc_hint(R_HMK "You are in the Hall of the Mountain King, with passages off in all\n\+
 directions."  "You're in Hall of Mt King."  F_SNAKE_HINT) 
   make_ins(STAIRS  R_EMIST)  ditto(U)  ditto(E) 
-    // I suppose our adventurer must be walking on the ceiling!
+    \ I suppose our adventurer must be walking on the ceiling!
   make_cond_ins(N  unless_prop(SNAKE  0)  R_NS)  ditto(LEFT) 
   make_cond_ins(S  unless_prop(SNAKE  0)  R_SOUTH)  ditto(RIGHT) 
   make_cond_ins(W  unless_prop(SNAKE  0)  R_WEST)  ditto(FORWARD) 
@@ -620,9 +620,9 @@ passage leading back to the north."  "You're at steep incline above large room."
   make_loc(R_SJUNC "You are in a secret canyon at a junction of three canyons, bearing\n\+
 north, south, and SE.  The north one is as tall as the other two\n\+
 combined."  "You're at junction of three secret canyons.") 
-    // In Crowther's original, this was pretty much the edge of the cave. Going UP here
-    // would take you on a one-way trip back to the dusty rock room. Woods replaced
-    // that connection with a northerly passage to R_WINDOW.
+    \ In Crowther's original, this was pretty much the edge of the cave. Going UP here
+    \ would take you on a one-way trip back to the dusty rock room. Woods replaced
+    \ that connection with a northerly passage to R_WINDOW.
   make_ins(SE  R_BEDQUILT) 
   make_ins(S R_ABOVEP) 
   make_ins(N R_WINDOW) 
@@ -673,12 +673,12 @@ distance.  An extremely tight tunnel leads east.  It looks like a very\n\+
 tight squeeze.  An eerie light can be seen at the other end."  "You're in alcove."  F_DARK_HINT) 
   make_ins(NW  R_MISTY)  ditto(CAVERN) 
   make_ins(E R_PPASS)  ditto(PASSAGE) 
-  make_ins(E R_PLOVER)   // never performed, but seen by "BACK"
+  make_ins(E R_PLOVER)   \ never performed, but seen by "BACK"
 
   make_loc_hint(R_PLOVER "You're in a small chamber lit by an eerie green light.  An extremely\n\+
 narrow tunnel exits to the west.  A dark corridor leads NE."  "You're in Plover Room."  F_DARK_HINT) 
   make_ins(W R_PPASS)  ditto(PASSAGE)  ditto(OUT) 
-  make_ins(W R_ALCOVE)   // never performed, but seen by "BACK"
+  make_ins(W R_ALCOVE)   \ never performed, but seen by "BACK"
   make_cond_ins(PLOVER  only_if_toting(EMERALD)  R_PDROP) 
   make_ins(PLOVER  R_Y2) 
   make_ins(NE  R_DARK)  ditto(DARK) 
@@ -720,11 +720,11 @@ overhead and splashes noisily into the water somewhere within the\n\+
 mist.  The only passage goes back toward the south."  "You're at reservoir.") 
   make_ins(S R_MIRROR)  ditto(OUT) 
 
-    // R_SCAN1 and R_SCAN3 are the rooms the player sees when entering the
-    // secret canyon from the north and the east, respectively. The dragon
-    // blocks different exits in each room (and items dropped at one end of
-    // the canyon are not visible or accessible from the other end).
-    // Once the dragon has been vanquished, R_SCAN2 replaces both rooms.
+    \ R_SCAN1 and R_SCAN3 are the rooms the player sees when entering the
+    \ secret canyon from the north and the east, respectively. The dragon
+    \ blocks different exits in each room (and items dropped at one end of
+    \ the canyon are not visible or accessible from the other end).
+    \ Once the dragon has been vanquished, R_SCAN2 replaces both rooms.
   make_loc(R_SCAN1 "You are in a secret canyon that exits to the north and east." null) 
   make_ins(N R_ABOVER)  ditto(OUT) 
   make_ins(E remark(10)) ditto(FORWARD) 
@@ -896,7 +896,7 @@ far end of the room.  The only exit is the way you came in."  "You're in barren 
   make_ins(FORK  R_FORK) 
   make_ins(VIEW  R_VIEW) 
 
-  // The end-game repository.
+  \ The end-game repository.
 
   make_loc(R_NEEND "You are at the northeast end of an immense room, even larger than the\n\+
 Giant Room.  It appears to be a repository for the \"Adventure\"\n\+
@@ -910,10 +910,10 @@ NOT DISTURB THE DWARVES!\"  An immense mirror is hanging against one\n\+
 wall, and stretches to the other end of the room, where various other\n\+
 sundry objects can be glimpsed dimly in the distance." "You're at NE end.") 
   make_ins(SW  R_SWEND) 
-  // The following description has several minor differences from Woods' original.
-  // Woods' line breaks come after "A" on lines 4 and 5, "large" on line 6, and
-  // "vault" on line 7. Knuth's "that reads" corresponds to Woods' "which reads";
-  // presumably Knuth changed it to avoid ugly repetition, and I agree.
+  \ The following description has several minor differences from Woods' original.
+  \ Woods' line breaks come after "A" on lines 4 and 5, "large" on line 6, and
+  \ "vault" on line 7. Knuth's "that reads" corresponds to Woods' "which reads";
+  \ presumably Knuth changed it to avoid ugly repetition, and I agree.
     
   make_loc(R_SWEND "You are at the southwest end of the repository.  To one side is a pit\n\+
 full of fierce green snakes.  On the other side is a row of small\n\+
@@ -924,18 +924,18 @@ A vast mirror stretches off to the northeast.  At your feet is a\n\+
 large steel grate, next to which is a sign that reads, \"TREASURE\n\+
 VAULT.  KEYS IN MAIN OFFICE.\""  "You're at SW end.") 
   make_ins(NE  R_NEEND) 
-  make_ins(D remark(1))  // You can't go through a locked steel grate!
+  make_ins(D remark(1))  \ You can't go through a locked steel grate!
 
-  // The following pseudo-locations have "forced" movement.
-  // In such cases we don't ask you for input; we assume that you have told
-  // us to force another instruction through. For example, if you try to
-  // JUMP across the fissure (R_EFISS), the instruction there sends you to
-  // R_LOSE, which prints the room description ("You didn't make it.") and
-  // immediately sends you to R_LIMBO, i.e., death.
-  // Crowther (and therefore Woods and therefore Knuth) implemented several
-  // responses as pseudo-locations; for example, "The dome is unclimbable"
-  // and "The crack is far too small for you to follow". For the ones that
-  // behave indistinguishably from remarks, I've converted them to remarks.
+  \ The following pseudo-locations have "forced" movement.
+  \ In such cases we don't ask you for input; we assume that you have told
+  \ us to force another instruction through. For example, if you try to
+  \ JUMP across the fissure (R_EFISS), the instruction there sends you to
+  \ R_LOSE, which prints the room description ("You didn't make it.") and
+  \ immediately sends you to R_LIMBO, i.e., death.
+  \ Crowther (and therefore Woods and therefore Knuth) implemented several
+  \ responses as pseudo-locations; for example, "The dome is unclimbable"
+  \ and "The crack is far too small for you to follow". For the ones that
+  \ behave indistinguishably from remarks, I've converted them to remarks.
 
   make_loc(R_NECK "You are at the bottom of the pit with a broken neck." null) 
   make_ins(0  R_LIMBO) 
@@ -944,13 +944,13 @@ VAULT.  KEYS IN MAIN OFFICE.\""  "You're at SW end.")
   make_loc(R_CLIMB  "You clamber up the plant and scurry through the hole at the top."  null) 
   make_ins(0  R_NARROW) 
     
-  // Typing CLIMB from the bottom of the west pit triggers a clever bit
-  // of gymnastics. We want to branch three ways on the state of the
-  // plant (too small to climb; "up the plant and out of the pit"; and
-  // all the way up the beanstalk). But the only operation available to
-  // us is "travel if objs(PLANT).prop is NOT x". So R_WPIT's instruction
-  // brings us to R_CHECK if objs(PLANT).prop != 2, and R_CHECK dispatches
-  // to one of the two non-narrow-corridor locations.
+  \ Typing CLIMB from the bottom of the west pit triggers a clever bit
+  \ of gymnastics. We want to branch three ways on the state of the
+  \ plant (too small to climb; "up the plant and out of the pit"; and
+  \ all the way up the beanstalk). But the only operation available to
+  \ us is "travel if objs(PLANT).prop is NOT x". So R_WPIT's instruction
+  \ brings us to R_CHECK if objs(PLANT).prop != 2, and R_CHECK dispatches
+  \ to one of the two non-narrow-corridor locations.
   make_loc(R_CHECK  null null) 
   make_cond_ins(0  unless_prop(PLANT  1)  R_UPNOUT) 
   make_ins(0  R_DIDIT) 
@@ -967,7 +967,7 @@ of the Hall of Mists."  null)
   make_loc(R_DIDIT  "You have climbed up the plant and out of the pit."  null) 
   make_ins(0  R_W2PIT) 
 
-  // The remaining "locations" R_PPASS, R_PDROP, and R_TROLL are special.
+  \ The remaining "locations" R_PPASS, R_PDROP, and R_TROLL are special.
   __nextLoc game.start!(R_PPASS)
 ;
 

@@ -92,7 +92,7 @@ void CheckKey( void *dummy )
 void Bounce( void *ch )
 {
     /* Generate letter and color attribute from thread argument. */
-    char    blankcell = 0x20;
+    char    blankcell = $20;
     char    blockcell = (char) ch;
     BOOL    first = TRUE;
    COORD   oldcoord, newcoord;

@@ -8,7 +8,7 @@ also sdl2
 720 -> screenW
 640 -> screenH
 
-// x y DrawPoint
+\ x y DrawPoint
 : DrawPoint
   beginDraw
   
@@ -17,7 +17,7 @@ also sdl2
   endDraw
 ;
 
-// x y DrawLine
+\ x y DrawLine
 : DrawLine
   curY negate -> int y0
   curX -> int x0
@@ -91,14 +91,14 @@ also sdl2
   endDraw
 ;
 
-// XYPAIRS NUM_PAIRS DrawPolyLine
+\ XYPAIRS NUM_PAIRS DrawPolyLine
 : DrawPolyLine
   0 do
     DrawLine
   loop
 ;
 
-// X Y _draw4EllipsePoints ...
+\ X Y _draw4EllipsePoints ...
 : _draw4EllipsePoints
   2dup
   -> int y
@@ -112,7 +112,7 @@ also sdl2
   nx ny drawPixelRelative
 ;
 
-// WIDTH HEIGHT DrawEllipse ...
+\ WIDTH HEIGHT DrawEllipse ...
 : DrawEllipse
   beginDraw
   
@@ -131,7 +131,7 @@ also sdl2
   w -> x
   0 -> y
  
-  // TBD: 1.2 
+  \ TBD: 1.2 
   1 w 2* - hSquared * -> dx
   wSquared -> dy
   twoHSquared w * -> endX
@@ -153,7 +153,7 @@ also sdl2
     endif
   repeat
  
-  // 1st point set is done; start the 2nd set of points
+  \ 1st point set is done; start the 2nd set of points
   0 -> x
   h -> y
   hSquared -> dx
@@ -275,8 +275,8 @@ also sdl2
   beginDraw
   256 0 do
     i -> pixelColor
-//    i 20 + i 10 + DrawEllipse
-    //i 10 + DrawCircle
+\    i 20 + i 10 + DrawEllipse
+    \ i 10 + DrawCircle
     dp( i i )
   loop
   endDraw
@@ -285,20 +285,20 @@ also sdl2
 3.14159g -> double pi
 
 : test2
-  //beginDraw
+  \ beginDraw
   pi -1.0g d* -> double angle
   pi 4.0g d* 200.0g d/ -> double dangle
   
   100.0g -> double yscale
   -1 -> pixelColor
   do( 200 -200 )
-    //i %d
-    //dp( i i )
+    \ i %d
+    \ dp( i i )
     dsin( angle ) -> double y
     dp( i y y d* y d* yscale d* d2i )
     dangle ->+ angle
   loop
-  //endDraw
+  \ endDraw
 ;
 
 previous

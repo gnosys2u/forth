@@ -3,7 +3,7 @@ setTrace(0)
 "forth_autoload" $forget drop
 : forth_autoload "This is the forth_autoload.txt tools module" %s ;
 
-// create the system singleton
+\ create the system singleton
 makeObject System system
 
 #if FORTH64
@@ -22,7 +22,7 @@ makeObject System system
 : p@ @ ;
 #endif
 
-// initialize the system object
+\ initialize the system object
 : _initSystemObject
   new StringMap -> system.namedObjects
 
@@ -52,7 +52,7 @@ makeObject System system
     makeObject String arg
     arg.set(argv(i))
     args.push(arg)
-    //"adding argument " %s arg.get %s %nl
+    \ "adding argument " %s arg.get %s %nl
     oclear arg
   loop
   args system.args!
@@ -62,9 +62,9 @@ makeObject System system
 _initSystemObject
 $forget("_initSystemObject") drop
 
-//  gets next token from input stream, returns:
-//  DELIM ... false                 if token is empty or end of line
-//  DELIM ... TOKEN_PTR true        if token found
+\  gets next token from input stream, returns:
+\  DELIM ... false                 if token is empty or end of line
+\  DELIM ... TOKEN_PTR true        if token found
 : word?
   if($word dup strlen)
     true
@@ -81,7 +81,7 @@ $forget("_initSystemObject") drop
   system.getDefinitionsVocab  Vocabulary vocab!
   vocab.findEntryByName(oldSymbol)  ptrTo int oldEntry!
   if(oldEntry)
-    // need to copy value, since addSymbol below could cause vocabulary memory to be realloced at a different address
+    \ need to copy value, since addSymbol below could cause vocabulary memory to be realloced at a different address
     makeObject ByteArray valueBuffer
     valueBuffer.fromMemory(oldEntry vocab.getValueLength 0)
     valueBuffer.base -> oldEntry
@@ -89,8 +89,8 @@ $forget("_initSystemObject") drop
     vocab.addSymbol(newSymbol 0 0 0)
     vocab.getNewestEntry -> ptrTo int newEntry
     move(valueBuffer.base  newEntry  vocab.getValueLength)
-    //newSymbol %s %nl dump(valueBuffer.base 32)
-    //newSymbol %s %nl dump(newEntry 32)
+    \ newSymbol %s %nl dump(valueBuffer.base 32)
+    \ newSymbol %s %nl dump(newEntry 32)
     valueBuffer~
   else
     "Symbol " %s oldSymbol %s " not found!\n" %s
@@ -103,7 +103,7 @@ $forget("_initSystemObject") drop
   aa blword $alias
 ;
 
-alias ->o ->+    // ->o stores to an object variable without changing refcounts
+alias ->o ->+    \ ->o stores to an object variable without changing refcounts
 alias mko makeObject
 alias bool int
 alias objIsNull 0=
@@ -111,12 +111,12 @@ alias objNotNull 0<>
 alias ds dstack
 alias , i,
 
-0x7FFFFFFF int MAXINT!
-0x80000000 int MININT!
-0xFFFFFFFF int MAXUINT!
-0x7FFFFFFFFFFFFFFFL long MAXLONG!
-0x8000000000000000L long MINLONG!
-0xFFFFFFFFFFFFFFFFL long MAXULONG!
+$7FFFFFFF int MAXINT!
+$80000000 int MININT!
+$FFFFFFFF int MAXUINT!
+$7FFFFFFFFFFFFFFFL long MAXLONG!
+$8000000000000000L long MINLONG!
+$FFFFFFFFFFFFFFFFL long MAXULONG!
 
 #if FORTH64
 alias Cell Long
@@ -175,7 +175,7 @@ MAXUINT cell MAXUCELL!
 : see verbose describe ;
 
 : %nc swap 0 ?do dup %c loop drop ;
-0x20 constant bl
+$20 constant bl
 : spaces bl %nc ;
 
 : autoload
@@ -191,7 +191,7 @@ MAXUINT cell MAXUCELL!
 : $: pushToken : ;
 
 : $,
-  // TOS is ptr to nul terminated string
+  \ TOS is ptr to nul terminated string
   here over strlen 1+ allot
   swap strcpy
 ;
@@ -200,25 +200,25 @@ MAXUINT cell MAXUCELL!
 
 : _buildConstantArray
   -> int numStrings
-  // compile number of strings
+  \ compile number of strings
   numStrings ,
-  // create array of pointers to strings
+  \ create array of pointers to strings
   here ptrTo int string0!
   numStrings cells allot
-  // compile strings and stuff ptrs to them into array
+  \ compile strings and stuff ptrs to them into array
   ?do(numStrings 0) 
     here swap $, 
-    // TODO - 64bit
+    \ TODO - 64bit
     numStrings 1- i - string0 int[] !
   loop
 ;
 
-// N_STRING_PTRS N $constantArray ...
+\ N_STRING_PTRS N $constantArray ...
 : $constantArray
   builds
     _buildConstantArray
   does
-    // TODO - 64bit
+    \ TODO - 64bit
     int[] cell+ @
 ;
 
@@ -267,22 +267,22 @@ alias 2lit llit
 
 : time&date splitTime(time) ;
 
-//######################################################################
-// features support
+\ ######################################################################
+\ features support
 
-// values to be used with features variable
+\ values to be used with features variable
 enum: eFeatures
-  0x0001  kFFParenIsComment
-  0x0002  kFFCCharacterLiterals
-  0x0004  kFFMultiCharacterLiterals
-  0x0008  kFFCStringLiterals
-  0x0010  kFFCHexLiterals
-  0x0020  kFFDoubleSlashComment
-  0x0040  kFFIgnoreCase
-  0x0080  kFFDollarHexLiterals
-  0x0100  kFFCFloatLiterals
-  0x0200  kFFParenIsExpression
-  // kFFAnsi and kFFRegular are the most common feature combinations
+  $0001  kFFParenIsComment
+  $0002  kFFCCharacterLiterals
+  $0004  kFFMultiCharacterLiterals
+  $0008  kFFCStringLiterals
+  $0010  kFFCHexLiterals
+  $0020  kFFDoubleSlashComment
+  $0040  kFFIgnoreCase
+  $0080  kFFDollarHexLiterals
+  $0100  kFFCFloatLiterals
+  $0200  kFFParenIsExpression
+  \ kFFAnsi and kFFRegular are the most common feature combinations
   kFFParenIsComment kFFIgnoreCase + kFFDollarHexLiterals +    kFFAnsi
   
   kFFCCharacterLiterals kFFMultiCharacterLiterals + kFFCStringLiterals +
@@ -292,7 +292,7 @@ enum: eFeatures
 
 : .features
   features
-  "0x" %s dup %x
+  "$" %s dup %x
   dup kFFParenIsComment and if " kFFParenIsComment" %s endif
   dup kFFCCharacterLiterals and if " kFFCCharacterLiterals" %s endif
   dup kFFMultiCharacterLiterals and if " kFFMultiCharacterLiterals" %s endif
@@ -304,8 +304,8 @@ enum: eFeatures
   kFFCFloatLiterals and if " kFFCFloatLiterals" %s endif
 ;
 
-//######################################################################
-// help support
+\ ######################################################################
+\ help support
 
 255 string _TempStringA
 255 string _TempStringB
@@ -326,7 +326,7 @@ mko StringMap _helpMap
   ptrTo byte opName!
   
   if( strlen( opName ) 0= )
-    // line was empty, just list all help
+    \ line was empty, just list all help
     _helpMap.headIter StringMapIter iter!
     begin
     while(iter.seekNext iter.currentPair)
@@ -349,7 +349,7 @@ mko StringMap _helpMap
   if( _helpfileLoaded not )
     $load( "help.fs"  )
     true _helpfileLoaded!
-    // there is a $help at end of help.txt that will complete the lookup
+    \ there is a $help at end of help.txt that will complete the lookup
     _TempStringA
   else
     $help( _TempStringA )
@@ -360,7 +360,7 @@ addHelp immediate    makes most recently defined word have precedence
 : immediate
   system.getDefinitionsVocab Vocabulary vocab!
   vocab.getNewestEntry
-  vocab.getValueLength + >r // top of rstack points to length byte of counted string
+  vocab.getValueLength + >r \ top of rstack points to length byte of counted string
   move( r@ 1+ _TempStringA r@ c@ )
   r> c@ dup _TempStringA 4- i!
   0 swap _TempStringA + c!
@@ -376,9 +376,9 @@ addHelp fldump	FILENAME OFFSET LEN fldump	dump file contents as longs
 int dumpWidth
 16 -> dumpWidth
 
-// ADDR LEN OFFSET _dump
+\ ADDR LEN OFFSET _dump
 : _dump
-  cell offset!		// offset is subtracted from the actual data address before display
+  cell offset!		\ offset is subtracted from the actual data address before display
   cell len!
   ptrTo byte addr!
   int columns
@@ -404,7 +404,7 @@ int dumpWidth
       endif
     loop
     "    " %s
-    // why do we have to add 1 to dumpWidth here?
+    \ why do we have to add 1 to dumpWidth here?
     dumpWidth 1+ columns - 0 do %bl %bl %bl loop
     do( columns 0 )
       addr i + c@ ch!
@@ -421,9 +421,9 @@ int dumpWidth
   repeat
 ;
 
-// ADDR LEN OFFSET _ldump
+\ ADDR LEN OFFSET _ldump
 : _ldump
-  int offset!		// offset is subtracted from the actual data address before display
+  int offset!		\ offset is subtracted from the actual data address before display
   and( 3+ invert( 3 ) ) int len!
   and( invert( 3 ) )    cell addr!
   int columns
@@ -442,7 +442,7 @@ int dumpWidth
       addr i + @ "%08x " format %s
     +loop( 4 )
     "    " %s
-    // why do we have to add 1 to dumpWidth here?
+    \ why do we have to add 1 to dumpWidth here?
     dumpWidth 1+ columns - 0 do %bl %bl %bl loop
     do( columns 0 )
       addr i + c@ ch!
@@ -475,7 +475,7 @@ int dumpWidth
     exit
   endif
   if( len 0= )
-    // read entire file
+    \ read entire file
     infile flen len!
   endif
   len malloc buff!
@@ -514,13 +514,13 @@ precedence literal   precedence fliteral   precedence dliteral
 : chars ;
 : char blword c@ ;
 
-// given ptr to cstring, compile code which will push ptr to cstring
+\ given ptr to cstring, compile code which will push ptr to cstring
 : compileStringLiteral
   ptrTo byte src!
   src strlen int len!
-  len 4+ 0xFFFFFFFC and 2 rshift int lenInts!
-  //opType:makeOpcode( opType:litString lenInts ) ,		// compile literal string opcode
-  or(0x15000000 lenInts) ,		// compile literal string opcode
+  len 4+ $FFFFFFFC and 2 rshift int lenInts!
+  \ opType:makeOpcode( opType:litString lenInts ) ,		\ compile literal string opcode
+  or($15000000 lenInts) ,		\ compile literal string opcode
   strcpy( here src )
   allot( lenInts 4* )
 ;
@@ -558,7 +558,7 @@ alias then endif
 : char+ 1+ ;
 alias cr %nl
 alias space %bl
-: accept    // buffer bufferLen ... bytesRead     read up to bufferLen bytes from console into buffer
+: accept    \ buffer bufferLen ... bytesRead     read up to bufferLen bytes from console into buffer
   cell bufferLen!
   ptrTo byte buffer!
   cell bytesRead
@@ -567,7 +567,7 @@ alias space %bl
     strlen(buffer) bytesRead!
     if( bytesRead )
       if( buffer bytesRead@+ 1- c@ `\n` = )
-        // trim trailing linefeed from count
+        \ trim trailing linefeed from count
         bytesRead--
       endif
     endif
@@ -588,7 +588,7 @@ variable span
 
 addHelp emptyInputBuffer
 : emptyInputBuffer
-  // change the input state to have readOffset equal to writeOffset
+  \ change the input state to have readOffset equal to writeOffset
   save-input
   dup if(4 =)
     >r >r >r
@@ -600,16 +600,16 @@ addHelp emptyInputBuffer
   endif
 ;
 
-// get a line from current input and append to specified string
-// works with any input source (console, file, block)
+\ get a line from current input and append to specified string
+\ works with any input source (console, file, block)
 addHelp consumeInputBuffer stringObj ...    get a line from current input and append to specified string
 : consumeInputBuffer
   String lineout!
-  // get line of text from current input, append to lineout
+  \ get line of text from current input, append to lineout
   null fillInputBuffer lineout.append
   lineout~
 
-  // empty buffer, otherwise the outer interpreter will try to interpret the line we just got
+  \ empty buffer, otherwise the outer interpreter will try to interpret the line we just got
   emptyInputBuffer
 ;
 
@@ -635,9 +635,9 @@ addHelp cd	cd BLAH			change working directory to BLAH
   endif
 ;
 
-// creates a temporary filename that does not currently exist in current directory
-// the name is very easily predictable, if you need a name that is secure against hacks
-// replace this op with one of your own
+\ creates a temporary filename that does not currently exist in current directory
+\ the name is very easily predictable, if you need a name that is secure against hacks
+\ replace this op with one of your own
 : makeTempfileName
   getEnvironmentVar("FORTH_TEMP") -> ptrTo byte tempDir
   if(tempDir 0=)
@@ -675,7 +675,7 @@ addHelp cd	cd BLAH			change working directory to BLAH
   malloc( readSize 1+ ) ptrTo byte buffer!
   -1   int result!
   
-  // create temp filenames for stdout and stderr streams
+  \ create temp filenames for stdout and stderr streams
   makeTempfileName outName!
   if( outName 0= )
     error( "$shellRun: failure creating standard out tempfile name" )
@@ -688,7 +688,7 @@ addHelp cd	cd BLAH			change working directory to BLAH
     false okay!
   endif
   
-  // open temp file which will take standard output
+  \ open temp file which will take standard output
   if( outName )
     fopen( outName "w" ) outStream!
     if( outStream 0= )
@@ -698,7 +698,7 @@ addHelp cd	cd BLAH			change working directory to BLAH
     endif
   endif
   
-  // open temp file which will take standard error
+  \ open temp file which will take standard error
   if( errName )
     fopen( errName "w" ) errStream!
     if( errStream 0= )
@@ -708,7 +708,7 @@ addHelp cd	cd BLAH			change working directory to BLAH
     endif
   endif
   
-  // dup standard output file descriptor so we can restore it on exit
+  \ dup standard output file descriptor so we can restore it on exit
   if( okay )
     _dup( 1 ) oldStdOut!
     if( oldStdOut -1 = )
@@ -717,7 +717,7 @@ addHelp cd	cd BLAH			change working directory to BLAH
     endif
   endif
     
-  // dup standard error file descriptor so we can restore it on exit
+  \ dup standard error file descriptor so we can restore it on exit
   if( okay )
     _dup( 2 ) oldStdErr!
     if( oldStdErr -1 = )
@@ -726,29 +726,29 @@ addHelp cd	cd BLAH			change working directory to BLAH
     endif
   endif
 
-  //
-  // redirect standard out to temp output file
-  //
+  \ 
+  \ redirect standard out to temp output file
+  \ 
   if( okay )
     if( _dup2( _fileno( outStream ) 1 ) -1 = )
       error( "$shellRun: failure redirecting stdout" )
       false okay!
     else
-      // redirect standard error to temp error file
+      \ redirect standard error to temp error file
       if( _dup2( _fileno( errStream ) 2 ) -1 = )
         error( "$shellRun: failure redirecting stderr" )
         false okay!
       else
       
-        // have DOS shell execute command line string pointed to by TOS
+        \ have DOS shell execute command line string pointed to by TOS
         _shellRun( commandString ) result!
         
         fflush( stdout ) drop
         fflush( stderr ) drop
-        // close standard error stream, then reopen it on oldStdError (console output)
+        \ close standard error stream, then reopen it on oldStdError (console output)
         _dup2( oldStdErr 2 ) drop
       endif
-      // close standard output stream, then reopen it on oldStdOut (console output)
+      \ close standard output stream, then reopen it on oldStdOut (console output)
       _dup2( oldStdOut 1 ) drop
     endif
     fclose( outStream ) drop
@@ -757,9 +757,9 @@ addHelp cd	cd BLAH			change working directory to BLAH
     null errStream!
   endif
 
-  //  
-  // dump contents of output and error files using forth console IO routines
-  //
+  \  
+  \ dump contents of output and error files using forth console IO routines
+  \ 
   if( okay )
     fopen( outName "r" ) outStream!
     if( outStream )
@@ -792,7 +792,7 @@ addHelp cd	cd BLAH			change working directory to BLAH
     endif
   endif
 
-  // cleanup
+  \ cleanup
   if( outStream )
     fclose( outStream ) drop
   endif
@@ -830,7 +830,7 @@ addHelp ls	ls BLAH		display directory (BLAH is optional filespec)
   "ls" _TempStringB!
 #endif
   if( strcmp( _TempStringA "" ) )
-    // user specified a directory
+    \ user specified a directory
     strcat( _TempStringB " " )
     strcat( _TempStringB _TempStringA )
   endif
@@ -874,7 +874,7 @@ addHelp more more FILENAME	display FILENAME on screen
       true done!
     else
       result %s
-      // pause every 50 lines
+      \ pause every 50 lines
       if( lineCounter++@ 50 > )
         0 lineCounter!
         "Hit q to quit, any other key to continue\n" %s
@@ -927,30 +927,30 @@ variable scr  0 scr !
 : load dup thru ;
 
 enum: threadRunStates
-  kFTRSStopped		// initial state, or after executing stop, needs another thread to Start it
-  kFTRSReady		// ready to continue running
-  kFTRSSleeping		// sleeping until wakeup time is reached
-  kFTRSBlocked		// blocked on a soft lock
-  kFTRSExited		// done running - executed exitThread
+  kFTRSStopped		\ initial state, or after executing stop, needs another thread to Start it
+  kFTRSReady		\ ready to continue running
+  kFTRSSleeping		\ sleeping until wakeup time is reached
+  kFTRSBlocked		\ blocked on a soft lock
+  kFTRSExited		\ done running - executed exitThread
 ;enum
 
 #if WINDOWS
 
 enum:	WIN32_FILE_ATTRIB
-  0x00001	FATTRIB_READONLY
-  0x00002	FATTRIB_HIDDEN
-  0x00004	FATTRIB_SYSTEM
-  0x00010	FATTRIB_DIRECTORY
-  0x00020	FATTRIB_ARCHIVE
-  0x00040	FATTRIB_DEVICE
-  0x00080	FATTRIB_NORMAL
-  0x00100	FATTRIB_TEMPORARY
-  0x00200	FATTRIB_SPARSE
-  0x00400	FATTRIB_LINK
-  0x00800	FATTRIB_COMPRESSED
-  0x01000	FATTRIB_OFFLINE
-  0x02000	FATTRIB_NOT_INDEXED
-  0x04000	FATTRIB_ENCRYPTED
+  $00001	FATTRIB_READONLY
+  $00002	FATTRIB_HIDDEN
+  $00004	FATTRIB_SYSTEM
+  $00010	FATTRIB_DIRECTORY
+  $00020	FATTRIB_ARCHIVE
+  $00040	FATTRIB_DEVICE
+  $00080	FATTRIB_NORMAL
+  $00100	FATTRIB_TEMPORARY
+  $00200	FATTRIB_SPARSE
+  $00400	FATTRIB_LINK
+  $00800	FATTRIB_COMPRESSED
+  $01000	FATTRIB_OFFLINE
+  $02000	FATTRIB_NOT_INDEXED
+  $04000	FATTRIB_ENCRYPTED
 ;enum
 
 struct: FILETIME
@@ -990,8 +990,8 @@ struct: dirent
   int	d_namlen
 #endif
   int	d_type
-  // for some reason bytes beyond end of dirent struct get overwritten,
-  //   add 8 bytes of padding for now
+  \ for some reason bytes beyond end of dirent struct get overwritten,
+  \   add 8 bytes of padding for now
   MAX_PATH 8+ arrayOf byte d_name
 ;struct
 
@@ -1007,13 +1007,13 @@ struct: dirent
 
 #endif
 
-// these may be OS specific
+\ these may be OS specific
 enum: DIRENT_TYPE_BITS
-  0x4000 DIRENT_IS_DIR
-  0x8000 DIRENT_IS_REGULAR
+  $4000 DIRENT_IS_DIR
+  $8000 DIRENT_IS_REGULAR
 ;enum
 
-// "DIRECTORY_PATH" ... Array of String
+\ "DIRECTORY_PATH" ... Array of String
 : getFilesInDirectory
   cell dirHandle
   dirent entry
@@ -1038,11 +1038,11 @@ enum: DIRENT_TYPE_BITS
   unref filenames
 ;
 
-//######################################################################
-// debug and trace statements
-// stuff in d[ ... ]d is only compiled if compileDebug is true
-// stuff in t[ ... ]t is only compiled if compileTrace is true, and is only executed if runTrace is true
-// stuff in assert[ ... ] is only compiled if compileAsserts is true
+\ ######################################################################
+\ debug and trace statements
+\ stuff in d[ ... ]d is only compiled if compileDebug is true
+\ stuff in t[ ... ]t is only compiled if compileTrace is true, and is only executed if runTrace is true
+\ stuff in assert[ ... ] is only compiled if compileAsserts is true
 
 false int compileDebug!
 
@@ -1052,25 +1052,25 @@ false int runTrace!
 false int compileAsserts!
 
 : d[
-  // remember start of debug section in case we need to uncompile it
+  \ remember start of debug section in case we need to uncompile it
   here
 ;
 precedence d[
 
 : ]d
-  // TOS is dp when d[ was executed - start of debug section
+  \ TOS is dp when d[ was executed - start of debug section
   if( compileDebug )
-    // leave debug section as is
+    \ leave debug section as is
     drop
   else
-    // uncompile debug section
+    \ uncompile debug section
     dp !
   endif
 ;
 precedence ]d
 
 : t[
-  // remember start of debug section in case we need to uncompile it
+  \ remember start of debug section in case we need to uncompile it
   here
   postpone runTrace postpone if
 ;
@@ -1079,17 +1079,17 @@ precedence t[
 : ]t
   postpone endif
   if( compileTrace )
-    // leave trace section as is
+    \ leave trace section as is
     drop
   else
-    // uncompile trace section
+    \ uncompile trace section
     dp !
   endif
 ;
 precedence ]t
 
 
-// usage:   assert[ boolean ]
+\ usage:   assert[ boolean ]
 : _assert
   if( not )
     error( "assertion failure" )
@@ -1117,32 +1117,32 @@ addHelp oshow   OBJECT oshow ...    like OBJECT.show, but doesn't crash if OBJEC
 
 : ss system.stats ;
 
-//######################################################################
-// floating point constants
+\ ######################################################################
+\ floating point constants
 
-0x400921fb54442d18L 2constant dpi
-0x400a934f0979a371L 2constant dlog2ten
-0x3ff71547652b82feL 2constant dlog2e
-0x3fd34413509f79ffL 2constant dlog10two
-0x3fe62e42fefa39efL 2constant dlntwo
-0x7fffffffffffffffL 2constant dnan
+$400921fb54442d18L 2constant dpi
+$400a934f0979a371L 2constant dlog2ten
+$3ff71547652b82feL 2constant dlog2e
+$3fd34413509f79ffL 2constant dlog10two
+$3fe62e42fefa39efL 2constant dlntwo
+$7fffffffffffffffL 2constant dnan
 
-0x40490fdb constant fpi
-0x40549a78 constant flog2ten
-0x3fb8aa3b constant flog2e
-0x3e9a209b constant flog10two
-0x3f317218 constant flntwo
-0x7fffffff constant fnan
-//######################################################################
-// automated test support
+$40490fdb constant fpi
+$40549a78 constant flog2ten
+$3fb8aa3b constant flog2e
+$3e9a209b constant flog10two
+$3f317218 constant flntwo
+$7fffffff constant fnan
+\ ######################################################################
+\ automated test support
 
-// PARAM_VALUE extParam PARAM_TYPE PARAM_NAME
+\ PARAM_VALUE extParam PARAM_TYPE PARAM_NAME
 : extParam
   blword ptrTo byte paramType!
   blword ptrTo byte paramName!
   
   if($find(paramName))
-    // already defined, just drop value on TOS
+    \ already defined, just drop value on TOS
     drop
   else
     mko String paramString
@@ -1150,7 +1150,7 @@ addHelp oshow   OBJECT oshow ...    like OBJECT.show, but doesn't crash if OBJEC
     if(strcmp(paramType "string"))
       paramString.appendFormatted("%s %s!" r[ paramType paramName ]r)
     else
-      // param is string, so build: "STRING_LEN string PARAM_NAME!"
+      \ param is string, so build: "STRING_LEN string PARAM_NAME!"
       ptrTo byte stringVal!
       stringVal
       paramString.appendFormatted("%d string %s!" r[ strlen(stringVal) paramName ]r)
@@ -1161,8 +1161,8 @@ addHelp oshow   OBJECT oshow ...    like OBJECT.show, but doesn't crash if OBJEC
   endif
 ;
 
-// scripts that may be used in automated testing should check 'testsRunning' and skip printing anything
-//  which could have non-predictable output - like running time, clock time or random elements
+\ scripts that may be used in automated testing should check 'testsRunning' and skip printing anything
+\  which could have non-predictable output - like running time, clock time or random elements
 bool testsRunning
 
 mko Array consoleOutStreamStack
@@ -1197,7 +1197,7 @@ addHelp popConsoleOut   popConsoleOut ... OLD_CONSOLE_OUTSTREAM      restore pre
   endif
 ;
 
-// use t{ ... }t to quickly redirect all print output to the trace stream (usually an external logger program)
+\ use t{ ... }t to quickly redirect all print output to the trace stream (usually an external logger program)
 mko TraceOutStream traceOut
 : t{ pushConsoleOut(traceOut) ;
 : }t popConsoleOut drop ;
@@ -1205,25 +1205,25 @@ mko TraceOutStream traceOut
 addHelp outToScreen   restore output to the normal console
 : outToScreen getDefaultConsoleOut setConsoleOut ;
 
-// use err[ ... ]err to quickly redirect all print output to the error stream
-// in particular, use this around any output you want to see in test summary
+\ use err[ ... ]err to quickly redirect all print output to the error stream
+\ in particular, use this around any output you want to see in test summary
 : err[ pushConsoleOut(getErrorOut) ;
 : ]err popConsoleOut drop ;
 
-// use p[ ... ]p around console output commands to prevent multiple threads from 
-//  having garbled output - don't put anything inside p[...]p that could block
-//  your thread, or you will get a deadlock
+\ use p[ ... ]p around console output commands to prevent multiple threads from 
+\  having garbled output - don't put anything inside p[...]p that could block
+\  your thread, or you will get a deadlock
 AsyncLock printLock
 system.createAsyncLock printLock!
 : p[ printLock.grab ;
 : ]p printLock.ungrab ;
 
-// use this version of printlocks if you want to be able to turn it off dynamically:
-//true bool usePrintLocks!
-//: p[ if(usePrintLocks) printLock.grab endif ;
-//: ]p if(usePrintLocks) printLock.ungrab endif ;
+\ use this version of printlocks if you want to be able to turn it off dynamically:
+\ true bool usePrintLocks!
+\ : p[ if(usePrintLocks) printLock.grab endif ;
+\ : ]p if(usePrintLocks) printLock.ungrab endif ;
 
-//######################################################################
+\ ######################################################################
 addHelp pushContext save the current base, search vocabularies and definitions vocabulary on stack
 : pushContext
   do(system.getSearchVocabDepth 0)
@@ -1254,8 +1254,8 @@ addHelp popContext restore the current base, search vocabularies and definitions
   endif
 ;
 
-//######################################################################
-// flags to use with setTrace command
+\ ######################################################################
+\ flags to use with setTrace command
 
 enum: eLogFlags
   1     kLogStack
@@ -1272,20 +1272,20 @@ enum: eLogFlags
   2048  kLogProfiler
 ;enum
 
-//######################################################################
-//  defs used with Socket
+\ ######################################################################
+\  defs used with Socket
 
 enum: networkEnums
   0     INADDR_ANY
   
-  1     SOCK_STREAM     // stream socket
-  2     SOCK_DGRAM      // datagram socket
-  3     SOCK_RAW        // raw-protocol interface
+  1     SOCK_STREAM     \ stream socket
+  2     SOCK_DGRAM      \ datagram socket
+  3     SOCK_RAW        \ raw-protocol interface
   
-  0     AF_UNSPEC       // unspecified
-  1     AF_UNIX         // local to host (pipes, portals)
-  2     AF_INET         // internetwork: UDP, TCP, etc.
-  23    AF_INET6        // Internetwork Version 6
+  0     AF_UNSPEC       \ unspecified
+  1     AF_UNIX         \ local to host (pipes, portals)
+  2     AF_INET         \ internetwork: UDP, TCP, etc.
+  23    AF_INET6        \ Internetwork Version 6
   
   4     IPPROTO_IPV4
   6     IPPROTO_TCP
@@ -1306,9 +1306,9 @@ struct: sockaddr
 ;struct
 
 
-//######################################################################
+\ ######################################################################
 
-: goclient 0x6701a8c0 client ;
+: goclient $6701a8c0 client ;
 : goserver server ;
 
 : vd verbose describe ;
@@ -1319,8 +1319,8 @@ struct: sockaddr
 : 2g. %2g %bl ;
 : 2x. %2x %bl ;
 
-//######################################################################
-//  DLL support
+\ ######################################################################
+\  DLL support
 
 : _addDLLEntry blword addDLLEntry ;
 
@@ -1331,9 +1331,9 @@ struct: sockaddr
     @ _addDLLEntry
 ;
 
-// entry points can be defined with:
-// ARGUMENT_COUNT _addDLLEntry ENTRY_POINT_NAME
-// or use the convenience words dll_0 ... dll_15
+\ entry points can be defined with:
+\ ARGUMENT_COUNT _addDLLEntry ENTRY_POINT_NAME
+\ or use the convenience words dll_0 ... dll_15
 
 0 _dllEntryType dll_0
 1 _dllEntryType dll_1

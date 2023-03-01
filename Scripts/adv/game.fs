@@ -1,5 +1,5 @@
 
-// static variables for class Game
+\ static variables for class Game
 mko Array of AdventureState Game_adventureStates
 
 class: Game extends IGame
@@ -8,7 +8,7 @@ class: Game extends IGame
     mCurStateNum!
   ;
   
-  // remove an object from a locations linked list of objects  
+  \ remove an object from a locations linked list of objects  
   : removeObjectFrom
     Location loc!
     ObjectWord t!
@@ -19,7 +19,7 @@ class: Game extends IGame
     objs(t) obj!o
     if(obj.place loc =)
       if(place.objects t =)
-        // object is head of list
+        \ object is head of list
         obj.link place.objects!
       else
         objs(place.objects) nextObj!o
@@ -31,13 +31,13 @@ class: Game extends IGame
       endif
       NOTHING obj.link!
     else
-      // TODO: report error, object was not in loc to begin with
+      \ TODO: report error, object was not in loc to begin with
     endif
   ;
   
   : lookup
     ptrTo byte w!
-    // TODO: lookup Word in words, return word.meaning (an int)
+    \ TODO: lookup Word in words, return word.meaning (an int)
     words.headIter ArrayIter iter!
     NOTHING ObjectWord result!
     begin
@@ -45,7 +45,7 @@ class: Game extends IGame
       Word word
       word!o
       if(objNotNull(word))
-        //word.text.get %s %bl w %s %nl
+        \ word.text.get %s %bl w %s %nl
         if(streq(word.text.get w))
           word.meaning
           iter~
@@ -86,12 +86,12 @@ class: Game extends IGame
     endcase
   ; 
 
-  //========== Data structures for objects. =================================
-  // This section corresponds to sections 63--70 in Knuth.
+  \ ========== Data structures for objects. =================================
+  \ This section corresponds to sections 63--70 in Knuth.
   
-  : toting objs.place 0< ;                  // OBJID ... TRUE/FALSE
-  : is_immobile objs.base NOTHING <> ;      // OBJID ... TRUE/FALSE
-  : there                                   // OBJID LOCID ... TRUE/FALSE
+  : toting objs.place 0< ;                  \ OBJID ... TRUE/FALSE
+  : is_immobile objs.base NOTHING <> ;      \ OBJID ... TRUE/FALSE
+  : there                                   \ OBJID LOCID ... TRUE/FALSE
     swap objs.place =
   ;
   
@@ -111,10 +111,10 @@ class: Game extends IGame
     %nl
   ;
 
-  // Return true if t is a treasure. Notice that RUG_ (the other half
-  // of the schizoid rug) does not need to be a treasure. You can
-  // never be carrying it; the pirate can't steal it; and its prop
-  // value is irrelevant (we use the prop value of the base object RUG).
+  \ Return true if t is a treasure. Notice that RUG_ (the other half
+  \ of the schizoid rug) does not need to be a treasure. You can
+  \ never be carrying it; the pirate can't steal it; and its prop
+  \ value is irrelevant (we use the prop value of the base object RUG).
   
   : is_treasure
     case
@@ -132,12 +132,12 @@ class: Game extends IGame
     case(objs(BOTTLE).prop)
       of(0) WATER endof
       of(2) OIL endof
-      // other valid values: 1, -2 (post-closing)
+      \ other valid values: 1, -2 (post-closing)
       NOTHING swap
     endcase
   ;
   
-  // Return true if t is at loc, or being carried.
+  \ Return true if t is at loc, or being carried.
   : here
     Location loc!
     ObjectWord t!
@@ -150,13 +150,13 @@ class: Game extends IGame
     ObjectData obj
     Place place
     objs(t) obj!o
-    //  assert(objs(t).place == R_INHAND || objs(t).place == R_LIMBO) 
-    //  assert(objs(t).link == NOTHING) 
+    \  assert(objs(t).place == R_INHAND || objs(t).place == R_LIMBO) 
+    \  assert(objs(t).link == NOTHING) 
     if(toting(t))
       holding_count--
     endif
     loc obj.place!
-    //"dropped " %s t wordToName %s " at " %s loc locationToName %s %nl
+    \ "dropped " %s t wordToName %s " at " %s loc locationToName %s %nl
     if(loc R_INHAND =)
       holding_count++
     elseif(loc R_LIMBO <>)
@@ -166,14 +166,14 @@ class: Game extends IGame
     endif
   ;
   
-  : carry       // OBJECT
+  : carry       \ OBJECT
     ObjectWord t!
     ObjectData obj
     objs(t) obj!o
     obj.place Location loc!
     if(loc  R_INHAND <>)
       if(loc R_LIMBO >)
-        // Remove t from loc's object-list
+        \ Remove t from loc's object-list
         removeObjectFrom(t loc)
         R_INHAND obj.place!
         holding_count++
@@ -182,7 +182,7 @@ class: Game extends IGame
   ;
   
 spoo before move
-  : move        // OBJECT LOC
+  : move        \ OBJECT LOC
     Location loc!
     ObjectWord t!
     carry(t)
@@ -195,7 +195,7 @@ spoo before move
     move(t loc)
   ;
   
-  : destroy  // t
+  : destroy  \ t
     R_LIMBO move
   ;
   
@@ -206,7 +206,7 @@ spoo before move
     if(objs(t).base NOTHING =)
       there(t loc) result!
     else
-      // Check the "alternative" objects based on this one.
+      \ Check the "alternative" objects based on this one.
       t ObjectWord tt!
       begin
       while(objs(tt).base t =)
@@ -231,7 +231,7 @@ spoo before move
   ;
   
   int __objIndex
-  : new_obj   // ObjectWord t, const char *n, ObjectWord b, Location l
+  : new_obj   \ ObjectWord t, const char *n, ObjectWord b, Location l
     mko ObjectData obj
     obj.init
     ObjectWord t!
@@ -240,9 +240,9 @@ spoo before move
     if(is_treasure(t))  -1  else  0  endif obj.prop!
     NOTHING obj.link!
     if(obj.place R_LIMBO >)
-      // Drop the object at the *end* of its list. Combined with the
-      // ordering of the item numbers, this ensures that the CHASM
-      // is described before the TROLL, the DRAGON before the RUG, and so on.
+      \ Drop the object at the *end* of its list. Combined with the
+      \ ordering of the item numbers, this ensures that the CHASM
+      \ is described before the TROLL, the DRAGON before the RUG, and so on.
       addObjectTo(t obj.place)
     endif
     obj~
@@ -289,13 +289,13 @@ spoo before build_object_table
     addObjDesc(PILLOW "A small velvet pillow lies on the floor.")
     new_obj(SNAKE  0  SNAKE  R_HMK) 
     addObjDesc(SNAKE "A huge green fierce snake bars the way!")
-    addObjDesc(SNAKE null)  // chased away
+    addObjDesc(SNAKE null)  \ chased away
     new_obj(FISSURE  0  FISSURE  R_EFISS) 
     new_obj(FISSURE_  0  FISSURE  R_WFISS) 
     addObjDesc(FISSURE null)
     addObjDesc(FISSURE "A crystal bridge now spans the fissure.")
     new_obj(TABLET  0  TABLET  R_DARK) 
-    // Woods has "imbedded".
+    \ Woods has "imbedded".
     addObjDesc(TABLET "A massive stone tablet embedded in the wall reads:\n\+
 \"CONGRATULATIONS ON BRINGING LIGHT INTO THE DARK-ROOM!\"")
     new_obj(CLAM  "Giant clam >GRUNT!<"  0  R_SHELL) 
@@ -312,12 +312,12 @@ spoo before build_object_table
     addObjDesc(BOTTLE "There is a bottle of water here.")
     addObjDesc(BOTTLE "There is an empty bottle here.")
     addObjDesc(BOTTLE "There is a bottle of oil here.")
-    // WATER and OIL never appear on the ground) they are invariably
-    // either in R_LIMBO or R_INHAND.
+    \ WATER and OIL never appear on the ground) they are invariably
+    \ either in R_LIMBO or R_INHAND.
     new_obj(WATER  "Water in the bottle" 0  R_LIMBO) 
     new_obj(OIL  "Oil in the bottle" 0  R_LIMBO) 
     new_obj(MIRROR  0  MIRROR  R_MIRROR) 
-    new_obj(MIRROR_  0  MIRROR  R_LIMBO)   // joins up with MIRROR later
+    new_obj(MIRROR_  0  MIRROR  R_LIMBO)   \ joins up with MIRROR later
     addObjDesc(MIRROR null)
     new_obj(PLANT  0  PLANT  R_WPIT) 
     addObjDesc(PLANT "There is a tiny little plant in the pit, murmuring \"Water, water, ...\"")
@@ -354,8 +354,8 @@ of the chasm.")
     new_obj(TROLL_  0  TROLL  R_NESIDE) 
     addObjDesc(TROLL "A burly troll stands by the bridge and insists you throw him a\n\+
 treasure before you may cross.")
-    addObjDesc(TROLL null)  // not present, but not paid off either
-    addObjDesc(TROLL null)  // chased away
+    addObjDesc(TROLL null)  \ not present, but not paid off either
+    addObjDesc(TROLL null)  \ chased away
     new_obj(NO_TROLL  0  NO_TROLL  R_LIMBO) 
     new_obj(NO_TROLL_  0  NO_TROLL  R_LIMBO) 
     addObjDesc(NO_TROLL "The troll is nowhere to be seen.")
@@ -363,13 +363,13 @@ treasure before you may cross.")
     addObjDesc(BEAR "There is a ferocious cave bear eying you from the far end of the room!")
     addObjDesc(BEAR "There is a gentle cave bear sitting placidly in one corner.")
     addObjDesc(BEAR "There is a contented-looking bear wandering about nearby.")
-    addObjDesc(BEAR null)  // the dead bear remains as scenery where it fell
+    addObjDesc(BEAR null)  \ the dead bear remains as scenery where it fell
     new_obj(MESSAGE  0  MESSAGE  R_LIMBO) 
     addObjDesc(MESSAGE "There is a message scrawled in the dust in a flowery script, reading:\n\+
 \"This is not the maze where the pirate hides his treasure chest.\"")
 
     new_obj(GORGE  0  GORGE  R_VIEW) 
-    addObjDesc(GORGE null)  // it's just scenery
+    addObjDesc(GORGE null)  \ it's just scenery
     new_obj(MACHINE  0  MACHINE  R_PONY) 
     addObjDesc(MACHINE "There is a massive vending machine here. The instructions on it read:\n\+
 \"Drop coins here to receive fresh batteries.\"")
@@ -377,7 +377,7 @@ treasure before you may cross.")
     addObjDesc(BATTERIES "There are fresh batteries here.")
     addObjDesc(BATTERIES "Some worn-out batteries have been discarded nearby.")
     new_obj(MOSS  0  MOSS  R_SOFT) 
-    addObjDesc(MOSS null)  // it's just scenery
+    addObjDesc(MOSS null)  \ it's just scenery
     new_obj(GOLD  "Large gold nugget" 0  R_NUGGET) 
     addObjDesc(GOLD "There is a large sparkling nugget of gold here!")
     new_obj(DIAMONDS  "Several diamonds" 0  R_WFISS) 
@@ -419,11 +419,11 @@ treasure before you may cross.")
   : writeToSaveFile
     ptrTo byte line!
     if(objIsNull(saveStream))
-      // this is first write to save file, create the file, output the line, then add the seed string
+      \ this is first write to save file, create the file, output the line, then add the seed string
       new FileOutStream saveStream!
       saveStream.open(saveFileName.get "w") drop
       saveStream.putString(line)
-      if(objIsNull(restoreStream))    // don't add the seed string line if we are restoring
+      if(objIsNull(restoreStream))    \ don't add the seed string line if we are restoring
         mko String seedString
         seedString.appendFormatted("seed %d" getRandomSeed 1)
         saveStream.putLine(seedString.get)
@@ -436,8 +436,8 @@ treasure before you may cross.")
     saveStream.close
   ;
     
-  //========== Input routines. ==============================================
-  // This section corresponds to sections 71--73 in Knuth.
+  \ ========== Input routines. ==============================================
+  \ This section corresponds to sections 71--73 in Knuth.
 
   : getInputLine
     dup if %s endif
@@ -458,11 +458,11 @@ treasure before you may cross.")
       endif
       inBuffer.base %s
     endif
-    //fgets(inBuffer.base BUF_SIZE stdin) drop
+    \ fgets(inBuffer.base BUF_SIZE stdin) drop
     inBuffer.base
   ;
     
-  : yes  // takes const char *q, const char *y, const char *n, returns bool
+  : yes  \ takes const char *q, const char *y, const char *n, returns bool
     ptrTo byte n!
     ptrTo byte y!
     ptrTo byte q!
@@ -498,15 +498,15 @@ spoo before listen
 continue:
       getInputLine("* ") p!
       begin
-      while(p c@ isspace)  // skip over whitespace
+      while(p c@ isspace)  \ skip over whitespace
         p++
       repeat
       if(p c@ 0=)
         " Tell me to do something.\n" %s
         continue
       endif
-      // Notice that this algorithm depends on the buffer's being
-      // terminated by "\n\0" or at least some whitespace character.
+      \ Notice that this algorithm depends on the buffer's being
+      \ terminated by "\n\0" or at least some whitespace character.
       inWord1.base q!
       begin
       while(not(isspace(p c@)))
@@ -549,8 +549,8 @@ continue:
   ;
 
 
-  //========== Dwarves and pirate. ==========================================
-  // This section corresponds to sections 159--175 in Knuth.
+  \ ========== Dwarves and pirate. ==========================================
+  \ This section corresponds to sections 159--175 in Knuth.
 
   : addDwarf
     mko Dwarf dwarf
@@ -563,7 +563,7 @@ continue:
   ;
 
   : initDwarves
-    addDwarf(R_PIRATES_NEST)  // this one is really the pirate
+    addDwarf(R_PIRATES_NEST)  \ this one is really the pirate
     addDwarf(R_HMK)
     addDwarf(R_WFISS)
     addDwarf(R_Y2)
@@ -572,7 +572,7 @@ continue:
     dwarves.get(0) pirate!
   ;
 
-  : dwarf_at  // is a dwarf present? Section 160 in Knuth.
+  : dwarf_at  \ is a dwarf present? Section 160 in Knuth.
     Location loc!
     if(dwarfAngerLevel 2 <)
       false
@@ -604,7 +604,7 @@ continue:
     and(t PYRAMID = or(loc R_PLOVER =  loc R_DARK =))
   ;
 
-  : steal_all_your_treasure  // sections 173--174 in Knuth
+  : steal_all_your_treasure  \ sections 173--174 in Knuth
     Location loc!
     puts("Out from the shadows behind you pounces a bearded pirate!  \"Har, har,\"\n\+
 he chortles. \"I'll just take all this booty and hide it away with me\n\+
@@ -614,7 +614,7 @@ the gloom.")
       continueIf(not(is_treasure(i)))
       continueIf(too_easy_to_steal(i loc))
       if(here(i loc))  andif(not(is_immobile(i)))
-        // The vase, rug, and chain can all be immobile at times.
+        \ The vase, rug, and chain can all be immobile at times.
         move(i R_PIRATES_NEST)
       endif
 continue:
@@ -625,7 +625,7 @@ continue:
     Location loc!
     there(MESSAGE R_LIMBO) bool chest_needs_placing!
     false bool stalking!
-    // The pirate leaves you alone once you've found the chest.
+    \ The pirate leaves you alone once you've found the chest.
     if(loc R_PIRATES_NEST =) orif(objs(CHEST).prop 0>=)
       exit
     endif
@@ -639,21 +639,21 @@ continue:
         exit
       endif
       if(there(i loc))
-        // There is a treasure in this room, but we're not carrying
-        // it. The pirate won't pounce unless we're carrying the
-        // treasure; so he'll try to remain quiet.
+        \ There is a treasure in this room, but we're not carrying
+        \ it. The pirate won't pounce unless we're carrying the
+        \ treasure; so he'll try to remain quiet.
         true stalking!
       endif
 continue:
     loop
-    // tally is the number of treasures we haven't seen; lost_treasures is
-    // the number we never will see (due to killing the bird or destroying
-    // the troll bridge).
+    \ tally is the number of treasures we haven't seen; lost_treasures is
+    \ the number we never will see (due to killing the bird or destroying
+    \ the troll bridge).
     if(tally lost_treasures 1+ =) andif(not(stalking)) andif(chest_needs_placing)
      andif(objs(LAMP).prop) andif(here(LAMP loc))
-      // As soon as we've seen all the treasures (except the ones that are
-      // lost forever), we "cheat" and let the pirate be spotted. Of course
-      // there have to be shadows to hide in, so check the lamp.
+      \ As soon as we've seen all the treasures (except the ones that are
+      \ lost forever), we "cheat" and let the pirate be spotted. Of course
+      \ there have to be shadows to hide in, so check the lamp.
       puts("There are faint rustling noises from the darkness behind you. As you\n\+
 turn toward them, the beam of your lamp falls across a bearded pirate.\n\+
 He is carrying a large chest. \"Shiver me timbers!\" he cries, \"I've\n\+
@@ -667,33 +667,33 @@ With that, he vanishes into the gloom.")
     endif
   ;
 
-  : forbidden_to_pirate //(Location loc)
+  : forbidden_to_pirate \ (Location loc)
     R_PIRATES_NEST >
   ;
 
-  // Return true if the player got killed by a dwarf this turn.
-  // This function represents sections 161--168, 170--175 in Knuth.
+  \ Return true if the player got killed by a dwarf this turn.
+  \ This function represents sections 161--168, 170--175 in Knuth.
   : move_dwarves_and_pirate
     Location loc!
     false bool playerWasKilled!
     Dwarf dwarf
-    //assert(R_LIMBO <= loc && loc <= MAX_LOC) 
+    \ assert(R_LIMBO <= loc && loc <= MAX_LOC) 
     if(forbidden_to_pirate(loc)) orif(loc R_LIMBO =)
-      // Bypass all dwarf motion if you are in a place forbidden to the
-      // pirate, or if your next motion is forced. Besides the cases that
-      // Knuth mentions (dwarves can't meet the bear, dwarves can't enter
-      // most dead ends), this also prevents the axe-toting dwarf from
-      // showing up in the middle of a forced move and dropping the axe
-      // in an inaccessible pseudo-location.
+      \ Bypass all dwarf motion if you are in a place forbidden to the
+      \ pirate, or if your next motion is forced. Besides the cases that
+      \ Knuth mentions (dwarves can't meet the bear, dwarves can't enter
+      \ most dead ends), this also prevents the axe-toting dwarf from
+      \ showing up in the middle of a forced move and dropping the axe
+      \ in an inaccessible pseudo-location.
     elseif(dwarfAngerLevel 0=)
       if(loc MIN_LOWER_LOC >=) 1 dwarfAngerLevel! endif
     elseif(dwarfAngerLevel 1 =)
       if(loc MIN_LOWER_LOC >=) andif(pct(5))
-        // When level 2 of the cave is reached, we silently kill 0, 1,
-        // or 2 of the dwarves. Then if any of the survivors is in
-        // the current location, we move him to R_NUGGET; thus no
-        // dwarf is presently tracking you. Another dwarf does,
-        // however, toss an axe and grumpily leave the scene.
+        \ When level 2 of the cave is reached, we silently kill 0, 1,
+        \ or 2 of the dwarves. Then if any of the survivors is in
+        \ the current location, we move him to R_NUGGET; thus no
+        \ dwarf is presently tracking you. Another dwarf does,
+        \ however, toss an axe and grumpily leave the scene.
         2 dwarfAngerLevel!
         if(pct(50)) dwarves.get(ran(5) 1+).setLoc(R_LIMBO) endif
         if(pct(50)) dwarves.get(ran(5) 1+).setLoc(R_LIMBO) endif
@@ -702,28 +702,28 @@ With that, he vanishes into the gloom.")
           if(dwarf.loc loc =) dwarf.setLoc(R_NUGGET) endif
           dwarf.loc dwarf.oldloc!
         loop
-        // Knuth quietly fixes the garden-path grammar here:
-        //   A little dwarf just walked around a corner, saw you, threw a
-        //   little axe at you, cursed, and ran away. (The axe missed.)
-        // But Woods' version matches Crowther's original source code,
-        // and I don't think the deviation is justified.
+        \ Knuth quietly fixes the garden-path grammar here:
+        \   A little dwarf just walked around a corner, saw you, threw a
+        \   little axe at you, cursed, and ran away. (The axe missed.)
+        \ But Woods' version matches Crowther's original source code,
+        \ and I don't think the deviation is justified.
         puts("A little dwarf just walked around a corner, saw you, threw a little\n\+
 axe at you which missed, cursed, and ran away.")
         dropObject(AXE loc)
       endif
     else
-      // Move dwarves and the pirate.
-      0 int dtotal!   // this many dwarves are in the room with you
-      0 int attack!   // this many have had time to draw their knives
-      0 int stick!    // this many have hurled their knives accurately
+      \ Move dwarves and the pirate.
+      0 int dtotal!   \ this many dwarves are in the room with you
+      0 int attack!   \ this many have had time to draw their knives
+      0 int stick!    \ this many have hurled their knives accurately
       20 arrayOf Location ploc
       do(6 0)
         dwarves.get(i) dwarf!o
         0 int ii!
         if(dwarf.loc R_LIMBO <>)
-          // Make a table of all potential exits.
-          // Dwarves think R_SCAN1, R_SCAN2, R_SCAN3 are three different locations,
-          // although you will never have that perception.
+          \ Make a table of all potential exits.
+          \ Dwarves think R_SCAN1, R_SCAN2, R_SCAN3 are three different locations,
+          \ although you will never have that perception.
           start(dwarf.loc) ptrTo Instruction q!
           begin
           while(q start(dwarf.loc 1+) <)
@@ -731,8 +731,8 @@ axe at you which missed, cursed, and ran away.")
             if(ii 0<>) andif(newloc ploc(ii 1-) =)
               continue
             endif
-            continueIf(newloc MIN_LOWER_LOC <)  // don't wander above level 2
-            continueIf(or(newloc dwarf.oldloc =  newloc dwarf.loc =))  // don't double back
+            continueIf(newloc MIN_LOWER_LOC <)  \ don't wander above level 2
+            continueIf(or(newloc dwarf.oldloc =  newloc dwarf.loc =))  \ don't double back
             continueIf(q.cond 100 =)
             if(dwarf pirate =)
               continueIf(forbidden_to_pirate(newloc))
@@ -748,10 +748,10 @@ continue:
             ii++
           endif
           dwarf.loc dwarf.oldloc!
-          dwarf.setLoc(ploc(ran(ii))) // this is the random walk
+          dwarf.setLoc(ploc(ran(ii))) \ this is the random walk
               
-          // Dwarves follow the player once they've spotted him. But
-          // they won't follow outside the lower cave.
+          \ Dwarves follow the player once they've spotted him. But
+          \ they won't follow outside the lower cave.
           if(dwarf.loc loc =) orif(dwarf.oldloc loc =)
             true dwarf.seen!
           else
@@ -761,7 +761,7 @@ continue:
           endif
               
           if(dwarf.seen)
-            // Make dwarf d follow 
+            \ Make dwarf d follow 
             loc dwarf.loc!
             if(dwarf pirate =)
               pirate_tracks_you(loc) 
@@ -778,7 +778,7 @@ continue:
       loop
           
       if(dtotal 0<>)
-        // Make the threatening dwarves attack.
+        \ Make the threatening dwarves attack.
         if(dtotal 1 =)
           puts("There is a threatening little dwarf in the room with you!")
         else 
@@ -806,20 +806,20 @@ continue:
             endif
                 
             if(stick)
-              true playerWasKilled! // goto death
+              true playerWasKilled! \ goto death
             endif
                 
           endif
               
-        endif // if attack
-      endif  // dtotal nonzero
-    endif  // else dwarfAngerLevel > 1
+        endif \ if attack
+      endif  \ dtotal nonzero
+    endif  \ else dwarfAngerLevel > 1
     playerWasKilled
   ;
 
 
-  //========== Closing the cave. ============================================
-  // This section corresponds to sections 103, 178--181 in Knuth.
+  \ ========== Closing the cave. ============================================
+  \ This section corresponds to sections 103, 178--181 in Knuth.
   
 spoo before cave is closing
   : cave_is_closing
@@ -836,15 +836,15 @@ spoo before cave is closing
   ;
     
   : close_the_cave
-    // Woods has "entones" but that's not a word, so I'm changing it.
-    // Knuth writes "Then your eyes refocus;" in place of "As your eyes
-    // refocus," but I don't see any reason to deviate from Woods'
-    // wording there. Maybe Knuth was working from a slightly earlier
-    // or later version than the one I'm looking at.
+    \ Woods has "entones" but that's not a word, so I'm changing it.
+    \ Knuth writes "Then your eyes refocus;" in place of "As your eyes
+    \ refocus," but I don't see any reason to deviate from Woods'
+    \ wording there. Maybe Knuth was working from a slightly earlier
+    \ or later version than the one I'm looking at.
     puts("The sepulchral voice intones, \"The cave is now closed.\"  As the echoes\n\+
 fade, there is a blinding flash of light (and a small puff of orange\n\+
 smoke). . . .    As your eyes refocus, you look around and find...")
-    closeMove(BOTTLE R_NEEND -2)     // empty
+    closeMove(BOTTLE R_NEEND -2)     \ empty
     closeMove(PLANT R_NEEND -1)
     closeMove(OYSTER R_NEEND -1)
     closeMove(LAMP R_NEEND -1)
@@ -852,8 +852,8 @@ smoke). . . .    As your eyes refocus, you look around and find...")
     closeMove(DWARF R_NEEND -1)
     closeMove(MIRROR R_NEEND -1)
     closeMove(GRATE R_SWEND 0)
-    closeMove(SNAKE R_SWEND -2)     // not blocking the way
-    closeMove(BIRD R_SWEND -2)      // caged
+    closeMove(SNAKE R_SWEND -2)     \ not blocking the way
+    closeMove(BIRD R_SWEND -2)      \ caged
     closeMove(CAGE R_SWEND -1)
     closeMove(ROD2 R_SWEND -1)
     closeMove(PILLOW R_SWEND -1)
@@ -867,7 +867,7 @@ smoke). . . .    As your eyes refocus, you look around and find...")
     10 bonus!
   ;
 
-  // Return true if the cave just closed.
+  \ Return true if the cave just closed.
   : check_clocks_and_lamp
     Location loc!
     Dwarf dwarf
@@ -875,13 +875,13 @@ smoke). . . .    As your eyes refocus, you look around and find...")
       clock1--
     endif
     if(clock1 0=)
-      // At the time of first warning, we lock the grate, destroy the
-      // crystal bridge, kill all the dwarves (and the pirate), and
-      // remove the troll and bear (unless dead).
-      // It's too much trouble to move the dragon, so we leave it.
-      // From now on until clock2 runs out, you cannot unlock the grate,
-      // move to any location outside the cave, or create the bridge.
-      // Nor can you be resurrected if you die.
+      \ At the time of first warning, we lock the grate, destroy the
+      \ crystal bridge, kill all the dwarves (and the pirate), and
+      \ remove the troll and bear (unless dead).
+      \ It's too much trouble to move the dragon, so we leave it.
+      \ From now on until clock2 runs out, you cannot unlock the grate,
+      \ move to any location outside the cave, or create the bridge.
+      \ Nor can you be resurrected if you die.
       puts("A sepulchral voice, reverberating through the cave, says \"Cave\n\+
 closing soon.  All adventurers exit immediately through main office.\"")
       -1 clock1!
@@ -905,8 +905,8 @@ closing soon.  All adventurers exit immediately through main office.\"")
         true
         exit
       else 
-        // On every turn (if the cave is not closed), we check to see
-        // if you are in trouble lampwise.
+        \ On every turn (if the cave is not closed), we check to see
+        \ if you are in trouble lampwise.
         if(objs(LAMP).prop 1 =) lamp_limit-- endif
         if(lamp_limit 30 <=) andif(here(LAMP loc)) andif(here(BATTERIES loc)) andif(objs(BATTERIES).prop 0=)
           puts("Your lamp is getting dim.  I'm taking the liberty of replacing\nthe batteries.")
@@ -941,25 +941,25 @@ a vending machine in the maze.  Bring some coins with you.")
   ;
 
   : panic_at_closing_time
-    // If you try to get out while the cave is closing, we assume that
-    // you panic; we give you a few additional turns to get frantic
-    // before we close.
+    \ If you try to get out while the cave is closing, we assume that
+    \ you panic; we give you a few additional turns to get frantic
+    \ before we close.
     if(not(closingPanic))
       15 clock2!
       true closingPanic!
     endif
     puts("A mysterious recorded voice groans into life and announces:\n\+
    \"This exit is closed.  Please leave via main office.\"")
-    // Woods does NOT set "was_dark = false" at this point.
-    // This means that if you've gotten into the habit of turning
-    // off your lamp before you use a magic word to teleport out
-    // of the cave, we might well add injury to insult by causing
-    // you to fall into a pit and die (thus ending the game) right
-    // at this point.
+    \ Woods does NOT set "was_dark = false" at this point.
+    \ This means that if you've gotten into the habit of turning
+    \ off your lamp before you use a magic word to teleport out
+    \ of the cave, we might well add injury to insult by causing
+    \ you to fall into a pit and die (thus ending the game) right
+    \ at this point.
   ;
 
-  //========== The main loop. ===============================================
-  // This section corresponds to sections 74--75 in Knuth.
+  \ ========== The main loop. ===============================================
+  \ This section corresponds to sections 74--75 in Knuth.
 
   : give_optional_plugh_hint
     Location loc!
@@ -983,7 +983,7 @@ a vending machine in the maze.  Bring some coins with you.")
       yes(hint.prompt.get hint.hint.get okMsg) hint.given!
     endif
     if(and(hint.given  lamp_limit 30 >))
-      // Give the lamp some more power.
+      \ Give the lamp some more power.
       30 hint.cost * lamp_limit!+
     endif
   ;m
@@ -994,19 +994,19 @@ spoo before spot_treasure
     if(objs(t).prop 0>=)
       exit
     endif
-    //assert(is_treasure(t) && !closed)   // You've spotted a treasure
+    \ assert(is_treasure(t) && !closed)   \ You've spotted a treasure
     case(t)
-      of(RUG)  // trapped
+      of(RUG)  \ trapped
         objs(t).setProp(1)
       endof
-      of(CHAIN)  // locked
+      of(CHAIN)  \ locked
         objs(t).setProp(1)
       endof
       objs(t).setProp(0)
     endcase
     tally--
     if(tally lost_treasures =) andif(tally 0>) andif(lamp_limit 35 >)
-      // Zap the lamp if the remaining treasures are too elusive
+      \ Zap the lamp if the remaining treasures are too elusive
       35 lamp_limit!
     endif
   ;
@@ -1015,10 +1015,10 @@ spoo before spot_treasure
     Location loc!
     ObjectWord t!
     if(t TREADS =) andif(toting(GOLD))
-      // The rough stone steps disappear if we are carrying the nugget.
+      \ The rough stone steps disappear if we are carrying the nugget.
       exit
     endif
-    // I'm not sure going_up is correct - how does a bool->int cast work in C99? true/false -> 0/1?
+    \ I'm not sure going_up is correct - how does a bool->int cast work in C99? true/false -> 0/1?
     if(and(t TREADS =  loc R_EMIST =)) 1 else 0 endif int going_up!
     String obj_description
     objs(t).desc.get(objs(t).prop going_up +) obj_description!
@@ -1036,7 +1036,7 @@ spoo before spot_treasure
     null ptrTo byte room_description!
     if(dark) andif(not(is_forced(loc)))
       if(was_dark) andif(pct(35))
-        `p`  // goto pitch_dark;
+        `p`  \ goto pitch_dark;
         exit
       endif
       pitchDarkMsg room_description!
@@ -1049,24 +1049,24 @@ spoo before spot_treasure
       puts("You are being followed by a very large, tame bear.")
     endif
     if(room_description null <>)
-      // R_CHECK's description is null.
+      \ R_CHECK's description is null.
       %nl room_description %s %nl
     endif
     if(is_forced(loc))
-      `t`  // goto try_move;
+      `t`  \ goto try_move;
       exit
     endif
     give_optional_plugh_hint(loc) 
     if(not(dark))
       place.visits++
-      // Describe the objects at this location.
+      \ Describe the objects at this location.
       place.objects ObjectWord t!
       begin
       while(t NOTHING <>)
         objs(t) obj!o
         if(obj.base) obj.base else t endif ObjectWord tt!
         if(closed)
-          continueIf(objs(tt).prop 0<)  // scenery objects
+          continueIf(objs(tt).prop 0<)  \ scenery objects
         endif
         spot_treasure(tt) 
         describe_object(tt loc)
@@ -1074,17 +1074,17 @@ continue:
         objs(t).link t!
       repeat
     endif
-    0  // just continue normally
+    0  \ just continue normally
   ;
 
   spoo maybe_give_a_hint
-  : maybe_give_a_hint // (Location loc, Location oldloc, Location oldoldloc, ObjectWord oldobj)
+  : maybe_give_a_hint \ (Location loc, Location oldloc, Location oldoldloc, ObjectWord oldobj)
     ObjectWord oldobj!
     Location oldoldloc!
     Location oldloc!
     Location loc!
     Hint hint
-    // Check if a hint applies, and give it if requested.
+    \ Check if a hint applies, and give it if requested.
     F_CAVE_HINT uint k!
     do(8 2)
       hints.get(i) hint!o
@@ -1092,38 +1092,38 @@ continue:
       continueIf(hint.given)
     
       if((places.get(loc).flags k and) 0=)
-        // We've left the map region associated with this hint.
+        \ We've left the map region associated with this hint.
         0 hint.count!
         continue
       endif
-      // Count the number of turns spent here.
+      \ Count the number of turns spent here.
       hint.count++
       if(hint.count hint.thresh >=)
         case(i)
       
-          of(2)  // How to get into the cave.
+          of(2)  \ How to get into the cave.
             if(not(objs(GRATE).prop)) andif(not(here(KEYS loc)))
               offer(i) 
             endif
             hint.count~
           endof
-          of(3)  // Are you trying to catch the bird?
-            // Notice that this hint is offered even when the bird has
-            // already been caught, if you spend enough time in the bird
-            // chamber carrying the rod and experimenting with the bird.
-            // This behavior is in Woods' Fortran original.
+          of(3)  \ Are you trying to catch the bird?
+            \ Notice that this hint is offered even when the bird has
+            \ already been caught, if you spend enough time in the bird
+            \ chamber carrying the rod and experimenting with the bird.
+            \ This behavior is in Woods' Fortran original.
             if(here(BIRD loc)) andif(oldobj BIRD =) andif(toting(ROD))
               offer(i) 
               hint.count~
             endif
           endof
-          of(4)  // How to deal with the snake.
+          of(4)  \ How to deal with the snake.
             if(here(SNAKE loc)) andif(not(here(BIRD loc)))
               offer(i) 
             endif
             hint.count~
           endof
-          of(5)  // How to map the twisty passages all alike.
+          of(5)  \ How to map the twisty passages all alike.
             if(places.get(loc).objects NOTHING =)
             andif(places.get(oldloc).objects NOTHING =)
             andif(places.get(oldoldloc).objects NOTHING =)
@@ -1132,13 +1132,13 @@ continue:
             endif
             hint.count~
           endof
-          of(6)  // How to explore beyond the Plover Room.
+          of(6)  \ How to explore beyond the Plover Room.
             if(objs(EMERALD).prop -1 <>)  andif(objs(PYRAMID).prop -1 =)
               offer(i)
             endif
             hint.count~
           endof
-          of(7)  // How to get out of Witt's End.
+          of(7)  \ How to get out of Witt's End.
             offer(i) 
             hint.count~
           endof
@@ -1149,8 +1149,8 @@ continue:
     loop
   ;
 
-  //========== Scoring. =====================================================
-  // This section corresponds to sections 193 and 197 in Knuth.
+  \ ========== Scoring. =====================================================
+  \ This section corresponds to sections 193 and 197 in Knuth.
 
   : score
     2 int s!
@@ -1160,7 +1160,7 @@ continue:
     do(MAX_OBJ 1+ MIN_OBJ)
       continueIf(not(is_treasure(i)))
       if(objs(i).prop 0>=)
-        2 s!+  // two points just for seeing a treasure
+        2 s!+  \ two points just for seeing a treasure
         if(there(i R_HOUSE)) andif(objs(i).prop 0=)
           if(i CHEST <)
             10 s!+
@@ -1175,8 +1175,8 @@ continue:
     loop
     MAX_DEATHS death_count - 10 * s!+
     if(not(gave_up)) 4 s!+ endif
-    if(there(MAG R_WITT)) s++ endif  // last lousy point
-    if(cave_is_closing) 25 s!+ endif // bonus for making it this far
+    if(there(MAG R_WITT)) s++ endif  \ last lousy point
+    if(cave_is_closing) 25 s!+ endif \ bonus for making it this far
     bonus s!+
     do(8 0)
       if(hints.get(i).given)
@@ -1222,7 +1222,7 @@ continue:
   ;
   
   : quit
-    // Print the score and say adieu.
+    \ Print the score and say adieu.
     score int s!
     0 int rank!
     initScoreClasses
@@ -1240,7 +1240,7 @@ continue:
     else
       puts(" would be a neat trick!\nCongratulations!!")
     endif
-    //exit   // TODO! - exit game
+    \ exit   \ TODO! - exit game
   ;
 
   : addDeathWish
@@ -1279,14 +1279,14 @@ spoo before kill_the_player
     if(cave_is_closing)
       puts("It looks as though you're dead.  Well, seeing as how it's so close to closing time anyway, let's just call it a day.")
       quit
-      //TODO: deal with quit
+      \ TODO: deal with quit
     else
       if(not(yes(deathWishes.get(death_count 2* 2-).get deathWishes.get(death_count 2* 1-).get okMsg)))
        orif(death_count MAX_DEATHS =)
         quit
-        //TODO: deal with quit
+        \ TODO: deal with quit
       else
-        // At this point you are reborn. 
+        \ At this point you are reborn. 
         if(toting(LAMP)) objs(LAMP).setProp(0) endif
         objs(WATER).setPlace(R_LIMBO)
         objs(OIL).setPlace(R_LIMBO)
@@ -1302,8 +1302,8 @@ spoo before kill_the_player
     endif
   ;
 
-  //========== Main loop. ===================================================
-  // This section corresponds to sections 74--158 in Knuth.
+  \ ========== Main loop. ===================================================
+  \ This section corresponds to sections 74--158 in Knuth.
 
   : now_in_darkness
     Location loc!
@@ -1319,18 +1319,18 @@ spoo before kill_the_player
     result
   ;
 
-  // Sections 158, 169, 182 in Knuth
+  \ Sections 158, 169, 182 in Knuth
   : adjustments_before_listening
     Location loc!
     if(last_knife_loc loc <>)
-      // When we move, the dwarf's vanishing knife goes out of scope.
+      \ When we move, the dwarf's vanishing knife goes out of scope.
       R_LIMBO last_knife_loc!
     endif
     if(closed)
-      // After the cave is closed, we look for objects being toted with
-      // prop < 0; their prop value is changed to -1 - prop. This means
-      // they won't be described until they've been picked up and put
-      // down, separate from their respective piles. Section 182 in Knuth.
+      \ After the cave is closed, we look for objects being toted with
+      \ prop < 0; their prop value is changed to -1 - prop. This means
+      \ they won't be described until they've been picked up and put
+      \ down, separate from their respective piles. Section 182 in Knuth.
       if(objs(OYSTER).prop 0<) andif(toting(OYSTER))
         puts("Interesting. There seems to be something written on the underside of\nthe oyster.")
         do(MAX_OBJ 1+ MIN_OBJ)
@@ -1342,7 +1342,7 @@ spoo before kill_the_player
     endif
   ;
 
-  : attempt_plover_passage    // section 149 in Knuth
+  : attempt_plover_passage    \ section 149 in Knuth
     Location from!
     if(holding_count   if(toting(EMERALD)) 1 else 0 endif   =)
       R_ALCOVE R_PLOVER + from -
@@ -1353,7 +1353,7 @@ You'd best take inventory and drop something.")
     endif
   ;
 
-  : attempt_inventory  // section 94 in Knuth
+  : attempt_inventory  \ section 94 in Knuth
     false bool holding_anything!
     do(MAX_OBJ 1+ MIN_OBJ)
       if(toting(i)) andif(i BEAR <>)
@@ -1371,7 +1371,7 @@ You'd best take inventory and drop something.")
     endif
   ;
 
-  : attempt_eat    // section 98 in Knuth
+  : attempt_eat    \ section 98 in Knuth
     ObjectWord obj!
     false bool isRidiculous!
     case(obj)
@@ -1406,7 +1406,7 @@ You'd best take inventory and drop something.")
     endif
   ;
 
-  // The verb is TAKE. Returns true if the action is finished.
+  \ The verb is TAKE. Returns true if the action is finished.
   : take_bird_or_cage
     ObjectWord obj!
     if(obj BIRD = objs(BIRD).prop not and)
@@ -1423,18 +1423,18 @@ disturbed and you cannot catch it.")
         objs(BIRD).setProp(1)
       endif
     endif
-    // At this point the TAKE action is guaranteed to succeed, so
-    // let's also deal with the cage. Taking a caged bird means also
-    // taking the cage; taking a cage with a bird in it means also
-    // taking the bird.
+    \ At this point the TAKE action is guaranteed to succeed, so
+    \ let's also deal with the cage. Taking a caged bird means also
+    \ taking the cage; taking a cage with a bird in it means also
+    \ taking the bird.
     if(obj BIRD =) carry(CAGE) endif
     if(obj CAGE = objs(BIRD).prop and) carry(BIRD) endif
     false
   ;
 
-  // Return true if the command was TAKE WATER or TAKE OIL,
-  // and there's not a bottle of that substance on the ground.
-  // We'll redirect it to FILL BOTTLE and try again.
+  \ Return true if the command was TAKE WATER or TAKE OIL,
+  \ and there's not a bottle of that substance on the ground.
+  \ We'll redirect it to FILL BOTTLE and try again.
   : attempt_take
     Location loc!
     ObjectWord obj!
@@ -1447,10 +1447,10 @@ disturbed and you cannot catch it.")
       false
       exit
     elseif(obj NOTHING <>) andif(here(BOTTLE loc)) andif(obj bottle_contents() =)
-      BOTTLE obj!  // take the bottle of water or oil
+      BOTTLE obj!  \ take the bottle of water or oil
     elseif(obj WATER =) orif(obj OIL =)
       if(toting(BOTTLE))
-        true  // redirect to FILL BOTTLE
+        true  \ redirect to FILL BOTTLE
         exit
       endif
       puts("You have nothing in which to carry it.")
@@ -1461,7 +1461,7 @@ disturbed and you cannot catch it.")
     if(holding_count 7 >=)
       puts("You can't carry anything more.  You'll have to drop something first.")
     elseif(take_bird_or_cage(obj))
-      // The bird was uncatchable.
+      \ The bird was uncatchable.
     else
       carry(obj) 
       if(obj BOTTLE =) andif(bottle_contents NOTHING <>)
@@ -1483,7 +1483,7 @@ spoo before attempt drop
     if(not(toting(obj)))
       puts("You aren't carrying it!")
     elseif(obj COINS =) andif(here(MACHINE loc))
-      // Put coins in the vending machine.
+      \ Put coins in the vending machine.
       destroy(COINS) 
       dropObject(BATTERIES loc) 
       objs(BATTERIES).setProp(0)
@@ -1491,46 +1491,46 @@ spoo before attempt drop
     elseif(obj VASE =) andif(loc R_SOFT <>)
       dropObject(VASE loc) 
       if(there(PILLOW loc))
-        // In Long's "Adventure 6" the response is this message
-        // plus the default "Dropped."
+        \ In Long's "Adventure 6" the response is this message
+        \ plus the default "Dropped."
         puts("The vase is now resting, delicately, on a velvet pillow.")
       else
         puts("The Ming vase drops with a delicate crash.")
-        objs(VASE).setProp(1)  // the vase is now broken
+        objs(VASE).setProp(1)  \ the vase is now broken
         immobilize(VASE) 
       endif
     elseif(obj BEAR =) andif(is_at_loc(TROLL loc))
-      // Chase the troll away.
+      \ Chase the troll away.
       puts("The bear lumbers toward the troll, who lets out a startled shriek and\n\+
 scurries away.  The bear soon gives up the pursuit and wanders back.")
       destroy(TROLL)  destroy(TROLL_) 
       dropObject(NO_TROLL R_SWSIDE)  dropObject(NO_TROLL_ R_NESIDE) 
       objs(TROLL).setProp(2)
-      juggle(CHASM)  juggle(CHASM_)   // put first in their lists
+      juggle(CHASM)  juggle(CHASM_)   \ put first in their lists
       dropObject(BEAR loc) 
     elseif(obj BIRD =) andif(here(SNAKE loc))
       puts("The little bird attacks the green snake, and in an astounding flurry\n\+
 drives the snake away.")
       if(closed) dwarves_upset endif
       dropObject(BIRD loc) 
-      objs(BIRD).setProp(0)  // no longer in the cage
+      objs(BIRD).setProp(0)  \ no longer in the cage
       destroy(SNAKE) 
-      objs(SNAKE).setProp(1)  // used in conditional Instructions
+      objs(SNAKE).setProp(1)  \ used in conditional Instructions
     elseif(obj BIRD =) andif(is_at_loc(DRAGON loc)) andif(not(objs(DRAGON).prop))
       puts("The little bird attacks the green dragon, and in an astounding flurry\n\+
 gets burnt to a cinder.  The ashes blow away.")
       destroy(BIRD) 
-      objs(BIRD).setProp(0)  // no longer in the cage
-      // Now that the bird is dead, you can never get past the snake
-      // into the south side chamber, so the precious jewelry is lost.
+      objs(BIRD).setProp(0)  \ no longer in the cage
+      \ Now that the bird is dead, you can never get past the snake
+      \ into the south side chamber, so the precious jewelry is lost.
       if(there(SNAKE R_HMK)) lost_treasures++ endif
     else
-      // The usual case for dropping any old object.
+      \ The usual case for dropping any old object.
 
-      if(obj BIRD =) objs(BIRD).setProp(0) endif // no longer caged
+      if(obj BIRD =) objs(BIRD).setProp(0) endif \ no longer caged
       if(obj CAGE =) andif(objs(BIRD).prop) dropObject(BIRD loc) endif
 
-      // Special cases for dropping a liquid.
+      \ Special cases for dropping a liquid.
       if(obj WATER =) andif(objs(BOTTLE).prop 0=) BOTTLE obj! endif
       if(obj OIL =) andif(objs(BOTTLE).prop 2 =) BOTTLE obj! endif
       if(obj BOTTLE =) andif(bottle_contents NOTHING <>)
@@ -1542,7 +1542,7 @@ gets burnt to a cinder.  The ashes blow away.")
     endif
   ;
 
-  : attempt_wave  // section 99 in Knuth
+  : attempt_wave  \ section 99 in Knuth
    Location loc!
    ObjectWord obj!
     if(obj ROD =) andif(or(loc R_EFISS = loc R_WFISS =))
@@ -1561,7 +1561,7 @@ gets burnt to a cinder.  The ashes blow away.")
     endif
   ;
 
-  : attempt_blast  // section 99 in Knuth
+  : attempt_blast  \ section 99 in Knuth
     Location loc!
     if(closed) andif(objs(ROD2).prop)
       if(here(ROD2 loc))
@@ -1587,7 +1587,7 @@ friendly elves carry the conquering adventurer off into the sunset.")
     endif
   ;
 
-  : attempt_rub  // section 99 in Knuth
+  : attempt_rub  \ section 99 in Knuth
     ObjectWord obj!
     if(obj LAMP =)
       puts("Rubbing the electric lamp is not particularly rewarding. Anyway,\n\+
@@ -1597,7 +1597,7 @@ nothing exciting happens.")
     endif
   ;
 
-  : attempt_find  // section 100 in Knuth
+  : attempt_find  \ section 100 in Knuth
    Location loc!
    ObjectWord obj!
     if(toting(obj))
@@ -1626,7 +1626,7 @@ things.  I cannot tell you where remote things are.")
     endif
   ;
 
-  : attempt_break  // section 101 in Knuth
+  : attempt_break  \ section 101 in Knuth
     Location loc!
     ObjectWord obj!
     if(obj VASE =) andif(objs(VASE).prop 0=)
@@ -1634,7 +1634,7 @@ things.  I cannot tell you where remote things are.")
         dropObject(VASE loc) 
       endif
       puts("You have taken the vase and hurled it delicately to the ground.")
-      objs(VASE).setProp(1)  // worthless shards
+      objs(VASE).setProp(1)  \ worthless shards
       immobilize(VASE) 
     elseif(obj MIRROR =)
       if(closed)
@@ -1648,7 +1648,7 @@ things.  I cannot tell you where remote things are.")
     endif
   ;
 
-  : attempt_wake  // section 101 in Knuth
+  : attempt_wake  \ section 101 in Knuth
     ObjectWord obj!
     if(closed) andif(obj DWARF =)
       puts("You prod the nearest dwarf, who wakes up grumpily, takes one look at\nyou, curses, and grabs for his axe.")
@@ -1657,7 +1657,7 @@ things.  I cannot tell you where remote things are.")
     puts("Don't be ridiculous!")
   ;
 
-  : attempt_off  // section 102 in Knuth
+  : attempt_off  \ section 102 in Knuth
     Location loc!
     if(not(here(LAMP loc)))
       puts("You have no source of light.")
@@ -1683,13 +1683,13 @@ things.  I cannot tell you where remote things are.")
     do(6 1)
       dwarves.get(i) dwarf!o
       if(dwarf.loc loc =)
-        dwarf.setLoc(R_LIMBO)  // Once killed, a dwarf never comes back.
+        dwarf.setLoc(R_LIMBO)  \ Once killed, a dwarf never comes back.
         false dwarf.seen!
       endif
     loop
   ;
 
-  : throw_axe_at_dwarf  // section 163 in Knuth
+  : throw_axe_at_dwarf  \ section 163 in Knuth
     Location loc!
     if(ran(3) 2 <)
       kill_a_dwarf(loc)
@@ -1698,8 +1698,8 @@ things.  I cannot tell you where remote things are.")
     endif
   ;
 
-  // Return true if we don't know what to fill.
-  : attempt_fill  // sections 110--111 in Knuth
+  \ Return true if we don't know what to fill.
+  : attempt_fill  \ sections 110--111 in Knuth
     Location loc!
     ObjectWord obj!
     if(obj VASE =)
@@ -1708,16 +1708,16 @@ things.  I cannot tell you where remote things are.")
       elseif(not(toting(VASE)))
         puts("You aren't carrying it!")
       else
-        // In Crowther and Woods' original, after shattering the vase this
-        // way, we GOTO the generic "drop" code. This produces a silly
-        // combination of messages --- and repairs the vase! --- if the
-        // pillow is on the ground next to you as you fill the vase.
-        // In Long's "Adventure 6" we skip the pillow-checking code, but
-        // still end up in the default handler, which would normally
-        // print "Dropped." but in this instance prints "There is nothing
-        // here with which to fill the vase."
+        \ In Crowther and Woods' original, after shattering the vase this
+        \ way, we GOTO the generic "drop" code. This produces a silly
+        \ combination of messages --- and repairs the vase! --- if the
+        \ pillow is on the ground next to you as you fill the vase.
+        \ In Long's "Adventure 6" we skip the pillow-checking code, but
+        \ still end up in the default handler, which would normally
+        \ print "Dropped." but in this instance prints "There is nothing
+        \ here with which to fill the vase."
         puts("The sudden change in temperature has delicately shattered the vase.")
-        objs(VASE).setProp(1)  // worthless shards
+        objs(VASE).setProp(1)  \ worthless shards
         dropObject(VASE loc) 
         immobilize(VASE) 
       endif
@@ -1746,10 +1746,10 @@ things.  I cannot tell you where remote things are.")
     else
       puts("There is nothing here with which to fill the bottle.")
     endif
-    false  // just continue normally
+    false  \ just continue normally
   ;
 
-  : attempt_feed  // section 129 in Knuth
+  : attempt_feed  \ section 129 in Knuth
     Location loc!
     ObjectWord obj!
     case(obj)
@@ -1762,7 +1762,7 @@ have no bird seed.")
       endof
       of(DRAGON)
         if(objs(DRAGON).prop)
-          puts("Don't be ridiculous!")  // reject feeding the dead dragon
+          puts("Don't be ridiculous!")  \ reject feeding the dead dragon
         else
           puts("There's nothing here it wants to eat (except perhaps you).")
         endif
@@ -1779,11 +1779,11 @@ have no bird seed.")
       endof
       of(BEAR)
         if(here(FOOD loc))
-          //assert(objs(BEAR).prop 0=) 
+          \ assert(objs(BEAR).prop 0=) 
           destroy(FOOD) 
           objs(BEAR).setProp(1)
           objs(AXE).setProp(0)
-          mobilize(AXE)   // if it was immobilized by the bear
+          mobilize(AXE)   \ if it was immobilized by the bear
           puts("The bear eagerly wolfs down your food, after which he seems to calm\n\+
 down considerably and even becomes rather friendly.")
         elseif(objs(BEAR).prop 0=)
@@ -1791,7 +1791,7 @@ down considerably and even becomes rather friendly.")
         elseif(objs(BEAR).prop 3 =)
           puts("Don't be ridiculous!")
         else
-          // The bear is tame; therefore the food is gone.
+          \ The bear is tame; therefore the food is gone.
           puts("There is nothing here to eat.")
         endif
       endof
@@ -1807,11 +1807,11 @@ down considerably and even becomes rather friendly.")
     endcase
   ;
 
-  : attempt_open_or_close  // sections 130--134 in Knuth
+  : attempt_open_or_close  \ sections 130--134 in Knuth
     Location loc!
     ObjectWord obj!
     ActionWord verb!
-    if(verb OPEN =) 1 else 0 endif int verb_is_open! // otherwise it's CLOSE
+    if(verb OPEN =) 1 else 0 endif int verb_is_open! \ otherwise it's CLOSE
     
     case(obj)
       of(OYSTER)
@@ -1825,9 +1825,9 @@ down considerably and even becomes rather friendly.")
           "I advise you to put down the " %s clam_oyster %s " before opening it.  " %s
           if(obj CLAM =) ">STRAIN!<\n" else ">WRENCH!<\n" endif %s
         elseif(CLAM obj =)
-          // The pearl will appear in the cul-de-sac no matter where
-          // we are; we don't allow the player to carry the clam out
-          // of the Shell Room area.
+          \ The pearl will appear in the cul-de-sac no matter where
+          \ we are; we don't allow the player to carry the clam out
+          \ of the Shell Room area.
           destroy(CLAM) 
           dropObject(OYSTER loc) 
           dropObject(PEARL R_SAC) 
@@ -1843,7 +1843,7 @@ It promptly snaps shut again.")
         if(not(here(KEYS loc)))
           puts("You have no keys!")
         elseif(cave_is_closing)
-          // Trying to get out through the grate after closing.
+          \ Trying to get out through the grate after closing.
           panic_at_closing_time
         else
           objs(GRATE).prop int was_open!
@@ -1860,7 +1860,7 @@ It promptly snaps shut again.")
         if(not(here(KEYS loc)))
           puts("You have no keys!")
         elseif(verb_is_open)
-          // UNLOCK CHAIN
+          \ UNLOCK CHAIN
           if(objs(CHAIN).prop 0=)
             puts("It was already unlocked.")
           elseif(objs(BEAR).prop 0=)
@@ -1876,7 +1876,7 @@ probably just as well.")
             puts("The chain is now unlocked.")
           endif
         else
-          // LOCK CHAIN 
+          \ LOCK CHAIN 
           if(loc R_BARR <>)
             puts("There is nothing here to which the chain can be locked.")
           elseif(objs(CHAIN).prop)
@@ -1900,7 +1900,7 @@ probably just as well.")
         if(objs(RUSTY_DOOR).prop)
           puts(okMsg) 
         else
-          // Notice that CLOSE DOOR also gives this response.
+          \ Notice that CLOSE DOOR also gives this response.
           puts("The door is extremely rusty and refuses to open.")
         endif
       endof
@@ -1908,15 +1908,15 @@ probably just as well.")
     endcase
   ;
 
-  // This is some pretty baroque logic for an obscure case.
-  // We're deciding what the noun should be if the player types
-  // "READ" as a one-word command. If we return NOTHING, the
-  // main loop will branch to get_object; otherwise it will
-  // be handled as if we'd typed "READ <obj>".
-  : read_what  // returns ObjectWord
+  \ This is some pretty baroque logic for an obscure case.
+  \ We're deciding what the noun should be if the player types
+  \ "READ" as a one-word command. If we return NOTHING, the
+  \ main loop will branch to get_object; otherwise it will
+  \ be handled as if we'd typed "READ <obj>".
+  : read_what  \ returns ObjectWord
     Location loc!
     if(now_in_darkness(loc))
-      NOTHING  // can't read in the dark
+      NOTHING  \ can't read in the dark
       exit
     endif
     if(closed) andif(toting(OYSTER))
@@ -1936,7 +1936,7 @@ probably just as well.")
     if(magazines_here) MAG else NOTHING endif
   ;
 
-  : attempt_read  // section 135 in Knuth
+  : attempt_read  \ section 135 in Knuth
     ObjectWord obj!
     case(obj)
       of(MAG)
@@ -1963,11 +1963,11 @@ probably just as well.")
     endcase
   ;
 
-  : check_noun_validity  // sections 90--91 in Knuth
+  : check_noun_validity  \ sections 90--91 in Knuth
     Location loc!
     ObjectWord obj!
     if(toting(obj)) orif(is_at_loc(obj loc))
-      0  // no problem
+      0  \ no problem
       exit
     endif
     case(obj)
@@ -1975,52 +1975,52 @@ probably just as well.")
         if(loc MIN_LOWER_LOC <)
           case(loc)
             of(R_ROAD) of(R_VALLEY) of(R_SLIT)
-              `d`  // try moving to DEPRESSION
+              `d`  \ try moving to DEPRESSION
               exit
             endof
             of(R_COBBLES) of(R_DEBRIS) of(R_AWK) of(R_BIRD) of(R_SPIT)
-              `e`  // try moving to ENTRANCE
+              `e`  \ try moving to ENTRANCE
               exit
             endof
           endcase
         endif
-        `c`  // can't see it
+        `c`  \ can't see it
         exit
       endof
       of(DWARF)
         if(dwarfAngerLevel 2 >=) andif(dwarf_at(loc))
           0
         else
-          `c`  // can't see it
+          `c`  \ can't see it
         endif
         exit
       endof
       of(PLANT)
         if(is_at_loc(PLANT2 loc)) andif(objs(PLANT2).prop 0<>)
-          `p`  // obj = PLANT2
+          `p`  \ obj = PLANT2
         else
-          `c`  // can't see it
+          `c`  \ can't see it
         endif
         exit
       endof
       of(KNIFE)
-        // You're allowed to try to GET KNIFE, but only once. The game
-        // informs you that the knife has vanished; and from then on,
-        // it never reappears.
+        \ You're allowed to try to GET KNIFE, but only once. The game
+        \ informs you that the knife has vanished; and from then on,
+        \ it never reappears.
         if(haveTriedToGetKnife) orif((loc last_knife_loc <>))
-          `c`  // can't see it
+          `c`  \ can't see it
           exit
         endif
         puts("The dwarves' knives vanish as they strike the walls of the cave.")
         true haveTriedToGetKnife!
-        `f`  // action is finished
+        `f`  \ action is finished
         exit
       endof
       of(ROD)
         if(not(here(ROD2 loc)))
           `c`
         else
-          `r`  // obj = ROD2
+          `r`  \ obj = ROD2
         endif
         exit
       endof
@@ -2053,8 +2053,8 @@ probably just as well.")
   ;
   
 spoo before determine_motion_instruction
-  // Location MotionWord ... Instruction*
-  : _determine_motion_instruction  // returns Instruction*
+  \ Location MotionWord ... Instruction*
+  : _determine_motion_instruction  \ returns Instruction*
     MotionWord mot!
     Location loc!
     start(loc) ptrTo Instruction q!
@@ -2064,8 +2064,8 @@ spoo before determine_motion_instruction
       sizeOf Instruction q!+
     repeat
     if(q start(loc 1+) =)
-      // we didn't find a matching command for mot
-      null  // newloc = loc at this point
+      \ we didn't find a matching command for mot
+      null  \ newloc = loc at this point
       exit
     endif
     begin
@@ -2073,9 +2073,9 @@ spoo before determine_motion_instruction
       q.cond int cond!
       mod(cond 100) MIN_OBJ + int obj!
       if(cond 0=)
-        break  // the usual case
+        break  \ the usual case
       elseif(cond 100 <=)
-        breakIf(pct(cond))  // dwarves won't take these routes
+        breakIf(pct(cond))  \ dwarves won't take these routes
       elseif(cond 200 <=)
         breakIf(toting(obj))
       elseif(cond 300 <=)
@@ -2084,11 +2084,11 @@ spoo before determine_motion_instruction
         cond 100 / 3- int propValue!
         breakIf(objs(obj).prop  propValue <>)
       endif
-      // The verb in this instruction matches the "mot" typed by the user,
-      // but the condition failed, either randomly (j < 100) or because
-      // the prerequisite wasn't satisfied. So instead of taking this
-      // instruction, we'll take the next one that is not a "ditto" of
-      // this one --- regardless of its "mot" field!
+      \ The verb in this instruction matches the "mot" typed by the user,
+      \ but the condition failed, either randomly (j < 100) or because
+      \ the prerequisite wasn't satisfied. So instead of taking this
+      \ instruction, we'll take the next one that is not a "ditto" of
+      \ this one --- regardless of its "mot" field!
       q.dest Location dest!
       begin
       while(and(q.dest dest =   q.cond cond =))
@@ -2098,9 +2098,9 @@ spoo before determine_motion_instruction
     q
   ;
   : determine_motion_instruction
-    //255 setTrace
+    \ 255 setTrace
     _determine_motion_instruction
-    //0 setTrace
+    \ 0 setTrace
   ;
   
   : report_inapplicable_motion
@@ -2111,7 +2111,7 @@ spoo before determine_motion_instruction
     elseif(mot XYZZY =) orif(mot PLUGH =)
       puts("Nothing happens.")
     elseif(verb FIND =) orif(verb INVENTORY =)
-      // This catches inputs such as "FIND BEDQUILT" or "INVENTORY WEST".
+      \ This catches inputs such as "FIND BEDQUILT" or "INVENTORY WEST".
       puts("I can only tell you what you see as you move about and manipulate\n\+
 things.  I cannot tell you where remote things are.")
     else
@@ -2164,28 +2164,28 @@ It would be advisable to use the exit.")
     endcase
   ;
 
-  : try_going_back_to   // returns MotionWord
+  : try_going_back_to   \ returns MotionWord
     Location from!
     Location loc!
-    // Interestingly, the BACK command does not simply move the player
-    // back to oldloc. Instead, it attempts to trace a path connecting
-    // loc to oldloc; if no such passage exists, we fail to move. If
-    // such a passage does exist, then we react as if the player had
-    // typed the appropriate motion-word in the first place.
-    // Notice that Woods' code makes an effort to deal with FORCED_MOVE
-    // locations, but doesn't succeed 100 percent. ("l" is set to oldloc,
-    // or to oldoldloc if oldloc is a FORCED_MOVE location.)
-    //     R_SWSIDE : CROSS -> R_TROLL -> R_NESIDE : BACK
-    // gives "You can't get there from here." as apparently intended,
-    // because R_TROLL is a special location.
-    //     R_WPIT : CLIMB -> R_CHECK -> R_UPNOUT -> R_WPIT : BACK
-    // unintentionally gives "There is nothing here to climb.", because
-    // oldoldloc is R_CHECK, and there *is* a passage connecting our
-    // current location (R_WPIT) to R_CHECK, so we take it again.
-    //     R_WPIT : CLIMB -> R_CHECK -> R_DIDIT -> R_W2PIT : BACK
-    // unintentionally gives "You can't get there from here.", because
-    // oldoldloc is R_CHECK, and there is no passage connecting our
-    // current location (R_W2PIT) to R_CHECK.
+    \ Interestingly, the BACK command does not simply move the player
+    \ back to oldloc. Instead, it attempts to trace a path connecting
+    \ loc to oldloc; if no such passage exists, we fail to move. If
+    \ such a passage does exist, then we react as if the player had
+    \ typed the appropriate motion-word in the first place.
+    \ Notice that Woods' code makes an effort to deal with FORCED_MOVE
+    \ locations, but doesn't succeed 100 percent. ("l" is set to oldloc,
+    \ or to oldoldloc if oldloc is a FORCED_MOVE location.)
+    \     R_SWSIDE : CROSS -> R_TROLL -> R_NESIDE : BACK
+    \ gives "You can't get there from here." as apparently intended,
+    \ because R_TROLL is a special location.
+    \     R_WPIT : CLIMB -> R_CHECK -> R_UPNOUT -> R_WPIT : BACK
+    \ unintentionally gives "There is nothing here to climb.", because
+    \ oldoldloc is R_CHECK, and there *is* a passage connecting our
+    \ current location (R_WPIT) to R_CHECK, so we take it again.
+    \     R_WPIT : CLIMB -> R_CHECK -> R_DIDIT -> R_W2PIT : BACK
+    \ unintentionally gives "You can't get there from here.", because
+    \ oldoldloc is R_CHECK, and there is no passage connecting our
+    \ current location (R_W2PIT) to R_CHECK.
 
     if(loc from =)
       puts("Sorry, but I no longer seem to remember how you got here.")
@@ -2195,13 +2195,13 @@ It would be advisable to use the exit.")
     start(from) ptrTo Instruction q!
     begin
     while(q start(from 1+) <)
-      // Take the first exit that goes to "l" either directly...
+      \ Take the first exit that goes to "l" either directly...
       q.dest Location ll!
       if(ll loc =)
         q.mot
         exit
       endif
-      // ...or via a single forced move.
+      \ ...or via a single forced move.
       if(is_forced(ll)) andif(start(ll).dest loc =)
         q.mot
         exit
@@ -2219,24 +2219,24 @@ scrabble desperately for support, but as the bridge collapses you\n\+
 stumble back and fall into the chasm.")
     objs(CHASM).setProp(1)
     objs(TROLL).setProp(2)
-    objs(BEAR).setProp(3)  // the bear is dead
+    objs(BEAR).setProp(3)  \ the bear is dead
     dropObject(BEAR R_SWSIDE) 
     immobilize(BEAR) 
-    // If you collapse the troll bridge without seeing the spices, we'll
-    // increment lost_treasures so you can still get to the endgame.
-    // However, if you threw the trident to the troll before opening the
-    // oyster, you're strictly out of luck. And in fact if you pick up
-    // a treasure in the dark, you'll never "see" it until you drop it
-    // in a lighted area; so there can be arbitrarily many unseen
-    // treasures on the far side of the bridge, if the player is doing
-    // it deliberately. But we don't care about that case.
+    \ If you collapse the troll bridge without seeing the spices, we'll
+    \ increment lost_treasures so you can still get to the endgame.
+    \ However, if you threw the trident to the troll before opening the
+    \ oyster, you're strictly out of luck. And in fact if you pick up
+    \ a treasure in the dark, you'll never "see" it until you drop it
+    \ in a lighted area; so there can be arbitrarily many unseen
+    \ treasures on the far side of the bridge, if the player is doing
+    \ it deliberately. But we don't care about that case.
     if(objs(SPICES).prop 0<) andif(objs(SPICES).place R_NESIDE >=)
       lost_treasures++
     endif
   ;
 
-  // Modify newloc in place, and return true if the player died crossing the troll bridge.
-  : determine_next_newloc    // returns bool
+  \ Modify newloc in place, and return true if the player died crossing the troll bridge.
+  : determine_next_newloc    \ returns bool
     ActionWord verb!
     MotionWord mot!
     ptrTo Location newloc!
@@ -2258,28 +2258,28 @@ stumble back and fall into the chasm.")
       dropObject(EMERALD loc) 
       R_Y2 R_PLOVER + loc - newloc !
     elseif(newloc @ R_TROLL =)
-      // Troll bridge crossing is treated as a special motion so
-      // that dwarves won't wander across and encounter the bear.
-      // You can get here only if TROLL is in limbo but NO_TROLL has
-      // taken its place. Moreover, if you're on the southwest side,
-      // objs(TROLL).prop will be nonzero. If objs(TROLL).prop is 1,
-      // you've crossed since paying, or you've stolen away the payment.
+      \ Troll bridge crossing is treated as a special motion so
+      \ that dwarves won't wander across and encounter the bear.
+      \ You can get here only if TROLL is in limbo but NO_TROLL has
+      \ taken its place. Moreover, if you're on the southwest side,
+      \ objs(TROLL).prop will be nonzero. If objs(TROLL).prop is 1,
+      \ you've crossed since paying, or you've stolen away the payment.
       if(objs(TROLL).prop 1 =)
-        // Block the troll bridge and stay put.
+        \ Block the troll bridge and stay put.
         objs(TROLL).setProp(0)
         destroy(NO_TROLL)  destroy(NO_TROLL_) 
         dropObject(TROLL R_SWSIDE)  dropObject(TROLL_ R_NESIDE) 
         juggle(CHASM)  juggle(CHASM_) 
         puts("The troll steps out from beneath the bridge and blocks your way.")
-        loc newloc ! // stay put
+        loc newloc ! \ stay put
       else
-        R_NESIDE R_SWSIDE + loc - newloc !  // cross it
+        R_NESIDE R_SWSIDE + loc - newloc !  \ cross it
         if(objs(TROLL).prop 0=)
           objs(TROLL).setProp(1)
           if(toting(BEAR))
-            //assert(*newloc R_SWSIDE =) 
+            \ assert(*newloc R_SWSIDE =) 
             collapse_the_troll_bridge()
-            true  // goto death
+            true  \ goto death
             exit
           endif
         endif
@@ -2362,7 +2362,7 @@ unless you explicitly ask me to.")
 
   : advise_about_going_west
     ptrTo byte word1!
-    // Here's a freely offered hint that may save you typing.
+    \ Here's a freely offered hint that may save you typing.
     if(streq(word1 "west"))
       __west_count++
       if(__west_count 10 =)
@@ -2406,11 +2406,11 @@ knives at you!  All of them get you!")
     R_ROAD mOldLoc!
     R_ROAD mLoc!
     R_ROAD mNewLoc!
-    NOWHERE mMotion!   // currently specified motion
-    NOTHING mVerb!  // currently specified action
-    NOTHING mOldVerb!  // mVerb before it was changed
-    NOTHING mObj!  // currently specified object, if any
-    NOTHING mOldObj!  // former value of mObj
+    NOWHERE mMotion!   \ currently specified motion
+    NOTHING mVerb!  \ currently specified action
+    NOTHING mOldVerb!  \ mVerb before it was changed
+    NOTHING mObj!  \ currently specified object, if any
+    NOTHING mOldObj!  \ former value of mObj
     false mWasDark!
     0 mLookCount!
     kStateLoopTop mCurStateNum!
@@ -2419,7 +2419,7 @@ knives at you!  All of them get you!")
     AdventureState curState
 
     begin
-      //sp!
+      \ sp!
       Game_adventureStates.get(mCurStateNum) curState!o
       d[ t{
         "<<<STATE>>> " %s mCurStateNum %d %bl
@@ -2428,19 +2428,19 @@ knives at you!  All of them get you!")
         inWord1.base %s %bl inWord2.base %s %bl %nl
       }t ]d
       curState.stateOp
-      //sp?(curState.name.get)
+      \ sp?(curState.name.get)
     until(or(mCurStateNum kStateQuit =  gave_up))
   ;m
   
-  : stateLoopTop    // state 0
-    //." >>> pirate at " dwarves.get(0).loc ref Location findEnumSymbol if(0=) "???" endif %s %nl
-    // Check for interference with the proposed move to mNewLoc.
-    //showObjectsAtLocation(mLoc)
+  : stateLoopTop    \ state 0
+    \ ." >>> pirate at " dwarves.get(0).loc ref Location findEnumSymbol if(0=) "???" endif %s %nl
+    \ Check for interference with the proposed move to mNewLoc.
+    \ showObjectsAtLocation(mLoc)
     if(cave_is_closing) andif(mNewLoc MIN_IN_CAVE <) andif(mNewLoc R_LIMBO <>)
       panic_at_closing_time
       mLoc mNewLoc!
     elseif(mNewLoc mLoc <>) andif(not(forbidden_to_pirate(mLoc)))
-      // Stay in mLoc if a dwarf is blocking the way to mNewLoc
+      \ Stay in mLoc if a dwarf is blocking the way to mNewLoc
       do(6 1)
         if(dwarves.get(i).seen) andif(dwarves.get(i).oldloc mNewLoc =)
           puts("A little dwarf with a big knife blocks your way.")
@@ -2449,7 +2449,7 @@ knives at you!  All of them get you!")
         endif
       loop
     endif
-    mNewLoc mLoc!  // hey, we actually moved you
+    mNewLoc mLoc!  \ hey, we actually moved you
     if(move_dwarves_and_pirate(mLoc))
       mLoc mOldOldLoc!
       setState(kStateDeath)
@@ -2457,7 +2457,7 @@ knives at you!  All of them get you!")
     setState(kStateCommence)
   ;
 
-  : stateCommence    // state 1
+  : stateCommence    \ state 1
     int lookResult
     if(mLoc R_LIMBO =)
       setState(kStateDeath)
@@ -2471,14 +2471,14 @@ knives at you!  All of them get you!")
     setState(kStateInnerLoop)
   ;
 
-  : stateInnerLoop    // state 2
+  : stateInnerLoop    \ state 2
     NOTHING dup mVerb! mOldVerb!
     mObj mOldObj!
     NOTHING mObj!
     setState(kStateCycle)
   ;
   
-  : stateCycle    // state 3
+  : stateCycle    \ state 3
     maybe_give_a_hint(mLoc mOldLoc mOldOldLoc mOldObj) 
     now_in_darkness(mLoc) mWasDark!
     adjustments_before_listening(mLoc) 
@@ -2486,7 +2486,7 @@ knives at you!  All of them get you!")
     setState(kStatePreParse)
   ;
   
-  : statePreParse    // state 4
+  : statePreParse    \ state 4
     if(streq(inWord1.base "save"))
       if(inWord2.base c@ 0<>)
         inWord2.base
@@ -2498,7 +2498,7 @@ knives at you!  All of them get you!")
       exit
     endif
 
-    // writing user input to save file is delayed until here so line "save blah" isn't last line of save file
+    \ writing user input to save file is delayed until here so line "save blah" isn't last line of save file
     writeToSaveFile(inBuffer.base)
     
     if(streq(inWord1.base "seed")) andif(inWord2.base c@ 0<>)
@@ -2520,9 +2520,9 @@ knives at you!  All of them get you!")
     
     turns++
     if(mVerb SAY =)
-      // Maybe you said "say" and we said "say what?" and you replied
-      // with two things to say. Then we assume you don't really want
-      // us to say anything. Section 82 in Knuth.
+      \ Maybe you said "say" and we said "say what?" and you replied
+      \ with two things to say. Then we assume you don't really want
+      \ us to say anything. Section 82 in Knuth.
       if(inWord2.base c@ 0<>)
         NOTHING mVerb!
       else
@@ -2531,20 +2531,20 @@ knives at you!  All of them get you!")
       endif
     endif
 
-    // Just after every command you give, we make the foobar counter
-    // negative if you're on track, otherwise we zero it.
-    // This is section 138 in Knuth.
+    \ Just after every command you give, we make the foobar counter
+    \ negative if you're on track, otherwise we zero it.
+    \ This is section 138 in Knuth.
     if(foobar 0>) negate(foobar) else 0 endif foobar!
 
     if(check_clocks_and_lamp(mLoc))
-      // The cave just closed!
+      \ The cave just closed!
       R_NEEND dup mLoc! mOldLoc!
       NOWHERE mMotion!
       setState(kStateTryMove)
       exit
     endif
 
-    // Handle additional special cases of input (Knuth sections 83, 105)
+    \ Handle additional special cases of input (Knuth sections 83, 105)
     if(streq(inWord1.base "enter"))
       if(streq(inWord2.base "water")) orif(streq(inWord2.base "strea"))
         if(has_water(mLoc))
@@ -2555,14 +2555,14 @@ knives at you!  All of them get you!")
         setState(kStateInnerLoop)
         exit
       elseif(inWord2.base c@  0<>)
-        // ENTER TUNNEL becomes just TUNNEL.
+        \ ENTER TUNNEL becomes just TUNNEL.
         shift_words
         setState(kStateParse)
         exit
       endif
     endif
     if(streq(inWord1.base "water")) orif(streq(inWord1.base "oil"))
-      // Sometimes "water" and "oil" are used as verbs.
+      \ Sometimes "water" and "oil" are used as verbs.
       if(streq(inWord2.base "plant")) andif(there(PLANT mLoc))
         strcpy(inWord2.base "pour")
       endif
@@ -2573,7 +2573,7 @@ knives at you!  All of them get you!")
     setState(kStateParse)
   ;
   
-  : stateParse    // state 5
+  : stateParse    \ state 5
     advise_about_going_west(inWord1.base) 
     lookup(inWord1.base) mWordTemp!
     case(word_class(mWordTemp))
@@ -2592,12 +2592,12 @@ knives at you!  All of them get you!")
             
       of(WordClass_Object)
         mWordTemp mObj!
-        // Make sure mObj is meaningful at the current location.
-        // When you specify an object, it must be here, unless
-        // the verb is already known to be FIND or INVENTORY.
-        // A few other special cases are permitted; for example,
-        // water and oil might be present inside the bottle or
-        // as a feature of the location.
+        \ Make sure mObj is meaningful at the current location.
+        \ When you specify an object, it must be here, unless
+        \ the verb is already known to be FIND or INVENTORY.
+        \ A few other special cases are permitted; for example,
+        \ water and oil might be present inside the bottle or
+        \ as a feature of the location.
         case(check_noun_validity(mObj mLoc))
           of(`c`)
             setState(kStateCantSeeIt)
@@ -2623,7 +2623,7 @@ knives at you!  All of them get you!")
           of(`r`)
             ROD2 mObj!
           endof
-          // of(0) endof
+          \ of(0) endof
         endcase
         if(inWord2.base c@ 0=)
           if(mVerb NOTHING <>)
@@ -2638,8 +2638,8 @@ knives at you!  All of them get you!")
       of(WordClass_Action)
         mWordTemp mVerb!
         if(mVerb SAY =)
-          // "FOO SAY" results in the incorrect message
-          // "Say what?" instead of "Okay, "foo"".
+          \ "FOO SAY" results in the incorrect message
+          \ "Say what?" instead of "Okay, "foo"".
           if(inWord2.base c@ 0=)
             setState(kStateIntransitive)
             exit
@@ -2668,7 +2668,7 @@ knives at you!  All of them get you!")
     setState(kStateParse)
   ;
   
-  : stateIntransitive    // state 6
+  : stateIntransitive    \ state 6
     ObjectWord object_here
     case(mVerb)
       of(GO)
@@ -2686,7 +2686,7 @@ knives at you!  All of them get you!")
         exit
       endof
       of(TAKE)
-        // TAKE makes sense by itself if there's only one possible thing to take.
+        \ TAKE makes sense by itself if there's only one possible thing to take.
         places.get(mLoc).objects object_here!
         if(dwarf_at(mLoc))
           setState(kStateGetObject)
@@ -2779,16 +2779,16 @@ you come to it.  To get the full description, say \"LOOK\".")
         exit
       endof
       of(RESTORE)
-        // On the fizmo interpreter, @restore yields 2
-        // when the save file doesn't exist, or when it
-        // has the wrong serial number for this game.
-        // I don't know what return value 0 would mean.
+        \ On the fizmo interpreter, @restore yields 2
+        \ when the save file doesn't exist, or when it
+        \ has the wrong serial number for this game.
+        \ I don't know what return value 0 would mean.
         attempt_restore
         puts("Restore failed!")
         setState(kStateInnerLoop)
         exit
       endof
-#endif // SAVE_AND_RESTORE
+#endif \ SAVE_AND_RESTORE
       of(FEEFIE)
         0 int! kk
         begin
@@ -2809,7 +2809,7 @@ you come to it.  To get the full description, say \"LOOK\".")
             exit
           endif
           if(there(EGGS R_LIMBO)) andif(there(TROLL R_LIMBO)) andif(objs(TROLL).prop 0=)
-            objs(TROLL).setProp(1)   // the troll returns
+            objs(TROLL).setProp(1)   \ the troll returns
           endif
           if(mLoc R_GIANT =)
             puts("There is a large nest here, full of golden eggs!")
@@ -2833,11 +2833,11 @@ you come to it.  To get the full description, say \"LOOK\".")
       setState(kStateGetObject)
       exit
     endcase
-    // does this fall thru to transitive state?
+    \ does this fall thru to transitive state?
     setState(kStateTransitive)
   ;
   
-  : stateTransitive    // state 7
+  : stateTransitive    \ state 7
     int kSay
     case(mVerb)
       of(SAY)
@@ -2937,9 +2937,9 @@ you come to it.  To get the full description, say \"LOOK\".")
           setState(kStateInnerLoop)
           exit
         endif
-        // Drink from the bottle if we can; otherwise from the stream.
+        \ Drink from the bottle if we can; otherwise from the stream.
         if(evian_here)
-          objs(BOTTLE).setProp(1)  // empty
+          objs(BOTTLE).setProp(1)  \ empty
           objs(WATER).setPlace(R_LIMBO)
           puts("The bottle of water is now empty.")
         else
@@ -2956,8 +2956,8 @@ minerals, but is not unpleasant.  It is extremely cold.")
             setState(kStateGetObject)
             exit
           endif
-          // Notice that POUR BOTTLE when the bottle is empty
-          // will actually result in the message "Bottle what?".
+          \ Notice that POUR BOTTLE when the bottle is empty
+          \ will actually result in the message "Bottle what?".
         endif
         if(toting(mObj))
           if(mObj WATER <>) andif(mObj OIL <>)
@@ -2965,10 +2965,10 @@ minerals, but is not unpleasant.  It is extremely cold.")
             setState(kStateInnerLoop)
             exit
           endif
-          objs(BOTTLE).setProp(1)  // empty
+          objs(BOTTLE).setProp(1)  \ empty
           objs(mObj).setPlace(R_LIMBO)
           if(there(PLANT mLoc))
-            // Try to water the plant.
+            \ Try to water the plant.
             if(mObj WATER <>)
               puts("The plant indignantly shakes the oil off its leaves and asks, \"Water?\"")
               setState(kStateInnerLoop)
@@ -2990,7 +2990,7 @@ minerals, but is not unpleasant.  It is extremely cold.")
               exit
             endif
           elseif(there(RUSTY_DOOR mLoc))
-            // Pour water or oil on the door.
+            \ Pour water or oil on the door.
             case(mObj)
               of(WATER)
                 objs(RUSTY_DOOR).setProp(0)
@@ -3044,7 +3044,7 @@ minerals, but is not unpleasant.  It is extremely cold.")
           exit
         endif
         if(is_treasure(mObj)) andif(is_at_loc(TROLL mLoc))
-          // Snarf a treasure for the troll.
+          \ Snarf a treasure for the troll.
           dropObject(mObj R_LIMBO) 
           destroy(TROLL)  destroy(TROLL_) 
           dropObject(NO_TROLL R_SWSIDE)  dropObject(NO_TROLL_ R_NESIDE) 
@@ -3074,11 +3074,11 @@ minerals, but is not unpleasant.  It is extremely cold.")
           puts("The troll deftly catches the axe, examines it carefully, and tosses it\n\+
 back, declaring, \"Good workmanship, but it's not valuable enough.\"")
         elseif(here(BEAR mLoc)) andif(objs(BEAR).prop 0=)
-          // Throw the axe at the (un-tame) bear.
+          \ Throw the axe at the (un-tame) bear.
           dropObject(AXE mLoc) 
           objs(AXE).setProp(1)
           immobilize(AXE) 
-          juggle(BEAR)   // keep bear first in the list
+          juggle(BEAR)   \ keep bear first in the list
           puts("The axe misses and lands near the bear where you can't get at it.")
           setState(kStateInnerLoop)
           exit
@@ -3096,7 +3096,7 @@ back, declaring, \"Good workmanship, but it's not valuable enough.\"")
       endof
       of(KILL)
         if(mObj NOTHING =)
-          // See if there's a unique object to attack.
+          \ See if there's a unique object to attack.
           0 int kKill!
           if(dwarf_at(mLoc)) kKill++   DWARF mObj! endif
           if(here(SNAKE mLoc)) kKill++   SNAKE mObj! endif
@@ -3104,7 +3104,7 @@ back, declaring, \"Good workmanship, but it's not valuable enough.\"")
           if(is_at_loc(TROLL mLoc)) kKill++   TROLL mObj! endif
           if(here(BEAR mLoc)) andif(not(objs(BEAR).prop)) kKill++   BEAR mObj! endif
           if(kKill 0=)
-            // no enemies present
+            \ no enemies present
             if(here(BIRD mLoc)) andif(mOldVerb TOSS <>) kKill++   BIRD mObj! endif
             if(here(CLAM mLoc)) orif(here(OYSTER mLoc)) kKill++   CLAM mObj! endif
           endif
@@ -3137,9 +3137,9 @@ back, declaring, \"Good workmanship, but it's not valuable enough.\"")
               setState(kStateInnerLoop)
               exit
             else
-              // If you insist on attacking the dragon, you win!
-              // He dies, the Persian rug becomes free, and R_SCAN2
-              // takes the place of R_SCAN1 and R_SCAN3.
+              \ If you insist on attacking the dragon, you win!
+              \ He dies, the Persian rug becomes free, and R_SCAN2
+              \ takes the place of R_SCAN1 and R_SCAN3.
               puts("With what?  Your bare hands?")
               NOTHING mVerb!
               NOTHING mObj!
@@ -3147,7 +3147,7 @@ back, declaring, \"Good workmanship, but it's not valuable enough.\"")
               if(streq(inWord1.base "yes")) orif(streq(inWord1.base "y"))
                 puts("Congratulations!  You have just vanquished a dragon with your bare\n\+
 hands! (Unbelievable, isn't it?)")
-                objs(DRAGON).setProp(1)  // dead
+                objs(DRAGON).setProp(1)  \ dead
                 objs(RUG).setProp(0)
                 mobilize(RUG) 
                 destroy(DRAGON_) 
@@ -3234,17 +3234,17 @@ a rhinoceros hide.  The troll fends off your blows effortlessly.")
         exit
       endof
       of(RELAX)
-        puts(okMsg)   // this corresponds to the command "NOTHING LAMP"
+        puts(okMsg)   \ this corresponds to the command "NOTHING LAMP"
         setState(kStateInnerLoop)
         exit
       endof
       of(FEEFIE)
-        puts("I don't know how.")  // "FOO BARS"
+        puts("I don't know how.")  \ "FOO BARS"
         setState(kStateInnerLoop)
         exit
       endof
       of(BRIEF)
-        puts("On what?")  // har har har
+        puts("On what?")  \ har har har
         setState(kStateInnerLoop)
         exit
       endof
@@ -3253,7 +3253,7 @@ a rhinoceros hide.  The troll fends off your blows effortlessly.")
 #ifdef SAVE_AND_RESTORE
       of(SAVE)
       of(RESTORE)
-#endif // SAVE_AND_RESTORE
+#endif \ SAVE_AND_RESTORE
         puts("Eh?")
         setState(kStateInnerLoop)
         exit
@@ -3262,13 +3262,13 @@ a rhinoceros hide.  The troll fends off your blows effortlessly.")
     setState(kStateGetObject)
   ;
   
-  : stateGetObject    // state 8
+  : stateGetObject    \ state 8
     toupper(inWord1.base c@) inWord1.base c!
     inWord1.base %s " what\n" %s
     setState(kStateCycle)
   ;
   
-  : stateCantSeeIt    // state 9
+  : stateCantSeeIt    \ state 9
     if(mVerb FIND = mVerb INVENTORY = or inWord2.base c@ 0<> and)
       setState(kStateTransitive)
       exit
@@ -3278,17 +3278,17 @@ a rhinoceros hide.  The troll fends off your blows effortlessly.")
     setState(kStateInnerLoop)
   ;
   
-  : stateTryMove    // state 10
-    // A major cycle comes to an end when a motion verb mMotion has been
-    // given and we have computed the appropriate mNewLoc accordingly.
-    //assert(R_LIMBO <= mOldLoc) andif(mOldLoc <= MAX_LOC) 
-    //assert(R_LIMBO < mLoc) andif(mLoc <= MAX_LOC) 
+  : stateTryMove    \ state 10
+    \ A major cycle comes to an end when a motion verb mMotion has been
+    \ given and we have computed the appropriate mNewLoc accordingly.
+    \ assert(R_LIMBO <= mOldLoc) andif(mOldLoc <= MAX_LOC) 
+    \ assert(R_LIMBO < mLoc) andif(mLoc <= MAX_LOC) 
     Location backLoc
-    mLoc mNewLoc!   // by default we will stay put
+    mLoc mNewLoc!   \ by default we will stay put
 
     if(mMotion CAVE =)
-      // No CAVE appears in the travel table; its sole purpose is to
-      // give these messages.
+      \ No CAVE appears in the travel table; its sole purpose is to
+      \ give these messages.
       if(mLoc MIN_IN_CAVE <)
         puts("I can't see where the cave is, but hereabouts no stream can run on\n\+
 the surface for long. I would try the stream.")
@@ -3296,27 +3296,27 @@ the surface for long. I would try the stream.")
         puts("I need more detailed instructions to do that.")
       endif
     elseif(mMotion LOOK =)
-      // Repeat the long description and continue.
+      \ Repeat the long description and continue.
       mLookCount++
       if(mLookCount 3 <=)
         puts("Sorry, but I am not allowed to give more detail.  I will repeat the\n\+
 long description of your location.")
       endif
-      false mWasDark!  // pretend it wasn't dark, so you won't fall into a pit
+      false mWasDark!  \ pretend it wasn't dark, so you won't fall into a pit
       places.get(mLoc).setVisits(0)
     else
       if(mMotion BACK =)
         if(is_forced(mOldLoc))  mOldOldLoc  else  mOldLoc endif backLoc!
-        try_going_back_to(backLoc mLoc) mMotion!  // may return NOWHERE
+        try_going_back_to(backLoc mLoc) mMotion!  \ may return NOWHERE
       endif
 
       if(mMotion NOWHERE <>)
-        // Determine the next mNewLoc.
+        \ Determine the next mNewLoc.
         mOldLoc mOldOldLoc!
         mLoc mOldLoc!
         if(determine_next_newloc(mLoc ref mNewLoc mMotion mVerb))
-          // Player died trying to cross the troll bridge.
-          mNewLoc mOldOldLoc!  // if you are revived, you got across
+          \ Player died trying to cross the troll bridge.
+          mNewLoc mOldOldLoc!  \ if you are revived, you got across
           setState(kStateDeath)
           exit
         endif
@@ -3325,22 +3325,22 @@ long description of your location.")
     setState(kStateLoopTop)
   ;
 
-  : statePitchDark    // state 11
+  : statePitchDark    \ state 11
     puts("You fell into a pit and broke every bone in your body!")
     mLoc mOldOldLoc!
     setState(kStateDeath)
   ;
     
-  : stateDeath    // state 12
-    // When you die, mNewLoc is undefined (often R_LIMBO) and mOldLoc is what
-    // killed you. So we look at mOldOldLoc, the last place you were safe.
+  : stateDeath    \ state 12
+    \ When you die, mNewLoc is undefined (often R_LIMBO) and mOldLoc is what
+    \ killed you. So we look at mOldOldLoc, the last place you were safe.
     kill_the_player(mOldOldLoc) 
     R_HOUSE mLoc!
     R_HOUSE mOldLoc!
     setState(kStateCommence)
   ;
     
-  : stateQuit    // state 13
+  : stateQuit    \ state 13
     true mQuit!
   ;
   
@@ -3378,8 +3378,8 @@ long description of your location.")
   
   m: initialSetup
     offer(0) 
-    // Reading the instructions marks you as a newbie who will need the
-    // extra lamp power. However, it will also cost you 5 points.
+    \ Reading the instructions marks you as a newbie who will need the
+    \ extra lamp power. However, it will also cost you 5 points.
     if(hints.get(0).given) 1000 else 330 endif lamp_limit!
     initDwarves
   ;m
@@ -3390,7 +3390,7 @@ long description of your location.")
 
 loaddone
 
-//=====================================================================================================
-//=====================================================================================================
-//=====================================================================================================
-//=====================================================================================================
+\ =====================================================================================================
+\ =====================================================================================================
+\ =====================================================================================================
+\ =====================================================================================================

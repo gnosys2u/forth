@@ -1,4 +1,4 @@
-// ansi forth compatability words
+\ ansi forth compatability words
 
 requires forth_internals
 requires forth_optype
@@ -7,7 +7,7 @@ autoforget compatability
 : compatability ;
 
 : countedStringToString
-  // src dst
+  \ src dst
   -> ptrTo byte dst
   count
   -> int numBytes
@@ -17,14 +17,14 @@ autoforget compatability
 ;
 
 : stringToCountedString
-  // src dst
+  \ src dst
   over strlen over c!
-  // src len 
+  \ src len 
   1+ swap strcpy
 ;
 
 : blockToString
-  // src count dst
+  \ src count dst
   -> ptrTo byte dst
   -> int numBytes
   -> ptrTo byte src
@@ -40,7 +40,7 @@ autoforget compatability
   dup strlen 0 do
     dup c@
     if( and( dup `A` >= over `Z` <= ) )
-      0x20 + over c!
+      $20 + over c!
     else
       drop
     endif
@@ -53,12 +53,12 @@ autoforget compatability
   257 string symbol
   countedStringToString( dup symbol )
   $find( symbol )
-  // countedStr ptrToSymbolEntry
+  \ countedStr ptrToSymbolEntry
   if( dup )
-    nip			// discard original counted string ptr
-    @			// fetch opcode from first word of symbol entry value field
+    nip			\ discard original counted string ptr
+    @			\ fetch opcode from first word of symbol entry value field
     if( opType:isImmediate( opType:getOptype( dup ) ) )
-      1   // immediate op
+      1   \ immediate op
     else
       -1
     endif
@@ -103,7 +103,7 @@ int __sp
   endif
 ;
 
-// the builtin $word op leaves an empty byte below parsed string for us to stuff length into
+\ the builtin $word op leaves an empty byte below parsed string for us to stuff length into
 : word $word dup strlen over 1- c! 1- ;
 : parse word count ;
 
@@ -148,7 +148,7 @@ alias is ->
 
 int _handler
 
-: catch  // ... xt -- ... 0
+: catch  \ ... xt -- ... 0
   _handler  >r
   sp >r
   rp -> _handler
@@ -157,14 +157,14 @@ int _handler
   r> -> _handler
 ;
 
-: throw  // error -- error
+: throw  \ error -- error
   dup 0= if
     drop exit
   endif
   _handler -> rp
-  // RTOS: oldSP oldHandlerRP
+  \ RTOS: oldSP oldHandlerRP
   r> swap >r -> sp
-  // RTOS: errorCode oldHandlerRP
+  \ RTOS: errorCode oldHandlerRP
   r> r> -> _handler
 ;
 
@@ -191,7 +191,7 @@ alias include lf
 
 alias at-xy setConsoleCursor
 : page clearConsole 0 0 setConsoleCursor ;
-// addr count ... addr+count addr
+\ addr count ... addr+count addr
 : bounds over + swap ;
 
 : ,"
@@ -201,7 +201,7 @@ alias at-xy setConsoleCursor
 ;
  
 : refill
-  "refill" fillInBuffer null <>
+  "refill" fillInputBuffer null <>
 ;
 
 : -trailing

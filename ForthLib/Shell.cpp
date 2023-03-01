@@ -1141,13 +1141,9 @@ Shell::ParseToken( ParseInfo *pInfo )
                      break;
 
                   case '(':
-                     if ((pEndSrc == pSrc) || pOuter->CheckFeature(kFFParenIsComment))
+                     if (pEndSrc == pSrc)
                      {
                          // paren at start of token is part of token (allows old forth-style inline comments to work)
-                         if (pOuter->CheckFeature(kFFParenIsComment) == 0)
-                         {
-                             ReportWarning("Possibly misplaced parentheses");
-                         }
                          *pDst++ = *pEndSrc++;
                      }
                      else if (pOuter->CheckFeature(kFFParenIsExpression))

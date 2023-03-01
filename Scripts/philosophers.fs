@@ -22,12 +22,12 @@ class: Philosopher
   ;m
 
   m: isHungry
-    //timesFed helpingsToEat <
+    \ timesFed helpingsToEat <
     eatingFiber.getRunState kFTRSExited <>
   ;m
   
   m: run
-    //"philosopher " %s id %d " starting\n" %s
+    \ "philosopher " %s id %d " starting\n" %s
     begin
     while(timesFed helpingsToEat <)
       d[ "philosopher " %s id %d " grabbing first fork(" %s firstFork.id %d ")\n" %s ]d
@@ -94,14 +94,14 @@ class: Philosopher
     i -> int firstFork
     i 1+ -> int secondFork
     if(i numPhilosophers 1- =)
-      // switch grab order for last philosopher to prevent deadlock
+      \ switch grab order for last philosopher to prevent deadlock
       firstFork -> secondFork
       0 -> firstFork
     endif
     
     philosophers.get(i) ->o phil
     phil.init(thisThread.createFiber(['] philosopherLoop 1000 1000) i forks.get(firstFork) forks.get(secondFork))
-    //"philosopher " %s i %d %bl phil.eatingFiber.__fiber %x %nl
+    \ "philosopher " %s i %d %bl phil.eatingFiber.__fiber %x %nl
     phil.eatingFiber.startWithArgs(r[ phil ]r) drop
     
   loop
@@ -214,13 +214,13 @@ class: AsyncPhilosopher
     i -> int firstFork
     i 1+ -> int secondFork
     if(i numPhilosophers 1- =)
-      // switch grab order for last philosopher to prevent deadlock
+      \ switch grab order for last philosopher to prevent deadlock
       firstFork -> secondFork
       0 -> firstFork
     endif
     asyncPhilosophers.get(i) ->o phil
     phil.init(system.createThread(['] asyncPhilosopherLoop 1000 1000) i asyncForks.get(firstFork) asyncForks.get(secondFork))
-    //p[ "philosopher " %s i %d %bl phil.eatingThread.__thread %x %nl ]p
+    \ p[ "philosopher " %s i %d %bl phil.eatingThread.__thread %x %nl ]p
     phil.eatingThread.startWithArgs(r[ phil ]r) drop
   loop
   

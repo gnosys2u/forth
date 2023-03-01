@@ -1,49 +1,49 @@
-//         *** Assembler for the Athlon64 ***           17jul04py
+\         *** Assembler for the Athlon64 ***           17jul04py
 
-// Copyright (C) 1992-2000 by Bernd Paysan (486 assemlber)
+\ Copyright (C) 1992-2000 by Bernd Paysan (486 assemlber)
 
-// Copyright (C) 2000,2001,2003,2004,2007,2010 Free Software Foundation, Inc.
+\ Copyright (C) 2000,2001,2003,2004,2007,2010 Free Software Foundation, Inc.
 
-// This file is part of Gforth.
+\ This file is part of Gforth.
 
-// Gforth is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+\ Gforth is free software; you can redistribute it and/or
+\ modify it under the terms of the GNU General Public License
+\ as published by the Free Software Foundation; either version 2
+\ of the License, or (at your option) any later version.
 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS 0 do A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+\ This program is distributed in the hope that it will be useful,
+\ but WITHOUT ANY WARRANTY; without even the implied warranty of
+\ MERCHANTABILITY or FITNESS 0 do A PARTICULAR PURPOSE.  See the
+\ GNU General Public License for more details.
 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
-// 
-// The syntax is reverse polish. Source and destination are
-// reversed. Size prefixes are used instead of AX/EAX. Example:
-// Intel                           gives
-// mov  ax,bx                      .w rbx rax mov
-// mov  eax,[ebx]                  .d rbx ) rax mov
-// add  eax,4                      .d 4 # rax add
-// add  rax,8                      .q 8 # rax add
-// 
-// in .86 mode  .w is the default size, in .386 mode  .d is default
-// in .amd64 mode .q is default size.
-// .wa, .da, and .qa change address size. .b, .w(a) and .d(a) are not
-// switches like in my assem68k, they are prefixes.
-// [A-D][L|H] implicitely set the .b size. So
-// AH AL mov
-// generates a byte move. Sure you need .b for memory operations
-// like .b ax ) inc    which is  inc  BYTE PTR [eAX]
+\ You should have received a copy of the GNU General Public License
+\ along with this program; if not, write to the Free Software
+\ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+\ 
+\ The syntax is reverse polish. Source and destination are
+\ reversed. Size prefixes are used instead of AX/EAX. Example:
+\ Intel                           gives
+\ mov  ax,bx                      .w rbx rax mov
+\ mov  eax,[ebx]                  .d rbx ) rax mov
+\ add  eax,4                      .d 4 # rax add
+\ add  rax,8                      .q 8 # rax add
+\ 
+\ in .86 mode  .w is the default size, in .386 mode  .d is default
+\ in .amd64 mode .q is default size.
+\ .wa, .da, and .qa change address size. .b, .w(a) and .d(a) are not
+\ switches like in my assem68k, they are prefixes.
+\ [A-D][L|H] implicitely set the .b size. So
+\ AH AL mov
+\ generates a byte move. Sure you need .b for memory operations
+\ like .b ax ) inc    which is  inc  BYTE PTR [eAX]
 
-// athlon64 Assembler Load Screen                       21apr00py
+\ athlon64 Assembler Load Screen                       21apr00py
 
-// base @ get-current ALSO ASSEMBLER DEFINITIONS also
+\ base @ get-current ALSO ASSEMBLER DEFINITIONS also
 
-// at this point, the search stack is: assembler assembler current (probably forth)
-// this allows the top level of the stack to be overwritten by forth, so they
-// can access forth words and assembler words, but swap the order at will
+\ at this point, the search stack is: assembler assembler current (probably forth)
+\ this allows the top level of the stack to be overwritten by forth, so they
+\ can access forth words and assembler words, but swap the order at will
 
 autoforget asm_amd64
 : asm_amd64 ;
@@ -51,15 +51,15 @@ autoforget asm_amd64
 vocabulary assembler
 also assembler definitions
 
-// allow inline comments using (...) to allow easier porting from GForth
+\ allow inline comments using (...) to allow easier porting from GForth
 features
 base @
 kFFParenIsComment ->+ features
 octal
 
-// Assembler Forth words                                11mar00py
+\ Assembler Forth words                                11mar00py
 
-: case? 		// n1 n2 -- t / n1 f
+: case? 		\ n1 n2 -- t / n1 f
   over = if
     drop true
   else
@@ -67,20 +67,20 @@ octal
   endif
 ;
 
-// Stack-Buffer fr Extra-Werte                         22dec93py
+\ Stack-Buffer fr Extra-Werte                         22dec93py
 
 long ModR/M
 long ModR/M#
 long SIB
 long SIB#
-long disp	    // displacement argument
-long disp#      // sizeof displacement argument
-long imm        // immediate argument
-long imm#       // sizeof immediate argument
-long Aimm?      // is immediate argument an address?
+long disp	    \ displacement argument
+long disp#      \ sizeof displacement argument
+long imm        \ immediate argument
+long imm#       \ sizeof immediate argument
+long Aimm?      \ is immediate argument an address?
 long Adisp?
-long byte?      // is this a byte instruction?
-long seg        // segment register
+long byte?      \ is this a byte instruction?
+long seg        \ segment register
 long .asize               long .anow
 long .osize               long .onow
 long .64size              long .64now
@@ -88,7 +88,7 @@ long .rex                 long .64bit
 long .arel                long media
 long dquad?
 
-//: off 0 swap ! ;		: on -1 swap ! ;
+\ : off 0 swap ! ;		: on -1 swap ! ;
 
 : setOn -1 -> ;
 : setOff 0 -> ;
@@ -127,17 +127,17 @@ long dquad?
 : .dq  setOn dquad? ;
 
 : _c,
-  //"Assembled " %s dup 0xFF and %x " @ " %s here %x %nl
+  \ "Assembled " %s dup $FF and %x " @ " %s here %x %nl
   c,
 ;
 
 : +rel ;
 
-// Extra-Werte compilieren                              01may95py
-: bytes,  // nr x n --
+\ Extra-Werte compilieren                              01may95py
+: bytes,  \ nr x n --
   ?dup if
     0 do
-      over 0< if  +rel swap 1+ swap  endif  dup _c,  0x8 rshift
+      over 0< if  +rel swap 1+ swap  endif  dup _c,  $8 rshift
     loop
   endif
   2drop
@@ -147,20 +147,20 @@ long dquad?
     >r here r@ + - r> bytes,
 ;
   
-: opcode, // opcode -- 
-  .asize .anow  <> if  0x67 _c,  endif
+: opcode, \ opcode -- 
+  .asize .anow  <> if  $67 _c,  endif
   media if
     media _c,
   else
-    .osize .onow  <> if  0x66 _c,  endif
+    .osize .onow  <> if  $66 _c,  endif
   endif
   seg     if  seg _c,  endif
-  .64now  if  .rex 0x08 or -> .rex endif
-  .rex    if  .rex 0xF and 0x40 or _c, endif
+  .64now  if  .rex $08 or -> .rex endif
+  .rex    if  .rex $F and $40 or _c, endif
   _c,  pre-
 ;
 
-: finish // opcode --
+: finish \ opcode --
   opcode,
   ModR/M# if  ModR/M _c,  endif
   SIB#    if  SIB    _c,  endif
@@ -169,59 +169,59 @@ long dquad?
   sclear
 ;
 
-//
+\ 
 : finishb
   byte? xor  finish
 ;
-: 0F,  0x0F opcode, ;
+: 0F,  $0F opcode, ;
 
-// Possible bug: '.64now off' does not have any effect _after_ 0F,
-: finish0F // opcode --
+\ Possible bug: '.64now off' does not have any effect _after_ 0F,
+: finish0F \ opcode --
   0F,  setOff .64now finish
 ;
-: finishxx0f  // ( $xx0fyy -- )  \ xx 0f yy opcodes  (xx=66,f2,f3 or 00 if none)
-   dup 0x10 rshift -> media  -size  0xff and finish0F
+: finishxx0f  \ ( $xx0fyy -- )  \ xx 0f yy opcodes  (xx=66,f2,f3 or 00 if none)
+   dup $10 rshift -> media  -size  $ff and finish0F
 ;
 
 
-// Register                                             29mar94py
+\ Register                                             29mar94py
 
-: regs  // mod n --
+: regs  \ mod n --
   1+ 0 do  dup constant 11+  loop  drop
 ;
 
-: breg  // reg --
+: breg  \ reg --
   builds c,
   does c@  .b
 ;
 
-: bregs // mod n --
+: bregs \ mod n --
   1+ 0 do  dup breg     11+  loop  drop
 ;
 
-: wreg  // reg --
+: wreg  \ reg --
   builds c,
   does c@  .w
 ;
 
-: wregs // mod n --
+: wregs \ mod n --
   1+ 0 do  dup wreg     11+  loop  drop
 ;
 
-: wadr: builds c,  does c@  .wa ;  // reg --
-: wadrs 1+ 0 do  dup wadr:    11+  loop  drop ;  // mod n -- 
+: wadr: builds c,  does c@  .wa ;  \ reg --
+: wadrs 1+ 0 do  dup wadr:    11+  loop  drop ;  \ mod n -- 
 
-: xmmreg  // reg --
+: xmmreg  \ reg --
   builds ,
   does @  .w
 ;
 
-: xmmregs // mod n --
+: xmmregs \ mod n --
   1+ 0 do  dup xmmreg     11+  loop  drop
 ;
 
-: dadr builds c,  does c@  .da ;  // reg --
-: dadrs 1+ 0 do  dup dadr    11+  loop  drop ; // mod n -- 
+: dadr builds c,  does c@  .da ;  \ reg --
+: dadrs 1+ 0 do  dup dadr    11+  loop  drop ; \ mod n -- 
 
       0 7 wadrs [rbx+rsi] [rbx+rdi] [rbp+rsi] [rbp+rdi] [rsi] [rdi] [rbp] [rbx]
     300 7 regs rax rcx rdx rbx rsp rbp rsi rdi
@@ -242,101 +242,101 @@ long dquad?
 : osize@  2 .onow if  2*  endif ;
 
 
-// Address modes                                        01may95py
-: index  // breg1 ireg2 -- ireg
-    dup 0x10000 and >r 370 and swap dup 0x10000 and >r 7 and or
+\ Address modes                                        01may95py
+: index  \ breg1 ireg2 -- ireg
+    dup $10000 and >r 370 and swap dup $10000 and >r 7 and or
     -> SIB 1 -> SIB# r> r> 2* or 44 or ;
-: #] // disp -- reg
+: #] \ disp -- reg
     .64bit if  -> disp   44 55 index 4 -> disp#  exit endif
     -> disp .anow if  55 4  else  66 2  endif  -> disp# ;
-: r#]  // disp -- reg
+: r#]  \ disp -- reg
     .64bit 0= if "RIP address only in 64 bit mode" error endif
     -> disp 4 -> disp# setOn .arel  55 ;
     
 : *2   100 xor ;    : *4   200 xor ;    : *8   300 xor ;
 
 
-: i] .anow .64bit or 0= if "No Index!" error endif  // reg1 reg2 -- ireg
+: i] .anow .64bit or 0= if "No Index!" error endif  \ reg1 reg2 -- ireg
   *8  index ;
 
-: i#] rbp swap i] swap #] drop ;  // disp32 reg -- ireg 
-: seg]  // seg disp -- -1
+: i#] rbp swap i] swap #] drop ;  \ disp32 reg -- ireg 
+: seg]  \ seg disp -- -1
   -> disp  asize@ -> disp#  -> imm 2 -> imm# -1 ;
-: ]  dup rsp = if dup i] else 200077 and endif ;  // reg -- reg
-: d] ] >r dup -> disp  0x80 -0x80 within  // disp reg -- reg
+: ]  dup rsp = if dup i] else 200077 and endif ;  \ reg -- reg
+: d] ] >r dup -> disp  $80 -$80 within  \ disp reg -- reg
   Adisp? or if  200 asize@  else  100 1  endif -> disp# r> or ;
-: di] i] d] ;  // disp reg1 reg2 -- ireg
+: di] i] d] ;  \ disp reg1 reg2 -- ireg
 : A: setOn Adisp? ;
 : A:: -2 -> Adisp? ;
 : a#] A: #] ;
 : aseg] A: seg] ;
 
-// # A# rel] CR DR TR ST <ST STP                        01jan98py
-: # // imm -- 
- dup -> imm  -0x80 0x80 within  byte? or
+\ # A# rel] CR DR TR ST <ST STP                        01jan98py
+: # \ imm -- 
+ dup -> imm  -$80 $80 within  byte? or
   if  1  else  osize@  endif  -> imm# ;
-: L#  // imm -- 
+: L#  \ imm -- 
   -> imm  osize@ -> imm# ;
-: A#  // imm -- 
+: A#  \ imm -- 
   setOn Aimm?  L# ;
-: rel]  // addr -- -2 
+: rel]  \ addr -- -2 
   -> disp asize@ -> disp# -2 ;
-: l] // disp reg -- reg 
+: l] \ disp reg -- reg 
  ] >r -> disp 200 asize@ -> disp# r> or ;
-: li] // disp reg1 reg2 -- reg 
+: li] \ disp reg1 reg2 -- reg 
   i] l] ;
 
-: >>mod // reg1 reg2 -- mod
-  // bug?  This can only add $10 to .rex.  However only bits 0..3 of .rex are
-  // used
-  2dup or 0x80000 and 0x0F rshift ->+ .rex
-  dup 0x10000 and 0x0E rshift ->+ .rex  70 and swap
-  dup 0x30000 and 0x10 rshift ->+ .rex  307 and or ;
-: >reg // reg -- reg'
-  dup 0x10000 and 0x10 rshift ->+ .rex 7 and ;
-: >mod // reg1 reg2 --
+: >>mod \ reg1 reg2 -- mod
+  \ bug?  This can only add $10 to .rex.  However only bits 0..3 of .rex are
+  \ used
+  2dup or $80000 and $0F rshift ->+ .rex
+  dup $10000 and $0E rshift ->+ .rex  70 and swap
+  dup $30000 and $10 rshift ->+ .rex  307 and or ;
+: >reg \ reg -- reg'
+  dup $10000 and $10 rshift ->+ .rex 7 and ;
+: >mod \ reg1 reg2 --
   >>mod -> ModR/M  1 -> ModR/M# ;
 
 
-: CR   7 and 11 *  0x1C0 or ;  // n ---
+: CR   7 and 11 *  $1C0 or ;  \ n ---
 0 CR constant CR0
-: DR   7 and 11 *  0x2C0 or ;  // n ---
-: TR   7 and 11 *  0x3C0 or ;  // n ---
-: ST   7 and       0x5C0 or ;  // n ---
-: <ST  7 and       0x7C0 or ;  // n ---
-: STP  7 and       0x8C0 or ;  // n ---
+: DR   7 and 11 *  $2C0 or ;  \ n ---
+: TR   7 and 11 *  $3C0 or ;  \ n ---
+: ST   7 and       $5C0 or ;  \ n ---
+: <ST  7 and       $7C0 or ;  \ n ---
+: STP  7 and       $8C0 or ;  \ n ---
 
-// reg?                                                 10apr93py
-: reg= 2 pick and = ; // reg flag mask -- flag 
-: reg?  0xC0 0x0FFC0 reg= ; // reg -- reg flag
-: ?reg reg? 0= if "reg expected!" error endif ; // reg -- reg flag
-: ?mem  dup 0xC0 < 0= if "mem expected!" error endif ; // mem -- mem
-: ?ax  dup rax <> if "ax/al expected!" error endif ;  // reg -- reg
-: cr? 0x100 0xFF00 reg= ;  // reg -- reg flag
-: dr? 0x200 0xFF00 reg= ;  // reg -- reg flag
-: tr? 0x300 0xFF00 reg= ;  // reg -- reg flag
-: sr? 0x400 0xFF00 reg= ;  // reg -- reg flag
-: st? dup 0x8 rshift 5- ;  // reg -- reg flag
-: ?st st? 0< if "st expected!" error endif ;  // reg -- reg
-: xr? dup 0xFF > ;  // reg -- reg flag
-: ?xr  xr? 0= if "xr expected!" error endif ;  // reg -- reg
-: rel? dup -2 = ; // reg -- reg flag
-: seg? dup -1 = ; // reg -- reg flag
+\ reg?                                                 10apr93py
+: reg= 2 pick and = ; \ reg flag mask -- flag 
+: reg?  $C0 $0FFC0 reg= ; \ reg -- reg flag
+: ?reg reg? 0= if "reg expected!" error endif ; \ reg -- reg flag
+: ?mem  dup $C0 < 0= if "mem expected!" error endif ; \ mem -- mem
+: ?ax  dup rax <> if "ax/al expected!" error endif ;  \ reg -- reg
+: cr? $100 $FF00 reg= ;  \ reg -- reg flag
+: dr? $200 $FF00 reg= ;  \ reg -- reg flag
+: tr? $300 $FF00 reg= ;  \ reg -- reg flag
+: sr? $400 $FF00 reg= ;  \ reg -- reg flag
+: st? dup $8 rshift 5- ;  \ reg -- reg flag
+: ?st st? 0< if "st expected!" error endif ;  \ reg -- reg
+: xr? dup $FF > ;  \ reg -- reg flag
+: ?xr  xr? 0= if "xr expected!" error endif ;  \ reg -- reg
+: rel? dup -2 = ; \ reg -- reg flag
+: seg? dup -1 = ; \ reg -- reg flag
 
-// Single Byte instruction                              27mar94py
+\ Single Byte instruction                              27mar94py
 
-: bc:    builds c, does c@ _c,        ; // opcode --
-: bc.b:  builds c, does c@ finishb  ; // opcode --
-: bc0F:  builds c, does c@ finish0F ; // opcode --
+: bc:    builds c, does c@ _c,        ; \ opcode --
+: bc.b:  builds c, does c@ finishb  ; \ opcode --
+: bc0F:  builds c, does c@ finish0F ; \ opcode --
 
-: seg:   builds c, does c@ -> seg ; // opcode --
+: seg:   builds c, does c@ -> seg ; \ opcode --
 
-0x26 seg: eseg:    0x2E seg: cseg:    0x36 seg: sseg:    0x3E seg: dseg:
-0x64 seg: fseg:    0x65 seg: gseg:
+$26 seg: eseg:    $2E seg: cseg:    $36 seg: sseg:    $3E seg: dseg:
+$64 seg: fseg:    $65 seg: gseg:
 
-// arithmetics                                          07nov92py
+\ arithmetics                                          07nov92py
 
-: reg>mod // reg1 reg2 -- 1 / 3
+: reg>mod \ reg1 reg2 -- 1 / 3
   reg? if
     >mod 3
   else
@@ -344,18 +344,18 @@ long dquad?
   endif
 ;
     
-// n --
+\ n --
 : ari:
   builds
     c,
-  does 			// reg1 reg2 / reg -- 
+  does 			\ reg1 reg2 / reg -- 
     c@ >r imm#
     if
       imm# byte? + 1 > over rax = and
       if
-        drop 0x05 r> 70 and or
+        drop $05 r> 70 and or
       else
-        r> >mod 0x81 imm# 1 byte? + =
+        r> >mod $81 imm# 1 byte? + =
         if 2+
         endif
       endif
@@ -368,24 +368,24 @@ long dquad?
 00 ari: add,     11 ari: or,      22 ari: adc,     33 ari: sbb,
 44 ari: and,     55 ari: sub,     66 ari: xor,     77 ari: cmp,
 
-// bit shifts    strings                                07nov92py
+\ bit shifts    strings                                07nov92py
 
-// n --
+\ n --
 : shift:
   builds
     c,
-  does			// r/m -- 
+  does			\ r/m -- 
     c@ >mod  imm#
     if
         imm 1 =
         if
-          0xD1 0
+          $D1 0
         else
-          0xC1 1
+          $C1 1
         endif
         -> imm#
     else
-      0xD3
+      $D3
     endif
     finishb
 ;
@@ -393,306 +393,306 @@ long dquad?
 00 shift: rol,   11 shift: ror,   22 shift: rcl,   33 shift: rcr,
 44 shift: shl,   55 shift: shr,   66 shift: sal,   77 shift: sar,
 
-0x6D bc.b: ins,   0x6F bc.b: outs,
-0xA5 bc.b: movs,  0xA7 bc.b: cmps,
-0xAB bc.b: stos,  0xAD bc.b: lods,  0xAF bc.b: scas,
+$6D bc.b: ins,   $6F bc.b: outs,
+$A5 bc.b: movs,  $A7 bc.b: cmps,
+$AB bc.b: stos,  $AD bc.b: lods,  $AF bc.b: scas,
 
-// movxr                                                07feb93py
+\ movxr                                                07feb93py
 
-: xr>mod  // reg1 reg2 -- 0 / 2
+: xr>mod  \ reg1 reg2 -- 0 / 2
     xr?  if  >mod  2  else  swap ?xr >mod  0  endif  ;
 
-: movxr  // reg1 reg2 --
+: movxr  \ reg1 reg2 --
     -rex 2dup or sr? nip
-    if    xr>mod  0x8C or finish
-    else  2dup or 0x8 rshift 1+ -3 and >r  xr>mod  r> 0x20 or or finish0F
+    if    xr>mod  $8C or finish
+    else  2dup or $8 rshift 1+ -3 and >r  xr>mod  r> $20 or or finish0F
     endif ;
 
-// mov                                                  23jan93py
+\ mov                                                  23jan93py
 
 : assign#  byte? 0= if  osize@ -> imm#  else 1 -> imm# endif ;
 : ?64off  .64bit .anow 0= and if  10 -> disp# endif 0 -> SIB# ;
-: ?ofax // reg eax -- flag
+: ?ofax \ reg eax -- flag
   .64bit if  44  else  .anow if 55 else 66 endif endif rax
   rot = -rot = and  ;
 
-// r/m reg / reg r/m / reg --
+\ r/m reg / reg r/m / reg --
 : mov,
   2dup or 0> imm# and
   if
     assign# reg?
     if
-      >reg  0xB8 or byte? 3 lshift xor  setOff byte?
+      >reg  $B8 or byte? 3 lshift xor  setOff byte?
       .64now if 10 -> imm# endif
     else
-      0 >mod  0xC7
+      0 >mod  $C7
     endif
   else
-    2dup or 0xFFFF and 0xFF >
+    2dup or $FFFF and $FF >
     if
       movxr exit
     endif
     2dup ?ofax
     if
-      2drop 0xA1 ?64off
+      2drop $A1 ?64off
     else
       2dup swap  ?ofax
       if
-        2drop 0xA3 ?64off
+        2drop $A3 ?64off
       else
-        reg>mod 0x88 or
+        reg>mod $88 or
       endif
     endif
   endif
   finishb
 ;
 
-// not neg mul imul div idiv                           29mar94py
+\ not neg mul imul div idiv                           29mar94py
 
-: modf   -rot >mod finish   ;      // r/m reg opcode --
-: modfb  -rot >mod finishb  ;      // r/m reg opcode --
-: mod0F  -rot >mod finish0F ;      // r/m reg opcode --
-: modxx0f -rot >mod finishxx0f ;  // r/m reg opcode --
+: modf   -rot >mod finish   ;      \ r/m reg opcode --
+: modfb  -rot >mod finishb  ;      \ r/m reg opcode --
+: mod0F  -rot >mod finish0F ;      \ r/m reg opcode --
+: modxx0f -rot >mod finishxx0f ;  \ r/m reg opcode --
 : modf:  builds  c,  does  c@ modf ;
-: not: // mode --
+: not: \ mode --
   builds c,
-  does // r/m -- 
-    c@ 0xF7 modfb ;
+  does \ r/m -- 
+    c@ $F7 modfb ;
 
 00 not: test#                   22 not: not,     33 not: neg,
 44 not: mul,     55 not: pimul 66 not: div,     77 not: idiv,
 
-: inc: // mode --
+: inc: \ mode --
   builds c,
-  does  // r/m -- 
+  does  \ r/m -- 
     c@ >r reg?  byte? 0=  and .64bit 0= and
     if    107 and r> 70 and or finish
-    else  r> 0xFF modfb   endif ;
+    else  r> $FF modfb   endif ;
 00 inc: inc,     11 inc: dec,
 
-// test shld shrd                                       07feb93py
+\ test shld shrd                                       07feb93py
 
-: test,  // reg1 reg2 / reg --  
+: test,  \ reg1 reg2 / reg --  
   imm#
   if
     assign#  rax case?
-    if  0xA9  else  test#  exit  endif
+    if  $A9  else  test#  exit  endif
   else
-    ?reg >mod  0x85
+    ?reg >mod  $85
   endif
   finishb
 ;
 
-: shd // r/m reg opcode --
+: shd \ r/m reg opcode --
     imm# if  1 -> imm# 1-  endif  mod0F ;
 : shld,  swap 245 shd ;          : shrd,  swap 255 shd ;
 
-: btx: // r/m reg/# code --
+: btx: \ r/m reg/# code --
   builds c,
   does c@ >r imm#
-    if    1 -> imm#  r> 0xBA
+    if    1 -> imm#  r> $BA
     else  swap 203 r> >>mod  endif  mod0F ;
 44 btx: bt,      55 btx: bts,     66 btx: btr,     77 btx: btc,
 
-// push pop                                             05jun92py
+\ push pop                                             05jun92py
 
-: pushs   swap  fseg case?  if  0xA0 or finish0F exit  endif
-                  gseg case?  if  0xA8 or finish0F exit  endif
+: pushs   swap  fseg case?  if  $A0 or finish0F exit  endif
+                  gseg case?  if  $A8 or finish0F exit  endif
     30 and 6 or or finish ;
 
-: push,  // reg --
+: push,  \ reg --
   -rex
-  imm# 1 = if  0x6A finish exit  endif
-  imm#     if  0x68 finish exit  endif
-  reg?       if  >reg 0x50 or finish exit  endif
+  imm# 1 = if  $6A finish exit  endif
+  imm#     if  $68 finish exit  endif
+  reg?       if  >reg $50 or finish exit  endif
   sr?        if  0 pushs  exit  endif
-  66 0xFF modf ;
-: pop,   // reg --
+  66 $FF modf ;
+: pop,   \ reg --
   -rex
-  reg?       if  >reg 0x58 or finish exit  endif
+  reg?       if  >reg $58 or finish exit  endif
   sr?        if  1 pushs  exit  endif
-  06 0x8F modf ;
+  06 $8F modf ;
 
-// Ascii Arithmetics                                    22may93py
+\ Ascii Arithmetics                                    22may93py
 
-0x27 bc: daa,     0x2F bc: das,     0x37 bc: aaa,     0x3F bc: aas,
+$27 bc: daa,     $2F bc: das,     $37 bc: aaa,     $3F bc: aas,
 
 : aa:
   builds c,
-  does // -- 
-    c@ imm# 0= if  0x0A -> imm  endif  1 -> imm# finish ;
-0xD4 aa: aam,     0xD5 aa: aad,     0xD6 bc: salc,    0xD7 bc: xlat,
+  does \ -- 
+    c@ imm# 0= if  $0A -> imm  endif  1 -> imm# finish ;
+$D4 aa: aam,     $D5 aa: aad,     $D6 bc: salc,    $D7 bc: xlat,
 
-0x60 bc: pusha,   0x61 bc: popa,
-0x90 bc: nop,
-0x98 bc: cbw,     0x99 bc: cwd,                      0x9B bc: fwait,
-0x9C bc: pushf,   0x9D bc: popf,   0x9E bc: sahf,    0x9F bc: lahf,
-                0xC9 bc: leave,
-0xCC bc: int3,                     0xCE bc: into,    0xCF bc: iret,
-//' fwait Alias wait
+$60 bc: pusha,   $61 bc: popa,
+$90 bc: nop,
+$98 bc: cbw,     $99 bc: cwd,                      $9B bc: fwait,
+$9C bc: pushf,   $9D bc: popf,   $9E bc: sahf,    $9F bc: lahf,
+                $C9 bc: leave,
+$CC bc: int3,                     $CE bc: into,    $CF bc: iret,
+\ ' fwait Alias wait
 
-// one byte opcodes                                     25dec92py
+\ one byte opcodes                                     25dec92py
 
-0xF0 bc: lock,                      0xF2 bc: rep,     0xF3 bc: repe,
-0xF4 bc: hlt,     0xF5 bc: cmc,
-0xF8 bc: clc,     0xF9 bc: stc,     0xFA bc: cli,     0xFB bc: sti,
-0xFC bc: cld,     0xFD bc: std,
+$F0 bc: lock,                      $F2 bc: rep,     $F3 bc: repe,
+$F4 bc: hlt,     $F5 bc: cmc,
+$F8 bc: clc,     $F9 bc: stc,     $FA bc: cli,     $FB bc: sti,
+$FC bc: cld,     $FD bc: std,
 
-: ?brange // offword --- offbyte
-  dup 0x80 -0x80 within
+: ?brange \ offword --- offbyte
+  dup $80 -$80 within
   if "branch offset out of 1-byte range" %s endif ;
-: sb: // opcode -- 
+: sb: \ opcode -- 
   builds c,
-  does   // addr -- 
+  does   \ addr -- 
     >r  here 2+ - ?brange
     -> disp  1 -> disp#  r> c@ -rex finish ;
-0xE0 sb: loopne,  0xE1 sb: loope,   0xE2 sb: loop,    0xE3 sb: jcxz,
+$E0 sb: loopne,  $E1 sb: loope,   $E2 sb: loop,    $E3 sb: jcxz,
 
-// preceeding a ret, or retf, with "# N" will generate opcodes which will remove N bytes of arguments
-// this will make 0xC3 and 0xCB opcodes become 0xC2 and 0xCA respectively
-: pret // op --
+\ preceeding a ret, or retf, with "# N" will generate opcodes which will remove N bytes of arguments
+\ this will make $C3 and $CB opcodes become $C2 and $CA respectively
+: pret \ op --
   imm#  if  2 -> imm#  1-  endif  -rex finish ;
-: ret,  0xC3  pret ;
-: retf, 0xCB  pret ;
+: ret,  $C3  pret ;
+: retf, $CB  pret ;
 
-// call jmp                                             22dec93py
+\ call jmp                                             22dec93py
 
-: call,			// reg / disp --
+: call,			\ reg / disp --
   rel? if
-    drop 0xE8 disp here 1+ asize@ + - -> disp
+    drop $E8 disp here 1+ asize@ + - -> disp
     finish exit
   endif
-  22 0xFF -rex modf
+  22 $FF -rex modf
 ;
 
-// the standard relative call:     SUBROUTINE_ADDR rcall,
+\ the standard relative call:     SUBROUTINE_ADDR rcall,
 : rcall, rel] call, ;
 
-: callf,		// reg / seg --
+: callf,		\ reg / seg --
   seg? if
-    drop 0x9A
+    drop $9A
     finish exit
   endif
-  33 0xFF -rex modf
+  33 $FF -rex modf
 ;
 
-: jmp,   		// reg / disp --
+: jmp,   		\ reg / disp --
   -rex
   rel? if
     drop disp here 2+ - dup
-    -0x80 0x80 within
+    -$80 $80 within
     if
-      -> disp 1 -> disp#  0xEB
+      -> disp 1 -> disp#  $EB
     else
-      3- -> disp 0xE9
+      3- -> disp $E9
     endif
     finish
     exit
   endif
-  44 0xFF modf
+  44 $FF modf
 ;
 
-: jmpf,		// reg / seg --
+: jmpf,		\ reg / seg --
   seg? if
-    drop 0xEA
+    drop $EA
     finish exit
   endif
-  55 0xFF -rex modf
+  55 $FF -rex modf
 ;
 
-// : next .d ['] noop >code-address rel] jmp ;
+\ : next .d ['] noop >code-address rel] jmp ;
 
-// jump if                                              22dec93py
+\ jump if                                              22dec93py
 
 : cond: 0 do  i constant  loop ;
 
-0x10 cond: vs, vc,   u<, u>=,  0=, 0<>,  u<=, u>,   0<, 0>=,  ps, pc,   <,  >=,   <=,  >,
-0x10 cond: o,  no,   b,  nb,   z,  nz,    be,  nbe,  s,  ns,   pe, po,   l,  nl,   le,  nle,
-: jmpIF  // addr cond --
-  swap here 2+ - dup -0x80 0x80 within
-  if            -> disp 0x70 1
-  else  0F,  4- -> disp 0x80 4  endif  -> disp# or -rex finish ;
+$10 cond: vs, vc,   u<, u>=,  0=, 0<>,  u<=, u>,   0<, 0>=,  ps, pc,   <,  >=,   <=,  >,
+$10 cond: o,  no,   b,  nb,   z,  nz,    be,  nbe,  s,  ns,   pe, po,   l,  nl,   le,  nle,
+: jmpIF  \ addr cond --
+  swap here 2+ - dup -$80 $80 within
+  if            -> disp $70 1
+  else  0F,  4- -> disp $80 4  endif  -> disp# or -rex finish ;
 : jmp:  builds c,  does c@ jmpIF ;
 : jmps  0 do  i jmp:  loop ;
-0x10 jmps jo, jno, jb, jnb, jz, jnz, jbe, jnbe, js, jns, jpe, jpo, jl, jnl, jle, jnle,
+$10 jmps jo, jno, jb, jnb, jz, jnz, jbe, jnbe, js, jns, jpe, jpo, jl, jnl, jle, jnle,
 
-// xchg                                                 22dec93py
+\ xchg                                                 22dec93py
 
-: setIF // r/m cond -- 
-  0 swap 0x90 or mod0F ;
-: set: // cond -- 
+: setIF \ r/m cond -- 
+  0 swap $90 or mod0F ;
+: set: \ cond -- 
   builds c,
   does  c@ setIF ;
-// n -- 
+\ n -- 
 : sets:   0 do  i set:  loop ;
-0x10 sets: seto, setno, setb, setnb, sete, setne, setna, seta, sets, setns, setpe, setpo, setl, setge, setle, setg,
-: xchg // r/m reg / reg r/m --
+$10 sets: seto, setno, setb, setnb, sete, setne, setna, seta, sets, setns, setpe, setpo, setl, setge, setle, setg,
+: xchg \ r/m reg / reg r/m --
   over rax = if  swap  endif  reg?  0= if  swap  endif  ?reg
   byte? 0=  if rax case?
-  if reg? if >reg 0x90 or finish exit endif  rax  endif endif
-  0x87 modfb ;
+  if reg? if >reg $90 or finish exit endif  rax  endif endif
+  $87 modfb ;
 
-: movx 0F, modfb ; // r/m reg opcode -- 
-: movsx, 0xBF movx ; // r/m reg --
-: movzx, 0xB7 movx ; // r/m reg --
+: movx 0F, modfb ; \ r/m reg opcode -- 
+: movsx, $BF movx ; \ r/m reg --
+: movzx, $B7 movx ; \ r/m reg --
 
-// misc                                                 16nov97py
+\ misc                                                 16nov97py
 
-: enter, 2 -> imm# 0xC8 -rex finish c, ; // imm8 --
-: arpl, swap 0x63 modf ; // reg r/m --
-0x62 modf: BOUND // mem reg --
+: enter, 2 -> imm# $C8 -rex finish c, ; \ imm8 --
+: arpl, swap $63 modf ; \ reg r/m --
+$62 modf: BOUND \ mem reg --
 
-: mod0F:  builds c,  does c@ mod0F ;   // r/m reg -- 
-0xBC mod0F: BSF
-0xBD mod0F: BSR
+: mod0F:  builds c,  does c@ mod0F ;   \ r/m reg -- 
+$BC mod0F: BSF
+$BD mod0F: BSR
 
-0x06 bc0F: clts,
-0x08 bc0F: invd,  0x09 bc0F: wbinvd,
+$06 bc0F: clts,
+$08 bc0F: invd,  $09 bc0F: wbinvd,
 
-: cmpxchg,  swap 0xA7 movx ; // reg r/m --
-: cmpxchg8b,   0x8 0xC7 movx ; // r/m --
-: bswap,       >reg 0xC8 or finish0F ; // reg --
-: xadd,    0xC1 movx ; // r/m reg --
+: cmpxchg,  swap $A7 movx ; \ reg r/m --
+: cmpxchg8b,   $8 $C7 movx ; \ r/m --
+: bswap,       >reg $C8 or finish0F ; \ reg --
+: xadd,    $C1 movx ; \ r/m reg --
 
-// misc                                                 20may93py
+\ misc                                                 20may93py
 
-: imul, // r/m reg --
+: imul, \ r/m reg --
   imm# 0=
   if  dup rax =  if  drop pimul exit  endif
-      0xAF mod0F exit  endif
-  >mod imm# 1 = if  0x6B  else  0x69  endif  finish ;
-: io  imm# if  1 -> imm#  else  0x8+  endif finishb ; // oc --
-: in,  0xE5 io ;
-: out, 0xE7 io ;
-: int, 1 -> imm# 0xCD finish ;
-: 0F.0: builds c, does c@ 0x00 -rex mod0F ; // r/m --
+      $AF mod0F exit  endif
+  >mod imm# 1 = if  $6B  else  $69  endif  finish ;
+: io  imm# if  1 -> imm#  else  $8+  endif finishb ; \ oc --
+: in,  $E5 io ;
+: out, $E7 io ;
+: int, 1 -> imm# $CD finish ;
+: 0F.0: builds c, does c@ $00 -rex mod0F ; \ r/m --
 00 0F.0: sldt,   11 0F.0: str,    22 0F.0: lldt,   33 0F.0: ltr,
 44 0F.0: verr,   55 0F.0: verw,
-: 0F.1: builds c, does c@ 0x01 -rex mod0F ; // r/m --
+: 0F.1: builds c, does c@ $01 -rex mod0F ; \ r/m --
 00 0F.1: sgdt,   11 0F.1: sidt,   22 0F.1: lgdt,   33 0F.1: lidt,
 44 0F.1: smsw,                    66 0F.1: lmsw,   77 0F.1: invlpg,
 
-// misc                                                 29mar94py
+\ misc                                                 29mar94py
 
-0x02 mod0F: lar, // r/m reg -- )
-0x8D modf:  lea, // m reg -- )
-0xC4 modf:  les, // m reg -- )
-0xC5 modf:  lds, // m reg -- )
-0xB2 mod0F: lss, // m reg -- )
-0xB4 mod0F: lfs, // m reg -- )
-0xB5 mod0F: lgs, // m reg -- )
-// Pentium/AMD K5 codes
-: cpuid, 0F, 0xA2 _c, ;
-: cmpchx8b, 0 0xC7 mod0F ; // m -- )
-: rdtsc, 0F, 0x31 _c, ;
-: rdmsr, 0F, 0x32 _c, ;
-: wrmsr, 0F, 0x30 _c, ;
-: rsm, 0F, 0xAA _c, ;
+$02 mod0F: lar, \ r/m reg -- )
+$8D modf:  lea, \ m reg -- )
+$C4 modf:  les, \ m reg -- )
+$C5 modf:  lds, \ m reg -- )
+$B2 mod0F: lss, \ m reg -- )
+$B4 mod0F: lfs, \ m reg -- )
+$B5 mod0F: lgs, \ m reg -- )
+\ Pentium/AMD K5 codes
+: cpuid, 0F, $A2 _c, ;
+: cmpchx8b, 0 $C7 mod0F ; \ m -- )
+: rdtsc, 0F, $31 _c, ;
+: rdmsr, 0F, $32 _c, ;
+: wrmsr, 0F, $30 _c, ;
+: rsm, 0F, $AA _c, ;
 
-// Floating point instructions                          22dec93py
+\ Floating point instructions                          22dec93py
 
-0xD8 bc: D8,   0xD9 bc: D9,   0xDA bc: DA,   0xDB bc: DB,
-0xDC bc: DC,   0xDD bc: DD,   0xDE bc: DE,   0xDF bc: DF,
+$D8 bc: D8,   $D9 bc: D9,   $DA bc: DA,   $DB bc: DB,
+$DC bc: DC,   $DD bc: DD,   $DE bc: DE,   $DF bc: DF,
 
 : D9: builds c, does D9, c@ finish ;
 
@@ -700,244 +700,244 @@ variable fsize
 : .fs   0 fsize ! ;  : .fl   4 fsize ! ;  : .fx   3 fsize ! ;
 : .fw   6 fsize ! ;  : .fd   2 fsize ! ;  : .fq   7 fsize ! ;
 .fx
-: fop:  builds c,  does  // fr/m -- )
+: fop:  builds c,  does  \ fr/m -- )
     c@ >r
-    st? dup 0< 0= if  swap r> >mod 2* 0xD8+ finish exit  endif
-    drop ?mem r> >mod 0xD8 fsize @ dup 1 and dup 2* + - +
+    st? dup 0< 0= if  swap r> >mod 2* $D8+ finish exit  endif
+    drop ?mem r> >mod $D8 fsize @ dup 1 and dup 2* + - +
     finish ;
 : f@!:
   builds c,
-  does  // fm -- 
-   c@ 0xD9 modf ;
+  does  \ fm -- 
+   c@ $D9 modf ;
 
-// Floating point instructions                          08jun92py
+\ Floating point instructions                          08jun92py
 
-0xD0 D9: fnop,
+$D0 D9: fnop,
 
-0xE0 D9: fchs,    0xE1 D9: fabs,
-0xE4 D9: ftst,    0xE5 D9: fxam,
-0xE8 D9: fld1,    0xE9 D9: fldl2t,  0xEA D9: fldl2e,  0xEB D9: fldpi,
-0xEC D9: fldlg2,  0xED D9: fldln2,  0xEE D9: fldz,
-0xF0 D9: f2xm1,   0xF1 D9: fyl2x,   0xF2 D9: fptan,   0xF3 D9: fpatan,
-0xF4 D9: fxtract, 0xF5 D9: fprem1,  0xF6 D9: fdecstp, 0xF7 D9: fincstp,
-0xF8 D9: fprem,   0xF9 D9: fyl2xp1, 0xFA D9: fsqrt,   0xFB D9: fsincos,
-0xFC D9: frndint, 0xFD D9: fscale,  0xFE D9: fsin,    0xFF D9: fcos,
+$E0 D9: fchs,    $E1 D9: fabs,
+$E4 D9: ftst,    $E5 D9: fxam,
+$E8 D9: fld1,    $E9 D9: fldl2t,  $EA D9: fldl2e,  $EB D9: fldpi,
+$EC D9: fldlg2,  $ED D9: fldln2,  $EE D9: fldz,
+$F0 D9: f2xm1,   $F1 D9: fyl2x,   $F2 D9: fptan,   $F3 D9: fpatan,
+$F4 D9: fxtract, $F5 D9: fprem1,  $F6 D9: fdecstp, $F7 D9: fincstp,
+$F8 D9: fprem,   $F9 D9: fyl2xp1, $FA D9: fsqrt,   $FB D9: fsincos,
+$FC D9: frndint, $FD D9: fscale,  $FE D9: fsin,    $FF D9: fcos,
 
-// Floating point instructions                          23jan94py
+\ Floating point instructions                          23jan94py
 
 00 fop: fadd,    11 fop: fmul,    22 fop: fcom,    33 fop: fcomp,
 44 fop: fsub,    55 fop: fsubr,   66 fop: fdiv,    77 fop: fdivr,
 
 : fcompp, 1 STP fcomp, ;
-: fbld,   44 0xD8 modf ; // fm -- )
-: fbstp,  66 0xDF modf ; // fm -- )
-: ffree,  00 0xDD modf ; // st -- )
-: fsave,  66 0xDD modf ; // fm -- )
-: frstor, 44 0xDD modf ; // fm -- )
-: finit,  DB, 0xE3 _c, ; // -- )
-: fxch,   11 0xD9 modf ; // st -- )
+: fbld,   44 $D8 modf ; \ fm -- )
+: fbstp,  66 $DF modf ; \ fm -- )
+: ffree,  00 $DD modf ; \ st -- )
+: fsave,  66 $DD modf ; \ fm -- )
+: frstor, 44 $DD modf ; \ fm -- )
+: finit,  DB, $E3 _c, ; \ -- )
+: fxch,   11 $D9 modf ; \ st -- )
 
 44 f@!: fldenv,  55 f@!: fldcw,   66 f@!: fstenv,  77 f@!: fstcw,
 
-// fild fst fstsw fucom                                 22may93py
-: fucom, ?st st? if 77 else 66 endif 0xDD modf ; // st -- )
-: fucompp, DA, 0xE9 _c, ;
-: fnclex,  DB, 0xE2 _c, ;
+\ fild fst fstsw fucom                                 22may93py
+: fucom, ?st st? if 77 else 66 endif $DD modf ; \ st -- )
+: fucompp, DA, $E9 _c, ;
+: fnclex,  DB, $E2 _c, ;
 : fclex,   fwait, fnclex, ;
-: fstsw, // r/m -- )
-  dup rax = if  44  else  ?mem 77  endif  0xDF modf ;
+: fstsw, \ r/m -- )
+  dup rax = if  44  else  ?mem 77  endif  $DF modf ;
 : f@!,  fsize @ 1 and if  drop  else  nip  endif
-    fsize @ 0xD9 or modf ;
-: fx@!, // mem/st l x -- 
+    fsize @ $D9 or modf ;
+: fx@!, \ mem/st l x -- 
   rot  st? 0=
-    if  swap 0xDD modf drop exit  endif  ?mem -rot
-    fsize @ 3 = if drop 0xDB modf exit endif  f@!, ;
-: fst,  // st/m -- 
+    if  swap $DD modf drop exit  endif  ?mem -rot
+    fsize @ 3 = if drop $DB modf exit endif  f@!, ;
+: fst,  \ st/m -- 
   st?  0=
-  if  22 0xDD modf exit  endif  ?mem 77 22 f@!, ;
-: fld,  st? 0= if 0 0xD9 modf exit endif 55 0 fx@!, ; // st/m -- )
-: fstp, 77 33 fx@!, ; // st/m -- )
+  if  22 $DD modf exit  endif  ?mem 77 22 f@!, ;
+: fld,  st? 0= if 0 $D9 modf exit endif 55 0 fx@!, ; \ st/m -- )
+: fstp, 77 33 fx@!, ; \ st/m -- )
 
-// PPro instructions                                    28feb97py
+\ PPro instructions                                    28feb97py
 
 
-: cmovIF 0x40 or mod0F ;  // r/m r flag -- )
+: cmovIF $40 or mod0F ;  \ r/m r flag -- )
 : cmov:  builds c, does c@ cmovIF ;
 : cmovs:  0 do  i cmov:  loop ;
-0x10 cmovs: cmovo,  cmovno,   cmovb,   cmovnb,   cmovz,  cmovnz,  cmovbe,  cmovnbe,   cmovs,  cmovns,   cmovpe,  cmovpo,   cmovl,  cmovnl,   cmovle,  cmovnle,
+$10 cmovs: cmovo,  cmovno,   cmovb,   cmovnb,   cmovz,  cmovnz,  cmovbe,  cmovnbe,   cmovs,  cmovns,   cmovpe,  cmovpo,   cmovl,  cmovnl,   cmovle,  cmovnle,
 
-// MMX/SSE2 opcodes                            02mar97py/14aug10dk
+\ MMX/SSE2 opcodes                            02mar97py/14aug10dk
 
     300 7 regs    mm0   mm1   mm2   mm3   mm4   mm5   mm6   mm7
     300 7 xmmregs xmm0  xmm1  xmm2  xmm3  xmm4  xmm5  xmm6  xmm7
 0200300 7 xmmregs xmm8  xmm9  xmm10 xmm11 xmm12 xmm13 xmm14 xmm15
-: mmx  -rex  dquad?  0x660000 and or modxx0f ;
-: mmx:  builds c,  does c@  mmx ;   // code -- 
+: mmx  -rex  dquad?  $660000 and or modxx0f ;
+: mmx:  builds c,  does c@  mmx ;   \ code -- 
 : mmxs ?do  i mmx:  loop ;
 
-0x64 0x60 mmxs punpcklbw, punpcklwd, punockldq, packusdw,
-0x68 0x64 mmxs pcmpgtb, pcmpgtw, pcmpgtd, packsswb,
-0x6C 0x68 mmxs punpckhbw, punpckhwd, punpckhdq, packssdw,
-0x78 0x74 mmxs pcmpeqb, pcmpeqw, pcmpeqd, emms,
-0xDA 0xD8 mmxs psubusb, psubusw,
-0xEA 0xE8 mmxs psubsb, psubsw,
-0xFB 0xF8 mmxs psubb, psubw, psubd,
-0xDE 0xDC mmxs paddusb, paddusw,
-0xEE 0xEC mmxs paddsb, paddsw,
-0xFF 0xFC mmxs paddb, paddw, paddd,
+$64 $60 mmxs punpcklbw, punpcklwd, punockldq, packusdw,
+$68 $64 mmxs pcmpgtb, pcmpgtw, pcmpgtd, packsswb,
+$6C $68 mmxs punpckhbw, punpckhwd, punpckhdq, packssdw,
+$78 $74 mmxs pcmpeqb, pcmpeqw, pcmpeqd, emms,
+$DA $D8 mmxs psubusb, psubusw,
+$EA $E8 mmxs psubsb, psubsw,
+$FB $F8 mmxs psubb, psubw, psubd,
+$DE $DC mmxs paddusb, paddusw,
+$EE $EC mmxs paddsb, paddsw,
+$FF $FC mmxs paddb, paddw, paddd,
 
-// MMX/SSE2 opcodes                            02mar97py/14aug10dk
+\ MMX/SSE2 opcodes                            02mar97py/14aug10dk
 
-0xD5 mmx:   pmullw,               0xE5 mmx:   pmulhw,
-0xF5 mmx:   pmaddwd,
-0xDB mmx:   pand,                 0xDF mmx:   pandn,
-0xEB mmx:   por,                  0xEF mmx:   pxor,
-: pshift // mmx imm/m mod op --
-  imm# if  1 -> imm#  else  + 0x50+  endif  mmx ;
-: dqshift  // xmm imm mod op --
+$D5 mmx:   pmullw,               $E5 mmx:   pmulhw,
+$F5 mmx:   pmaddwd,
+$DB mmx:   pand,                 $DF mmx:   pandn,
+$EB mmx:   por,                  $EF mmx:   pxor,
+: pshift \ mmx imm/m mod op --
+  imm# if  1 -> imm#  else  + $50+  endif  mmx ;
+: dqshift  \ xmm imm mod op --
    dquad? imm# and 0= if "Usage  xmm<NN> imm # <opcode>" error exit endif
    pshift ;
-: psrlw,   020 0x71 pshift ;  // mmx imm/m --
-: psrld,   020 0x72 pshift ;  // mmx imm/m --
-: psrlq,   020 0x73 pshift ;  // mmx imm/m --
-: psraw,   040 0x71 pshift ;  // mmx imm/m --
-: psrad,   040 0x72 pshift ;  // mmx imm/m --
-: psllw,   060 0x71 pshift ;  // mmx imm/m --
-: pslld,   060 0x72 pshift ;  // mmx imm/m --
-: psllq,   060 0x73 pshift ;  // mmx imm/m --
-: psrldq,  030 0x73 dqshift ; // xmm imm --   shifts by bytes, not bits!
-: pslldq,  070 0x73 dqshift ; // xmm imm --
+: psrlw,   020 $71 pshift ;  \ mmx imm/m --
+: psrld,   020 $72 pshift ;  \ mmx imm/m --
+: psrlq,   020 $73 pshift ;  \ mmx imm/m --
+: psraw,   040 $71 pshift ;  \ mmx imm/m --
+: psrad,   040 $72 pshift ;  \ mmx imm/m --
+: psllw,   060 $71 pshift ;  \ mmx imm/m --
+: pslld,   060 $72 pshift ;  \ mmx imm/m --
+: psllq,   060 $73 pshift ;  \ mmx imm/m --
+: psrldq,  030 $73 dqshift ; \ xmm imm --   shifts by bytes, not bits!
+: pslldq,  070 $73 dqshift ; \ xmm imm --
 
-// MMX opcodes                                         27jun99beu
+\ MMX opcodes                                         27jun99beu
 
-// mmxreg --> mmxreg move
-// (dk)this misses the reg->mem move, redefined in the SSE part below
-// 0x6F mod0F: movq,
+\ mmxreg --> mmxreg move
+\ (dk)this misses the reg->mem move, redefined in the SSE part below
+\ $6F mod0F: movq,
 
-// memory/reg32 --> mmxreg load
-0x6F mmx: pldq,  // Intel: MOVQ mm,m64
-0x6E mmx: pldd,  // Intel: MOVD mm,m32/r
+\ memory/reg32 --> mmxreg load
+$6F mmx: pldq,  \ Intel: MOVQ mm,m64
+$6E mmx: pldd,  \ Intel: MOVD mm,m32/r
 
-// mmxreg --> memory/reg32
-: pstq, swap  0x7F mod0F ; // mm m64   --   // Intel: MOVQ m64,mm
-: pstd, swap  0x7E mod0F ; // mm m32/r --  // Intel: MOVD m32/r,mm
+\ mmxreg --> memory/reg32
+: pstq, swap  $7F mod0F ; \ mm m64   --   \ Intel: MOVQ m64,mm
+: pstd, swap  $7E mod0F ; \ mm m32/r --  \ Intel: MOVD m32/r,mm
 
-// 3Dnow! opcodes (K6)                                  21apr00py
-: ib!  assembler:# 1 -> imm# ; // code --
-: mod0F#  ib! mod0F ;   // code imm --
-: 3Dnow:  builds c,  does -rex 0x0f swap c@ mod0F# ;   // imm --
-0x0D 3Dnow: pi2fd,                0x1D 3Dnow: pf2id,
-0x90 3Dnow: pfcmpge,              0xA0 3Dnow: pfcmpgt,
-0x94 3Dnow: pfmin,                0xA4 3Dnow: pfmax,
-0x96 3Dnow: pfrcp,                0xA6 3Dnow: pfrcpit1,
-0x97 3Dnow: pfrsqrt,              0xA7 3Dnow: pfrsqit1,
-0x9A 3Dnow: pfsub,                0xAA 3Dnow: pfsubr,
-0x9E 3Dnow: pfadd,                0xAE 3Dnow: pfacc,
-0xB0 3Dnow: pfcmpeq,              0xB4 3Dnow: pfmul,
-0xB6 3Dnow: pfrcpit2,             0xB7 3Dnow: pmulhrw,
-0xBF 3Dnow: pavgusb,
+\ 3Dnow! opcodes (K6)                                  21apr00py
+: ib!  assembler:# 1 -> imm# ; \ code --
+: mod0F#  ib! mod0F ;   \ code imm --
+: 3Dnow:  builds c,  does -rex $0f swap c@ mod0F# ;   \ imm --
+$0D 3Dnow: pi2fd,                $1D 3Dnow: pf2id,
+$90 3Dnow: pfcmpge,              $A0 3Dnow: pfcmpgt,
+$94 3Dnow: pfmin,                $A4 3Dnow: pfmax,
+$96 3Dnow: pfrcp,                $A6 3Dnow: pfrcpit1,
+$97 3Dnow: pfrsqrt,              $A7 3Dnow: pfrsqit1,
+$9A 3Dnow: pfsub,                $AA 3Dnow: pfsubr,
+$9E 3Dnow: pfadd,                $AE 3Dnow: pfacc,
+$B0 3Dnow: pfcmpeq,              $B4 3Dnow: pfmul,
+$B6 3Dnow: pfrcpit2,             $B7 3Dnow: pmulhrw,
+$BF 3Dnow: pavgusb,
 
-: femms,  -rex 0x0E finish0F ;
-: prefetch,  -rex 000 0x0D mod0F ;    : prefetchw,  -rex 010 0x0D mod0F ;
+: femms,  -rex $0E finish0F ;
+: prefetch,  -rex 000 $0D mod0F ;    : prefetchw,  -rex 010 $0D mod0F ;
 
-// 3Dnow!+MMX/SSE2 opcodes (Athlon/Athlon64)   21apr00py/14aug10dk
+\ 3Dnow!+MMX/SSE2 opcodes (Athlon/Athlon64)   21apr00py/14aug10dk
 
-0xF7 mmx:   maskmovq,             0xE7 mmx:   movntq,
-0xE0 mmx:   pavgb,                0xE3 mmx:   pavgw,
-0xC5 mmx:   pextrw,               0xC4 mmx:   pinsrw,
-0xEE mmx:   pmaxsw,               0xDE mmx:   pmaxub,
-0xEA mmx:   pminsw,               0xDA mmx:   pminub,
-0xD7 mmx:   pmovmskb,             0xE4 mmx:   pmulhuw,
-0xF6 mmx:   psadbw,               0x70 mmx:   pshufw,
+$F7 mmx:   maskmovq,             $E7 mmx:   movntq,
+$E0 mmx:   pavgb,                $E3 mmx:   pavgw,
+$C5 mmx:   pextrw,               $C4 mmx:   pinsrw,
+$EE mmx:   pmaxsw,               $DE mmx:   pmaxub,
+$EA mmx:   pminsw,               $DA mmx:   pminub,
+$D7 mmx:   pmovmskb,             $E4 mmx:   pmulhuw,
+$F6 mmx:   psadbw,               $70 mmx:   pshufw,
 
-0x0C 3Dnow: pi2fw,                0x1C 3Dnow: pf2iw,
-0x8A 3Dnow: pfnacc,               0x8E 3Dnow: pfpnacc,
-0xBB 3Dnow: pswabd,               : sfence,   .d 0xae 0xf8 ib! finish0F ;
-: prefetchnta,  .d 000 0x18 mod0F ;  : prefetcht0,  .d 010 0x18 mod0F ;
-: prefetcht1,   .d 020 0x18 mod0F ;  : prefetcht2,  .d 030 0x18 mod0F ;
+$0C 3Dnow: pi2fw,                $1C 3Dnow: pf2iw,
+$8A 3Dnow: pfnacc,               $8E 3Dnow: pfpnacc,
+$BB 3Dnow: pswabd,               : sfence,   .d $ae $f8 ib! finish0F ;
+: prefetchnta,  .d 000 $18 mod0F ;  : prefetcht0,  .d 010 $18 mod0F ;
+: prefetcht1,   .d 020 $18 mod0F ;  : prefetcht2,  .d 030 $18 mod0F ;
 
-// MMX/SSE/SSE2 moves                                     12aug10dk
+\ MMX/SSE/SSE2 moves                                     12aug10dk
 
-: movxx  // mod opcode1-regdst opcode2-memdst rex&mmx? --
+: movxx  \ mod opcode1-regdst opcode2-memdst rex&mmx? --
    >r >r >r
    reg>mod 3 = if r> r> drop else  r> r>  nip then
-   r@ 1 and if dquad? 0x660000 and or then
+   r@ 1 and if dquad? $660000 and or then
    r> 2 and 0= if -rex then
    finishxx0f ;
    
-: movxx:  // opcode1-regdst opcode2-memdst rex&mmx? --
+: movxx:  \ opcode1-regdst opcode2-memdst rex&mmx? --
   builds , 2,
-  does  // xmm1 xmm2/mem | xmm1/mem xmm2   a-addr --
+  does  \ xmm1 xmm2/mem | xmm1/mem xmm2   a-addr --
    dup @  swap cell+ 2@  rot  movxx ;
 
-0x0f10   0x0f11   0 movxx: movups,   0x660f10 0x660f11 0 movxx: movupd,
-0x0f12   0x0f13   0 movxx: movlps,   0x660f12 0x660f13 0 movxx: movlpd,
-0x0f16   0x0f17   0 movxx: movhps,   0x660f16 0x660f17 0 movxx: movhpd,
-0x0f28   0x0f29   0 movxx: movaps,   0x660f28 0x660f29 0 movxx: movapd,
-0xf30f10 0xf30f11 0 movxx: movss,    0xf20f10 0xf20f11 0 movxx: movsd,   
-0x660f6f 0x660f7f 0 movxx: movdqa,   0xf30f6f 0xf30f7f 0 movxx: movdqu,
-0x0f6e   0x0f7e   3 movxx: movd,   // use .d/.q prefix to select operand size!
+$0f10   $0f11   0 movxx: movups,   $660f10 $660f11 0 movxx: movupd,
+$0f12   $0f13   0 movxx: movlps,   $660f12 $660f13 0 movxx: movlpd,
+$0f16   $0f17   0 movxx: movhps,   $660f16 $660f17 0 movxx: movhpd,
+$0f28   $0f29   0 movxx: movaps,   $660f28 $660f29 0 movxx: movapd,
+$f30f10 $f30f11 0 movxx: movss,    $f20f10 $f20f11 0 movxx: movsd,   
+$660f6f $660f7f 0 movxx: movdqa,   $f30f6f $f30f7f 0 movxx: movdqu,
+$0f6e   $0f7e   3 movxx: movd,   \ use .d/.q prefix to select operand size!
 
 : maskmovdqu,  .dq maskmovq, ;
 : movq,  ( xmm/mmx mmx/xmm/mem64 | mmx/xmm/mem64 xmm/mmx )
-   dquad? if  0xf30f7e 0x660fd6
-   else           0x0f6f   0x0f7f then  0 movxx ;
+   dquad? if  $f30f7e $660fd6
+   else           $0f6f   $0f7f then  0 movxx ;
 
-// SSE floating point arithmetic                          12aug10dk
-: sse:  // opc1 rex? "name" --
+\ SSE floating point arithmetic                          12aug10dk
+: sse:  \ opc1 rex? "name" --
   builds swap , c,
-   does  // xmm1 xmm2/mem a-addr --
+   does  \ xmm1 xmm2/mem a-addr --
    dup @  swap cell+ c@ 0= if -rex then   modxx0f ;
-: sses  // prefixN..prefix1 opc n "name1" ... "nameN"  --
-   0 do   swap 0x10 lshift over or  0 sse:  loop  drop ;
-: sse2xa 0x66 0x00 rot 2 sses ; // opc "name1" "name2-66"  --
-: sse2xb 0xf2 0xf3 rot 2 sses ; // opc "name1-f3" "name2-f2"  --
-: sse2xc 0x66 0xf2 rot 2 sses ; // opc "name1-f3" "name2-f2"  --
-: sse4x  dup sse2xa sse2xb ;    // opc "name1" "name4"  --
+: sses  \ prefixN..prefix1 opc n "name1" ... "nameN"  --
+   0 do   swap $10 lshift over or  0 sse:  loop  drop ;
+: sse2xa $66 $00 rot 2 sses ; \ opc "name1" "name2-66"  --
+: sse2xb $f2 $f3 rot 2 sses ; \ opc "name1-f3" "name2-f2"  --
+: sse2xc $66 $f2 rot 2 sses ; \ opc "name1-f3" "name2-f2"  --
+: sse4x  dup sse2xa sse2xb ;    \ opc "name1" "name4"  --
 
-0x0f58 sse4x addps, addpd, addss, addsd,
-0x0f5c sse4x subps, subpd, subss, subsd, 
-0x0f5f sse4x maxps, maxpd, maxss, maxsd,
-0x0f5d sse4x minps, minpd, minss, minsd,
-0x0f59 sse4x mulps, mulpd, mulss, mulsd,
-0x0f5e sse4x divps, divpd, divss, divsd,
-0x0f54 sse2xa andps, andpd,
-0x0f55 sse2xa andnps, andnpd,
-0x0f56 sse2xa orps, orpd,
-0x0f57 sse2xa xorps, xorpd,
-0x0f2e sse2xa ucomiss, ucomisd,
-0x0f2f sse2xa comiss, comisd,
-0x0f5b sse2xa cvtdq2ps, cvtps2dq,   0xf30f5b 0 sse: cvttps2dq,
-0x0fe6 sse2xb cvtdq2pd, cvtpd2dq,   0x660f5b 0 sse: cvttpd2dq, 
-0x0f2d sse2xa cvtps2pi, cvtpd2pi,   
-0x0f2a sse2xa cvtpi2ps, cvtpi2pd,   
-// these take .d/.q size prefix:
-0xf30f2d 1 sse: cvtss2si,
-0xf20f2d 1 sse: cvtsd2si,
-0xf20f2a 1 sse: cvtsi2sd,
-0xf30f2a 1 sse: cvtsi2ss,
+$0f58 sse4x addps, addpd, addss, addsd,
+$0f5c sse4x subps, subpd, subss, subsd, 
+$0f5f sse4x maxps, maxpd, maxss, maxsd,
+$0f5d sse4x minps, minpd, minss, minsd,
+$0f59 sse4x mulps, mulpd, mulss, mulsd,
+$0f5e sse4x divps, divpd, divss, divsd,
+$0f54 sse2xa andps, andpd,
+$0f55 sse2xa andnps, andnpd,
+$0f56 sse2xa orps, orpd,
+$0f57 sse2xa xorps, xorpd,
+$0f2e sse2xa ucomiss, ucomisd,
+$0f2f sse2xa comiss, comisd,
+$0f5b sse2xa cvtdq2ps, cvtps2dq,   $f30f5b 0 sse: cvttps2dq,
+$0fe6 sse2xb cvtdq2pd, cvtpd2dq,   $660f5b 0 sse: cvttpd2dq, 
+$0f2d sse2xa cvtps2pi, cvtpd2pi,   
+$0f2a sse2xa cvtpi2ps, cvtpi2pd,   
+\ these take .d/.q size prefix:
+$f30f2d 1 sse: cvtss2si,
+$f20f2d 1 sse: cvtsd2si,
+$f20f2a 1 sse: cvtsi2sd,
+$f30f2a 1 sse: cvtsi2ss,
 
-// 0x0f5e sse2xa divps divpd \ already defined above
-0x0f7c sse2xc haddps, haddpd,
-0x0f7d sse2xc hsubps, hsubpd,
-0x0fd0 sse2xc addsubps, addsubpd,
+\ $0f5e sse2xa divps divpd \ already defined above
+$0f7c sse2xc haddps, haddpd,
+$0f7d sse2xc hsubps, hsubpd,
+$0fd0 sse2xc addsubps, addsubpd,
 
-: cmp: // opc #cmp "name" --
+: cmp: \ opc #cmp "name" --
    builds swap , c,
-   does  // xmm1/mem xmm2 a-addr --
+   does  \ xmm1/mem xmm2 a-addr --
    dup @ swap cell+ c@ ib! -rex modxx0f ;
-: cmps:  0x8 0 do  dup i cmp: loop  drop ;    // opc "name1" ... "name8" --
-  0x0fc2 cmps: cmpeqps, cmpltps, cmpleps, cmpunordps, cmpneqps, cmpnltps, cmpnleps, cmpordps,
-0x660fc2 cmps: cmpeqpd, cmpltpd, cmplepd, cmpunordpd, cmpneqpd, cmpnltpd, cmpnlepd, cmpordpd,
-0xf30fc2 cmps: cmpeqss, cmpltss, cmpless, cmpunordss, cmpneqss, cmpnltss, cmpnless, cmpordss,
-0xf20fc2 cmps: cmpeqsd, cmpltsd, cmplesd, cmpunordsd, cmpneqsd, cmpnltsd, cmpnlesd, cmpordsd,
+: cmps:  $8 0 do  dup i cmp: loop  drop ;    \ opc "name1" ... "name8" --
+  $0fc2 cmps: cmpeqps, cmpltps, cmpleps, cmpunordps, cmpneqps, cmpnltps, cmpnleps, cmpordps,
+$660fc2 cmps: cmpeqpd, cmpltpd, cmplepd, cmpunordpd, cmpneqpd, cmpnltpd, cmpnlepd, cmpordpd,
+$f30fc2 cmps: cmpeqss, cmpltss, cmpless, cmpunordss, cmpneqss, cmpnltss, cmpnless, cmpordss,
+$f20fc2 cmps: cmpeqsd, cmpltsd, cmplesd, cmpunordsd, cmpneqsd, cmpnltsd, cmpnlesd, cmpordsd,
 
-// Assembler Conditionals                               22dec93py
-// cond -- ~cond
+\ Assembler Conditionals                               22dec93py
+\ cond -- ~cond
 : ~cond         1 xor ;
-// start dest --- offbyte
+\ start dest --- offbyte
 : >offset       swap  2+ -  ?brange ;
-// cond -- here 
+\ cond -- here 
 : if,           here dup 2+ rot  ~cond  jmpIF ;
 : endif,        dup here >offset swap 1+ c! ;
 alias then, endif,
@@ -964,37 +964,37 @@ alias rfp r13
 alias rpsp r14
 alias rrp r15
 
-// wrap the existing definition of "code" with op which pushes assembler vocab on search stack
+\ wrap the existing definition of "code" with op which pushes assembler vocab on search stack
 also forth definitions
 : code
   code
-  also assembler		// push assembler vocab on top of search stack
+  also assembler		\ push assembler vocab on top of search stack
   sclear
 ;
 
-// subroutines must have a "endcode" after its return instruction to pop assembler stack
+\ subroutines must have a "endcode" after its return instruction to pop assembler stack
 : subroutine
   create
-  also assembler		// push assembler vocab on top of search stack
+  also assembler		\ push assembler vocab on top of search stack
   sclear
 ;
 
 previous definitions
 
-// exit from a forthop defined by "code"
+\ exit from a forthop defined by "code"
 : next,
   rnext jmp,
-  previous				// pop assembler vocab off search stack
+  previous				\ pop assembler vocab off search stack
 ;
 
-// use endcode to end subroutines and "code" forthops which don't end with "next,"
+\ use endcode to end subroutines and "code" forthops which don't end with "next,"
 : endcode
-  previous				// pop assembler vocab off search stack
+  previous				\ pop assembler vocab off search stack
 ;
 
 
 0 #if
-// inline assembly support
+\ inline assembly support
 
 code _inlineAsm
   esi eax mov,
@@ -1026,37 +1026,37 @@ precedence asm[
 #endif
 
 enum: eForthCore
-  0x00 _optypeAction
-  0x08 _numBuiltinOps
-  0x10 _ops
-  0x18 _numOps
-  0x20 _maxOps
-  0x28 _pEngine
-  0x30 _IP
-  0x38 _SP
-  0x40 _RP
-  0x48 _FP
-  0x50 _TPM
-  0x50 _varMode
-  0x60 _state
-  0x68 _error
-  0x70 _SB
-  0x78 _ST
-  0x80 _SLen
-  0x88 _RB
-  0x90 _RT
-  0x98 _RLen
-  0xa0 _pThread
-  0xa8 _pDictionary
-  0xb0 _pFileFuncs
-  0xb8 _innerLoop
-  0xc0 _innerExecute
-  0xc8 _consoleOutStream
-  0xd0 _base
-  0xd8 _signedPrintMode
-  0xe0 _traceFlags
-  0xe8 _pExceptionFrame
-  0xf0 _scratch
+  $00 _optypeAction
+  $08 _numBuiltinOps
+  $10 _ops
+  $18 _numOps
+  $20 _maxOps
+  $28 _pEngine
+  $30 _IP
+  $38 _SP
+  $40 _RP
+  $48 _FP
+  $50 _TPM
+  $50 _varMode
+  $60 _state
+  $68 _error
+  $70 _SB
+  $78 _ST
+  $80 _SLen
+  $88 _RB
+  $90 _RT
+  $98 _RLen
+  $a0 _pThread
+  $a8 _pDictionary
+  $b0 _pFileFuncs
+  $b8 _innerLoop
+  $c0 _innerExecute
+  $c8 _consoleOutStream
+  $d0 _base
+  $d8 _signedPrintMode
+  $e0 _traceFlags
+  $e8 _pExceptionFrame
+  $f0 _scratch
 ;enum
 
 base !
@@ -1159,16 +1159,16 @@ is in esi and the TOS is in ebx):
          Next
      end-code
 
-	0x80 # ebx mov,
-	0x80 # .w ebx mov,
-	0x80 # .w esi mov,
-	0x80 # si mov,
-	0x80 # di mov,
-	0x80 # bp mov,
-	0x80 # sp mov,
-	0x80 # .d ebx mov,
-	0x80 # .b ebx mov,
-	// 
+	$80 # ebx mov,
+	$80 # .w ebx mov,
+	$80 # .w esi mov,
+	$80 # si mov,
+	$80 # di mov,
+	$80 # bp mov,
+	$80 # sp mov,
+	$80 # .d ebx mov,
+	$80 # .b ebx mov,
+	\ 
 	[ebx+esi] eax mov,
 	[ebx+edi] eax mov,
 	[ebp+esi] eax mov,

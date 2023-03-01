@@ -5069,36 +5069,6 @@ FORTHOP( strWordOp )
 }
 
 // has precedence!
-// inline comment using "/*"
-FORTHOP( commentOp )
-{
-    NEEDS( 0 );
-    Shell *pShell = GET_ENGINE->GetShell();
-    InputStack* pInput = pShell->GetInput();
-    const char *pBuffer = pInput->GetBufferPointer();
-    const char *pEnd = strstr( pBuffer, "*/" );
-    if ( pInput->Top()->IsInteractive() && (pEnd == NULL) )
-    {
-        // in interactive mode, comment can't span lines
-        pShell->GetToken( 0 );
-    }
-	while ( pEnd == NULL )
-	{
-		const char *pLine = pShell->GetInput()->GetLine("");
-		if ( pLine == NULL )
-		{
-			break;
-		}
-		pBuffer = pShell->GetInput()->GetBufferPointer();
-	    pEnd = strstr( pBuffer, "*/" );
-	}
-    if ( pEnd != NULL )
-    {
-        pInput->SetBufferPointer( pEnd + 2 );
-    }
-}
-
-// has precedence!
 // comment to end of line using "\"
 FORTHOP( slashCommentOp )
 {
@@ -10422,7 +10392,6 @@ baseDictionaryEntry baseDictionary[] =
     ///////////////////////////////////////////
     OP_DEF(    blwordOp,               "blword" ),
     OP_DEF(    strWordOp,              "$word" ),
-    PRECOP_DEF(commentOp,              "/*" ),
     PRECOP_DEF(parenCommentOp,         "(" ),
     PRECOP_DEF(slashCommentOp,         "\\" ),
     OP_DEF(    sourceOp,               "source" ),

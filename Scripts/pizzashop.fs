@@ -65,7 +65,7 @@ class: AsyncPizzaDriver
   -> int pizzasMade
   -> int pizzasPerDriver
   -> int numDrivers
-  AsyncPizzaDriver izzy  // call me Ishmael, izzy for short.
+  AsyncPizzaDriver izzy  \ call me Ishmael, izzy for short.
   numDrivers pizzasPerDriver * pizzasMade - -> int pizzasToMake
   system.createAsyncLock -> printLock
   system.createAsyncLock -> asyncDeliveredCountLock
@@ -183,7 +183,7 @@ class: PizzaDriver
   -> int pizzasMade
   -> int pizzasPerDriver
   -> int numDrivers
-  PizzaDriver izzy  // call me Ishmael, izzy for short.
+  PizzaDriver izzy  \ call me Ishmael, izzy for short.
   numDrivers pizzasPerDriver * pizzasMade - -> int pizzasToMake
   system.createAsyncLock -> printLock
   system.createAsyncLock -> deliveredCountLock

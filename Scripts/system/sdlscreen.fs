@@ -23,7 +23,7 @@ class: SDLSurface
     freeSurface
   ;m
   
-  m: imageLoad  // takes ptr to image filename string
+  m: imageLoad  \ takes ptr to image filename string
     freeSurface
     IMG_Load surface!
   ;m
@@ -32,7 +32,7 @@ class: SDLSurface
     "Error: " %s %s " - " %s SDL_GetError %s %nl
   ;m
   
-  m: checkError  // take error flag on TOS
+  m: checkError  \ take error flag on TOS
     swap
     if
       reportError
@@ -55,9 +55,9 @@ enum: SDLScreenOriginMode
 
 class: SDLScreen extends SDLSurface
 
-  cell window           // SDL_Window
-  cell renderer         // SDL_Renderer
-  cell windowTexture    // SDL_Texture
+  cell window           \ SDL_Window
+  cell renderer         \ SDL_Renderer
+  cell windowTexture    \ SDL_Texture
 
   int width
   int height
@@ -82,9 +82,9 @@ class: SDLScreen extends SDLSurface
   int curY
   int bytesPerPixel
   int bytesPerRow
-  SDLScreenOriginMode originMode  // must be set before init or initWithSize
-  int xPitch        // like bytesPerPixel, but takes x axis orientation into account
-  int yPitch        // like bytesPerRow, but takes y axis orientation into account
+  SDLScreenOriginMode originMode  \ must be set before init or initWithSize
+  int xPitch        \ like bytesPerPixel, but takes x axis orientation into account
+  int yPitch        \ like bytesPerRow, but takes y axis orientation into account
   cell mFont
   String mFontFile
   int mFontSize
@@ -95,7 +95,7 @@ class: SDLScreen extends SDLSurface
     mFontFile~
   ;m
   
-  m: imageLoad  // takes ptr to image filename string
+  m: imageLoad  \ takes ptr to image filename string
     IMG_Load ptrTo SDL_Surface srcSurface!
     SDL_BlitSurface(srcSurface surface null null)
     checkError("SDL_BlitSurface")
@@ -119,7 +119,7 @@ class: SDLScreen extends SDLSurface
     
     ['] dummyFetchOp _getPixel!
     ['] 2drop dup _setPixel! _setRawPixel!
-    0x00FFFF00 pixelColor!
+    $00FFFF00 pixelColor!
     
     defaultWindowBytesPerPixel bytesPerPixel!
     bytesPerPixel width * bytesPerRow!
@@ -143,12 +143,12 @@ class: SDLScreen extends SDLSurface
   m: setOriginMode
     originMode!
     if(originMode kScreenOriginTopLeft =)
-      // set coordinates so top left of screen is 0,0 and positive Y is down
+      \ set coordinates so top left of screen is 0,0 and positive Y is down
       centerX~   width rightLimit!     leftLimit~
       centerY~   height bottomLimit!   topLimit~
       surface.pitch yPitch!
     else
-      // set coordinates so center of screen is 0,0 and positive Y is up
+      \ set coordinates so center of screen is 0,0 and positive Y is up
       width 2/ centerX!     rightLimit negate leftLimit!
       height 2/ centerY!    bottomLimit negate topLimit!
       surface.pitch negate yPitch!
@@ -162,7 +162,7 @@ class: SDLScreen extends SDLSurface
     + minPixelAddr + centerPixelAddr!
   ;m
   
-  m: selectFont // fontFilename fontSize ...
+  m: selectFont \ fontFilename fontSize ...
     mFontSize!
     mFontFile.set
 
@@ -182,7 +182,7 @@ class: SDLScreen extends SDLSurface
     fullPath~
   ;m
   
-  m: selectFontSize // fontSize ...
+  m: selectFontSize \ fontSize ...
     mFontSize!
 
     mko String fullPath
@@ -216,46 +216,46 @@ class: SDLScreen extends SDLSurface
   
     SDL_Init(SDL_INIT_VIDEO) checkError("start: SDL_Init")
     
-    //SDL_GetVideoInfo ptrTo SDL_VideoInfo videoInfo!
-    //"SDL_GetVideoInfo returns " %s videoInfo.current_w %d "x" %s videoInfo.current_h %d %bl
-    //videoInfo.vfmt.BitsPerPixel %d " bits/pixel " %s %bl videoInfo.video_mem %d " bytes of video memory\n" %s
+    \ SDL_GetVideoInfo ptrTo SDL_VideoInfo videoInfo!
+    \ "SDL_GetVideoInfo returns " %s videoInfo.current_w %d "x" %s videoInfo.current_h %d %bl
+    \ videoInfo.vfmt.BitsPerPixel %d " bits/pixel " %s %bl videoInfo.video_mem %d " bytes of video memory\n" %s
    
-    //initLimits( videoInfo.current_w videoInfo.current_h )
+    \ initLimits( videoInfo.current_w videoInfo.current_h )
     
-    //SDL_SetVideoMode( width height 0 SDL_SWSURFACE ) surface!
+    \ SDL_SetVideoMode( width height 0 SDL_SWSURFACE ) surface!
     
-    //SDL_CreateWindow( "My Game Window" SDL_WINDOWPOS_UNDEFINED_MASK SDL_WINDOWPOS_UNDEFINED_MASK width height SDL_WINDOW_SHOWN ) window!
+    \ SDL_CreateWindow( "My Game Window" SDL_WINDOWPOS_UNDEFINED_MASK SDL_WINDOWPOS_UNDEFINED_MASK width height SDL_WINDOW_SHOWN ) window!
     if(SDL_CreateWindowAndRenderer(width height 0 window& renderer&))
       reportError("SDLScreen:start - SDL_CreateWindowAndRenderer")
     else
 
       SDL_CreateRGBSurface(SDL_SWSURFACE width height bytesPerPixel 8 * 0 0 0 0) surface!
       checkError(surface 0= "SDLScreen:start - SDL_CreateRGBSurface")
-      //SDL_CreateRenderer(window -1 0) renderer!
+      \ SDL_CreateRenderer(window -1 0) renderer!
       SDL_CreateTexture(renderer SDL_PIXELFORMAT_ARGB8888 SDL_TEXTUREACCESS_STREAMING width height) windowTexture!
       checkError(windowTexture 0= "SDLScreen:start - SDL_CreateTexture of windowTexture")
 
-      //surface %x %bl renderer %x %bl windowTexture %x %nl
-      //surface.format.BitsPerPixel
-      //"bits per pixel: " %s dup %d %nl
+      \ surface %x %bl renderer %x %bl windowTexture %x %nl
+      \ surface.format.BitsPerPixel
+      \ "bits per pixel: " %s dup %d %nl
       bytesPerPixel
       case
         of( 1 )
           ['] c@ _getPixel!
           ['] c! dup _setPixel! _setRawPixel!
-          0x55 pixelColor!
+          $55 pixelColor!
         endof
         of( 2 )
           ['] s@ _getPixel!
           ['] s! dup _setPixel! _setRawPixel!
-          0x5555 pixelColor!
+          $5555 pixelColor!
         endof
         of( 4 )
           ['] i@ _getPixel!
           ['] i! dup _setPixel! _setRawPixel!
-          0x00FFFF00 pixelColor!
+          $00FFFF00 pixelColor!
         endof
-        // unhandled pixel size
+        \ unhandled pixel size
         ['] dummyFetchOp _getPixel!
         ['] 2drop dup _setPixel! _setRawPixel!
         "startSDL: Unhandled pixel size " %s dup %d %nl
@@ -263,13 +263,13 @@ class: SDLScreen extends SDLSurface
 
       setOriginMode(originMode)
       
-      // setup draw count and full-screen dirty rect for beginDraw/endDraw
+      \ setup draw count and full-screen dirty rect for beginDraw/endDraw
       width srcPos.w!
       height srcPos.h!
       width dstPos.w!
       height dstPos.h!
       drawDepth~
-      // Initialize SDL_ttf library
+      \ Initialize SDL_ttf library
       TTF_Init
       checkError("SDLScreen:start - TTF_Init")
 
@@ -284,7 +284,7 @@ class: SDLScreen extends SDLSurface
 
   : endDraw
     if( drawDepth--@ 0= )
-      // At the end of the frame, we want to upload to the texture like this:
+      \ At the end of the frame, we want to upload to the texture like this:
       SDL_UpdateTexture(windowTexture null surface.pixels bytesPerRow) drop
       SDL_RenderClear(renderer) drop
       SDL_RenderCopy(renderer windowTexture null null) drop
@@ -317,14 +317,14 @@ class: SDLScreen extends SDLSurface
     SDL_SetWindowTitle(window swap)
   ;m
   
-  // X Y screenAddress -> address of pixel on screen
+  \ X Y screenAddress -> address of pixel on screen
   : screenAddress
     yPitch *
     swap
     xPitch * + centerPixelAddr +
   ;
 
-  // dX dY screenAddressRelative -> address of pixel on screen
+  \ dX dY screenAddressRelative -> address of pixel on screen
   : screenAddressRelative
     curY + yPitch *
     swap
@@ -339,23 +339,23 @@ class: SDLScreen extends SDLSurface
     endif
   ;
   
-  // drawPixel & drawPixelRelative assume that you are handling SDL_LockSurface/SDL_UnlockSurface/SDL_UpdateRects
-  // X Y drawPixel  - draw a dot at X,Y with color specified by pixelColor
+  \ drawPixel & drawPixelRelative assume that you are handling SDL_LockSurface/SDL_UnlockSurface/SDL_UpdateRects
+  \ X Y drawPixel  - draw a dot at X,Y with color specified by pixelColor
   : drawPixel
     screenAddress setClippedPixel
   ;
 
-  // drawPixelRelative relies on its caller to set _setPixel to either _setRawPixel or setClippedPixel
+  \ drawPixelRelative relies on its caller to set _setPixel to either _setRawPixel or setClippedPixel
   : drawPixelRelative
     screenAddressRelative _setPixel
   ;
 
-  // X Y getPixel -> fetches pixel value at X,Y
+  \ X Y getPixel -> fetches pixel value at X,Y
   m: getPixel
     screenAddress _getPixel
   ;m
 
-  // X Y isOnScreen -> true/false
+  \ X Y isOnScreen -> true/false
   m: isOnScreen
   
     if( topLimit bottomLimit within )
@@ -373,7 +373,7 @@ class: SDLScreen extends SDLSurface
     pixelColor
   ;m
   
-  // x y drawPoint
+  \ x y drawPoint
   m: drawPoint
     beginDraw
   
@@ -382,7 +382,7 @@ class: SDLScreen extends SDLSurface
     endDraw
   ;m
 
-  // x y DrawLine
+  \ x y DrawLine
   m: drawLine
     curY int y0!
     curX int x0!
@@ -420,10 +420,10 @@ class: SDLScreen extends SDLSurface
 
     if(within(pPixel minPixelAddr maxPixelAddr))
     andif(within(screenAddress(x1 y1) minPixelAddr maxPixelAddr))
-      // the line is completely on screen, do no clip checking
+      \ the line is completely on screen, do no clip checking
       fetch _setRawPixel _setPixel!
     else
-      // the line is at least partially off screen, check each pixel write
+      \ the line is at least partially off screen, check each pixel write
       ['] setClippedPixel _setPixel!
     endif
     
@@ -462,22 +462,22 @@ class: SDLScreen extends SDLSurface
     endDraw
   ;m
 
-  // XYPAIRS NUM_PAIRS drawPolyLine
+  \ XYPAIRS NUM_PAIRS drawPolyLine
   m: drawPolyLine
-    // TBD: reverse order of points?
+    \ TBD: reverse order of points?
     0 do
       drawLine
     loop
   ;m
 
-  // XYPAIRS NUM_LINES drawMultiLine
+  \ XYPAIRS NUM_LINES drawMultiLine
   m: drawMultiLine
     0 do
       2swap moveTo drawLine
     loop
   ;m
 
-  // X Y _draw4EllipsePoints ...
+  \ X Y _draw4EllipsePoints ...
   : _draw4EllipsePoints
     2dup
     int y!
@@ -491,7 +491,7 @@ class: SDLScreen extends SDLSurface
     drawPixelRelative( nx ny )
   ;
 
-  // WIDTH HEIGHT DrawEllipse ...
+  \ WIDTH HEIGHT DrawEllipse ...
   m: drawEllipse
     beginDraw
   
@@ -511,17 +511,17 @@ class: SDLScreen extends SDLSurface
     h 2/ 1+ y!
     if(within(curX leftLimit x + rightLimit x -))
     andif(within(curY bottomLimit y + topLimit y -))
-      // the ellipse is completely on screen, do no clip checking
+      \ the ellipse is completely on screen, do no clip checking
       fetch _setRawPixel _setPixel!
     else
-      // the line is at least partially off screen, check each pixel write
+      \ the line is at least partially off screen, check each pixel write
       ['] setClippedPixel _setPixel!
     endif
     
     w x!
     0 y!
  
-   // TBD: 1.2 
+   \ TBD: 1.2 
     1 w 2* - hSquared * dx!
     wSquared dy!
     twoHSquared w * endX!
@@ -542,7 +542,7 @@ class: SDLScreen extends SDLSurface
       endif
     repeat
  
-    // 1st point set is done; start the 2nd set of points
+    \ 1st point set is done; start the 2nd set of points
     x~
     h y!
     hSquared dx!
@@ -613,10 +613,10 @@ class: SDLScreen extends SDLSurface
     r++
     if(within(curX leftLimit r@+ rightLimit r@-))
     andif(within(curY bottomLimit r@+ topLimit r@-))
-      // the circle is completely on screen, do no clip checking
+      \ the circle is completely on screen, do no clip checking
       fetch _setRawPixel _setPixel!
     else
-      // the line is at least partially off screen, check each pixel write
+      \ the line is at least partially off screen, check each pixel write
       ['] setClippedPixel _setPixel!
     endif
     r--
@@ -682,7 +682,7 @@ class: SDLScreen extends SDLSurface
   ;m
   
   m: flip
-    //SDL_Flip( surface ) drop
+    \ SDL_Flip( surface ) drop
   ;m
 
   m: drawBitmap
@@ -712,7 +712,7 @@ class: SDLScreen extends SDLSurface
 
     beginDraw
     TTF_RenderText_Solid(mFont swap pixelColor ) int textSurface!
-    //textSurface %x %bl screenInstance.surface %x %nl
+    \ textSurface %x %bl screenInstance.surface %x %nl
   
     if( textSurface null = )
       "SDLScreen:drawText - TTF_RenderText_Solid() Failed: " %s SDL_GetError %s %nl
@@ -774,9 +774,9 @@ SDLScreen screenInstance
   beginFrame
   do(256 0)
     do(256 0)
-      //screenInstance.getPixel(i j) v!
-      //xor(i j) 0x10101 * v!
-      xor(i j) 0x10101 * v!
+      \ screenInstance.getPixel(i j) v!
+      \ xor(i j) $10101 * v!
+      xor(i j) $10101 * v!
       sc(v)
       dp(i j)
     loop
@@ -785,9 +785,9 @@ SDLScreen screenInstance
 ;
 
 : test
-  sc( 0xFFFF00 )
+  sc( $FFFF00 )
   de( 100 200 )
-  sc( 0x00FFFF )
+  sc( $00FFFF )
   dsq( 55 )
   do( 256 0 )
     sc( i )
@@ -796,7 +796,7 @@ SDLScreen screenInstance
     dp( i negate i )
     sc( lshift( i  16 ) )
     dp( i i negate )
-    sc( i 0x10101 * )
+    sc( i $10101 * )
     dp( i negate i negate )
   loop
 ;
@@ -810,8 +810,8 @@ SDLScreen screenInstance
   100.0d double yscale!
   sc( -1 )
   do( 200 -200 )
-    //i %d
-    //dp( i i )
+    \ i %d
+    \ dp( i i )
     dsin( angle ) double y!
     dp( i y y d* y d* yscale d* d2i )
     dangle ->+ angle

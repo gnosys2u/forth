@@ -12,7 +12,7 @@ struct: line
 	point p2
 ;struct
 
-// test simple assignment
+\ test simple assignment
 point p
 
 5 -> p.x
@@ -57,7 +57,7 @@ struct: rgb32
 ;struct
 
 "using global structs:\n" %s
-// test global pointer to structs
+\ test global pointer to structs
 ptrTo rgb32 gpp
 : %grgb32
   -> gpp
@@ -69,11 +69,11 @@ ptrTo rgb32 gpp
   -> gpp.alpha -> gpp.b -> gpp.g -> gpp.r
 ;
 
-// test global arrayOf pointers to structs
+\ test global arrayOf pointers to structs
 here
-2 arrayOf ptrTo rgb32 gqq		// 12 bytes - op, 2 pointers
-rgb32 go0		// 8 bytes - op, data
-rgb32 go1		// 8 bytes - op, data
+2 arrayOf ptrTo rgb32 gqq		\ 12 bytes - op, 2 pointers
+rgb32 go0		\ 8 bytes - op, data
+rgb32 go1		\ 8 bytes - op, data
 here swap - "Expected size: 28 Actual size: " %s %d %nl
 
 : testGAPS
@@ -83,7 +83,7 @@ here swap - "Expected size: 28 Actual size: " %s %d %nl
   go1 -> 1 gqq
   0 gqq %grgb32
   1 gqq %grgb32
-  // test assignment through pointers
+  \ test assignment through pointers
   77 0 -> gqq.g
   11 1 -> gqq.r
   13 -> go0.b
@@ -94,7 +94,7 @@ here swap - "Expected size: 28 Actual size: " %s %d %nl
 testGAPS
 
 "using local structs:\n" %s
-// test local pointer to structs
+\ test local pointer to structs
 : %rgb32
   -> ptrTo rgb32 pp
   pp.r %d %bl pp.g %d %bl pp.b %d %bl pp.alpha %d %bl %nl
@@ -105,7 +105,7 @@ testGAPS
   -> pp.alpha -> pp.b -> pp.g -> pp.r
 ;
 
-// test local arrayOf pointers to structs
+\ test local arrayOf pointers to structs
 : testLAPS
   2 arrayOf ptrTo rgb32 qq
   rgb32 o0
@@ -117,7 +117,7 @@ testGAPS
   o1 -> 1 qq
   0 qq %rgb32
   1 qq %rgb32
-  // test assignment through pointers
+  \ test assignment through pointers
   0 qq -> qp
   77 -> qp.g
   1 qq -> qp
@@ -149,22 +149,22 @@ struct: colorTri
   "pNext: " %s t.pNext %x %nl
 ;
 
-// SRCTRI DSTTRI ...
+\ SRCTRI DSTTRI ...
 : copyColorTri
   sizeOf colorTri move
 ;
 
-// X Y INDEX TRI ...
+\ X Y INDEX TRI ...
 : setpt
   -> ptrTo colorTri t
   t.p -> ptrTo point p
   -> p.y -> p.x
 ;
   
-// X0 Y0 X1 Y1 X2 Y2 R G B ALPHA SIZE COST PNEXT TRI ...
+\ X0 Y0 X1 Y1 X2 Y2 R G B ALPHA SIZE COST PNEXT TRI ...
 : setTri
   -> ptrTo colorTri t
-  drop // -> t.pNext
+  drop \ -> t.pNext
   -> t.cost -> t.size
   t.color setrgb32
   2 t setpt

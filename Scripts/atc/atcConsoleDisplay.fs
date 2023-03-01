@@ -1,4 +1,4 @@
-//======== atcConsoleDisplay ========
+\ ======== atcConsoleDisplay ========
 
 class: atcConsoleDisplay extends iAtcDisplay
   iAtcRegion region
@@ -10,19 +10,19 @@ class: atcConsoleDisplay extends iAtcDisplay
   int defaultColors
   
   m: delete
-    //t{ "deleting display " %s %nl }t
+    \ t{ "deleting display " %s %nl }t
     oclear text
     super.delete
   ;m
   
-  // each tile corresponds to 2 horizontal chars
+  \ each tile corresponds to 2 horizontal chars
   
   enum: consoleColors
     kCCBlack  kCCDarkBlue  kCCDarkGreen  kCCDarkCyan  kCCDarkRed  kCCDarkPurple  kCCDarkYellow  kCCDimWhite
     kCCGray   kCCBlue      kCCGreen      kCCCyan      kCCRed      kCCPurple      kCCYellow      kCCWhite
   ;enum
 
-  : setTextColors    // BACKGROUND_COLOR TEXT_COLOR ...
+  : setTextColors    \ BACKGROUND_COLOR TEXT_COLOR ...
     swap 4 lshift or setConsoleColor
   ;
 
@@ -34,7 +34,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     setTextColors( kCCWhite kCCBlack )
   ;m
   
-  : xyAddr        // X Y ... BYTE_ADDR
+  : xyAddr        \ X Y ... BYTE_ADDR
     rowBytes * swap 2* + text.base +
   ;
 
@@ -44,7 +44,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     loop
   ;
 
-  m: init         // REGION ...
+  m: init         \ REGION ...
     `disp` tag!
     region!o
     getConsoleColor -> defaultColors
@@ -57,23 +57,23 @@ class: atcConsoleDisplay extends iAtcDisplay
     ref pBase -> ptrTo byte pDst
 
     columns 2* 2+ -> statusColumn
-    3 -> statusRow      // row of first airplane status
+    3 -> statusRow      \ row of first airplane status
     rows 2+ -> helpRow
     rows 1+ -> commandRow
 
-    // each tile in our region will have 2 characters in a horizontal row
-    // the extra space characters 
+    \ each tile in our region will have 2 characters in a horizontal row
+    \ the extra space characters 
 
-    // fill 'text' byte array with the ascii image of the airspace
+    \ fill 'text' byte array with the ascii image of the airspace
     
-    // draw the top line of dashes   ------
+    \ draw the top line of dashes   ------
     do( rowBytes 2- 0 )
       `-` pDst b@!++
     loop
     bl pDst b@!++
     0 pDst b@!++
 
-    // draw the lines below top line | . . . |
+    \ draw the lines below top line | . . . |
     do( rows 2- 0 )
       `|` pDst b@!++
       bl pDst b@!++
@@ -86,14 +86,14 @@ class: atcConsoleDisplay extends iAtcDisplay
       0 pDst b@!++
     loop
     
-    // draw the bottom line of dashes   ------
+    \ draw the bottom line of dashes   ------
     do( rowBytes 2- 0 )
       `-` pDst b@!++
     loop
     bl pDst b@!++
     0 pDst b@!++
 
-    // draw the lines
+    \ draw the lines
     region.lines.headIter -> Iter iter
     begin
     while( iter.next )
@@ -104,7 +104,7 @@ class: atcConsoleDisplay extends iAtcDisplay
       line.y1 line.y0 icmp -> int dy
       
       begin
-        //x %d %bl y %d %nl
+        \ x %d %bl y %d %nl
         `+` xyAddr(x y) c!
         dx ->+ x
         dy ->+ y
@@ -117,7 +117,7 @@ class: atcConsoleDisplay extends iAtcDisplay
   
     int id
   
-    // draw the beacons
+    \ draw the beacons
     region.beacons.headIter -> iter
     begin
     while( iter.next )
@@ -129,7 +129,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     repeat
     oclear iter
 
-    // draw the portals
+    \ draw the portals
     region.portals.headIter -> iter
     begin
     while( iter.next )
@@ -139,7 +139,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     repeat
     oclear iter
   
-    // draw the airports
+    \ draw the airports
     region.airports.headIter -> iter
     begin
     while( iter.next )
@@ -150,7 +150,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     repeat
     oclear iter
 
-    // draw the airspace on the screen
+    \ draw the airspace on the screen
     setConsoleCursor(0 0)
     drawRadar
   ;m
@@ -174,7 +174,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     "*******************" %s
   ;
 
-  : startPlaneStatus      // TOS is row#
+  : startPlaneStatus      \ TOS is row#
     setConsoleCursor(statusColumn over)
     44 bl %nc
     setConsoleCursor(statusColumn swap)
@@ -184,7 +184,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     ->o List activeAirplanes
     statusRow -> int planeRow
   
-    // display flying airplanes
+    \ display flying airplanes
     activeAirplanes.headIter -> Iter iter
     begin
     while( iter.next )
@@ -199,7 +199,7 @@ class: atcConsoleDisplay extends iAtcDisplay
           startPlaneStatus(planeRow)
           1 ->+ planeRow
           plane.name.get %s plane.altitude 1000 / %d
-          if(plane.fuel region.warningFuel >) bl else `*` endif %c    // low fuel indicator
+          if(plane.fuel region.warningFuel >) bl else `*` endif %c    \ low fuel indicator
           if(plane.destinationType kATTPortal =) `E` else `A` endif %c
           plane.destination %d `:` %c
           if( plane.circle )
@@ -222,7 +222,7 @@ class: atcConsoleDisplay extends iAtcDisplay
             " at beacon " %s plane.beaconNum %d
           endif
         else
-          // unmarked or ignored plane
+          \ unmarked or ignored plane
           useDefaultColors
           plane.name.get %s plane.altitude 1000 / %d
         endif
@@ -232,7 +232,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     startPlaneStatus(planeRow)
     1 ->+ planeRow
 
-    // display airplanes waiting to takeoff
+    \ display airplanes waiting to takeoff
     activeAirplanes.headIter -> iter
     begin
     while( iter.next )
@@ -259,16 +259,16 @@ class: atcConsoleDisplay extends iAtcDisplay
     repeat
   ;
   
-  m: update      // ACTIVE_AIRPLANE_LIST ...
-    //getConsoleCursor -> long oldPos
+  m: update      \ ACTIVE_AIRPLANE_LIST ...
+    \ getConsoleCursor -> long oldPos
 
     updatePlaneStatus
     updateStatus
-    //updateRadar
+    \ updateRadar
 
   ;m
   
-  m: showWarning      // CSTRING ...
+  m: showWarning      \ CSTRING ...
     getConsoleColor swap
   
     setConsoleCursor(0 helpRow)
@@ -277,7 +277,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     setConsoleCursor(0 helpRow)
     %s
 
-    setConsoleColor  // restore original console colors
+    setConsoleColor  \ restore original console colors
   ;m
   
   m: startWarning
@@ -287,16 +287,16 @@ class: atcConsoleDisplay extends iAtcDisplay
     setConsoleCursor(0 helpRow)
   ;m
   
-  m: showCommand    // CSTRING ...
+  m: showCommand    \ CSTRING ...
     setConsoleCursor(0 commandRow)
     region.columns 2* 0 do %bl loop
     setConsoleCursor(0 commandRow)
     %s
   ;m
   
-  m: hideAirplanes    // ACTIVE_AIRPLANE_LIST
+  m: hideAirplanes    \ ACTIVE_AIRPLANE_LIST
     ->o List activeAirplanes
-    // hide flying airplanes
+    \ hide flying airplanes
     activeAirplanes.headIter -> Iter iter
 
     begin

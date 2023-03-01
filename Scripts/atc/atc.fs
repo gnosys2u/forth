@@ -24,9 +24,9 @@ enum: atcTileType  byte
   kATTPortal
 ;enum
 
-//  7 0 1    q w e    315   0    45
-//  6   2    a   d    270        90
-//  5 4 3    z x c    225  180  135
+\  7 0 1    q w e    315   0    45
+\  6   2    a   d    270        90
+\  5 4 3    z x c    225  180  135
 
 "wedcxzaq" 9 string directionChars!
 
@@ -51,37 +51,37 @@ enum: atcAirplaneStatus byte
 
 9000 constant kMaxAltitude
 
-enum: atcCommandType  // uses command info:
-  kACTAltitude        // isRelative amount
+enum: atcCommandType  \ uses command info:
+  kACTAltitude        \ isRelative amount
   kACTMark
   kACTIgnore
   kACTUnmark
-  kACTCircle          // forceDirection beaconNum
-  kACTTurn            // forceDirection isRelative amount beaconNum
-  kACTTurnTowards     // targetType target beaconNum
+  kACTCircle          \ forceDirection beaconNum
+  kACTTurn            \ forceDirection isRelative amount beaconNum
+  kACTTurnTowards     \ targetType target beaconNum
   kNumCommands
 ;enum
 
-struct: atcCommandInfo      // used by:
+struct: atcCommandInfo      \ used by:
   int airplaneNum
-  atcCommandType command    // all
-  int isRelative            // altitude turn
-  int amount                // altitude turn
-  int forceDirection        // circle turn (1 for clockwise/right, 0 for closest direction, -1 for counterclockwise/left)
-  int targetNum             // turnTowards
-  atcTileType targetType    // turnTowards
-  int beaconNum             // circle turn turnTowards
+  atcCommandType command    \ all
+  int isRelative            \ altitude turn
+  int amount                \ altitude turn
+  int forceDirection        \ circle turn (1 for clockwise/right, 0 for closest direction, -1 for counterclockwise/left)
+  int targetNum             \ turnTowards
+  atcTileType targetType    \ turnTowards
+  int beaconNum             \ circle turn turnTowards
   int isReady
 ;struct
 
 enum: atcCommandState
-  kACSIdle                  // valid input is plane identifier in a..z
+  kACSIdle                  \ valid input is plane identifier in a..z
   kACSPlaneSelected
-  kACSCommandReady          // return is only valid input
-  kACSAltitude              // *a - valid is cd# - climb, descend or altitude
-  kACSAltitudeClimb         // *ac - valid is #
-  kACSAltitudeDescend       // *ad - valid is #
-  kACSCircle                // *c - valid is lr
+  kACSCommandReady          \ return is only valid input
+  kACSAltitude              \ *a - valid is cd# - climb, descend or altitude
+  kACSAltitudeClimb         \ *ac - valid is #
+  kACSAltitudeDescend       \ *ad - valid is #
+  kACSCircle                \ *c - valid is lr
   kACSCircleReady
   kACSTurn
   kACSTurnDirection
@@ -97,32 +97,32 @@ enum: atcCommandState
 
 struct: atcStatus
   int score
-  int gameStartTime         // system time at game start in milliseconds
-  int nextMoveTime          // system time in milliseconds
-  int moves                 // game time in moves
+  int gameStartTime         \ system time at game start in milliseconds
+  int nextMoveTime          \ system time in milliseconds
+  int moves                 \ game time in moves
   int nextPlaneMove
-  int moveInterval          // time between moves in milliseconds
+  int moveInterval          \ time between moves in milliseconds
   int keepPlaying
 ;struct
 
-//======== atcTile ========
+\ ======== atcTile ========
 
 class: atcTile
   int tag
   
   byte altitude
-  byte index                // index of airport, portal or beacon
-  atcTileType tileType      // airport, portal, boundary, beacon
-  atcDirection direction    // for airports, currently unused
+  byte index                \ index of airport, portal or beacon
+  atcTileType tileType      \ airport, portal, boundary, beacon
+  atcDirection direction    \ for airports, currently unused
 
   List airplanes
 
-  m: addAirplane       // airplane ...
+  m: addAirplane       \ airplane ...
     airplanes.addTail
   ;m
 
-  m: removeAirplane    // airplane ...
-    // TODO
+  m: removeAirplane    \ airplane ...
+    \ TODO
     airplanes.remove
   ;m
   
@@ -151,13 +151,13 @@ class: iAtcDisplay
   ByteArray text
   ptrTo byte textBase
   
-  m: init                  ;m // REGION ...
-  m: update                ;m // ACTIVE_AIRPLANE_LIST ...
-  m: showWarning           ;m // CSTRING ...
+  m: init                  ;m \ REGION ...
+  m: update                ;m \ ACTIVE_AIRPLANE_LIST ...
+  m: showWarning           ;m \ CSTRING ...
   m: startWarning          ;m
-  m: showCommand           ;m // CSTRING ...
-  m: restorePos            ;m // X Y ...
-  m: hideAirplanes         ;m // ACTIVE_AIRPLANE_LIST ...
+  m: showCommand           ;m \ CSTRING ...
+  m: restorePos            ;m \ X Y ...
+  m: hideAirplanes         ;m \ ACTIVE_AIRPLANE_LIST ...
   m: useDefaultColors      ;m
   m: useHighlightColors    ;m
   
@@ -172,17 +172,17 @@ class: iAtcGame
   atcStatus status
   String name
   
-  m: init                ;m   // GAME_NAME
+  m: init                ;m   \ GAME_NAME
   m: reset               ;m
-  m: activateAirplane    ;m   // PLANE_OBJ ...
-  m: deactivateAirplane  ;m   // PLANE_OBJ ...
-  m: moveAirplane        ;m   // newPlaneX newPlaneY plane ...
+  m: activateAirplane    ;m   \ PLANE_OBJ ...
+  m: deactivateAirplane  ;m   \ PLANE_OBJ ...
+  m: moveAirplane        ;m   \ newPlaneX newPlaneY plane ...
   m: play                ;m
 ;class
 
 iAtcGame game
 
-//======== interfaces ========
+\ ======== interfaces ========
 
 class: iAtcAirplane
   int tag
@@ -193,23 +193,23 @@ class: iAtcAirplane
   int commandedAltitude
   int x
   int y
-  int destination                 // index of destination airport or portal
-  atcAirplaneStatus status        // holding for takeoff, marked/unmarked/ignored
-  atcTileType destinationType     // kATTPortal or kATTAirport
+  int destination                 \ index of destination airport or portal
+  atcAirplaneStatus status        \ holding for takeoff, marked/unmarked/ignored
+  atcTileType destinationType     \ kATTPortal or kATTAirport
   atcDirection heading
   atcDirection commandedHeading
-  int beaconNum             // -1 for no delaying beacon
-  int circle                // 0 for not circling
+  int beaconNum             \ -1 for no delaying beacon
+  int circle                \ 0 for not circling
   int forceDirection
   
-  m: init            ;m // ID REGION ...
-  m: setPosition     ;m // X Y ALTITUDE HEADING
-  m: setDestination  ;m // DESTINATION DESTINATION_TYPE ...
-  m: activate        ;m // UPDATE_TIME IS_JET IS_MOVING ...
+  m: init            ;m \ ID REGION ...
+  m: setPosition     ;m \ X Y ALTITUDE HEADING
+  m: setDestination  ;m \ DESTINATION DESTINATION_TYPE ...
+  m: activate        ;m \ UPDATE_TIME IS_JET IS_MOVING ...
 
-  m: update          ;m // NOW ...
-  m: executeCommand  ;m // COMMAND_INFO_PTR ...
-  m: getPos  x y     ;m // ... X Y
+  m: update          ;m \ NOW ...
+  m: executeCommand  ;m \ COMMAND_INFO_PTR ...
+  m: getPos  x y     ;m \ ... X Y
 ;class
 
 class: iAtcAirport
@@ -220,7 +220,7 @@ class: iAtcAirport
   int y
   atcDirection entryDirection
 
-  m: init            ;m // X Y ENTRY_DIRECTION ID REGION
+  m: init            ;m \ X Y ENTRY_DIRECTION ID REGION
   m: updateMove      ;m
   m: updateStatus    ;m
 ;class
@@ -235,7 +235,7 @@ class: iAtcPortal
   int lastEntryTime
   atcDirection entryDirection
   
-  m: init            ;m // X Y ENTRY_DIRECTION ID REGION
+  m: init            ;m \ X Y ENTRY_DIRECTION ID REGION
   m: update          ;m
 ;class
 
@@ -245,12 +245,12 @@ class: iAtcBeacon
   int y
   int id
   
-  m: init  // X Y ID
+  m: init  \ X Y ID
     id!    y!    x!
     `becn` tag!
   ;m
   
-  m: at returns int  // X Y BOOL
+  m: at returns int  \ X Y BOOL
     and( y = swap x = )
   ;m
   
@@ -263,7 +263,7 @@ class: iAtcLine
   int x1
   int y1
   
-  m: init        // x0 y0 x1 y1
+  m: init        \ x0 y0 x1 y1
     y1!  x1!  y0!  x0!
     `line` tag!
   ;m
@@ -283,22 +283,22 @@ class: iAtcRegion
   Array beacons
   Array lines
   
-  m: init                                ;m // width height game
+  m: init                                ;m \ width height game
   m: reset                               ;m
-  m: getTile returns atcTile             ;m // x y ... atcTile@x,y
-  m: setTile                             ;m // atcTile x y ...  
+  m: getTile returns atcTile             ;m \ x y ... atcTile@x,y
+  m: setTile                             ;m \ atcTile x y ...  
   m: update                              ;m
-  m: getBeacon returns iAtcBeacon        ;m // BEACON_NUM ... BEACON_OBJ
-  m: getAirport returns iAtcAirport      ;m // AIRPORT_NUM ... AIRPORT_OBJ
-  m: getPortal returns iAtcPortal        ;m // PORTAL_NUM ... PORTAL_OBJ
-  m: getAirport@ returns iAtcAirport     ;m // X Y ... AIRPORT_OBJ
-  m: getPortal@ returns iAtcPortal       ;m // X Y ... PORTAL_OBJ  
-  m: getBeacon@ returns iAtcBeacon       ;m // X Y ... BEACON_OBJ  
-  m: checkCollisions                     ;m // PLANE ... COLLIDED_PLANE_ID  returns -1 if no collision
-  m: addPortal                           ;m // X Y ENTRY_ALTITUDE EXIT_ALTITUDE ...
-  m: addAirport                          ;m // X Y ALTITUDE ...
-  m: addBeacon                           ;m // X Y ...
-  m: addLine                             ;m // X0 Y0 X1 Y1 ...
+  m: getBeacon returns iAtcBeacon        ;m \ BEACON_NUM ... BEACON_OBJ
+  m: getAirport returns iAtcAirport      ;m \ AIRPORT_NUM ... AIRPORT_OBJ
+  m: getPortal returns iAtcPortal        ;m \ PORTAL_NUM ... PORTAL_OBJ
+  m: getAirport@ returns iAtcAirport     ;m \ X Y ... AIRPORT_OBJ
+  m: getPortal@ returns iAtcPortal       ;m \ X Y ... PORTAL_OBJ  
+  m: getBeacon@ returns iAtcBeacon       ;m \ X Y ... BEACON_OBJ  
+  m: checkCollisions                     ;m \ PLANE ... COLLIDED_PLANE_ID  returns -1 if no collision
+  m: addPortal                           ;m \ X Y ENTRY_ALTITUDE EXIT_ALTITUDE ...
+  m: addAirport                          ;m \ X Y ALTITUDE ...
+  m: addBeacon                           ;m \ X Y ...
+  m: addLine                             ;m \ X0 Y0 X1 Y1 ...
 ;class
 
 class: iAtcInputHandler
@@ -311,14 +311,14 @@ class: iAtcInputHandler
   atcCommandState commandState
   int isGameOver
   
-  m: init                              ;m // REGION DISPLAY_OBJ ...
-  m: update                            ;m // ...
-  m: getString returns String         ;m // ... STRING_OBJ
-  m: getCommandString returns String  ;m // ... STRING_OBJ
+  m: init                              ;m \ REGION DISPLAY_OBJ ...
+  m: update                            ;m \ ...
+  m: getString returns String         ;m \ ... STRING_OBJ
+  m: getCommandString returns String  ;m \ ... STRING_OBJ
 
 ;class
 
-// debugging aid
+\ debugging aid
 : sh setConsoleCursor(90 0) "                                    " %s setConsoleCursor(90 0) %s ;
   
 lf atcPortal
@@ -364,15 +364,15 @@ lf atcFileReader
 #endif
   if(atcFileReader:loadAtcFile( game.name.get game))
     clearConsole
-    //t{ game.show "\n\n\n=====================================\n\n\n" %s }t
+    \ t{ game.show "\n\n\n=====================================\n\n\n" %s }t
     game.play
-    //t{ game.show }t
+    \ t{ game.show }t
     game.reset
   else
     "Available games:" %s %nl
     listATCGames
   endif
-  //t{ game.show }t
+  \ t{ game.show }t
   game~
   setConsoleColor( color )
   closeTrace
@@ -394,7 +394,7 @@ loaddone
   if( dirHandle )
     begin
     while( readdir(dirHandle entry) )
-      entry.d_name(0 ref) -> pName // ref pName !
+      entry.d_name(0 ref) -> pName \ ref pName !
       if(pName c@ `.` <>)
         "   " %s pName %s %nl
       endif

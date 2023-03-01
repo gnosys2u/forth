@@ -11,7 +11,7 @@ class: ZFileInStream extends OFileInStream
     -> ptrTo byte pFilename
     gzopen(pFilename "r") -> userData
     if(userData)
-      gzbuffer(userData 0x20000) drop
+      gzbuffer(userData $20000) drop
     else
       "ZFileInStream:open - could not open " %s pFilename %s %nl
     endif
@@ -88,7 +88,7 @@ class: ZFileOutStream extends OFileOutStream
     -> ptrTo byte pFilename
     gzopen(pFilename "wb") -> userData
     if(userData)
-      gzbuffer(userData 0x20000) drop
+      gzbuffer(userData $20000) drop
     else
       "ZFileOutStream:open - could not open " %s pFilename %s %nl
     endif
@@ -134,24 +134,24 @@ class: ZFileOutStream extends OFileOutStream
 loaddone
 
 
-		METHOD("getChar", unimplementedMethodOp),			// derived classes must define getChar
+		METHOD("getChar", unimplementedMethodOp),			\ derived classes must define getChar
 		METHOD("getBytes", oInStreamGetBytesMethod),
-		METHOD("getLine", unimplementedMethodOp),			// derived classes must define getLine (for now)
-		METHOD("atEOF", unimplementedMethodOp),				// derived classes must define atEOF
+		METHOD("getLine", unimplementedMethodOp),			\ derived classes must define getLine (for now)
+		METHOD("atEOF", unimplementedMethodOp),				\ derived classes must define atEOF
 
-dll_2   gzopen        // gzFile gzopen OF((const char *, const char *));
-dll_1   gzclose       // int    gzclose OF((gzFile file));
-dll_3   gzread        // int gzread OF((gzFile file, voidp buf, unsigned len));
+dll_2   gzopen        \ gzFile gzopen OF((const char *, const char *));
+dll_1   gzclose       \ int    gzclose OF((gzFile file));
+dll_3   gzread        \ int gzread OF((gzFile file, voidp buf, unsigned len));
 
-dll_3   gzgets        // char * gzgets OF((gzFile file, char *buf, int len));
-dll_1   gzgetc        // int gzgetc OF((gzFile file));
-dll_3   gzwrite       // int gzwrite OF((gzFile file, voidpc buf, unsigned len));
+dll_3   gzgets        \ char * gzgets OF((gzFile file, char *buf, int len));
+dll_1   gzgetc        \ int gzgetc OF((gzFile file));
+dll_3   gzwrite       \ int gzwrite OF((gzFile file, voidpc buf, unsigned len));
 
-dll_1   gzeof         // int gzeof OF((gzFile file));
+dll_1   gzeof         \ int gzeof OF((gzFile file));
 
-// Set the internal buffer size used by this library's functions.  The default buffer size is 8192 bytes.  64K or more is recommended.
-dll_2   gzbuffer      // int gzbuffer OF((gzFile file, unsigned size));
+\ Set the internal buffer size used by this library's functions.  The default buffer size is 8192 bytes.  64K or more is recommended.
+dll_2   gzbuffer      \ int gzbuffer OF((gzFile file, unsigned size));
 
-dll_3   gzwrite       // int gzwrite OF((gzFile file, voidpc buf, unsigned len));
-dll_2   gzputs        // int gzputs OF((gzFile file, const char *s));
-dll_2   gzputc        // int gzputc OF((gzFile file, int c));
+dll_3   gzwrite       \ int gzwrite OF((gzFile file, voidpc buf, unsigned len));
+dll_2   gzputs        \ int gzputs OF((gzFile file, const char *s));
+dll_2   gzputc        \ int gzputc OF((gzFile file, int c));

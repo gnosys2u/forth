@@ -1,4 +1,4 @@
-//======== atcRegion ========
+\ ======== atcRegion ========
 
 class: atcRegion extends iAtcRegion
 
@@ -21,7 +21,7 @@ class: atcRegion extends iAtcRegion
     new Array lines!
   ;m
   
-  // x y ... atcTile@x,y
+  \ x y ... atcTile@x,y
   : tile@
     columns * + tiles.get
   ;
@@ -30,18 +30,18 @@ class: atcRegion extends iAtcRegion
     columns * + tiles.get
   ;m
 
-  // atcTile x y ...  
+  \ atcTile x y ...  
   m: setTile
     columns * + tiles.set
   ;m
 
   : resetTiles
     tiles.headIter Iter iter!
-    //atcTile tile
+    \ atcTile tile
     begin
     while( iter.next )
-      //tile!o
-      //tile.reset
+      \ tile!o
+      \ tile.reset
       <atcTile>.reset
     repeat
     iter~
@@ -60,7 +60,7 @@ class: atcRegion extends iAtcRegion
   ;m
     
   m: delete
-    //t{ "deleting region\n" %s }t
+    \ t{ "deleting region\n" %s }t
     reset
   ;m
 
@@ -73,13 +73,13 @@ class: atcRegion extends iAtcRegion
   
   m: getAirport returns iAtcAirport
     airports.get
-  ;m // AIRPORT_NUM ... AIRPORT_OBJ
+  ;m \ AIRPORT_NUM ... AIRPORT_OBJ
   
   m: getPortal returns iAtcPortal
     portals.get
-  ;m // PORTAL_NUM ... PORTAL_OBJ
+  ;m \ PORTAL_NUM ... PORTAL_OBJ
   
-  m: getAirport@ returns iAtcAirport  // X Y ... AIRPORT_OBJ
+  m: getAirport@ returns iAtcAirport  \ X Y ... AIRPORT_OBJ
     int y!
     int x!
 
@@ -99,7 +99,7 @@ class: atcRegion extends iAtcRegion
 
   ;m
   
-  m: getPortal@ returns iAtcPortal  // X Y ... PORTAL_OBJ
+  m: getPortal@ returns iAtcPortal  \ X Y ... PORTAL_OBJ
     int y!
     int x!
 
@@ -119,7 +119,7 @@ class: atcRegion extends iAtcRegion
 
   ;m
   
-  m: getBeacon@ returns iAtcBeacon  // X Y ... BEACON_OBJ
+  m: getBeacon@ returns iAtcBeacon  \ X Y ... BEACON_OBJ
     int y!
     int x!
 
@@ -143,7 +143,7 @@ class: atcRegion extends iAtcRegion
     getTile <atcTile>.tileType!
   ;
   
-  m: checkCollisions    // PLANE ... COLLIDED_PLANE_INDEX  returns -1 if no collision
+  m: checkCollisions    \ PLANE ... COLLIDED_PLANE_INDEX  returns -1 if no collision
     iAtcAirplane plane
     iAtcAirplane checkPlane
     atcTile tile
@@ -167,13 +167,13 @@ class: atcRegion extends iAtcRegion
       minColumn -> int checkColumn
       begin
       while(and(collidedPlaneIndex 0<  checkColumn maxColumn <=))
-        //"checking at " %s checkColumn %d %bl checkRow %d %nl
+        \ "checking at " %s checkColumn %d %bl checkRow %d %nl
         getTile(checkColumn checkRow) tile!o
         tile.airplanes.headIter Iter iter!
         begin
         while(iter.next)
           checkPlane!o
-          //"checking " %s checkPlane.name.get %s " against " %s plane.name.get %s %nl
+          \ "checking " %s checkPlane.name.get %s " against " %s plane.name.get %s %nl
           if(checkPlane.id plane.id <>)
             if(within(checkPlane.altitude plane.altitude - -1 2))
               checkPlane.id collidedPlaneIndex!
@@ -189,17 +189,17 @@ class: atcRegion extends iAtcRegion
     collidedPlaneIndex
   ;m
   
-  // x y direction id ...
+  \ x y direction id ...
   m: addPortal
     int id!
     int dir!
     int y!
     int x!
-    //"new portal at " %s x %d %bl y %d "  direction: " %s dir %d %nl
+    \ "new portal at " %s x %d %bl y %d "  direction: " %s dir %d %nl
     mko atcPortal portal
     portal.init(x y dir id)
     portals.insert(portal 0)
-    //portals.push(portal)
+    \ portals.push(portal)
     portal~
     atcTile tile
     getTile(x y) tile!o
@@ -207,7 +207,7 @@ class: atcRegion extends iAtcRegion
     id tile.index!
   ;m
 
-  // x y direction id ...
+  \ x y direction id ...
   m: addAirport
     int id!
     int dir!
@@ -217,7 +217,7 @@ class: atcRegion extends iAtcRegion
     mko atcAirport airport
     airport.init(x y dir id)
     airports.insert(airport 0)
-    //airports.push(airport)
+    \ airports.push(airport)
     airport~
     atcTile tile
     getTile(x y) tile!o
@@ -225,16 +225,16 @@ class: atcRegion extends iAtcRegion
     id tile.index!
   ;m
   
-  // x y id ...
+  \ x y id ...
   m: addBeacon
     int id!
     int y!
     int x!
-    //"new beacon at " %s x %d %bl y %d %nl
+    \ "new beacon at " %s x %d %bl y %d %nl
     mko iAtcBeacon beacon
     beacon.init(x y id)
     beacons.insert(beacon 0)
-    //beacons.push(beacon)
+    \ beacons.push(beacon)
     beacon~
     atcTile tile
     getTile(x y) tile!o
@@ -242,17 +242,17 @@ class: atcRegion extends iAtcRegion
     id tile.index!
   ;m
   
-  // x0 y0 x1 y1 ...
+  \ x0 y0 x1 y1 ...
   m: addLine
     int y1!
     int x1!
     int y0!
     int x0!
-    //"new line from " %s x0 %d `,` %c y0 %d " to " %s x1 %d `,` %c y1 %d %nl
+    \ "new line from " %s x0 %d `,` %c y0 %d " to " %s x1 %d `,` %c y1 %d %nl
     mko iAtcLine line
     line.init(x0 y0 x1 y1)
     lines.insert(line 0)
-    //lines.push(line)
+    \ lines.push(line)
     line~
   ;m
   

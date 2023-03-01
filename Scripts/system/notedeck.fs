@@ -3,11 +3,11 @@ autoforget notedeck
 
 : notedeck ;
 
-// tags are binary properties any note can have
-// params are properties of a note, the params a note can have are defined by its schema
+\ tags are binary properties any note can have
+\ params are properties of a note, the params a note can have are defined by its schema
 
-// ----------------------------------------------
-class: NoteDef  // just a base class for tags and schemas
+\ ----------------------------------------------
+class: NoteDef  \ just a base class for tags and schemas
   int id
   String name
   String description
@@ -18,7 +18,7 @@ class: NoteDef  // just a base class for tags and schemas
     super.delete
   ;m
   
-  m: init  // NAME DESCRIPTION ID ...
+  m: init  \ NAME DESCRIPTION ID ...
     -> id
     new String -> description
     description.set
@@ -30,7 +30,7 @@ class: NoteDef  // just a base class for tags and schemas
 ;class
 
 
-// ----------------------------------------------
+\ ----------------------------------------------
 class: NoteTagDef extends NoteDef
   String displayName
   long mask
@@ -40,7 +40,7 @@ class: NoteTagDef extends NoteDef
     super.delete
   ;m
   
-  m: init  // NAME DISPLAY_NAME DESCRIPTION ID ...
+  m: init  \ NAME DISPLAY_NAME DESCRIPTION ID ...
     new String -> displayName
     displayName.set(rot)
     super.init
@@ -53,22 +53,22 @@ class: NoteTagDef extends NoteDef
 ;class
 
 
-// ----------------------------------------------
+\ ----------------------------------------------
 class: NoteSchema extends NoteDef
   IntArray requiredParams
   IntArray optionalParams
   
-  m: init   // NAME DISPLAY_NAME DESCRIPTION ID ...
+  m: init   \ NAME DISPLAY_NAME DESCRIPTION ID ...
     new IntArray -> requiredParams
     new IntArray -> optionalParams
     super.init
   ;m
   
-  m: addOptionalParam   // ID ...
+  m: addOptionalParam   \ ID ...
     optionalParams.push(<NoteDef>.id)
   ;m
   
-  m: addRequiredParam   // ID ...
+  m: addRequiredParam   \ ID ...
     requiredParams.push(<NoteDef>.id)
   ;m
   
@@ -81,7 +81,7 @@ class: NoteSchema extends NoteDef
 ;class
 
 
-// ----------------------------------------------
+\ ----------------------------------------------
 class: NoteParam
   int id
   String sval
@@ -106,17 +106,17 @@ class: NoteParam
 ;class
 
 
-// ----------------------------------------------
+\ ----------------------------------------------
 class: Note
-  int id            // index into containing Notebook notes array
-  int schema        // 0 for default schema
+  int id            \ index into containing Notebook notes array
+  int schema        \ 0 for default schema
   String name
   String body
   IntMap of NoteParam params
   long tags
   IntArray links
 
-  m: init           // NAME BODY ID ...
+  m: init           \ NAME BODY ID ...
     -> id
     new String -> body
     body.set
@@ -135,20 +135,20 @@ class: Note
     super.delete
   ;m
 
-  m: getParam    // PARAM_ID ...   false   OR   PARAM_OBJ true 
+  m: getParam    \ PARAM_ID ...   false   OR   PARAM_OBJ true 
     params.grab
   ;m
   
-  m: addTag             // TAG_ID ...
+  m: addTag             \ TAG_ID ...
     -> int tagId
     if(tagId 64 <)
       lshift(1 tagId) tags l+ -> tags
     else
-      // TODO: deal with when extended tags are added
+      \ TODO: deal with when extended tags are added
     endif
   ;m
   
-  m: hasTag             // TAG_ID ... true/false
+  m: hasTag             \ TAG_ID ... true/false
     -> int tagId
     if(tagId 64 <)
       0
@@ -156,11 +156,11 @@ class: Note
         1-
       endif
     else
-      // TODO: deal with when extended tags are added
+      \ TODO: deal with when extended tags are added
     endif
   ;m
   
-  m: isNamed        // NAME ... true/false
+  m: isNamed        \ NAME ... true/false
     if(name)
       name.equals
     else
@@ -172,24 +172,24 @@ class: Note
     26 rshift
   ;
   
-  : linkSplit           // LINK ... NODE_ID LINK_TYPE
-    dup 0x3FFFFFF and
+  : linkSplit           \ LINK ... NODE_ID LINK_TYPE
+    dup $3FFFFFF and
     swap 26 rshift
   ;
   
-  m: addLink            // NODE_ID LINK_TYPE ...
+  m: addLink            \ NODE_ID LINK_TYPE ...
     links.push(26 lshift or)
   ;m
   
-  m: findNextLink       // START_INDEX LINK_TYPE ...    false   OR    NODE_ID NEXT_INDEX true
+  m: findNextLink       \ START_INDEX LINK_TYPE ...    false   OR    NODE_ID NEXT_INDEX true
     -> int linkType
     -> int index
-    //"looking for type " %s linkType %d " starting at " %s index %d %nl
+    \ "looking for type " %s linkType %d " starting at " %s index %d %nl
     begin
     while(index links.count <)
-      //index %d %bl %bl links.get(index) dup %x %bl %bl linkSplit "type:" %s %x " value:" %s %x %nl
+      \ index %d %bl %bl links.get(index) dup %x %bl %bl linkSplit "type:" %s %x " value:" %s %x %nl
       if(links.get(index) linkSplit linkType =)
-        //"bailing at index " %s index %d " returning nodeId " %s dup %x %nl
+        \ "bailing at index " %s index %d " returning nodeId " %s dup %x %nl
         index 1+ -1
         exit
       else
@@ -208,13 +208,13 @@ class: NoteLinkIter
   int index
   int limit
   
-  m: init   // NOTE ...
+  m: init   \ NOTE ...
     -> note
     note.links.count -> limit
     0 -> index
   ;m
 
-  m: next  // LINK_TYPE ... NOTE_ID true  OR   false
+  m: next  \ LINK_TYPE ... NOTE_ID true  OR   false
     index swap note.findNextLink
     if
       -> index
@@ -229,7 +229,7 @@ class: NoteLinkIter
     oclear note
   ;m
 
-  m: seek  // INDEX ...
+  m: seek  \ INDEX ...
     if(dup 0>)
       if(dup limit <)
         -> index
@@ -241,15 +241,15 @@ class: NoteLinkIter
     endif
   ;m
 
-  m: tell  // ... INDEX
+  m: tell  \ ... INDEX
     index
   ;m
 
-  m: current // ... NODE_ID
+  m: current \ ... NODE_ID
     note.links.get(index) Note:linkSplit drop
   ;m
 
-  m: atTail // ... TRUE/FALSE
+  m: atTail \ ... TRUE/FALSE
     index limit =
   ;m
 
@@ -257,7 +257,7 @@ class: NoteLinkIter
 
 
 
-// ----------------------------------------------
+\ ----------------------------------------------
 class: NoteDeck
 
   String name
@@ -277,7 +277,7 @@ class: NoteDeck
   Array of NoteDef linkTypes
   StringMap linkTypeMap
 
-  // predefined link types
+  \ predefined link types
   int kLTParent
   int kLTChild
   int kLTTag
@@ -299,7 +299,7 @@ class: NoteDeck
     clearAll
   ;m
   
-  m: addTagDef returns NoteTagDef      // NAME DISPLAY_NAME DESCRIPTION ... NEW_TAG_DEF
+  m: addTagDef returns NoteTagDef      \ NAME DISPLAY_NAME DESCRIPTION ... NEW_TAG_DEF
     mko NoteTagDef def
     def.init(tags.count)
     tags.push(def)
@@ -307,11 +307,11 @@ class: NoteDeck
     unref def
   ;m
 
-  m: getTag         // NAME ...    false   OR   TAG_DEF_OBJ true
+  m: getTag         \ NAME ...    false   OR   TAG_DEF_OBJ true
     tagMap.grab
   ;m
   
-  m: addSchema returns NoteSchema     // NAME DESCRIPTION ... NEW_SCHEMA
+  m: addSchema returns NoteSchema     \ NAME DESCRIPTION ... NEW_SCHEMA
     mko NoteSchema def
     def.init(schemas.count)
     schemas.push(def)
@@ -319,11 +319,11 @@ class: NoteDeck
     unref def
   ;m
   
-  m: getSchema         // NAME ...    false   OR   SCHEMA_OBJ true
+  m: getSchema         \ NAME ...    false   OR   SCHEMA_OBJ true
     schemaMap.grab
   ;m
   
-  m: addParamDef returns NoteDef     // NAME DESCRIPTION ... NEW_PARAM_DEF
+  m: addParamDef returns NoteDef     \ NAME DESCRIPTION ... NEW_PARAM_DEF
     mko NoteDef def
     def.init(params.count)
     params.push(def)
@@ -331,11 +331,11 @@ class: NoteDeck
     unref def
   ;m
   
-  m: getParam        // NAME ...    false   OR   PARAM_DEF_OBJ true
+  m: getParam        \ NAME ...    false   OR   PARAM_DEF_OBJ true
     paramMap.grab
   ;m
   
-  m: addLinkType returns NoteDef     // NAME DESCRIPTION ... NEW_LINKTYPE
+  m: addLinkType returns NoteDef     \ NAME DESCRIPTION ... NEW_LINKTYPE
     mko NoteDef def
     def.init(linkTypes.count)
     linkTypes.push(def)
@@ -344,27 +344,27 @@ class: NoteDeck
     oclear def
   ;m
   
-  m: getLinkType        // NAME ...    false   OR   LINKTYPE_OBJ true
+  m: getLinkType        \ NAME ...    false   OR   LINKTYPE_OBJ true
     linkTypeMap.grab
   ;m
 
-  // creates a parentless note, doesn't add it to global named note map  
-  m: addNote returns Note      // NAME BODY ... NEW_NOTE
+  \ creates a parentless note, doesn't add it to global named note map  
+  m: addNote returns Note      \ NAME BODY ... NEW_NOTE
     mko Note note
     note.init(notes.count)
     notes.push(note)
     unref note
   ;m
   
-  // creates a parentless note and adds it to global named note map  
-  m: addGlobalNote returns Note      // NAME BODY ... NEW_NOTE
+  \ creates a parentless note and adds it to global named note map  
+  m: addGlobalNote returns Note      \ NAME BODY ... NEW_NOTE
     addNote ->o Note note
-    // TODO: check for note name already in map
+    \ TODO: check for note name already in map
     noteMap.set(note note.name.get)
     note
   ;m
   
-  m: getNamedLink   // NAME LINK_TYPE NOTE ...    false   OR    INDEX true
+  m: getNamedLink   \ NAME LINK_TYPE NOTE ...    false   OR    INDEX true
     ->o Note note
     -> int linkType
     -> ptrTo byte name
@@ -388,7 +388,7 @@ class: NoteDeck
     0
   ;m
   
-  m: getChild            // NAME NOTE ...   false   OR   NOTE_OBJ true
+  m: getChild            \ NAME NOTE ...   false   OR   NOTE_OBJ true
     kLTChild swap getNamedLink
     if
       notes.get -1
@@ -397,7 +397,7 @@ class: NoteDeck
     endif
   ;m
   
-  m: addChild returns Note     // NAME BODY PARENT_NOTE ... NEW_NOTE
+  m: addChild returns Note     \ NAME BODY PARENT_NOTE ... NEW_NOTE
     ->o Note parent
     addNote -> Note note
     note.addLink(parent.id kLTParent)
@@ -405,11 +405,11 @@ class: NoteDeck
     unref note
   ;m
   
-  m: getNote            // NAME ...   false   OR   NOTE_OBJ true
+  m: getNote            \ NAME ...   false   OR   NOTE_OBJ true
     noteMap.grab
   ;m
   
-  m: init   // NOTEBOOK_NAME ...
+  m: init   \ NOTEBOOK_NAME ...
     clearAll
     
     new String -> name
@@ -445,7 +445,7 @@ class: NoteDeck
     endif
   ;m
 
-  m: getLinkIter returns NoteLinkIter       // NOTE ... NOTE_LINK_ITER
+  m: getLinkIter returns NoteLinkIter       \ NOTE ... NOTE_LINK_ITER
     mko NoteLinkIter iter
     iter.init
     unref iter
@@ -458,15 +458,15 @@ loaddone
 =============================================
 TODOs for Notes:
 
-  int id            // index into containing Notebook notes array
-  int schema        // 0 for default schema
-x  int parent        // -1 for none
+  int id            \ index into containing Notebook notes array
+  int schema        \ 0 for default schema
+x  int parent        \ -1 for none
   String name
   String body
 x  StringMap of Note children
   IntMap of NoteParam params
   long flags
-x Object obj        // optional associated object
+x Object obj        \ optional associated object
 
 - replace children StringMap with links IntArray, where the elements are a combination of
   26-bit note id and 6-bit link type

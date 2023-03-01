@@ -4,7 +4,7 @@ autoforget ui_element       : ui_element ;
 also sdl2
 
 #if(0)
-: %sx swap %bl %bl %s "=0x" %s %x ;
+: %sx swap %bl %bl %s "=$" %s %x ;
 
 : showKeyEvent
   -> ptrTo SDL_KeyboardEvent ke
@@ -34,9 +34,9 @@ also sdl2
 class: UIElement
   UIElement mParent
   int mElementID
-  int xOff      // offset within parent
+  int xOff      \ offset within parent
   int yOff
-  int xScreenLeft   // position within main window
+  int xScreenLeft   \ position within main window
   int yScreenTop
   int xScreenRight
   int yScreenBottom
@@ -46,7 +46,7 @@ class: UIElement
   int flags
 
   m: delete
-    //"UIElement delete\n" %s
+    \ "UIElement delete\n" %s
     oclear mParent
   ;m
   
@@ -83,7 +83,7 @@ class: UIElement
   m: onKeyUp        drop  ;m
   
   m: draw
-    //"UIElement:draw @" %s xScreenLeft %d %bl yScreenTop %d %bl w %d "x" %s h %d %nl
+    \ "UIElement:draw @" %s xScreenLeft %d %bl yScreenTop %d %bl w %d "x" %s h %d %nl
     screenInstance.beginFrame
     screenInstance.moveTo(xScreenLeft yScreenTop)
     screenInstance.setColor(backgroundColor)
@@ -97,7 +97,7 @@ class: UIGroup extends UIElement
   Array of UIElement mChildren
 
   m: delete
-    //"UIGroup delete\n" %s
+    \ "UIGroup delete\n" %s
     oclear mChildren
     super.delete
   ;m
@@ -129,7 +129,7 @@ class: UIGroup extends UIElement
   ;m
   
   m: draw
-    //"UIGroup:draw @" %s xScreenLeft %d %bl yScreenTop %d %bl w %d "x" %s h %d %nl
+    \ "UIGroup:draw @" %s xScreenLeft %d %bl yScreenTop %d %bl w %d "x" %s h %d %nl
     ArrayIter iter
     if(objNotNull(mChildren))
       mChildren.headIter -> iter
@@ -147,7 +147,7 @@ class: UIGroup extends UIElement
     int x   int y
     
     case( sdlEvent.common.type )
-      of( SDL_MOUSEMOTION )			// Mouse moved
+      of( SDL_MOUSEMOTION )			\ Mouse moved
         mChildren.headIter -> iter
         sdlEvent.motion.x -> x
         sdlEvent.motion.y -> y
@@ -163,7 +163,7 @@ class: UIGroup extends UIElement
         oclear iter
       endof
       
-      of( SDL_MOUSEBUTTONDOWN )			// Mouse button pressed
+      of( SDL_MOUSEBUTTONDOWN )			\ Mouse button pressed
         mChildren.headIter -> iter
         sdlEvent.button.x -> x
         sdlEvent.button.y -> y
@@ -179,7 +179,7 @@ class: UIGroup extends UIElement
         oclear iter
       endof
       
-      of( SDL_MOUSEBUTTONUP )			// Mouse button released
+      of( SDL_MOUSEBUTTONUP )			\ Mouse button released
         mChildren.headIter -> iter
         sdlEvent.button.x -> x
         sdlEvent.button.y -> y
@@ -235,7 +235,7 @@ class: Button extends UIElement
   m: draw
     screenInstance.beginFrame
     super.draw
-    //"Button:draw @" %s xScreenLeft %d %bl yScreenTop %d %bl w %d "x" %s h %d %nl
+    \ "Button:draw @" %s xScreenLeft %d %bl yScreenTop %d %bl w %d "x" %s h %d %nl
     screenInstance.moveTo(xScreenLeft yScreenTop)
     screenInstance.setColor(borderColor)
     screenInstance.drawRectangle(w h)
@@ -272,8 +272,8 @@ loaddone
 
  
 
-// simple buttons
-// toggle buttons
-// radio buttons
-// sliders
-// edit boxes
+\ simple buttons
+\ toggle buttons
+\ radio buttons
+\ sliders
+\ edit boxes

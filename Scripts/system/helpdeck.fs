@@ -16,8 +16,8 @@ class: HelpDeck extends NoteDeck
   
   NoteSchema memberSchema
   
-  Note opsNote                          // note for "help ops"
-  Note classesNote                      // note for "help classes"
+  Note opsNote                          \ note for "help ops"
+  Note classesNote                      \ note for "help classes"
   Note newestClassNote
   long curTags
 
@@ -78,24 +78,24 @@ class: HelpDeck extends NoteDeck
       -> tagName
       if(tagMap.grab(tagName))
         ->o tagDef
-        tagDef.mask ->+ curTags  // note: this assumes no duplicate tag values
-        //tagName %s %bl tagDef.mask %2x %bl
+        tagDef.mask ->+ curTags  \ note: this assumes no duplicate tag values
+        \ tagName %s %bl tagDef.mask %2x %bl
       else
-        // TODO: report error, tag not found
+        \ TODO: report error, tag not found
       endif
     repeat
-    //"tags set to " %s curTags %x %nl
+    \ "tags set to " %s curTags %x %nl
   ;m
   
-  m: getOpNote            // NAME ...   false   OR   NOTE_OBJ true
+  m: getOpNote            \ NAME ...   false   OR   NOTE_OBJ true
     opsNote getChild
   ;m
   
-  m: getClassNote            // NAME ...   false   OR   NOTE_OBJ true
+  m: getClassNote            \ NAME ...   false   OR   NOTE_OBJ true
     classesNote getChild
   ;m
   
-  // addOp opName|stack behavior|description|extra tags
+  \ addOp opName|stack behavior|description|extra tags
   m: addOp
     Note newNote
     curTags kTagOp l+ -> long tagMask
@@ -104,10 +104,10 @@ class: HelpDeck extends NoteDeck
   
     if(word?(separator))
       -> opName
-      //opName %s %nl
+      \ opName %s %nl
       addChild(opName "" opsNote) -> newNote
       
-      // look for stack behavior
+      \ look for stack behavior
       if(word?(separator))
         mko NoteParam newParam
         new String -> newParam.sval
@@ -116,17 +116,17 @@ class: HelpDeck extends NoteDeck
         oclear newParam
       endif
       
-      // look for description
+      \ look for description
       if(word?(separator))
         newNote.body.set
       endif
       
-      // look for extra tags
+      \ look for extra tags
       begin
       while(blword?)
         -> tagName
         if(getTag(tagName))
-          <NoteTagDef>.mask ->+ tagMask  // note: this assumes no duplicate tag values
+          <NoteTagDef>.mask ->+ tagMask  \ note: this assumes no duplicate tag values
         else
           error("addOp - extra tag not found")
         endif
@@ -141,7 +141,7 @@ class: HelpDeck extends NoteDeck
     oclear newNote  
   ;m
   
-  // addClass className|baseClass|description|tags
+  \ addClass className|baseClass|description|tags
   m: addClass
     kTagClass -> long tags
     ptrTo byte className
@@ -149,26 +149,26 @@ class: HelpDeck extends NoteDeck
   
     if(word?(separator))
       -> className
-      //className %s %nl
+      \ className %s %nl
       addChild(className "" classesNote) -> newestClassNote
       
-      // look for baseClass
+      \ look for baseClass
       if(word?(separator))
-        // TODO!
+        \ TODO!
         drop
       endif
       
-      // look for description
+      \ look for description
       if(word?(separator))
         newestClassNote.body.set
       endif
       
-      // look for tags
+      \ look for tags
       begin
       while(blword?)
         -> tagName
         if(getTag(tagName))
-          <NoteTagDef>.mask ->+ tags  // note: this assumes no duplicate tag values
+          <NoteTagDef>.mask ->+ tags  \ note: this assumes no duplicate tag values
         else
           error("addOp - extra tag not found")
         endif
@@ -181,7 +181,7 @@ class: HelpDeck extends NoteDeck
     endif
   ;m
   
-  // addMethod methodName|stack behavior|description|extra tags
+  \ addMethod methodName|stack behavior|description|extra tags
   m: addMethod
     Note newMethodNote
     curTags kTagMethod l+ -> long tags
@@ -190,10 +190,10 @@ class: HelpDeck extends NoteDeck
   
     if(word?(separator))
       -> methodName
-      //methodName %s %nl
+      \ methodName %s %nl
       addChild(methodName "" newestClassNote) -> newMethodNote
       
-      // look for stack behavior
+      \ look for stack behavior
       if(word?(separator))
         mko NoteParam newParam
         new String -> newParam.sval
@@ -202,17 +202,17 @@ class: HelpDeck extends NoteDeck
         oclear newParam
       endif
       
-      // look for description
+      \ look for description
       if(word?(separator))
         newMethodNote.body.set
       endif
       
-      // look for extra tags
+      \ look for extra tags
       begin
       while(blword?)
         -> tagName
         if(getTag(tagName))
-          <NoteTagDef>.mask ->+ tags  // note: this assumes no duplicate tag values
+          <NoteTagDef>.mask ->+ tags  \ note: this assumes no duplicate tag values
         else
           error("addOp - extra tag not found")
         endif
@@ -227,7 +227,7 @@ class: HelpDeck extends NoteDeck
     oclear newMethodNote  
   ;m
   
-  // addMember memberName|type|description|extra tags
+  \ addMember memberName|type|description|extra tags
   m: addMember
     Note newMemberNote
     kTagMember -> long tags
@@ -236,25 +236,25 @@ class: HelpDeck extends NoteDeck
   
     if(word?(separator))
       -> memberName
-      //memberName %s %nl
+      \ memberName %s %nl
       addChild(memberName "" newestClassNote) -> newMemberNote
       
-      // look for type
+      \ look for type
       if(word?(separator))
-        drop // TODO!
+        drop \ TODO!
       endif
       
-      // look for description
+      \ look for description
       if(word?(separator))
         newMemberNote.body.set
       endif
       
-      // look for extra tags
+      \ look for extra tags
       begin
       while(blword?)
         -> tagName
         if(getTag(tagName))
-          <NoteTagDef>.mask ->+ tags  // note: this assumes no duplicate tag values
+          <NoteTagDef>.mask ->+ tags  \ note: this assumes no duplicate tag values
         else
           error("addOp - extra tag not found")
         endif
@@ -278,7 +278,7 @@ class: HelpDeck extends NoteDeck
       ->o foundNote
       if(foundNote.tags kTagOp land l0<>)
         foundNote.name.get %s " - " %s foundNote.body.get %s %nl
-        //foundNote.name.get %s %bl foundNote.tags %2x " - " %s foundNote.body.get %s %nl
+        \ foundNote.name.get %s %bl foundNote.tags %2x " - " %s foundNote.body.get %s %nl
       endif
     repeat
     oclear iter
@@ -323,7 +323,7 @@ class: HelpDeck extends NoteDeck
       else
       
         if(getChild(helpTarget classesNote))
-          // help CLASSNAME
+          \ help CLASSNAME
           ->o foundNote
           helpTarget %s " - " %s foundNote.body.get %s %nl
          
@@ -340,7 +340,7 @@ class: HelpDeck extends NoteDeck
           repeat
           oclear linkIter
         elseif(tagMap.grab(helpTarget))
-          // help SECTIONNAME
+          \ help SECTIONNAME
           -> NoteTagDef tagDef
           notes.headIter -> ArrayIter noteIter
           begin
@@ -351,7 +351,7 @@ class: HelpDeck extends NoteDeck
             endif
           repeat
         elseif(getChild(helpTarget opsNote))
-          // help OPNAME
+          \ help OPNAME
           ->o foundNote
           helpTarget %s " - " %s foundNote.body.get %s %nl
           if(foundNote.getParam(stackParamDef.id))
@@ -410,7 +410,7 @@ helpDeck.init
   helpDeck.addTagDef(blword $word(helpDeck.separator) $word(0)) drop
 ;
 
-// op, method, class and member tags are defined in HelpDeck:init
+\ op, method, class and member tags are defined in HelpDeck:init
 
 mkTag control Control|Ops which change the flow of execution
 mkTag immediate Immediate|Ops which are executed at compile time
@@ -443,8 +443,8 @@ mkTag case Case|Part of case statement
 mkTag loop Loop|Part of do or begin loops
 mkTag thread Thread|Ops related to threads
 
-// add string compile if loop case except
-// ? short byte unsigned
+\ add string compile if loop case except
+\ ? short byte unsigned
 
 : tags:
   helpDeck.setTags
@@ -928,7 +928,7 @@ addOp addDLLEntryEx|NUM_ARGS "OP_NAME" "ENTRY_NAME" ...|adds a new entry point t
 addOp DLLVoid||when used prior to dll_0...dll_15, newly defined word will return nothing on TOS
 
 
-// TODO: tag these
+\ TODO: tag these
 tags:
 addOp lit|... IVAL|pushes longword which is compiled immediately after it
 addOp flit|... FVAL|pushes float which is compiled immediately after it
@@ -989,8 +989,7 @@ addOp getConOutFile|... FILE|returns redirected output file
 
 addOp blword|... STRING_ADDR|fetch next whitespace-delimited token from input stream, return its address
 addOp $word|CHARVAL ... STRING_ADDR|fetch next token delimited by CHARVAL from input stream, return its address
-addOp /*|/* COMMENT TEXT */|inline comment, ends at '*/' or end of line
-addOp (|( COMMENT TEXT )|inline comment, ends at ')' or end of line, only works if kFFParenIsComment feature is enabled
+addOp (|( COMMENT TEXT )|inline comment, ends at ')' or end of line
 addOp features|... FEATURES|variable that allows you to enable and disable language features
 addOp .features||displays what features are currently enabled
 addOp source|... INPUT_BUFFER_ADDR LENGTH|return address of base of input buffer and its length
@@ -1049,7 +1048,7 @@ addOp windowsConstants|... PTR_TO_CONSTANTS|
 addOp dumpProfile|... dump opcode execution counts. start profiling with setTrace(1024)|
 addOp resetProfile|...|reset opcode execution counts.
 
-//=============================================================================================
+\ =============================================================================================
 
 addClass Object||base object class
 addMethod delete|...|delete the object - do not invoke this
@@ -1388,7 +1387,7 @@ addMethod findValue|OBJECT_VALUE ... OBJECT_KEY true   OR   false|return key obj
 addMethod remove|OBJECT_KEY ...|remove object,key pair from map
 addMethod unref|OBJECT_KEY ... OBJECT_VALUE|remov object,key pair from map, return value object
 
-// maps have unref but map iters don't have unref - why?
+\ maps have unref but map iters don't have unref - why?
 addClass MapIter|Iter|object map iterator
 addMethod currentPair|... OBJECT_VALUE OBJECT_KEY true   OR   false|return item at iterator cursor and true, return false if already at last element
 addMember parent|Map|Map object this iter is associated with
@@ -1725,7 +1724,7 @@ addMember namedObjects|StringMap|system named objects map
 addMember args|Array of String|array of startup argument strings
 addMember env|StringMap|system environment variables
 
-// Socket help descriptions need a lot of love
+\ Socket help descriptions need a lot of love
 
 addClass Socket|Object|simple socket object
 addMethod open|INT_DOMAIN INT_TYPE INT_PROTOCOL ... INT_SOCKET_FD|open a socket, return file descriptor, -1 if open fails
@@ -1740,18 +1739,18 @@ addMethod recv|BUFFER_PTR INT_NUM_BYTES INT_FLAGS ... INT_RESULT|read bytes from
 addMethod recvFrom|BUFFER_PTR INT_NUM_BYTES INT_FLAGS SOCKADDR_PTR INT_SOCKADDR_LEN... INT_RESULT|read bytes from this socket using recvfrom, gets address that bytes came from
 addMethod write|BUFFER_PTR INT_NUM_BYTES ... INT_RESULT|write bytes to this socket
 addMethod read|BUFFER_PTR INT_NUM_BYTES ... INT_RESULT|read bytes from this socket
-//addClassOp inetPToN|INT_FAMILY SRC_TEXT_PTR DST_NETADDRESS_PTR ... INT_RESULT|convert network address string ac SRC_TEXT_PTR to network address in DST_NETADDRESS_PTR
-//addClassOp inetNToP|INT_FAMILY SRC_NETADDRESS_PTR DST_TEXT_PTR INT_DST_LEN ... INT_RESULT|convert network address at SRC_NETADDRESS_PTR to printable form in buffer at DST_TEXT_PTR, at most INT_DST_LEN characters
-//addClassOp htonl|INT_VAL ... INT_RESULT|convert integer from host byte order to network byte order
-//addClassOp htons|SHORT_VAL ... SHORT_RESULT|convert short from host byte order to network byte order
-//addClassOp ntohl|INT_VAL ... INT_RESULT|convert integer from network byte order to host byte order
-//addClassOp ntohs|SHORT_VAL ... SHORT_RESULT|convert short from network byte order to host byte order
+\ addClassOp inetPToN|INT_FAMILY SRC_TEXT_PTR DST_NETADDRESS_PTR ... INT_RESULT|convert network address string ac SRC_TEXT_PTR to network address in DST_NETADDRESS_PTR
+\ addClassOp inetNToP|INT_FAMILY SRC_NETADDRESS_PTR DST_TEXT_PTR INT_DST_LEN ... INT_RESULT|convert network address at SRC_NETADDRESS_PTR to printable form in buffer at DST_TEXT_PTR, at most INT_DST_LEN characters
+\ addClassOp htonl|INT_VAL ... INT_RESULT|convert integer from host byte order to network byte order
+\ addClassOp htons|SHORT_VAL ... SHORT_RESULT|convert short from host byte order to network byte order
+\ addClassOp ntohl|INT_VAL ... INT_RESULT|convert integer from network byte order to host byte order
+\ addClassOp ntohs|SHORT_VAL ... SHORT_RESULT|convert short from network byte order to host byte order
 addMember fd|uint|socket file descriptor
 addMember domain|uint|socket domain
 addMember type|uint|socket type
 addMember protocol|uint|socket protocol
 
-// NoteDeck, Note and supporting classes
+\ NoteDeck, Note and supporting classes
 addClass NoteDef|Object|just a base class for flags, tags and schemas
 addMember id|int|index into tags/flags/schemas/params arrays
 addMember name|String|name of this definition (for searching)
@@ -1838,13 +1837,13 @@ addMethod setTags||set current flags to immediately following names
 addMethod getOpNote|NAME ...   false   OR   NOTE_OBJ true|get op selected by name
 addMethod getClassNote|NAME ...   false   OR   NOTE_OBJ true|get class selected by name
 
-// use slash for separator so description can have '|' in it
+\ use slash for separator so description can have '|' in it
 helpDeck.separator
 `/` -> helpDeck.separator
-addMethod addOp//add help for op, immediately followed by name|stack behavior|description|extra flags
-addMethod addClass//add help for class, immediately followed by className|baseClass|description|flags
-addMethod addMethod//add help for class method, immediately followed by methodName|stack behavior|description|extra flags
-addMethod addMember//add help for class member, immediately followed by memberName|type|description|extra flags
+addMethod addOp \ add help for op, immediately followed by name|stack behavior|description|extra flags
+addMethod addClass \ add help for class, immediately followed by className|baseClass|description|flags
+addMethod addMethod \ add help for class method, immediately followed by methodName|stack behavior|description|extra flags
+addMethod addMember \ add help for class member, immediately followed by memberName|type|description|extra flags
 -> helpDeck.separator
 
 addMethod listOperators||list all operators

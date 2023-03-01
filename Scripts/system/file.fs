@@ -5,11 +5,11 @@ class: File extends Object
 
   int fp
   String path
-  ByteArray buffer		// line buffer for getLine
+  ByteArray buffer		\ line buffer for getLine
   byte readOnly
-  byte unixEol			// end-of-line for putLine
-  byte noTrimEol		// defined bass-ackwards so it will default to 'trim eol' IE remove trailing CR and/or LF in getLine
-  byte stdHandle		// true if file is stdin, stdout or stderr, used to prevent mistakenly closing stdout
+  byte unixEol			\ end-of-line for putLine
+  byte noTrimEol		\ defined bass-ackwards so it will default to 'trim eol' IE remove trailing CR and/or LF in getLine
+  byte stdHandle		\ true if file is stdin, stdout or stderr, used to prevent mistakenly closing stdout
   
   : error
     "error in file." %s %s %nl
@@ -24,7 +24,7 @@ class: File extends Object
     super.delete
   ;m
     
-  // ...
+  \ ...
   m: close
     if( fp )
       if( not( stdHandle ) )
@@ -39,7 +39,7 @@ class: File extends Object
     endif
   ;m
   
-  // "inpath" "mode" ... t/f  
+  \ "inpath" "mode" ... t/f  
   m: open
     -> ptrTo byte mode
     -> ptrTo byte inpath
@@ -47,7 +47,7 @@ class: File extends Object
     if( fp )
       close
     endif
-    mode c@ `r` = -> readOnly   // yeah, this is probably wrong
+    mode c@ `r` = -> readOnly   \ yeah, this is probably wrong
 
     false -> stdHandle
     if( inpath c@ `<` = )
@@ -91,25 +91,25 @@ class: File extends Object
     endif
   ;m
 
-  // "path" ... t/f  
+  \ "path" ... t/f  
   m: openRead    "r" open  ;m
   
-  // "path" ... t/f  
+  \ "path" ... t/f  
   m: openWrite    "w" open  ;m
   
-  // "path" ... t/f  
+  \ "path" ... t/f  
   m: openAppend    "a" open  ;m
   
-  // "path" ... t/f  
+  \ "path" ... t/f  
   m: openReadBinary    "rb" open  ;m
   
-  // "path" ... t/f  
+  \ "path" ... t/f  
   m: openWriteBinary    "wb" open  ;m
   
-  // "path" ... t/f  
+  \ "path" ... t/f  
   m: openAppendBinary    "ab" open  ;m
   
-  // ... BYTE_VALUE
+  \ ... BYTE_VALUE
   m: getByte
     if( fp )
       fgetc( fp )
@@ -122,7 +122,7 @@ class: File extends Object
     endif
   ;m
 
-  // ... SHORT_VALUE
+  \ ... SHORT_VALUE
   m: getShort
     0 -> short val
     if( fp )
@@ -136,7 +136,7 @@ class: File extends Object
     val
   ;m
   
-  // ... INT_VALUE
+  \ ... INT_VALUE
   m: getInt
     0 -> int val
     if( fp )
@@ -150,7 +150,7 @@ class: File extends Object
     val
   ;m
 
-  // ... LONG_VALUE
+  \ ... LONG_VALUE
   m: getLong
     dnull -> long val
     if( fp )
@@ -164,7 +164,7 @@ class: File extends Object
     val
   ;m
 
-  // BYTE_VALUE ...
+  \ BYTE_VALUE ...
   m: putByte
     if( fp )
       if( readOnly )
@@ -181,7 +181,7 @@ class: File extends Object
     endif
   ;m
 
-  // SHORT_VALUE ...
+  \ SHORT_VALUE ...
   m: putShort
     -> short val
     if( fp )
@@ -198,7 +198,7 @@ class: File extends Object
     endif
   ;m
 
-  // INT_VALUE ...
+  \ INT_VALUE ...
   m: putInt
     -> int val
     if( fp )
@@ -215,7 +215,7 @@ class: File extends Object
     endif
   ;m
 
-  // LONG_VALUE ...
+  \ LONG_VALUE ...
   m: putLong
     -> long val
     if( fp )
@@ -232,7 +232,7 @@ class: File extends Object
     endif
   ;m
 
-  // CHAR_PTR ...  
+  \ CHAR_PTR ...  
   m: putLine
     if( fp )
       if( readOnly )
@@ -243,9 +243,9 @@ class: File extends Object
           error( "putLine" )
         else
           if( unixEol )
-            putByte( 0x0A )
+            putByte( $0A )
           else
-            putShort( 0x0A0D )
+            putShort( $0A0D )
           endif
         endif
       endif
@@ -255,7 +255,7 @@ class: File extends Object
     endif
   ;m
 
-  // ... CHAR_PTR
+  \ ... CHAR_PTR
   m: getLine
     null -> ptrTo byte result
     if( fp )
@@ -265,11 +265,11 @@ class: File extends Object
         d[ "file.getLine allocating buffer\n" %s ]d
         new ByteArray -> buffer
         buffer.resize( 256 )
-        //buffer.resize( 32000 )
+        \ buffer.resize( 32000 )
       endif
-      //buffer.resize( 1 )			// just for testing
+      \ buffer.resize( 1 )			\ just for testing
       
-      // loop until an end-of-line is read (or eof)
+      \ loop until an end-of-line is read (or eof)
       false -> int done
       buffer.base -> ptrTo byte pDst
       buffer.count -> int charsToGet
@@ -281,18 +281,18 @@ class: File extends Object
           do( buffer.count 0 )
             pDst c@ -> byte c
             if( c 0= )
-              // buffer didn't have newline, resize buffer and try again
-              buffer.resize( buffer.count 5 * 2 rshift )	// increase to 5/4 current size
+              \ buffer didn't have newline, resize buffer and try again
+              buffer.resize( buffer.count 5 * 2 rshift )	\ increase to 5/4 current size
               buffer.base i + -> pDst
               buffer.count i - -> charsToGet
               leave
             else
-              if( c 0x0D = )
+              if( c $0D = )
                 if( not( noTrimEol ) )
                   0 pDst c!
                 endif
               else
-                if( c 0x0A = )
+                if( c $0A = )
                   if( not( noTrimEol ) )
                     0 pDst c!
                   endif
@@ -304,7 +304,7 @@ class: File extends Object
             1 ->+ pDst
           loop
         else
-          //error( "getLine fgets" )
+          \ error( "getLine fgets" )
           true -> done
         endif
       until( or( done feof( fp ) ) )
@@ -315,49 +315,49 @@ class: File extends Object
     result
   ;m
 
-  // BOOL ...
+  \ BOOL ...
   m: setUnixEol
     -> unixEol
   ;m
   
-  // ... BOOL
+  \ ... BOOL
   m: getUnixEol
     unixEol
   ;m
   
-  // BOOL ...
+  \ BOOL ...
   m: setTrimEol
     not -> noTrimEol
   ;m
 
-  // ... BOOL
+  \ ... BOOL
   m: getTrimEol
     noTrimEol not
   ;m
     
-  // ... BOOL
+  \ ... BOOL
   m: eof
     feof( fp )
   ;m
 
-  // ... FILE_LENGTH
+  \ ... FILE_LENGTH
   m: len
     flen( fp )
   ;m
 
-  // ... FILE_POSITION  
+  \ ... FILE_POSITION  
   m: tell
     ftell( fp )
   ;m
 
-  // FILE_POSITION ...  
+  \ FILE_POSITION ...  
   m: seekAbs
     if( fseek( fp swap 0 ) )
       error( "seekAbs" )
     endif
   ;m
   
-  // FILE_POSITION ...  
+  \ FILE_POSITION ...  
   m: seekRel
     if( fseek( fp swap 1 ) )
       error( "seekAbs" )
@@ -370,7 +370,7 @@ class: File extends Object
     endif
   ;m
   
-  // BUFFER_SIZE_BYTES ...
+  \ BUFFER_SIZE_BYTES ...
   m: setBufferSize
     if( buffer objIsNull )
       new ByteArray -> buffer

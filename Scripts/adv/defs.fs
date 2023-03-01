@@ -49,7 +49,7 @@ enum: ActionWord
     DROP OPEN CLOSE ON OFF WAVE CALM GO
     RELAX POUR EAT DRINK RUB TOSS WAKE FEED FILL BREAK BLAST
     KILL SAY READ FEEFIE BRIEF FIND INVENTORY SCORE
-    //SAVE RESTORE
+    \ SAVE RESTORE
     QUIT
     
     ACTION_LIMIT
@@ -95,7 +95,7 @@ enum: Location
     -1 R_INHAND
     0 R_LIMBO
     
-    // unique locations
+    \ unique locations
     R_ROAD R_HILL R_HOUSE R_VALLEY R_FOREST R_FOREST2 R_SLIT R_OUTSIDE R_INSIDE
     R_COBBLES R_DEBRIS R_AWK R_BIRD R_SPIT R_EMIST
     R_NUGGET R_EFISS R_WFISS R_WMIST
@@ -129,7 +129,7 @@ enum: Location
     R_TROLL
     FIRST_REMARK
 
-    // meta
+    \ meta
     R_INSIDE MIN_IN_CAVE
     R_EMIST MIN_LOWER_LOC
     R_DIDIT MAX_LOC
@@ -145,18 +145,18 @@ enum: Location
 ;
 
 enum: flagsBits
-  0x008 F_CAVE_HINT
-  0x010 F_BIRD_HINT
-  0x020 F_SNAKE_HINT
-  0x040 F_TWIST_HINT
-  0x080 F_DARK_HINT
-  0x100 F_WITT_HINT
+  $008 F_CAVE_HINT
+  $010 F_BIRD_HINT
+  $020 F_SNAKE_HINT
+  $040 F_TWIST_HINT
+  $080 F_DARK_HINT
+  $100 F_WITT_HINT
 ;enum
 
 struct: Instruction
-  MotionWord mot    // command word
-  int cond          // requirement for command to be obeyed
-  Location dest     // where command takes you
+  MotionWord mot    \ command word
+  int cond          \ requirement for command to be obeyed
+  Location dest     \ where command takes you
 ;struct
 
 : showInstruction
@@ -180,19 +180,19 @@ struct: Instruction
 ;
   
 enum: eAdventureState
-  kStateLoopTop     // 0
+  kStateLoopTop     \ 0
   kStateCommence
   kStateInnerLoop
   kStateCycle
-  kStatePreParse    // 4
+  kStatePreParse    \ 4
   kStateParse
   kStateIntransitive
   kStateTransitive
-  kStateGetObject   // 8
+  kStateGetObject   \ 8
   kStateCantSeeIt
   kStateTryMove
   kStatePitchDark
-  kStateDeath       // 12
+  kStateDeath       \ 12
   kStateQuit
 ;enum
   

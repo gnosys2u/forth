@@ -1,24 +1,24 @@
-// reader for atc files using a hacky forth vocabulary
+\ reader for atc files using a hacky forth vocabulary
 
-// sample file:
+\ sample file:
 
-// update = 7;
-// newplane = 12;
-// width = 15;
-// height = 15;
-// exit:     (  7  0 x ) ( 14  0 z ) ( 12 14 q ) (  0 14 e ) ;
-// beacon:   ( 12  7 ) ;
-// airport:  (  7  8 w ) ;
-// line:     [ (  1  1 ) (  6  6 ) ]
-//           [ (  1  7 ) ( 11  7 ) ] ;
+\ update = 7;
+\ newplane = 12;
+\ width = 15;
+\ height = 15;
+\ exit:     (  7  0 x ) ( 14  0 z ) ( 12 14 q ) (  0 14 e ) ;
+\ beacon:   ( 12  7 ) ;
+\ airport:  (  7  8 w ) ;
+\ line:     [ (  1  1 ) (  6  6 ) ]
+\           [ (  1  7 ) ( 11  7 ) ] ;
 
 vocabulary atcFileReader
 also atcFileReader definitions
 
 atcGame daGame
 
-// directions are based on the 8 keyboard keys surrounding the 's' key
-// for airports this is runway direction, for portals this is entry direction
+\ directions are based on the 8 keyboard keys surrounding the 's' key
+\ for airports this is runway direction, for portals this is entry direction
 enum: atcFileDirections
   w e d c x z a q
 ;enum
@@ -31,7 +31,7 @@ enum: atcFileCommands
 ;enum
 
 : getValue
-  // rest of line should be like " = 11;"
+  \ rest of line should be like " = 11;"
   if( strcmp( blword "=" ) )
     error( 2 )
     addErrorText( "missing equals in atc file" )
@@ -58,7 +58,7 @@ int regionHeight
   endif
 ;
 
-// turn off normal processing of parentheses
+\ turn off normal processing of parentheses
 
 int numArgs
 atcFileCommands command
@@ -74,7 +74,7 @@ kFFParenIsExpression ->+ features
 : beacon: kCmdBeacon command! numArgs~ ;
 : airport: kCmdAirport command! numArgs~ ;
 : line: kCmdLine command! numArgs~ ;
-: # 0 $word drop ;  // eat all comments
+: # 0 $word drop ;  \ eat all comments
 
 : ;
   numArgs 1- int id!
@@ -123,9 +123,9 @@ kFFParenIsExpression ->+ features
   ] ;
 forth:;
 
-//only forth
+\ only forth
 
-// ATC_FILENAME ATC_GAME_OBJ ... TRUE   if successfuly read file
+\ ATC_FILENAME ATC_GAME_OBJ ... TRUE   if successfuly read file
 : loadAtcFile
   daGame!
   ptrTo byte gameName!

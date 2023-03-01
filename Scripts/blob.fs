@@ -23,7 +23,7 @@ class: Blob
     dup numBytes!
     malloc blobData!
     true needsFreeing!
-    // TODO: report malloc failure
+    \ TODO: report malloc failure
   ;m
   
   m: reallocate
@@ -31,7 +31,7 @@ class: Blob
     if(needsFreeing)
       realloc(blobData numBytes)
     else
-      // TODO: error
+      \ TODO: error
     endif
   ;m
     

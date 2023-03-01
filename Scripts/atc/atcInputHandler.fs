@@ -1,11 +1,11 @@
-//======== atcInputHandler ========
+\ ======== atcInputHandler ========
 
 kNumCommandStates arrayOf op inputStateOps
   
 class: atcInputHandler extends iAtcInputHandler
 
-  int cmdChar    // converted to lowercase
-  int oCmdChar    // original keyboard char
+  int cmdChar    \ converted to lowercase
+  int oCmdChar    \ original keyboard char
   
   : c2dir
     strchr(directionChars swap)
@@ -60,7 +60,7 @@ class: atcInputHandler extends iAtcInputHandler
       displayString.appendChar( cmdChar )
     else
       if( cmdChar `\r` =)
-        // force an immediate game turn
+        \ force an immediate game turn
         ms@ game.status.nextMoveTime!
       else
         display.startWarning "airplane name a..z is required" %s
@@ -69,37 +69,37 @@ class: atcInputHandler extends iAtcInputHandler
   ;
   
   : handlePlaneSelected
-    // valid commands: amuict  altitude mark unmark ignore circle turn
+    \ valid commands: amuict  altitude mark unmark ignore circle turn
     case( cmdChar )
-      `a` of  // altitude
+      `a` of  \ altitude
         commandString.appendChar( cmdChar )
         displayString.append( " altitude" )
         kACSAltitude commandState!
         kACTAltitude commandInfo.command!
       endof
       
-      `m` of  // mark
+      `m` of  \ mark
         commandString.appendChar( cmdChar )
         displayString.append( " mark" )
         kACSCommandReady commandState!
         kACTMark commandInfo.command!
       endof
       
-      `u` of  // unmark
+      `u` of  \ unmark
         commandString.appendChar( cmdChar )
         displayString.append( " unmark" )
         kACSCommandReady commandState!
         kACTUnmark commandInfo.command!
       endof
       
-      `i` of  // ignore
+      `i` of  \ ignore
         commandString.appendChar( cmdChar )
         displayString.append( " ignore" )
         kACSCommandReady commandState!
         kACTIgnore commandInfo.command!
       endof
       
-      `c` of  // circle
+      `c` of  \ circle
         commandString.appendChar( cmdChar )
         displayString.append( " circle" )
         kACSCircle commandState!
@@ -107,7 +107,7 @@ class: atcInputHandler extends iAtcInputHandler
         kACTCircle commandInfo.command!
       endof
       
-      `t` of  // turn
+      `t` of  \ turn
         commandString.appendChar( cmdChar )
         displayString.append( " turn" )
         kACSTurn commandState!
@@ -123,7 +123,7 @@ class: atcInputHandler extends iAtcInputHandler
     if( cmdChar `\r` =)
       executeCommand
     else
-      //display.showWarning( "hit ENTER" )
+      \ display.showWarning( "hit ENTER" )
       display.startWarning "hit ENTER" %s
     endif
   ;
@@ -173,7 +173,7 @@ class: atcInputHandler extends iAtcInputHandler
       kACSCommandReady commandState!
       altitude commandInfo.amount!
       true commandInfo.isRelative!
-      // TODO: check climb is in range
+      \ TODO: check climb is in range
     else
       unrecognizedCommandWarning("0123456789")
     endif
@@ -189,9 +189,9 @@ class: atcInputHandler extends iAtcInputHandler
       kACSCommandReady commandState!
       altitude commandInfo.amount!
       true commandInfo.isRelative!
-      // TODO: check descend is in range
+      \ TODO: check descend is in range
     else
-      // TODO: report error
+      \ TODO: report error
     endif
   ;
   
@@ -250,7 +250,7 @@ class: atcInputHandler extends iAtcInputHandler
         executeCommand
       endof
       
-      // display.showWarning( "valid command letters are a or ENTER" )
+      \ display.showWarning( "valid command letters are a or ENTER" )
       unrecognizedCommandWarning("a or ENTER")
     endcase
   ;
@@ -412,7 +412,7 @@ class: atcInputHandler extends iAtcInputHandler
       commandString.appendChar( cmdChar )
       displayString.append( " beacon" )
     else
-      //display.showWarning( "hit b" )
+      \ display.showWarning( "hit b" )
       unrecognizedCommandWarning("b")
     endif
   ;
@@ -454,15 +454,15 @@ class: atcInputHandler extends iAtcInputHandler
   ;
 
   : handleBackspace
-    // handle backspace/delete:
-    //  set state back to idle
-    //  remove last char from commandString
+    \ handle backspace/delete:
+    \  set state back to idle
+    \  remove last char from commandString
     mko String tmpCommandString
     tmpCommandString.set( commandString.get )
     tmpCommandString.resize( tmpCommandString.length 1- )
     tmpCommandString.get ptrTo byte pSrc!
     setIdle
-    // process commandString chars one at a times
+    \ process commandString chars one at a times
     begin
       b@@++(ref pSrc) byte ch!
     while( ch 0<> )
@@ -473,7 +473,7 @@ class: atcInputHandler extends iAtcInputHandler
     oclear tmpCommandString
   ;
   
-  m: init     // REGION DISPLAY_OBJ  ...
+  m: init     \ REGION DISPLAY_OBJ  ...
     `inph` tag!
     display!
     region!o
@@ -485,7 +485,7 @@ class: atcInputHandler extends iAtcInputHandler
   ;m
   
   m: delete
-    //t{ "deleting inputHandler " %s %nl }t
+    \ t{ "deleting inputHandler " %s %nl }t
     display~
     displayString~
     commandString~
@@ -496,18 +496,18 @@ class: atcInputHandler extends iAtcInputHandler
       
       setCommandCharacter(key)
 
-      if( or( cmdChar `\b` = cmdChar 0x7f = ) )
+      if( or( cmdChar `\b` = cmdChar $7f = ) )
 
         handleBackspace
       
       else
-        if( cmdChar 0x1b = )
+        if( cmdChar $1b = )
           true isGameOver!
         else
           if( within( commandState kACSIdle kNumCommandStates ) )
             inputStateOps( commandState )
           else
-            // TODO: report bad command state error
+            \ TODO: report bad command state error
           endif
         endif
 

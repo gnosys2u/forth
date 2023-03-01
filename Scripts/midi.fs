@@ -2,117 +2,117 @@ autoforget showMidi
 
 
 
-//0 setTrace
+\ 0 setTrace
 
 
 
-// enableMidi( BOOL )
-// disableMidi( BOOL )
+\ enableMidi( BOOL )
+\ disableMidi( BOOL )
 
-// midiInGetNumDevices ... NUM_INPUT_DEVICES
-// midiInGetDeviceName( DEVICE_NUM ) ... NAME_STR_PTR
-// midiInGetDeviceCapabilities( DEVICE_NUM ) ... IN_DEVICE_CAPABILITIES_PTR
-// midiInOpen( DEVICE_NUM CALLBACK_OPCODE CALLBACK_DATA ) ... MMSYSERR
-// midiInClose( DEVICE_NUM ) ... MMSYSERR
-// midiInStart( DEVICE_NUM ) ... MMSYSERR
-// midiInStop( DEVICE_NUM ) ... MMSYSERR
-// midiInGetErrorText( MMSYSERR BUFFER_PTR BUFFER_SIZE )
+\ midiInGetNumDevices ... NUM_INPUT_DEVICES
+\ midiInGetDeviceName( DEVICE_NUM ) ... NAME_STR_PTR
+\ midiInGetDeviceCapabilities( DEVICE_NUM ) ... IN_DEVICE_CAPABILITIES_PTR
+\ midiInOpen( DEVICE_NUM CALLBACK_OPCODE CALLBACK_DATA ) ... MMSYSERR
+\ midiInClose( DEVICE_NUM ) ... MMSYSERR
+\ midiInStart( DEVICE_NUM ) ... MMSYSERR
+\ midiInStop( DEVICE_NUM ) ... MMSYSERR
+\ midiInGetErrorText( MMSYSERR BUFFER_PTR BUFFER_SIZE )
 
-// midiOutGetNumDevices ... NUM_OUTPUT_DEVICES
-// midiOutGetDeviceName( DEVICE_NUM ) ... NAME_STR_PTR
-// midiOutGetDeviceCapabilities( DEVICE_NUM ) ... OUT_DEVICE_CAPABILITIES_PTR
-// midiOutOpen( DEVICE_NUM CALLBACK_OPCODE CALLBACK_DATA ) ... MMSYSERR
-// midiOutClose( DEVICE_NUM ) ... MMSYSERR
-// midiOutShortMsg( DEVICE_NUM LONG ) ... MMSYSERR
-// midiOutGetErrorText( MMSYSERR BUFFER_PTR BUFFER_SIZE )
-// midiOutPrepareHeader( DEVICE_NUM MIDIHDR_PTR ) ... MMSYSERR
-// midiOutUnprepareHeader( DEVICE_NUM MIDIHDR_PTR ) ... MMSYSERR
-// midiOutLongMsg( DEVICE_NUM MIDIHDR_PTR ) ... MMSYSERR
+\ midiOutGetNumDevices ... NUM_OUTPUT_DEVICES
+\ midiOutGetDeviceName( DEVICE_NUM ) ... NAME_STR_PTR
+\ midiOutGetDeviceCapabilities( DEVICE_NUM ) ... OUT_DEVICE_CAPABILITIES_PTR
+\ midiOutOpen( DEVICE_NUM CALLBACK_OPCODE CALLBACK_DATA ) ... MMSYSERR
+\ midiOutClose( DEVICE_NUM ) ... MMSYSERR
+\ midiOutShortMsg( DEVICE_NUM LONG ) ... MMSYSERR
+\ midiOutGetErrorText( MMSYSERR BUFFER_PTR BUFFER_SIZE )
+\ midiOutPrepareHeader( DEVICE_NUM MIDIHDR_PTR ) ... MMSYSERR
+\ midiOutUnprepareHeader( DEVICE_NUM MIDIHDR_PTR ) ... MMSYSERR
+\ midiOutLongMsg( DEVICE_NUM MIDIHDR_PTR ) ... MMSYSERR
 
-// MIDIHDR_SIZE ... <sizeof midiHdr>
+\ MIDIHDR_SIZE ... <sizeof midiHdr>
 
-// MIDI_CALLBACK( WMSG CALLBACK_DATA PARAM1 PARAM2 )
+\ MIDI_CALLBACK( WMSG CALLBACK_DATA PARAM1 PARAM2 )
 
 enum: eMidiStatus
-  0x80	kMSNoteOff
-  0x90	kMSNoteOn
-  0xA0	kMSPolyPressure
-  0xB0	kMSControlChange
-  0xC0	kMSProgramChange
-  0xD0	kMSAftertouch
-  0xE0	kMSPitchBend
-  0xF0	kMSSysex
-  0xF2	kMSSysexPositionSelect
-  0xF3	kMSSysexProgramSelect
+  $80	kMSNoteOff
+  $90	kMSNoteOn
+  $A0	kMSPolyPressure
+  $B0	kMSControlChange
+  $C0	kMSProgramChange
+  $D0	kMSAftertouch
+  $E0	kMSPitchBend
+  $F0	kMSSysex
+  $F2	kMSSysexPositionSelect
+  $F3	kMSSysexProgramSelect
   
-  0xF6	kMSSysexTuneRequest
-  0xF7	kMSSysexEnd
-  0xF8	kMSSysexTimingClock
+  $F6	kMSSysexTuneRequest
+  $F7	kMSSysexEnd
+  $F8	kMSSysexTimingClock
 
-  0xFA	kMSSysexStart
-  0xFB	kMSSysexContinue
-  0xFC	kMSSysexStop
+  $FA	kMSSysexStart
+  $FB	kMSSysexContinue
+  $FC	kMSSysexStop
 
-  0xFE	kMSSysexActiveSensing
-  0xFF	kMSSysexSystemReset
+  $FE	kMSSysexActiveSensing
+  $FF	kMSSysexSystemReset
   
-  0xF0	kMSStatusMask
-  0x0F	kMSChannelMask
+  $F0	kMSStatusMask
+  $0F	kMSChannelMask
 ;enum
 
-// status returns from midi commands
+\ status returns from midi commands
 enum: MMSYSERR
   MMSYSERR_NOERROR
-  MMSYSERR_ERROR        // unspecified error
-  MMSYSERR_BADDEVICEID  // device ID out of range
-  MMSYSERR_NOTENABLED   // driver failed enable
-  MMSYSERR_ALLOCATED    // device already allocated
-  MMSYSERR_INVALHANDLE  // device handle is invalid
-  MMSYSERR_NODRIVER     // no device driver present
-  MMSYSERR_NOMEM        // memory allocation error
-  MMSYSERR_NOTSUPPORTED // function isn't supported
-  MMSYSERR_BADERRNUM    // error value out of range
-  MMSYSERR_INVALFLAG    // invalid flag passed
-  MMSYSERR_INVALPARAM   // invalid parameter passed
-  MMSYSERR_HANDLEBUSY   // handle being used simultaneously on another thread (eg callback)
-  MMSYSERR_INVALIDALIAS // specified alias not found
-  MMSYSERR_BADDB        // bad registry database
-  MMSYSERR_KEYNOTFOUND  // registry key not found
-  MMSYSERR_READERROR    // registry read error
-  MMSYSERR_WRITEERROR   // registry write error
-  MMSYSERR_DELETEERROR  // registry delete error
-  MMSYSERR_VALNOTFOUND  // registry value not found
-  MMSYSERR_NODRIVERCB   // driver does not call DriverCallback
-  MMSYSERR_MOREDATA     // more data to be returned
-  MMSYSERR_LASTERROR    // last error in range
+  MMSYSERR_ERROR        \ unspecified error
+  MMSYSERR_BADDEVICEID  \ device ID out of range
+  MMSYSERR_NOTENABLED   \ driver failed enable
+  MMSYSERR_ALLOCATED    \ device already allocated
+  MMSYSERR_INVALHANDLE  \ device handle is invalid
+  MMSYSERR_NODRIVER     \ no device driver present
+  MMSYSERR_NOMEM        \ memory allocation error
+  MMSYSERR_NOTSUPPORTED \ function isn't supported
+  MMSYSERR_BADERRNUM    \ error value out of range
+  MMSYSERR_INVALFLAG    \ invalid flag passed
+  MMSYSERR_INVALPARAM   \ invalid parameter passed
+  MMSYSERR_HANDLEBUSY   \ handle being used simultaneously on another thread (eg callback)
+  MMSYSERR_INVALIDALIAS \ specified alias not found
+  MMSYSERR_BADDB        \ bad registry database
+  MMSYSERR_KEYNOTFOUND  \ registry key not found
+  MMSYSERR_READERROR    \ registry read error
+  MMSYSERR_WRITEERROR   \ registry write error
+  MMSYSERR_DELETEERROR  \ registry delete error
+  MMSYSERR_VALNOTFOUND  \ registry value not found
+  MMSYSERR_NODRIVERCB   \ driver does not call DriverCallback
+  MMSYSERR_MOREDATA     \ more data to be returned
+  MMSYSERR_LASTERROR    \ last error in range
 ;enum
 
-// midi callback codes
+\ midi callback codes
 enum: midiCallbackCodes
-  // midi input
-  0x3C1 MM_MIM_OPEN
+  \ midi input
+  $3C1 MM_MIM_OPEN
   MM_MIM_CLOSE
   MM_MIM_DATA
   MM_MIM_LONGDATA
   MM_MIM_ERROR
   MM_MIM_LONGERROR
 
-  // midi output
+  \ midi output
   MM_MOM_OPEN
   MM_MOM_CLOSE
   MM_MOM_DONE
 ;enum
 
 struct: midiHdr
-  ptrTo ubyte 		lpData     			// pointer to locked data block
-  uint 				dwBufferLength    	// length of data in data block
-  uint    			dwBytesRecorded     // used for input only
-  cell				dwUser              // for client's use
-  uint       		dwFlags             // assorted flags (see defines)
-  cell				lpNext   			// reserved for driver
-  cell				reserved            // reserved for driver
-  uint				dwOffset            // Callback offset into buffer
-  8 arrayOf cell	dwReserved        	// Reserved for MMSYSTEM
+  ptrTo ubyte 		lpData     			\ pointer to locked data block
+  uint 				dwBufferLength    	\ length of data in data block
+  uint    			dwBytesRecorded     \ used for input only
+  cell				dwUser              \ for client's use
+  uint       		dwFlags             \ assorted flags (see defines)
+  cell				lpNext   			\ reserved for driver
+  cell				reserved            \ reserved for driver
+  uint				dwOffset            \ Callback offset into buffer
+  8 arrayOf cell	dwReserved        	\ Reserved for MMSYSTEM
 ;struct
 
 : showMidi
@@ -145,7 +145,7 @@ cell boo
 
 : echoShortMessage
   if( midiOutDev 0>= )
-    "echo 0x" %s dup %x %nl
+    "echo $" %s dup %x %nl
     midiOutShortMsg( midiOutDev swap )
   else
     drop
@@ -159,10 +159,10 @@ cell boo
   -> cell wMsg
   
 #if 0
-  "MIDI_IN   wMsg 0x" %s wMsg %x
-  "  cbData 0x" %s cbData %x
-  "  dwParam1 0x" %s dwParam1 %x
-  "  dwParam2 0x" %s dwParam2 %x
+  "MIDI_IN   wMsg $" %s wMsg %x
+  "  cbData $" %s cbData %x
+  "  dwParam1 $" %s dwParam1 %x
+  "  dwParam2 $" %s dwParam2 %x
   %nl
 #endif
 
@@ -179,7 +179,7 @@ cell boo
       cbData -> scbd
       dwParam1 -> sp1
       dwParam2 -> sp2
-      // dwParam1 is the midi message, lowest 8 bits is status byte
+      \ dwParam1 is the midi message, lowest 8 bits is status byte
       case( dwParam1 kMSStatusMask and )
       
 	    kMSNoteOff of
@@ -212,7 +212,7 @@ cell boo
 	    kMSSysex of
 	    endof
 	    
-	    // default case
+	    \ default case
 	    drop
 	  endcase
     endof
@@ -229,7 +229,7 @@ cell boo
     MM_MIM_LONGERROR of
     endof
     
-    // default case
+    \ default case
     drop
   endcase
 ;
@@ -246,10 +246,10 @@ cell boo
   -> cell wMsg
   
 #if 0
-  "MIDI_OUT   wMsg 0x" %s wMsg %x
-  "  cbData 0x" %s cbData %x
-  "  dwParam1 0x" %s dwParam1 %x
-  "  dwParam2 0x" %s dwParam2 %x
+  "MIDI_OUT   wMsg $" %s wMsg %x
+  "  cbData $" %s cbData %x
+  "  dwParam1 $" %s dwParam1 %x
+  "  dwParam2 $" %s dwParam2 %x
   "\nSTACK:  " %s
   ds
   %nl
@@ -265,7 +265,7 @@ cell boo
     MM_MOM_DONE of
     endof
     
-    // default case
+    \ default case
     drop
   endcase
 ;
@@ -277,7 +277,7 @@ cell boo
   if( midiInDev midiInGetNumDevices < )
     enableMidi
     midiInOpen( midiInDev lit midiInCallback 55 )
-    "midiInOpen result: 0x" %s %x %nl
+    "midiInOpen result: $" %s %x %nl
   endif
 ;
 
@@ -289,13 +289,13 @@ cell boo
   endif
 ;
 
-// miOutStart( OUT_DEVICE )
+\ miOutStart( OUT_DEVICE )
 : miOutStart
   -> midiOutDev
   if( midiOutDev midiOutGetNumDevices < )
     enableMidi
     midiOutOpen( midiOutDev lit midiOutCallback 44 )
-    "midiOutOpen result: 0x" %s %x %nl
+    "midiOutOpen result: $" %s %x %nl
   endif
 ;  
 
@@ -307,15 +307,15 @@ cell boo
   endif
 ;
 
-// miInStart( IN_DEVICE )
+\ miInStart( IN_DEVICE )
 : miInStart
   -> midiInDev
   if( midiInDev midiInGetNumDevices < )
     enableMidi
     midiInOpen( midiInDev lit midiInCallback 33 )
-    "midiInOpen result: 0x" %s %x %nl
+    "midiInOpen result: $" %s %x %nl
     midiInStart( midiInDev )
-    "midiInStart result: 0x" %s %x %nl
+    "midiInStart result: $" %s %x %nl
   endif
 ;  
 

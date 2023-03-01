@@ -1,12 +1,12 @@
-// Conway's Game of Life, or Occam's Razor Dulled
+\ Conway's Game of Life, or Occam's Razor Dulled
 
-// The original ANS Forth version by Leo Wong (see bottom) 
-//   has been modified slightly to allow it to run under 
-//   kForth. Also, delays have been changed from 1000 ms to 
-//   100 ms for faster update --- K. Myneni, 12-26-2001
+\ The original ANS Forth version by Leo Wong (see bottom) 
+\   has been modified slightly to allow it to run under 
+\   kForth. Also, delays have been changed from 1000 ms to 
+\   100 ms for faster update --- K. Myneni, 12-26-2001
 
-// modified this to work in my forth without requiring ansi compatability mode
-//   Pat McElhatton February 28 2017
+\ modified this to work in my forth without requiring ansi compatability mode
+\   Pat McElhatton February 28 2017
 
 requires sdlscreen
 also sdl2
@@ -14,7 +14,7 @@ also sdl2
 autoforget LIFE3
 : LIFE3 ;
 
-// check stack depth matching with s[ CODE_TO_CHECK "message" ]s
+\ check stack depth matching with s[ CODE_TO_CHECK "message" ]s
 IntArray _depths
 : s[
   if(objIsNull(_depths))
@@ -23,7 +23,7 @@ IntArray _depths
   _depths.push(depth)
 ;
   
-// check that stack depth matches what it was when previous s[ happened
+\ check that stack depth matches what it was when previous s[ happened
 : ]s
   depth _depths.pop - 1-
   ?dup if
@@ -33,8 +33,8 @@ IntArray _depths
   endif
 ;
 
-// check that stack depth is N+ what it was when previous s[ happened
-: ]sN   // stringAddr N ...
+\ check that stack depth is N+ what it was when previous s[ happened
+: ]sN   \ stringAddr N ...
   depth _depths.pop - 2- -
   ?dup if
     swap %s " depth mismatch of " %s %d %nl
@@ -43,10 +43,10 @@ IntArray _depths
   endif
 ;
 
-// check that stack depth change since "s[" is N
-// use this to do multiple depth checks within an op/method
-// NOTE: there should be a ]s or ]sN somewhere after this
-: ]scheck   // stringAddr N ...
+\ check that stack depth change since "s[" is N
+\ use this to do multiple depth checks within an op/method
+\ NOTE: there should be a ]s or ]sN somewhere after this
+: ]scheck   \ stringAddr N ...
   depth _depths.pop dup _depths.push - 2- -
   ?dup if
     swap %s " depth mismatch of " %s %d %nl
@@ -62,28 +62,28 @@ windowWidth 2/ negate constant xMin
 windowHeight 2/ 1- constant yMax
 windowHeight 2/ negate constant yMin
 
-// begin hexadecimal numbering
-hex  // hex xy : x holds life , y holds neighbors count
-// high nibble is 1 for alive, 0 for dead
-// low nibble is count of living neighbors
+\ begin hexadecimal numbering
+hex  \ hex xy : x holds life , y holds neighbors count
+\ high nibble is 1 for alive, 0 for dead
+\ low nibble is count of living neighbors
 
-0x10 constant Alive  // 0y = not alive
+$10 constant Alive  \ 0y = not alive
 
-// Conway's rules:
-// a cell's life depends on the number of its next-door neighbors
-// it dies if it has fewer than 2 neighbors
-// it dies if it has more than 3 neighbors
-// it is born if it has exactly 3 neighbors
+\ Conway's rules:
+\ a cell's life depends on the number of its next-door neighbors
+\ it dies if it has fewer than 2 neighbors
+\ it dies if it has more than 3 neighbors
+\ it is born if it has exactly 3 neighbors
 
-// back to decimal
+\ back to decimal
 decimal
 int cellRowsOffset
 int cellColumnsOffset
 
 2 int zoomFactor!
 
-: drawGrid      // dim cellColor --
-  // draw 4 lines around central LifeGrid
+: drawGrid      \ dim cellColor --
+  \ draw 4 lines around central LifeGrid
   sc
   int dim!
   cellColumnsOffset zoomFactor * int px!
@@ -97,30 +97,30 @@ int cellColumnsOffset
   dl(px py)
 ;
 
-: displayCell   // x y cellColor --
+: displayCell   \ x y cellColor --
   sc
   cellRowsOffset - zoomFactor * int py!
   cellColumnsOffset -  zoomFactor * int px!
-  //if(within(px xMin xMax)) andif(within(py yMin yMax))
-  //px . py . %nl
+  \ if(within(px xMin xMax)) andif(within(py yMin yMax))
+  \ px . py . %nl
     mt(px py) fsq(zoomFactor)
-  //endif
-  //px . py .
-  //dp(px py)
+  \ endif
+  \ px . py .
+  \ dp(px py)
 ;
 
-: displayLiveCell displayCell(0xFFFFFF) ;
+: displayLiveCell displayCell($FFFFFF) ;
 
 : displayEmptyCell displayCell(0) ;
 
 : clearDisplay
   sc(0)
   cl
-   //clearConsole
+   \ clearConsole
 ;
 
-// grids are identified by gridId, which is a 32-bit int
-//   whose low 16 bits are x, high 16 bits are y
+\ grids are identified by gridId, which is a 32-bit int
+\   whose low 16 bits are x, high 16 bits are y
 
 0x10 constant Alive
 
@@ -136,45 +136,45 @@ enum: neighborDirs
 
 `#` constant LiveCellChar
 
-///////////////////////////////////////////////////////
-///
-//  ILifeGame - abstract interface to Life game engine
-//
+\ ======================================================
+\
+\  ILifeGame - abstract interface to Life game engine
+\ 
 class: ILifeGame
-  cell dim      // length of a grid edge
+  cell dim      \ length of a grid edge
   
-  m: init ;m        // gridDimensions ...
+  m: init ;m        \ gridDimensions ...
   m: update ;m
   m: clear ;m
   m: display ;m
-  m: findOrAddGrid ;m     // gridId ... LifeGrid
-  m: addCell ;m       // x y ...
-  m: findNeighbor ;m // LifeGrid neighborDir ... LifeGrid_of_Neighbor
-  // creates the requested LifeGrid if it doesn't exist
+  m: findOrAddGrid ;m     \ gridId ... LifeGrid
+  m: addCell ;m       \ x y ...
+  m: findNeighbor ;m \ LifeGrid neighborDir ... LifeGrid_of_Neighbor
+  \ creates the requested LifeGrid if it doesn't exist
   m: shutdown ;m
   
 ;class
 
 
-///////////////////////////////////////////////////////
-///
-//  LifeGrid - a square grid of life cells
-//
+\ ======================================================
+\
+\  LifeGrid - a square grid of life cells
+\ 
 class: LifeGrid
   ILifeGame game
   int gridId
   cell topY
   cell leftX
-  cell dim              // width and height
-  // these 8 variables are grid offsets of corner cells and start of edge rows
-  cell nwCorner     // dim^2 - dim
-  cell neCorner     // dim^2 - 1
-  cell seCorner     // dim - 1
-  cell swCorner     // 0
-  cell nEdge    // leftmost cell in north edge ((dim^2 - dim) + 1)
-  cell sEdge    // leftmost cell in south edge (1)
-  cell wEdge    // topmost cell in west edge (dim^2 - dim)
-  cell eEdge    // topmost cell in east edge (dim^2 - 2)
+  cell dim              \ width and height
+  \ these 8 variables are grid offsets of corner cells and start of edge rows
+  cell nwCorner     \ dim^2 - dim
+  cell neCorner     \ dim^2 - 1
+  cell seCorner     \ dim - 1
+  cell swCorner     \ 0
+  cell nEdge    \ leftmost cell in north edge ((dim^2 - dim) + 1)
+  cell sEdge    \ leftmost cell in south edge (1)
+  cell wEdge    \ topmost cell in west edge (dim^2 - dim)
+  cell eEdge    \ topmost cell in east edge (dim^2 - 2)
   
   LifeGrid nNeighbor
   LifeGrid eNeighbor
@@ -191,44 +191,44 @@ class: LifeGrid
   cell oldCount
   cell updatedFromOutside
  
-  : mem2xy      // bytePtr ... x y
+  : mem2xy      \ bytePtr ... x y
     gridBase - cell offset!
     offset dim /mod
     topY@+ swap leftX@+ swap
   ;
 
-  : offset2xy      // gridOffset ... x y
+  : offset2xy      \ gridOffset ... x y
     dim /mod
     topY@+ swap leftX@+ swap
   ;
   
-  m: gridId2xy   // gridId ... x y (of bottomLeft pixel)
+  m: gridId2xy   \ gridId ... x y (of bottomLeft pixel)
     short ss
     int gridId!
     gridId ss! ss dim *
     gridId 16 rshift ss! ss dim *
   ;m
 
-  : drawLive    // bytePtr ...
+  : drawLive    \ bytePtr ...
     mem2xy displayLiveCell
   ;
 
-  : drawEmpty   // bytePtr ...
+  : drawEmpty   \ bytePtr ...
     mem2xy displayEmptyCell
   ;
   
-  // increment neighbor count of cell in this same LifeGrid (slightly faster than incx)
-  : inc  // gridOffset ...
+  \ increment neighbor count of cell in this same LifeGrid (slightly faster than incx)
+  : inc  \ gridOffset ...
     gridBase + dup b@ 1+ swap b!
   ;
 
-  // increment neighbor count of cell in a different LifeGrid
-  m: incx  // gridOffset ...
+  \ increment neighbor count of cell in a different LifeGrid
+  m: incx  \ gridOffset ...
     gridBase@+ dup b@ 1+ swap b!
     updatedFromOutside++
   ;m
   
-  // only use incxx when debugging
+  \ only use incxx when debugging
   m: incxx
     cell offset!
     t[ offset offset2xy "inc cell@" %s swap %d `,` %c %d " grid " %s gridId printGridId ]t
@@ -236,7 +236,7 @@ class: LifeGrid
     t[ gridBase offset@+ b@ " new value:" %s %d %nl ]t
   ;m
   
-  m: addCell        // gridOffset ...
+  m: addCell        \ gridOffset ...
     gridBase@+ dup
     if(b@ 0=)
       Alive swap b!
@@ -246,7 +246,7 @@ class: LifeGrid
     endif
   ;m
   
-  m: init   // LifeWorld gridId ...
+  m: init   \ LifeWorld gridId ...
     gridId!    game!
     game.dim dim!
     gridId gridId2xy topY! leftX!
@@ -265,18 +265,18 @@ class: LifeGrid
   ;m
 
   m: shutdown
-    // clear all circular references
+    \ clear all circular references
     game~
     nNeighbor~ eNeighbor~ sNeighbor~ wNeighbor~ 
     nwNeighbor~ neNeighbor~ seNeighbor~ swNeighbor~ 
   ;m
   
   m: delete
-    shutdown    // should be redundant
+    shutdown    \ should be redundant
     grid~
   ;m
 
-  // touchXX assures that neighbor XX exists and is hooked up
+  \ touchXX assures that neighbor XX exists and is hooked up
   : touchN
     if(objIsNull(nNeighbor))
       game.findNeighbor(this nDir) nNeighbor!
@@ -337,21 +337,21 @@ class: LifeGrid
     if(grid.get(nwCorner) Alive and)
      t[ "nw corner live cell@" %s nwCorner offset2xy swap %d `,` %c %d
           " grid " %s gridId printGridId %nl ]t
-     // update NW neighbor
+     \ update NW neighbor
       touchNW
       nwNeighbor.incx(seCorner)
       
-      // update N neighbor (2)
+      \ update N neighbor (2)
       touchN
       nNeighbor.incx(swCorner)
       nNeighbor.incx(swCorner 1+)
 
-      // update W neighbor (2)
+      \ update W neighbor (2)
       touchW
       wNeighbor.incx(neCorner)
       wNeighbor.incx(neCorner dim@-)
       
-      // update rest
+      \ update rest
       inc(nEdge)
       inc(nwCorner dim@- dup)
       inc(1+)
@@ -362,21 +362,21 @@ class: LifeGrid
     if(grid.get(neCorner) Alive and)
      t[ "ne corner live cell@" %s neCorner offset2xy swap %d `,` %c %d
           " grid " %s gridId printGridId %nl ]t
-      // update NE neighbor
+      \ update NE neighbor
       touchNE
       neNeighbor.incx(swCorner)
       
-      // update N neighbor (2)
+      \ update N neighbor (2)
       touchN
       nNeighbor.incx(seCorner)
       nNeighbor.incx(seCorner 1-)
 
-      // update E neighbor (2)
+      \ update E neighbor (2)
       touchE
       eNeighbor.incx(nwCorner)
       eNeighbor.incx(nwCorner dim@-)
       
-      // update rest
+      \ update rest
       inc(neCorner 1-)
       inc(nwCorner 1- dup)
       inc(1-)
@@ -388,21 +388,21 @@ class: LifeGrid
     if(grid.get(swCorner) Alive and)
      t[ "sw corner live cell@" %s swCorner offset2xy swap %d `,` %c %d
           " grid " %s gridId printGridId %nl ]t
-      // update SW neighbor
+      \ update SW neighbor
       touchSW
       swNeighbor.incx(neCorner)
       
-      // update S neighbor (2)
+      \ update S neighbor (2)
       touchS
       sNeighbor.incx(nwCorner)
       sNeighbor.incx(nwCorner 1+)
 
-      // update W neighbor (2)
+      \ update W neighbor (2)
       touchW
       wNeighbor.incx(seCorner)
       wNeighbor.incx(seCorner dim@+)
       
-      // update rest
+      \ update rest
       inc(sEdge)
       inc(dim)
       inc(dim 1+)
@@ -413,21 +413,21 @@ class: LifeGrid
     if(grid.get(seCorner) Alive and)
      t[ "se corner live cell@" %s seCorner offset2xy swap %d `,` %c %d
           " grid " %s gridId printGridId %nl ]t
-      // update SE neighbor
+      \ update SE neighbor
       touchSE
       seNeighbor.incx(nwCorner)
       
-      // update S neighbor (2)
+      \ update S neighbor (2)
       touchS
       sNeighbor.incx(neCorner)
       sNeighbor.incx(neCorner 1-)
 
-      // update E neighbor (2)
+      \ update E neighbor (2)
       touchE
       eNeighbor.incx(swCorner)
       eNeighbor.incx(dim)
       
-      // update rest
+      \ update rest
       inc(seCorner 1-)
       inc(eEdge)
       inc(eEdge 1-)
@@ -435,12 +435,12 @@ class: LifeGrid
   ;
 
   : updateNEdge
-    // cell offsets are nwCorner+1...neCorner-1
+    \ cell offsets are nwCorner+1...neCorner-1
     nEdge cell offset!
 
     if(objIsNull(nNeighbor))
-      // there is no north neighbor, scan along north edge until we find living cell,
-      // then get north neighbor from game
+      \ there is no north neighbor, scan along north edge until we find living cell,
+      \ then get north neighbor from game
       begin
       while(offset neCorner <)
         if(gridBase offset@+ b@ Alive and)
@@ -456,12 +456,12 @@ class: LifeGrid
       if(gridBase offset@+ b@ Alive and)
        t[ "north edge live cell@" %s offset offset2xy swap %d `,` %c %d
           " grid " %s gridId printGridId %nl ]t
-        // found a live cell on north edge
-        // update N neighbor: off-N,off-N+1,off-N+2
+        \ found a live cell on north edge
+        \ update N neighbor: off-N,off-N+1,off-N+2
         nNeighbor.incx(offset nEdge@- dup)
         nNeighbor.incx(1+ dup)
         nNeighbor.incx(1+)
-        // update cells in this grid: off-1 off+1, off-dim-1 off-dim off-dim+1
+        \ update cells in this grid: off-1 off+1, off-dim-1 off-dim off-dim+1
         inc(offset 1-)
         inc(offset 1+)
         inc(offset dim@- 1- dup)
@@ -473,12 +473,12 @@ class: LifeGrid
   ;
   
   : updateSEdge
-    // cell offsets are swCorner+1...seCorner-1
+    \ cell offsets are swCorner+1...seCorner-1
     swCorner 1+ cell offset!
 
     if(objIsNull(sNeighbor))
-      // there is no south neighbor, scan along south edge until we find living cell,
-      // then get south neighbor from game
+      \ there is no south neighbor, scan along south edge until we find living cell,
+      \ then get south neighbor from game
       begin
       while(offset seCorner <)
         if(gridBase offset@+ b@ Alive and)
@@ -494,12 +494,12 @@ class: LifeGrid
       if(gridBase offset@+ b@ Alive and)
        t[ "south edge live cell@" %s offset offset2xy swap %d `,` %c %d
           " grid " %s gridId printGridId %nl ]t
-        // found a live cell on south edge
-        // update S neighbor: NW+off-1,NW+off,NW+off+1
+        \ found a live cell on south edge
+        \ update S neighbor: NW+off-1,NW+off,NW+off+1
         sNeighbor.incx(nwCorner offset@+ 1- dup)
         sNeighbor.incx(1+ dup)
         sNeighbor.incx(1+)
-        // update cells in this grid: off-1, off+1, dim+off-1,dim+off,dim+1+2
+        \ update cells in this grid: off-1, off+1, dim+off-1,dim+off,dim+1+2
         inc(offset 1-)
         inc(offset 1+)
         inc(dim offset@+ 1- dup)
@@ -511,12 +511,12 @@ class: LifeGrid
   ;
   
   : updateEEdge
-    // cell offsets are eEdge...neCorner-dim, step by dim
+    \ cell offsets are eEdge...neCorner-dim, step by dim
     eEdge cell offset!
 
     if(objIsNull(eNeighbor))
-      // there is no east neighbor, scan along east edge until we find living cell,
-      // then get east neighbor from game
+      \ there is no east neighbor, scan along east edge until we find living cell,
+      \ then get east neighbor from game
       begin
       while(offset neCorner <)
         if(gridBase offset@+ b@ Alive and)
@@ -532,13 +532,13 @@ class: LifeGrid
       if(gridBase offset@+ b@ Alive and)
        t[ "east edge live cell@" %s offset offset2xy swap %d `,` %c %d
           " grid " %s gridId printGridId %nl ]t
-        // found a live cell on east edge
-        // update E neighbor: off-2dim+1 off-dim+1 off+dim+1
+        \ found a live cell on east edge
+        \ update E neighbor: off-2dim+1 off-dim+1 off+dim+1
         
         eNeighbor.incx(offset eEdge@- dup)
         eNeighbor.incx(dim@+ dup)
         eNeighbor.incx(dim@+)
-        // update cells in this grid: off-dim-1,off-dim,off-1,off+dim-1,off+dim
+        \ update cells in this grid: off-dim-1,off-dim,off-1,off+dim-1,off+dim
         inc(offset dim@- 1- dup)
         inc(1+)
         inc(offset 1-)
@@ -550,12 +550,12 @@ class: LifeGrid
   ;
 
   : updateWEdge
-    // cell offsets are swCorner-dim...nwCorner+dim, step by dim
+    \ cell offsets are swCorner-dim...nwCorner+dim, step by dim
     wEdge cell offset!
 
     if(objIsNull(wNeighbor))
-      // there is no west neighbor, scan along west edge until we find living cell,
-      // then get west neighbor from game
+      \ there is no west neighbor, scan along west edge until we find living cell,
+      \ then get west neighbor from game
       begin
       while(offset nwCorner <)
         if(gridBase offset@+ b@ Alive and)
@@ -571,12 +571,12 @@ class: LifeGrid
       if(gridBase offset@+ b@ Alive and)
        t[ "west edge live cell@" %s offset offset2xy swap %d `,` %c %d
           " grid " %s gridId printGridId %nl ]t
-        // found a live cell on west edge
-        // update w neighbor: off-1 off+dim-1 off+2dim-1
+        \ found a live cell on west edge
+        \ update w neighbor: off-1 off+dim-1 off+2dim-1
         wNeighbor.incx(offset 1- dup)
         wNeighbor.incx(dim@+ dup)
         wNeighbor.incx(dim@+)
-        // update cells in this grid: off-dim,off-dim+1,off+1,off+dim,off+dim+1
+        \ update cells in this grid: off-dim,off-dim+1,off+1,off+dim,off+dim+1
         inc(offset dim@- dup)
         inc(1+)
         inc(offset 1+)
@@ -589,19 +589,19 @@ class: LifeGrid
   
   m: updateNeighborCounts
     liveCount oldCount!
-    //if(updatedFromOutside liveCount or)
-    // update core cells
+    \ if(updatedFromOutside liveCount or)
+    \ update core cells
     t[ "updateNeighborCounts core " %s gridId printGridId %nl ]t
     cell offset
 #if compileTrace
-    // use slow method when debugging - change incx ops to incxx also
+    \ use slow method when debugging - change incx ops to incxx also
     dim 1+ offset!
     do(dim 2-  0)
       do(dim 2-  0)
         if(gridBase offset@+ b@ Alive and)
           t[ "core live cell@" %s offset offset2xy swap %d `,` %c %d
             " grid " %s gridId printGridId %nl ]t
-          // cell is live, increment count of 8 neighbors
+          \ cell is live, increment count of 8 neighbors
           offset dim@- 1-
           dup     incx
           1+ dup  incx
@@ -624,9 +624,9 @@ class: LifeGrid
     do(dim 2-  0)
       do(dim 2-  0)
         if(pCell b@ Alive and)
-          // cell is live, increment count of 8 neighbors
+          \ cell is live, increment count of 8 neighbors
           pCell dim@- 1-
-          dup     dup b@ 1+ swap b!     // inline 'inc' op for efficiency
+          dup     dup b@ 1+ swap b!     \ inline 'inc' op for efficiency
           1+ dup  dup b@ 1+ swap b!
           1+      dup b@ 1+ swap b!
 
@@ -643,7 +643,7 @@ class: LifeGrid
       2 pCell!+
     loop
 #endif
-    // update boundary cells
+    \ update boundary cells
     t[ "updateNeighborCounts boundary " %s gridId printGridId %nl ]t
     updateNWCorner
     updateNECorner
@@ -653,11 +653,11 @@ class: LifeGrid
     updateSEdge
     updateEEdge
     updateWEdge
-    //endif
+    \ endif
   ;m
 
   m: updateLivenessAndDisplay
-    //if(updatedFromOutside liveCount or)
+    \ if(updatedFromOutside liveCount or)
     gridBase ptrTo byte pCell!
     gridBase neCorner@+ ptrTo byte pLastCell!
     byte cellVal
@@ -667,38 +667,38 @@ class: LifeGrid
       pCell b@ cellVal!
       if(cellVal Alive and)
         if(cellVal 0x13 > cellVal 0x12 < or)
-          // doesn't have 2 or 3 neighbors, overcrowded or lonely, will die
+          \ doesn't have 2 or 3 neighbors, overcrowded or lonely, will die
           t[ "killing cell @" %s pCell mem2xy swap %d `,` %c %d " count:" %s cellVal %d %nl ]t
           drawEmpty(pCell)
           liveCount--
-          //0 cellVal!    //cellVal~
+          \ 0 cellVal!    cellVal~
           0 pCell b!
         else
           t[ "still living cell @" %s pCell mem2xy swap %d `,` %c %d " count:" %s cellVal %d %nl ]t
-          //Alive cellVal!
+          \ Alive cellVal!
           Alive pCell b!
         endif
       else
         if(cellVal 3 =)
-          // has 3 neighbors, will become alive
+          \ has 3 neighbors, will become alive
           drawLive(pCell)
           t[ "birthing cell @" %s pCell mem2xy swap %d `,` %c %d " count:" %s cellVal %d %nl ]t
-          //Alive cellVal!
+          \ Alive cellVal!
           Alive pCell b!
           liveCount++
         else
-          //0 cellVal!    //cellVal~
+          \ 0 cellVal!    cellVal~
           0 pCell b!
         endif
       endif
 
-      //cellVal pCell& b@!++
-      //cellVal pCell b! pCell++
+      \ cellVal pCell& b@!++
+      \ cellVal pCell b! pCell++
       pCell++
     repeat
 
     t[ "LifeGrid:updateLivenessAndDisplay " %s printGridId(gridId) " live: " %s liveCount %d %nl ]t
-    //endif
+    \ endif
     updatedFromOutside~
   ;m
   
@@ -725,7 +725,7 @@ class: LifeGrid
   
 ;class
 
-: /moddy  // deals with negative denom better for our needs
+: /moddy  \ deals with negative denom better for our needs
   dup >r
   /mod
   if(over 0<)
@@ -735,16 +735,16 @@ class: LifeGrid
   endif
 ;
 
-///////////////////////////////////////////////////////
-///
-//  LifeWorld - Life game engine implementation
-//
+\ ======================================================
+\
+\  LifeWorld - Life game engine implementation
+\ 
 class: LifeWorld extends ILifeGame
 
   IntMap of LifeGrid grids
   cell updateCount
 
-  : xy2grid      // x y ... offsetInGrid gridId
+  : xy2grid      \ x y ... offsetInGrid gridId
     cell y!   cell x!
     cell gridId   cell offset
     y dim /moddy 0x10 lshift gridId! dim * offset!
@@ -752,12 +752,12 @@ class: LifeWorld extends ILifeGame
     offset@+ gridId
   ;
   
-  m: init  // gridDimensions ...
+  m: init  \ gridDimensions ...
     dim!
     new IntMap grids!
   ;m
   
-  : addGrid    // gridId ... newLifeGrid
+  : addGrid    \ gridId ... newLifeGrid
     int gridId!
     short ss
     mko LifeGrid newGrid
@@ -768,7 +768,7 @@ class: LifeWorld extends ILifeGame
     newGrid@~
   ;
   
-  m: findOrAddGrid   // gridId ... LifeGrid
+  m: findOrAddGrid   \ gridId ... LifeGrid
     int gridId!
     if(grids.grab(gridId) not)
       addGrid(gridId)
@@ -776,7 +776,7 @@ class: LifeWorld extends ILifeGame
     t[ "found grid " %s printGridId(gridId) %bl %bl gridId %x %bl %nl ]t
   ;m
   
-  m: addCell        // x y ...
+  m: addCell        \ x y ...
     cell y!  cell x!
     xy2grid(x y) int gridId!  int offset!
     t[ "LifeGrid:addCell " %s x %d `,` %c y %d
@@ -786,10 +786,10 @@ class: LifeWorld extends ILifeGame
     grid.addCell(offset)
   ;m
   
-  m: findNeighbor // LifeGrid neighborDir ... LifeGrid_of_Neighbor
+  m: findNeighbor \ LifeGrid neighborDir ... LifeGrid_of_Neighbor
     neighborDirs dir!
     <LifeGrid>.gridId int gridId!
-    // compute global pos of neighbor grid from direction
+    \ compute global pos of neighbor grid from direction
     case(dir)
       nDir of   0 1     endof
       sDir of   0 -1    endof
@@ -841,7 +841,7 @@ class: LifeWorld extends ILifeGame
   ;m
   
   m: display
-    // this is only used to draw the initial frame
+    \ this is only used to draw the initial frame
     grids.headIter IntMapIter iter!
 
     beginFrame
@@ -935,10 +935,10 @@ class: LifeWorld extends ILifeGame
 ;class
 
 
-///////////////////////////////////////////////////////
-///
-//  LifeShape - a common shape for the life game, such as gliders, pentominos
-//
+\ ======================================================
+\
+\  LifeShape - a common shape for the life game, such as gliders, pentominos
+\ 
 class: LifeShape
   String body
   cell width
@@ -946,7 +946,7 @@ class: LifeShape
 
   m: delete    body~    ;m
 
-  m: init   // bodyString width ...
+  m: init   \ bodyString width ...
     new String body!
     width!
     body.set
@@ -956,26 +956,26 @@ class: LifeShape
 ;class
 
 
-///////////////////////////////////////////////////////
-///
-//  several LifeShape definitions which LifeApp uses
-//
+\ ======================================================
+\
+\  several LifeShape definitions which LifeApp uses
+\ 
 
-// r pentomino
+\ r pentomino
 mko LifeShape rPentomino
 "\+
 .##\+
 ##.\+
 .#." 3 rPentomino.init
 
-// glider
+\ glider
 mko LifeShape glider
 "\+
 .#.\+
 ..#\+
 ###" 3 glider.init
 
-// herschel - good building block for bigger structures
+\ herschel - good building block for bigger structures
 mko LifeShape herschel
 "\+
 #..\+
@@ -983,9 +983,9 @@ mko LifeShape herschel
 #.#\+
 ..#"  3 herschel.init
 
-// 16x16 methusaleh object from page 32 of "Conways Game of Life"
-//          by Nathaniel Johnston & Dave Greene
-// takes 52514 iterations to stabilize
+\ 16x16 methusaleh object from page 32 of "Conways Game of Life"
+\          by Nathaniel Johnston & Dave Greene
+\ takes 52514 iterations to stabilize
 mko LifeShape meth
 "\+
 .#.##..#####.##.\+
@@ -1006,10 +1006,10 @@ mko LifeShape meth
 ##......#......." 16 meth.init
 
 
-///////////////////////////////////////////////////////
-///
-//  LifeApp - user interface for LifeWorld
-//
+\ ======================================================
+\
+\  LifeApp - user interface for LifeWorld
+\ 
 class: LifeApp
   LifeWorld world
   cell updatesToDo
@@ -1020,11 +1020,11 @@ class: LifeApp
     world~
   ;m
 
-  : setLiveCell   // x y ...   make cell at x, y live
+  : setLiveCell   \ x y ...   make cell at x, y live
     world.addCell
   ;
 
-  : setLiveCells // lifeShape xOffset yOffset xFlip yFlip ...
+  : setLiveCells \ lifeShape xOffset yOffset xFlip yFlip ...
     int yFlip!
     int xFlip!
     int yOffset!
@@ -1039,8 +1039,8 @@ class: LifeApp
           i j
           if(yFlip) negate endif yOffset + swap
           if(xFlip) negate endif xOffset + swap
-          //i if(xFlip) negate endif xOffset + swap
-          //j if(yFlip) negate endif yOffset + swap
+          \ i if(xFlip) negate endif xOffset + swap
+          \ j if(yFlip) negate endif yOffset + swap
           setLiveCell
         endif
         pCell++
@@ -1051,12 +1051,12 @@ class: LifeApp
   ;
   
   : onePentominoAtOrigin
-    // this pentomino will be split across 4 LifeGrids
+    \ this pentomino will be split across 4 LifeGrids
     setLiveCells(rPentomino 0 0 false false)
   ;
   
   : onePentomino
-    // this pentomino should start in the middle of a single LifeGrid
+    \ this pentomino should start in the middle of a single LifeGrid
     setLiveCells(rPentomino world.dim 2/ dup false false)
   ;
   
@@ -1076,26 +1076,26 @@ class: LifeApp
   ;
   
   : gliderE
-    setLiveCells(glider 40 40 false false)        // heading southeast, crosses east first
+    setLiveCells(glider 40 40 false false)        \ heading southeast, crosses east first
   ;
   
   : gliderS
-    setLiveCells(glider 40 20 true false)         // heading southwest, crosses south first
+    setLiveCells(glider 40 20 true false)         \ heading southwest, crosses south first
   ;
   
   : gliderN
-    setLiveCells(glider 20 40 false true)         // heading northeast, crosses north first
+    setLiveCells(glider 20 40 false true)         \ heading northeast, crosses north first
   ;
   
   : gliderW
-    setLiveCells(glider 20 20 true true)          // heading northwest, crosses west first
+    setLiveCells(glider 20 20 true true)          \ heading northwest, crosses west first
   ;
   
   : fourGliders
-    setLiveCells(glider 40 40 false false)        // heading southeast, crosses east first
-    setLiveCells(glider 40 20 true false)         // heading southwest, crosses south first
-    setLiveCells(glider 20 40 false true)         // heading northeast, crosses north first
-    setLiveCells(glider 20 20 true true)          // heading northwest, crosses west first
+    setLiveCells(glider 40 40 false false)        \ heading southeast, crosses east first
+    setLiveCells(glider 40 20 true false)         \ heading southwest, crosses south first
+    setLiveCells(glider 20 40 false true)         \ heading northeast, crosses north first
+    setLiveCells(glider 20 20 true true)          \ heading northwest, crosses west first
   ;
   
   : fourHerschels
@@ -1109,7 +1109,7 @@ class: LifeApp
     setLiveCells(meth 40 40 false false)
   ;
   
-  : initLife  // opToMakeCells ...
+  : initLife  \ opToMakeCells ...
     world.clear
     execute
     world.display
@@ -1121,7 +1121,7 @@ class: LifeApp
     endif
   ;
   
-  : handleInput  // -- char 
+  : handleInput  \ -- char 
      key?  dup
      if
        drop key
@@ -1198,8 +1198,8 @@ class: LifeApp
     endcase
   ;
   
-  // for some unknown reason, doing 'also sdl2' at top of file doesn't work,
-  //   if we don't do it here SDL_Event will be undefined - WTF?
+  \ for some unknown reason, doing 'also sdl2' at top of file doesn't work,
+  \   if we don't do it here SDL_Event will be undefined - WTF?
   also sdl2
 
   : runLife
@@ -1217,14 +1217,22 @@ class: LifeApp
       
       optionalDelay
   
-      // check for keyboard input when console window has focus
+      \ check for keyboard input when console window has focus
       handleInput byte ch!
       
-      // check for keyboard input when SDL window has focus
+      \ check for keyboard input when SDL window has focus
       if(ch 0=)
         if(SDL_PollEvent(event))
           if(event.common.type SDL_KEYDOWN =)
             event.key.keysym.sym ch!
+
+            if(ch `=` =) andif(event.key.keysym.mod 1 and)
+              `+` ch!       \ plus key in sdl event is equals+shiftModifier
+            endif
+
+            \ event.key.keysym.sym %x  %bl event.key.keysym.mod %x %nl
+          elseif(event.common.type SDL_QUIT =)
+            `\e` ch!        \ user tried to close SDL window, send an escape
           endif
         endif
       endif
@@ -1284,7 +1292,7 @@ clearLastGeneration
   fills lastGeneration with blanks (not 0!)
 
 setLiveCell(x y)
-  sets cell @x,y in lastGeneration to living (0x10)
+  sets cell @x,y in lastGeneration to living ($10)
 
 copyNextToLast
   copies nextGeneration to lastGeneration

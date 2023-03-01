@@ -6,40 +6,40 @@ requires testbase
 
 decimal
 
-// empty stack markers - should still be here after all tests done
-0xDEADBEEF 123456789
+\ empty stack markers - should still be here after all tests done
+$DEADBEEF 123456789
 
 0 -> numFailedTests
 
-//: showsection " ================== " dup %s swap %s %s %nl ;
+\ : showsection " ================== " dup %s swap %s %s %nl ;
 
 testBuff.set( "aba" )
-//turbo 255 setTrace
-//vd checkResult
+\ turbo 255 setTrace
+\ vd checkResult
 test[ checkResult( "aba" ) ]
   
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
-// test special characters in strings and characters
+\ test special characters in strings and characters
 
-test[ `\0` 0= ] test[ `\a` 7 = ] test[ `\b` 8 = ] test[ `\t` 9 = ] test[ `\n` 0x0a = ] test[ `\v` 0x0b = ]
-test[ `\f` 0x0c = ] test[ `\r` 0x0d = ] test[ `"` 0x22 = ] test[ `'` 0x27 = ] test[ `\\` 0x5c = ]
+test[ `\0` 0= ] test[ `\a` 7 = ] test[ `\b` 8 = ] test[ `\t` 9 = ] test[ `\n` $0a = ] test[ `\v` $0b = ]
+test[ `\f` $0c = ] test[ `\r` $0d = ] test[ `"` $22 = ] test[ `'` $27 = ] test[ `\\` $5c = ]
 
 startTest
 `\a` %c `\b` %c `\t` %c `\n` %c `\v` %c `\f` %c `\r` %c `"` %c `'` %c  `\\` %c outToScreen
 
 test[ checkResult( "\a\b\t\n\v\f\r\"\'\\" ) ]
 
-// verify that character constants work
+\ verify that character constants work
 : testCharacterConstants startTest `a` %c ` ` %c `b` %c `\t` %c `c` %c `\n` %c `z` %c %nl ;
 outToTestBuffer( testBuff2 )
 `a` %c ` ` %c `b` %c `\t` %c `c` %c `\n` %c `z` %c %nl
 test[ testCharacterConstants checkResult( testBuff2.get ) ]
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
-// test control structures
+\ test control structures
 
 : testIf if "t" addBuff endif ;
 test[ startTest "A" addBuff 1 testIf "B" addBuff 0 testIf "C" addBuff checkResult( "AtBC" ) ]
@@ -69,7 +69,7 @@ test[ testBeginWhile checkResult( "5 4 3 2 1 " ) ]
 ;
 test[ testDoLoop checkResult( "0 1 2 3 4 0 -1 -2 -3 -4 -5 0 0 1 2 " ) ]
 
-//testBuff.get %s `|` %c %nl
+\ testBuff.get %s `|` %c %nl
 
 : casetest
   case
@@ -84,7 +84,7 @@ test[ testDoLoop checkResult( "0 1 2 3 4 0 -1 -2 -3 -4 -5 0 0 1 2 " ) ]
 test[ startTest 1 casetest   3 casetest   0 casetest   2 casetest   5 casetest  checkResult( "onewhateverzerotwowhatever" ) ]
 
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
 byte gvb   ubyte gvub   short gvs   ushort gvus   int gvi   uint gvui
 long gvl   ulong gvul   float gvf   double gvd
@@ -163,19 +163,19 @@ test[ testGlobalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 ;
 test[ testLocalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
-// Test fetch & store
+\ Test fetch & store
 : buffer builds 4* allot does ;
 20 buffer tb
 
-0xDEADBEEF tb !
-test[ startTest tb b@ %d %bl tb s@ 0xffff and %x checkResult( "-17 beef" ) ]
+$DEADBEEF tb !
+test[ startTest tb b@ %d %bl tb s@ $ffff and %x checkResult( "-17 beef" ) ]
 test[ startTest tb s@ %d %bl tb b@ %d checkResult( "-16657 -17" ) ]
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
-// Test strings
+\ Test strings
 20 string aaa 20 string bbb
 "ajaja" -> aaa "bobobo" -> bbb
 test[ strlen( aaa ) 5 = strlen( bbb ) 6 = ]
@@ -197,86 +197,80 @@ test[ stricmp( aaa "Blahbla" ) 1 = ]
 
 test[ strcmp( strstr( aaa "ahbl" ) "ahblah" ) 0= ]
 test[ strstr( aaa "ahab" ) 0= ]
-// strcpy strncpy strlen strcat strncat strchr strrchr strcmp stricmp strstr strtok
+\ strcpy strncpy strlen strcat strncat strchr strrchr strcmp stricmp strstr strtok
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
-// Test inline comments
+\ Test inline comments
 : _fail_ " FAILED! " %s ;
-: _ok_ %d /* _fail_ */ ;
-// "The following line should have \"123456\" on it\n" %s
-startTest
-_ok_( 1 ) kFFParenIsComment ->+ features ( _fail_ ) 2 _ok_ ( _fail_
-) 3 _ok_ kFFParenIsComment ->- features _ok_( 4 ) /* _fail_
-*/ 5 _ok_ /* _fail_ */ 6 _ok_ %nl
-test[ checkResult( "123456\n" ) ]
+: _ok_ %d ( _fail_ ) ;
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
-// Test basic ops - only errors are displayed
+\ Test basic ops - only errors are displayed
 decimal
 
-//loaddone
+\ loaddone
 
-// < <= = <> > >= u< u> 0< 0<= 0= 0<> 0> 0>=
+\ < <= = <> > >= u< u> 0< 0<= 0= 0<> 0> 0>=
 test[ 1 5 < -1 -5 < not 7 7 < not ] test[ 22 11 <= not -134 77 <= 99 99 <= ] test[ 11 18 = not -11214 -11214 = ]
 test[ 14 24 <> 83 83 <> not ] test[ 1243 987 > 3775 783475 > not 88 88 > not ] test[ 7837 11 >= 27384 273855 >= not 71 71 >= ]
 test[ 11 22 u< 241 11 u< not -22 89743 u< not ] test[ -1 -2 u> -43 5009 u> -54345 -54345 u> not ]
 test[ -20 0< 0 0< not 20 0< not ] test[ -97 0<= 0 0<= 834 0<= not ] test[ -12 0= not 0 0= 43 0= not ]
 test[ -6324127 0<> 0 0<> not 5748 0<> ] test[ -500 0> not 0 0> not 345879 0> ] test[ -23580 0>= not 0 0>= 1235 0>= ]
 
-// + - * / or and xor not 
-test[ 1 5 + 6 = ] test[ 1 -4 + -3 = ] test[ 0x80000000 -1 + 0x7fffffff = ] test[ 1 5 - -4 = ]
-test[ 1 -4 - 5 = ] test[ 0x80000000 -1 - 0x80000001 = ] test[ 3 7 * 21 = ] test[ 0x101 0x11 * 0x1111 = ]
+\ + - * / or and xor not 
+test[ 1 5 + 6 = ] test[ 1 -4 + -3 = ] test[ $80000000 -1 + $7fffffff = ] test[ 1 5 - -4 = ]
+test[ 1 -4 - 5 = ] test[ $80000000 -1 - $80000001 = ] test[ 3 7 * 21 = ] test[ $101 $11 * $1111 = ]
 test[ -5 -7 * 35 = ] test[ 22 7 / 3 = ] test[ 99 11 / 9 = ] test[ -100 7 / -14 = ] test[ -65535 256 / -255 = ]
-test[ true false or ] test[ 33 7 or 39 = ] test[ 0xf0f 0x0f0 or 0xfff = ] test[ 0x1234 0x350461 or 0x351675 = ]
-test[ true false and not ] test[ 33 7 and 1 = ] test[ 0xf0f 0x0f0 and 0= ] test[ true false xor   33 7 xor 38 = ]
-test[ 0xf0f 0x0f0 xor 0xfff = ] test[ 0x505 0x141 xor 0x444 = ]
+test[ true false or ] test[ 33 7 or 39 = ] test[ $f0f $0f0 or $fff = ] test[ $1234 $350461 or $351675 = ]
+test[ true false and not ] test[ 33 7 and 1 = ] test[ $f0f $0f0 and 0= ] test[ true false xor   33 7 xor 38 = ]
+test[ $f0f $0f0 xor $fff = ] test[ $505 $141 xor $444 = ]
 
-// 2* 4* 8* 2/ 4/ 8/ /mod mod negate
-//test[ -5 -7 u* -12 35 2= ]
+\ 2* 4* 8* 2/ 4/ 8/ /mod mod negate
+\ test[ -5 -7 u* -12 35 2= ]
 test[ 243 2* 486 = ] test[ 243 4* 972 = ] test[ 243 8* 1944 = ] test[ 744 2/ 372 = ]
 test[ 744 4/ 186 = ] test[ 744 8/ 93 = ] test[ 4183 23 /mod 20 181 2= ] test[ 193747 39 mod 34 = ] test[ -34 negate 34 = ]
 
-// f+ f- f* f/ f= f<> f> f>= f< f<= 
+\ f+ f- f* f/ f= f<> f> f>= f< f<= 
 test[ 3.5 4.25 f+ 7.75 f= ] test[ 8.5 3.25 f- 5.25 f= ] test[ 3.5 4.5 f* 63.0 4.0 f/ f= ] test[ 5.0 4.0 f<> ]
 test[ 27.3 22.2 f> ] test[ 27.3 27.3 f> not ] test[ 27.3 27.3 f>= ] test[ 7.2 121.9 f< ] test[ 676.0 676.0 f< not ]
 test[ 676.0 676.0 f<= ]
 
-// f0= f0<> f0> f0>= f0< f0<= fwithin fmin fmax
+\ f0= f0<> f0> f0>= f0< f0<= fwithin fmin fmax
 test[ 0.0 f0= ] test[ 0.7 f0= not ] test[ 0.0 f0> not ] test[ 1.2 f0> ] test[  0.0 f0>= ] test[ -3.3 f0>= not ]
 test[ 5.1 f0>= ] test[ 9.4 f0< not ] test[ 0.0 f0<= ] test[  -2.3 f0<= ] test[ -5.0 -1.0 1.0 fwithin not ]
 test[ 0.5 -1.0 1.0 fwithin ] test[ 7.0 -1.0 1.0 fwithin not ] test[ 5.0 2.3 fmin 2.3 f= ] test[ -10.0 4.3 fmax 4.3 f= ]
    
-// d+ d- d* d/ d= d<> d> d>= d< d<= 
+\ d+ d- d* d/ d= d<> d> d>= d< d<= 
 test[ 3.5d 4.25d d+ 7.75d d= ] test[ 8.5d 3.25d d- 5.25d d= ] test[ 3.5d 4.5d d* 63.0d 4.0d d/ d= ] test[ 5.0d 4.0d d<> ]
 test[ 27.3d 22.2d d> ] test[ 27.3d 27.3d d> not ] test[ 27.3d 27.3d d>= ] test[ 7.2d 121.9d d< ] test[ 676.0d 676.0d d< not ]
 test[ 676.0d 676.0d d<= ]
 
-// d0= d0<> d0> d0>= d0< d0<= dwithin dmin dmax
+\ d0= d0<> d0> d0>= d0< d0<= dwithin dmin dmax
 test[ 0.0d d0= ] test[ 0.7d d0= not ] test[ 0.0d d0> not ] test[ 1.2d d0> ] test[ 0.0d d0>= ] test[ -3.3d d0>= not ]
 test[ 5.1d d0>= ] test[ 9.4d d0< not ] test[ 0.0d d0<= ] test[  -2.3d d0<= ] test[ -5.0d -1.0d 1.0d dwithin not ]
 test[ 0.5d -1.0d 1.0d dwithin ] test[ 7.0d -1.0d 1.0d dwithin not ] test[ 5.0d 2.3d dmin 2.3d d= ]
 test[ -10.0d 4.3d dmax 4.3d d= ]
    
-// lshift arshift rshift rotate
+\ lshift arshift rshift rotate
 test[ 1 8 lshift 256 = ] test[ 17 2 lshift 68 = ] test[ -80 3 arshift -10 = ] test[ 19 2 arshift 4 = ]
-test[ 0xF1234567 4 rshift 0xF123456 = ]
+test[ $F1234567 4 rshift $F123456 = ]
 #if(FORTH64)
-test[ 0xFFFFFFFFF1234567 4 arshift 0xFFFFFFFFFF123456 = ]
-test[ 0x12345678 8 rotate 0x1234567800 = ] test[ 0x12345678 -8 rotate 0x7800000000123456 = ]
+test[ $FFFFFFFFF1234567 4 arshift $FFFFFFFFFF123456 = ]
+test[ $12345678 8 rotate $1234567800 = ] test[ $12345678 -8 rotate $7800000000123456 = ]
 #else
-test[ 0xF1234567 4 arshift 0xFF123456 = ]
-test[ 0x12345678 8 rotate 0x34567812 = ]
+test[ $F1234567 4 arshift $FF123456 = ]
+test[ $12345678 8 rotate $34567812 = ]
 #endif
-test[ 0x1234567876543210L 8 2lshift 0x3456787654321000L l= ] test[ 0x1234567876543210L 8 2rshift 0x0012345678765432L l= ]
-test[ 0x1234567876543210L 8 2rotate 0x3456787654321012L l= ] test[ 0x1234567876543210L -8 2rotate 0x1012345678765432L l= ]
+test[ $1234567876543210L 8 2lshift $3456787654321000L l= ] test[ $1234567876543210L 8 2rshift $0012345678765432L l= ]
+test[ $1234567876543210L 8 2rotate $3456787654321012L l= ] test[ $1234567876543210L -8 2rotate $1012345678765432L l= ]
 
-// dup ?dup swap over rot pick
+\ dup ?dup swap over rot pick
 test[ 17 5 dup 2 pick tuck 17 = swap 5 = and rot 5 = rot 17 = 0 drop and rot 17 = ]
 test[ 87 5 ?dup 0 ?dup 0= rot 5 = rot 5 = and and over 87 = rot 87 = ]
 
-// -rot nip tuck 
+\ -rot nip tuck 
 test[ 43 27 88 -rot 27 = -rot 43 = -rot 88 = and and and 1 4 5 nip 5 = swap 1 = and 11 22 tuck 22 = swap 11 = and swap 22 = and ]
 
 test[ fabs(-56.75) 56.75 f= fabs(56.75) 56.75 f= ]
@@ -286,17 +280,17 @@ test[ ffrexp(-224.0) 8 = swap -0.875 f= dfrexp(224.0l) 8 = >r 0.875L d= r> ]
 test[ fmodf(12345.625) 0.625 f= swap 12345.0 f= dmodf(-12345.625l) -0.625L d= >r -12345.0L d= r> ]
 test[ ffmod(-27.375 4.0) -3.375 f= dfmod(27.375l 4.0l) 3.375L d= ]
 
-// 2dup 2swap 2drop 2over 2rot r[ ]r
-// b! b@ sb@ s! s@ ss@ ! @ 2! 2@ 
-// move fill varAction! varAction@
-// l+ l- l* l/ lmod l/mod lnegate i2l i2f i2d f2l f2i f2d d2l d2i d2f l2f l2d
-// l= l<> l> l>= l< l<= l0= l0> l0>= l0< l0<= lwithin lmin lmax
-// . %d %x %2d %2x %s %c type %bl %nl %f %2f format 2format
-// printDecimalSigned printAllSigned printAllUnsigned octal decimal hex
+\ 2dup 2swap 2drop 2over 2rot r[ ]r
+\ b! b@ sb@ s! s@ ss@ ! @ 2! 2@ 
+\ move fill varAction! varAction@
+\ l+ l- l* l/ lmod l/mod lnegate i2l i2f i2d f2l f2i f2d d2l d2i d2f l2f l2d
+\ l= l<> l> l>= l< l<= l0= l0> l0>= l0< l0<= lwithin lmin lmax
+\ . %d %x %2d %2x %s %c type %bl %nl %f %2f format 2format
+\ printDecimalSigned printAllSigned printAllUnsigned octal decimal hex
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
-// Test block floating point ops
+\ Test block floating point ops
 create srcA
   35.0 , 17.0 , 1.125 , 100.0 ,
 create srcB
@@ -365,9 +359,9 @@ test[ dScaleBlock(dsrcA ddst 0.0d 4)  0.0L 0.0L 0.0L 0.0L dcheck4 ]
 test[ dMixBlock(dsrcA ddst 1.0d 4)    35.0L 17.0L 1.125L 100.0L dcheck4 ]
 test[ dMixBlock(dsrcB ddst 0.5d 4)    37.5L 18.0L 5.125L 102.0L dcheck4 ]
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
-// Test exception handling
+\ Test exception handling
 
 int caughtVal   int exNumIn   int finallyVal
 
@@ -432,11 +426,11 @@ test[ mod11catcher(42) 17 = caughtVal 7 = finallyVal 3 = ]
 test[ mod11catcher(22) caughtVal 11 = finallyVal 3 = ]
 test[ mod11catcher(36) 17 = caughtVal 3 = finallyVal 3 = ]
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
-// Test pointer move ops
+\ Test pointer move ops
 
-//0123456789abcdef012345 
+\ 0123456789abcdef012345 
 testBuff2.set( "This is a test string" )
 testBuff2.get -> ptrTo byte pSrc
 ref pSrc -> ptrTo int src
@@ -453,33 +447,33 @@ src b@@++ dst b@!++
 src s@@++ dst s@!++ 
 test[ checkResult( testBuff2.get ) ]
 
-test[ 0xDEADBEEF 123456789 2= ]	// check for stack underflow or extra items
+test[ $DEADBEEF 123456789 2= ]	\ check for stack underflow or extra items
 
 
-///////////////////////////////////////////////////////////
-// test $evaluate
+\ ==================================
+\ test $evaluate
 
 : ee $evaluate( "`e` %c `y` %c" );
 : cc $evaluate( "`c` %c" );
 : bb $evaluate( "`b` %c" ) cc $evaluate( "`d` %c" ) ;
 : aa $evaluate( "`a` %c" ) bb ee $evaluate( "`z` %c" ) ;
 
-//test[ strcmp( aa "abcdeyz" ) 0= ]
+\ test[ strcmp( aa "abcdeyz" ) 0= ]
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
-// test fprintf snprintf
+\ test fprintf snprintf
 64 arrayOf byte testBytes
 test[ fprintf(stdout "This line %s %c%c printed %d times\n" "should" 98 101 3 4) 36 =]
 test[ snprintf(0 ref testBytes 64 "This %s %s %c%c printed %d times\n"  "line" "should" 98 101 3 5) 36 =]
 0 ref testBytes %s
 "This line should be printed 3 times\n" %s
 
-// test sscanf
+\ test sscanf
 cell a   cell b   cell c
 test[ sscanf("1 b 10 " "%d %c %x " ref a ref b ref c 3) 3 =  c 16 =  b 98 =  a 1 =]
 
-// test fscanf
+\ test fscanf
 ptrTo int tfile
 test[ fopen("__test.txt" "w" ) -> tfile   tfile 0<>]
 test[ fputs("1 b 10 " tfile ) 0>=]
@@ -490,10 +484,10 @@ test[ fclose(tfile) 0=]
 test[ remove("__test.txt") 0=]
 
 
-///////////////////////////////////////////////////////////
+\ ==================================
 
-//%nl %nl "Hit ENTER to exit" %s
-//stdin fgetc
+\ %nl %nl "Hit ENTER to exit" %s
+\ stdin fgetc
 
 "forthtest" %s showPassFail
 

@@ -22,10 +22,10 @@ Object oldErrorOut
   new StringOutStream -> testOut
   new Array -> testStreamStack
 
-  // turn error out into a split that writes to both error stream and testSummaryOut
-  //  so we can dump testSummaryOut at end of all tests so failures don't get
-  //  lost in all the noise
-  // this does require that tests wrap error output in err[ ... ]err
+  \ turn error out into a split that writes to both error stream and testSummaryOut
+  \  so we can dump testSummaryOut at end of all tests so failures don't get
+  \  lost in all the noise
+  \ this does require that tests wrap error output in err[ ... ]err
   new SplitOutStream -> splitErrorOut
 
   new StringOutStream -> testSummaryOut
@@ -46,7 +46,7 @@ Object oldErrorOut
   oclear oldErrorOut
 
   oclear testSummaryOut
-  //oclear summaryBuffer
+  \ oclear summaryBuffer
   oclear splitErrorOut
 ;
 
@@ -91,12 +91,12 @@ Object oldErrorOut
   endif
 ;
 
-// test[ LINE_OF_STUFF ]
-// LINE_OF_STUFF must evaluate to one or more true (-1) values
+\ test[ LINE_OF_STUFF ]
+\ LINE_OF_STUFF must evaluate to one or more true (-1) values
 : test[
   sp -> ptrTo int oldSP
   `]` $word string( 250 ) ops!
-  //ops %s %nl
+  \ ops %s %nl
   ops $evaluate
   sp oldSP swap - cell/ -> int numItems
   false -> int failed
@@ -133,7 +133,7 @@ Object oldErrorOut
   loop
 ;
 
-// FILENAME N_VALUES N ...
+\ FILENAME N_VALUES N ...
 : makeShortFile
   mko ByteArray buffer
   mko FileOutStream outFile
@@ -152,7 +152,7 @@ Object oldErrorOut
   oclear buffer
 ;
 
-// FILENAME FILE_CONTENTS ...
+\ FILENAME FILE_CONTENTS ...
 : makeFileFromString
   mko FileOutStream outFile
   -> ptrTo byte contents

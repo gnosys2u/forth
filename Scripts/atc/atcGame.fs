@@ -1,9 +1,9 @@
-//======== atcGame ========
+\ ======== atcGame ========
 
 class: atcGame extends iAtcGame
 
   iAtcRegion region
-  //Array pendingTakeoffs
+  \ Array pendingTakeoffs
   atcInputHandler inputHandler
   String message
   
@@ -20,7 +20,7 @@ class: atcGame extends iAtcGame
       drop "default"
     endif
     name.append
-    //name.get %s `!` %c %nl
+    \ name.get %s `!` %c %nl
     new Array airplanes!
     new List activeAirplanes!
     new List inactiveAirplanes!
@@ -44,7 +44,7 @@ class: atcGame extends iAtcGame
   ;
   
   m: delete
-    //t{ "deleting game\n" %s }t
+    \ t{ "deleting game\n" %s }t
     reset
   ;m
   
@@ -59,7 +59,7 @@ class: atcGame extends iAtcGame
     true status.keepPlaying!
     display.showWarning( "" )
     do(26 0)
-      // create all airplanes and add to inactive list
+      \ create all airplanes and add to inactive list
       new atcAirplane plane!
       plane.init( region i )
       new String plane.name!
@@ -76,26 +76,26 @@ class: atcGame extends iAtcGame
     false status.keepPlaying!
   ;
   
-  // newPlaneX newPlaneY plane ...
+  \ newPlaneX newPlaneY plane ...
   m: moveAirplane
     iAtcAirplane plane!
     int newY!
     int newX!
     atcTile oldTile
     atcTile newTile
-    //display.showWarning(plane.name.get) %bl newX %d %bl newY %d %bl
+    \ display.showWarning(plane.name.get) %bl newX %d %bl newY %d %bl
     region.getTile( plane.x plane.y ) oldTile!o 
     oldTile.removeAirplane( plane )
     t{ "plane " %s plane.name.get %s " moved to " %s newX %d `,` %c newY %d " at " %s plane.altitude %d %nl }t
     if( and(within(newX 0 region.columns) within(newY 0 region.rows)) )
-      // plane still in airspace
+      \ plane still in airspace
       region.getTile(newX newY) newTile!o 
       
       message.set("Plane ")
       message.append(plane.name.get)
       if( plane.altitude 0=)
         true int legalLanding!
-        // plane either landed or crashed
+        \ plane either landed or crashed
         message.append(" crashed ")
         if(newTile.tileType kATTAirport <>)
           message.append("- must land at an airport")
@@ -105,24 +105,24 @@ class: atcGame extends iAtcGame
           message.append("- destination was an exit")
           false legalLanding!
         endif
-        // see if landed at destination airport
+        \ see if landed at destination airport
         if(legalLanding)
           if( newTile.index plane.destination =)
-            // legal landing
+            \ legal landing
             game.status.score++
             game.deactivateAirplane(plane)
           else
-            // illegal landing
+            \ illegal landing
             message.append("- landed at wrong airport")
             false legalLanding!
           endif
         endif
         if(not(legalLanding))
-          // crashed
+          \ crashed
           exitWithFailure
         endif
       else
-        // plane still flying
+        \ plane still flying
         newX -> plane.x   newY -> plane.y
         newTile.addAirplane( plane )
         if( plane.fuel 0<)
@@ -133,7 +133,7 @@ class: atcGame extends iAtcGame
         endif
       endif
     else
-      // plane exited airspace
+      \ plane exited airspace
       true int legalExit!
       message.set("Plane ")
       message.append(plane.name.get)
@@ -159,25 +159,25 @@ class: atcGame extends iAtcGame
         message.append(" - not at an exit")
       endif
       if(legalExit)
-        // legal exit
+        \ legal exit
         game.status.score++
         game.deactivateAirplane(plane)
       else
-        // illegal exit
+        \ illegal exit
         exitWithFailure
       endif
     endif
     plane~
   ;m
 
-  m: activateAirplane  // PLANE_OBJ ...
+  m: activateAirplane  \ PLANE_OBJ ...
     atcAirplane plane
     plane!o
     activeAirplanes.addTail( plane )
     inactiveAirplanes.remove( plane )
   ;m
   
-  m: deactivateAirplane  // PLANE_OBJ ...
+  m: deactivateAirplane  \ PLANE_OBJ ...
     atcAirplane plane
     plane!o
     inactiveAirplanes.addTail( plane )
@@ -189,7 +189,7 @@ class: atcGame extends iAtcGame
   ;
   
   : updateTime
-    //display.showWarning("time ") status.now %d %bl status.nextUpdateTime %d %bl status.updateInterval %d
+    \ display.showWarning("time ") status.now %d %bl status.nextUpdateTime %d %bl status.updateInterval %d
     if( ms@ status.nextMoveTime >= )
       status.moveInterval status.nextMoveTime!+
       status.moves++
@@ -200,7 +200,7 @@ class: atcGame extends iAtcGame
   ;
 
   : generateNewAirplanes
-    // add airplanes 
+    \ add airplanes 
     iAtcAirplane plane
     int destinationNum
     int x  int y   int altitude   int heading
@@ -213,7 +213,7 @@ class: atcGame extends iAtcGame
     
     if( status.moves status.nextPlaneMove >= )
       newplaneRate ->+ status.nextPlaneMove
-      // TODO: create a plane at a portal or airport
+      \ TODO: create a plane at a portal or airport
       inactiveAirplanes.unrefHead -> plane
       if(objNotNull(plane))
         region.airports.count int numAirports!
@@ -223,15 +223,15 @@ class: atcGame extends iAtcGame
         mod( rand numDestinations ) int source!
         rand 1 and 0<> isJet!
         if( source numPortals < )
-          // generate plane at a portal
+          \ generate plane at a portal
           region.portals.get( source ) portal!o 
-          // TODO: don't allow portal to generate planes too close together
+          \ TODO: don't allow portal to generate planes too close together
           portal.entryAltitude altitude!
           true isMoving!
           portal.x x!          portal.y y!
           portal.entryDirection heading!
         else
-          // generate plane at an airport
+          \ generate plane at an airport
           region.airports.get( source numPortals - ) airport!o 
           airport.altitude altitude!
           airport.x x!        airport.y y!
@@ -240,20 +240,20 @@ class: atcGame extends iAtcGame
     
         source int destination!
         begin
-        while(source destination =)   // make sure source and destination are different
+        while(source destination =)   \ make sure source and destination are different
           mod( rand numDestinations ) destination!
         repeat
         
         if( destination numPortals < )
-          // destination is a portal
+          \ destination is a portal
           kATTPortal destinationType!
         else
-          // destination is an airport
+          \ destination is an airport
           kATTAirport destinationType!
           numPortals destination!-
         endif
       
-        // x y altitude heading isJet destination destinationType isMoving ...
+        \ x y altitude heading isJet destination destinationType isMoving ...
         plane.setPosition( x y altitude heading )
         plane.setDestination( destination destinationType )
         plane.activate( status.moves isJet isMoving )
@@ -322,24 +322,24 @@ class: atcGame extends iAtcGame
     if( updateTime )
       display.hideAirplanes( activeAirplanes )
       updatePlanes
-      //handleArrivals
+      \ handleArrivals
       generateNewAirplanes
       checkAirplanes
       display.update( activeAirplanes )
-      // setConsoleCursor(0 40) ds
+      \ setConsoleCursor(0 40) ds
     endif
   ;
 
-  // COMMAND_INFO_PTR ...
+  \ COMMAND_INFO_PTR ...
   m: executeCommand
     ptrTo atcCommandInfo commandInfo!
     if( commandInfo.airplaneNum airplanes.count < )
       airplanes.get(commandInfo.airplaneNum) iAtcAirplane plane!
-      //t{ "executeCommand " %s  commandInfo.airplaneNum %d %bl plane.beaconNum %d %nl }t
+      \ t{ "executeCommand " %s  commandInfo.airplaneNum %d %bl plane.beaconNum %d %nl }t
       if( and(commandInfo.command kNumCommands <   commandInfo.command 0>=) )
         plane.executeCommand( commandInfo display )
       else
-        //display.showWarning("unexpected command ") commandInfo.command %d
+        \ display.showWarning("unexpected command ") commandInfo.command %d
         display.startWarning "unexpected command " %s commandInfo.command %d
       endif
       plane~
@@ -360,7 +360,7 @@ class: atcGame extends iAtcGame
     while( status.keepPlaying )
       updateInputs
       updateGame
-      ms( 16 )   // sleep for about a sixtieth of a second between time checks
+      ms( 16 )   \ sleep for about a sixtieth of a second between time checks
     repeat
     
     reportGameResults

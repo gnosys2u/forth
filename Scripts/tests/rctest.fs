@@ -1,18 +1,18 @@
 autoforget RCTEST
 : RCTEST ;
 
-// add ndrop
-// fix bug where apps which contain app_autoload.txt only run it if there is an app_autoload.txt file also
-// is there a bug where an embedded app_autoload.txt which has no loaddone gets an error at eof?
-// see if builtin classes have a 'new' method
+\ add ndrop
+\ fix bug where apps which contain app_autoload.txt only run it if there is an app_autoload.txt file also
+\ is there a bug where an embedded app_autoload.txt which has no loaddone gets an error at eof?
+\ see if builtin classes have a 'new' method
 : ndrop 0 do drop loop ;
 
-// N_STRINGS N String makeStr ... String object
+\ N_STRINGS N String makeStr ... String object
 : makeStr
   -> String str
   -> int nStrings
   do( 0 nStrings 1- )
-    //i %d %nl
+    \ i %d %nl
     str.append( i pick )
   +loop( -1 )
   ndrop( nStrings )
@@ -23,11 +23,11 @@ autoforget RCTEST
   new String -> String foo
   makeStr( foo )
   $evaluate( foo.get )
-  //foo.get %s %nl
+  \ foo.get %s %nl
   foo.release
 ;
 
-: obj  // obj TYPE_NAME INSTANCE_NAME  - defines obj var and creates instance
+: obj  \ obj TYPE_NAME INSTANCE_NAME  - defines obj var and creates instance
   256 string typeName
   blword -> typeName
   256 string instName
@@ -35,7 +35,7 @@ autoforget RCTEST
   r[ "new "  typeName " -> " typeName " " instName ]r ninterpret
 ;
 
-: str  // STRING_PTR str INSTANCE_NAME  - defines String var and creates instance & initializes value to STRING_PTR
+: str  \ STRING_PTR str INSTANCE_NAME  - defines String var and creates instance & initializes value to STRING_PTR
   new String -> String instName
   blword instName.set
   r[ "new String -> String " instName.get " " instName.get ".set" ]r ninterpret
@@ -163,7 +163,7 @@ class: zoo extends object
   String name
   Array cages
   
-  // ZOO_NAME ...
+  \ ZOO_NAME ...
   m: init
     new String -> name
     new Array -> cages
@@ -174,7 +174,7 @@ class: zoo extends object
     super.delete
   ;m
   
-  // CAGE_NAME ...
+  \ CAGE_NAME ...
   m: addCage
     new OPair -> OPair newCage
     newCage.setA

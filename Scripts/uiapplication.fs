@@ -38,7 +38,7 @@ class: UIApplication extends UIGroup
   ;m
 
   m: delete
-    //"UIApplication delete\n" %s
+    \ "UIApplication delete\n" %s
     oclear mTextFocus
     oclear mAppName
     super.delete
@@ -49,7 +49,7 @@ class: UIApplication extends UIGroup
   ;m
   
   m: onEvent
-    //"UIApplication:onEvent " %s this %x %bl %x %nl
+    \ "UIApplication:onEvent " %s this %x %bl %x %nl
     ->o Event ev
     if(ev.param1 `quit` =)
       true -> mQuit
@@ -66,7 +66,7 @@ class: UIApplication extends UIGroup
       if(findEnumSymbol(sdlEvent.common.type ref SDL_EventType))
         %s %nl
       else
-        "0x" %s sdlEvent.common.type %x %nl
+        "$" %s sdlEvent.common.type %x %nl
       endif
 #endif
 

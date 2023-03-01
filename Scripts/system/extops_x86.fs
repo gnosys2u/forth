@@ -1,6 +1,6 @@
-//
-// basic ops not included in the kernel defined in x86 assembler
-//
+\
+\ basic ops not included in the kernel defined in x86 assembler
+\
 
 autoforget extops
 
@@ -10,23 +10,23 @@ requires forth_internals
 : extops ;
 
 code _doDoesCode
-  // RTOS is data ptr, RTOS+1 is IP, esi (IP) points to asm code for does action
-  esi ecx mov,				// ecx is does action code
+  \ RTOS is data ptr, RTOS+1 is IP, esi (IP) points to asm code for does action
+  esi ecx mov,				\ ecx is does action code
   _RP ebp d] ebx mov,
-  ebx ] eax mov,			// eax is data ptr
+  ebx ] eax mov,			\ eax is data ptr
   4 ebx d] esi mov,
-  8 # ebx add,				// cleanup rstack
+  8 # ebx add,				\ cleanup rstack
   ebx _RP ebp d] mov,
   ecx jmp,
   endcode
   
 #if( 0 )
-// sample usage
+\ sample usage
 : adder
   builds
     ,
   doescode
-    // eax is data ptr
+    \ eax is data ptr
     eax ] ebx mov,
     edx ] ebx add,
     ebx edx ] mov,
@@ -149,7 +149,7 @@ code 2over
   ebx 4 edx d] mov,
   next,
   
-// 5 -> 1 4 -> 0 3 -> 5 2 -> 4 1 -> 3 0 -> 2
+\ 5 -> 1 4 -> 0 3 -> 5 2 -> 4 1 -> 3 0 -> 2
 code 2rot
   20 edx d] eax mov,
   12 edx d] ebx mov,
@@ -165,20 +165,20 @@ code 2rot
   eax edx ] mov,
   next,
   
-// 5 -> 3 4 -> 2 3 -> 1 2 -> 0 1 -> 5 0 -> 4
+\ 5 -> 3 4 -> 2 3 -> 1 2 -> 0 1 -> 5 0 -> 4
 code -2rot
   20 edx d] eax mov,
   4 edx d] ebx mov,
-  ebx 20 edx d] mov,	// 1->5 complete
+  ebx 20 edx d] mov,	\ 1->5 complete
   12 edx d] ebx mov,
-  ebx 4 edx d] mov,		// 3->1 complete
-  eax 12 edx d] mov,	// 5->3 complete
+  ebx 4 edx d] mov,		\ 3->1 complete
+  eax 12 edx d] mov,	\ 5->3 complete
   16 edx d] eax mov,
   edx ] ebx mov,
-  ebx 16 edx d] mov,	// 0->4 complete
+  ebx 16 edx d] mov,	\ 0->4 complete
   8 edx d] ebx mov,
-  ebx edx ] mov,		// 2->0
-  eax 8 edx d] mov,	// 4->2
+  ebx edx ] mov,		\ 2->0
+  eax 8 edx d] mov,	\ 4->2
   next,
 
 code 2nip
@@ -278,7 +278,7 @@ code labs
   endif,
   next,
   
-// .fl for 64-bit, .fs for 32-bit
+\ .fl for 64-bit, .fs for 32-bit
 
 code dpi
   fldpi,
@@ -292,9 +292,9 @@ code dsq
   edx ] .fl fstp,
   next,
   
-// this requires that caller not have extra junk on return stack
+\ this requires that caller not have extra junk on return stack
 code tailRecurse
-  // tail recurse by popping the rstack and then moving the IP back one instruction
+  \ tail recurse by popping the rstack and then moving the IP back one instruction
   _RP ebp d] eax mov,
   eax ] ebx mov,
   4 # ebx sub,
@@ -338,7 +338,7 @@ code */
   edx ebx mov,
   4 ebx d] eax mov,
   8 ebx d] ecx mov,
-  ecx eax imul,      // result hiword in edx, loword in eax
+  ecx eax imul,      \ result hiword in edx, loword in eax
   ebx ] idiv,
   8 # ebx add,
   eax ebx ] mov,
@@ -349,7 +349,7 @@ code */mod
   edx ebx mov,
   4 ebx d] eax mov,
   8 ebx d] ecx mov,
-  ecx eax imul,      // result hiword in edx, loword in eax
+  ecx eax imul,      \ result hiword in edx, loword in eax
   ebx ] idiv,
   4 # ebx add,
   eax ebx ] mov,
@@ -358,13 +358,13 @@ code */mod
   next,
   
 code um/mod
-  // edx: 32-bit unsigned denominator
-  // edx+4: 64-bit unsigned numerator
+  \ edx: 32-bit unsigned denominator
+  \ edx+4: 64-bit unsigned numerator
   edx ebx mov,
-  ebx ] ecx mov,      // denominator
-  8 ebx d] eax mov,   // numerator low part
-  4 ebx d] edx mov,   // numerator high part
-  ecx div,            // eax is quotient, edx is remainder
+  ebx ] ecx mov,      \ denominator
+  8 ebx d] eax mov,   \ numerator low part
+  4 ebx d] edx mov,   \ numerator high part
+  ecx div,            \ eax is quotient, edx is remainder
   4 # ebx add,
   edx 4 ebx d] mov,
   eax ebx ] mov,
@@ -372,12 +372,12 @@ code um/mod
   next,
 	
 code sm/rem
-  // edx: 32-bit signed denominator
-  // edx+4: 64-bit signed numerator
-  // idiv takes 64-bit numerator in edx:eax
+  \ edx: 32-bit signed denominator
+  \ edx+4: 64-bit signed numerator
+  \ idiv takes 64-bit numerator in edx:eax
   edx ebx mov,
-  8 ebx d] eax mov,   // numerator low part
-  4 ebx d] edx mov,   // numerator high part
+  8 ebx d] eax mov,   \ numerator low part
+  4 ebx d] edx mov,   \ numerator high part
   ebx ] idiv,
   4 # ebx add,
   edx 4 ebx d] mov,
@@ -386,29 +386,29 @@ code sm/rem
   next,
   
 code compareMemory
-  // edx: numBytes
-  // edx+4: block2
-  // edx+8: block1
-  // returns null if numBytes memory blocks at block1 and block2 are the same
-  //   else returns ptr to first non-matching byte in block1
+  \ edx: numBytes
+  \ edx+4: block2
+  \ edx+8: block1
+  \ returns null if numBytes memory blocks at block1 and block2 are the same
+  \   else returns ptr to first non-matching byte in block1
   edx ] ecx mov,
-  4 edx d] eax mov,   // eax: block2 base address
+  4 edx d] eax mov,   \ eax: block2 base address
   8 # edx add,
   ecx ecx or,
   z, if,
-    // block with size 0 always counts as a match
+    \ block with size 0 always counts as a match
     ecx edx ] mov,
-    edi jmp,    // exit
+    edi jmp,    \ exit
   endif,
   edi push,
-  edx ] edi mov,   // edi: block1 base address
+  edx ] edi mov,   \ edi: block1 base address
   begin,
     edi ] bl mov,
     eax ] bl cmp,
     nz, if,
       edi edx ] mov,
       edi pop,
-      edi jmp,   // exit
+      edi jmp,   \ exit
     endif,
     1 # edi add,
     1 # eax add,
@@ -458,16 +458,16 @@ loaddone
 
 
 
-// eax ebx ecx edx edi esi ebp
-// r and d need to be 64-bit
-// n and q could be as small as a byte
+\ eax ebx ecx edx edi esi ebp
+\ r and d need to be 64-bit
+\ n and q could be as small as a byte
 
 code l/
-  // TOS: dlo edx   dhi edx+4   nlo edx+8   nhi edx+12
+  \ TOS: dlo edx   dhi edx+4   nlo edx+8   nhi edx+12
   
-  ebx ebx xor,			// ebx holds sign flag
+  ebx ebx xor,			\ ebx holds sign flag
   
-  // negate denominator if needed
+  \ negate denominator if needed
   4 edx d] eax mov,
   eax eax or,
   0<, if,
@@ -480,18 +480,18 @@ code l/
     esi edx ] mov,
     eax 4 edx d] mov,
   else,
-    // bail if denominator is zero
+    \ bail if denominator is zero
     0=, if,
       edx ] eax mov,
       eax eax or,
       0=, if,
-        // TODO: set divide-by-zero status
+        \ TODO: set divide-by-zero status
         16 # edx add,
         next,
       endif,
   endif,
   
-  // negate numerator if needed
+  \ negate numerator if needed
   12 edx d] eax mov,
   eax eax or,
   0<, if,
@@ -507,49 +507,49 @@ code l/
   
   edi push,
   esi push,
-  ebx push,			// sign flag is top of regular stack
+  ebx push,			\ sign flag is top of regular stack
   
-  // N  edx[12]  edx[8]
-  // D  edx[4]   edx[0]
-  // R  ebx:eax  rhi:rlo
-  // Q
+  \ N  edx[12]  edx[8]
+  \ D  edx[4]   edx[0]
+  \ R  ebx:eax  rhi:rlo
+  \ Q
   
-  // Q := 0                 initialize quotient and remainder to zero
-  // R := 0                     
-  // for i = n-1...0 do     where n is number of bits
-  //   R := R << 1          left-shift R by 1 bit    
-  //   R(0) := N(i)         set the least-significant bit of R equal to bit i of the numerator
-  //   if R >= D then
-  //     R = R - D               
-  //     Q(i) := 1
-  //   end
-  // loop  
+  \ Q := 0                 initialize quotient and remainder to zero
+  \ R := 0                     
+  \ for i = n-1...0 do     where n is number of bits
+  \   R := R << 1          left-shift R by 1 bit    
+  \   R(0) := N(i)         set the least-significant bit of R equal to bit i of the numerator
+  \   if R >= D then
+  \     R = R - D               
+  \     Q(i) := 1
+  \   end
+  \ loop  
 
   
-  // alo(esi) * blo
+  \ alo(esi) * blo
   ebx ] eax mov,
-  esi mul,				// edx is hipart, eax is final lopart
-  edx edi mov,			// edi is hipart accumulator
+  esi mul,				\ edx is hipart, eax is final lopart
+  edx edi mov,			\ edi is hipart accumulator
   
-  8 ebx d] esi mov,		// esi = alo
+  8 ebx d] esi mov,		\ esi = alo
   eax 8 ebx d] mov,
 
-  // alo * bhi
-  4 ebx d] eax mov,		// eax = bhi
+  \ alo * bhi
+  4 ebx d] eax mov,		\ eax = bhi
   esi mul,
   eax edi add,
   
-  // ahi * blo
+  \ ahi * blo
   12 ebx d] esi mov,
   ebx ] eax mov,
   esi mul,
-  eax edi add,			// edi = hiResult
+  eax edi add,			\ edi = hiResult
   
-  // invert result if needed
+  \ invert result if needed
   ebx pop,
   ebx ebx or,
   0<, if,
-    8 ebx d] eax mov,		// eax = loResult
+    8 ebx d] eax mov,		\ eax = loResult
     eax not,
     edi not,
     1 # eax add,
@@ -567,8 +567,8 @@ code l/
   
 
 code goo
-  _TDP ebp d] eax mov,		// eax = this ptr
-  4 eax d] ebx mov,			// ebx = first word of object data
+  _TDP ebp d] eax mov,		\ eax = this ptr
+  4 eax d] ebx mov,			\ ebx = first word of object data
   4 # edx sub,
   ebx edx ] mov,
   next,

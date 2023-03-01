@@ -1,10 +1,10 @@
-//======== airplane ========
+\ ======== airplane ========
 
 class: atcAirplane extends iAtcAirplane
 
   iAtcRegion region
   int nextUpdateTime
-  int updateInterval        // 1 for jets, 2 for regular planes
+  int updateInterval        \ 1 for jets, 2 for regular planes
     
   : updateAltitude
     int airportNum
@@ -72,8 +72,8 @@ class: atcAirplane extends iAtcAirplane
   ;
   
   : calculateNextPosition
-    // don't actually change position, atcWorld.moveAirplane will do that
-    // return newX newY
+    \ don't actually change position, atcWorld.moveAirplane will do that
+    \ return newX newY
     case( heading )
       kADNorth      of x        y 1-    endof
       kADNorthEast  of x 1+     y 1-    endof
@@ -86,23 +86,23 @@ class: atcAirplane extends iAtcAirplane
     endcase
   ;
   
-  m: init   // REGION ID
+  m: init   \ REGION ID
     id!
-    region!o  // break circular reference  region->tile->airplane->region
+    region!o  \ break circular reference  region->tile->airplane->region
     `plan` tag!
   ;m
 
-  m: setPosition     // X Y ALTITUDE HEADING
+  m: setPosition     \ X Y ALTITUDE HEADING
     dup heading!    commandedHeading!
     dup altitude!   commandedAltitude!
     y!    x!
   ;m
   
-  m: setDestination    // DESTINATION DESTINATION_TYPE ...
+  m: setDestination    \ DESTINATION DESTINATION_TYPE ...
     destinationType!    destination!
   ;m
   
-  m: activate    // UPDATE_TIME IS_JET IS_MOVING ...
+  m: activate    \ UPDATE_TIME IS_JET IS_MOVING ...
     if kAASMovingMarked else kAASHolding endif status!
 
     name.clear
@@ -122,11 +122,11 @@ class: atcAirplane extends iAtcAirplane
   ;m
   
   m: delete
-    //t{ "deleting plane " %s thisData %x %bl name.get %s %nl }t
+    \ t{ "deleting plane " %s thisData %x %bl name.get %s %nl }t
     name~
   ;m
   
-  m: update  // now ...
+  m: update  \ now ...
     int now!
     
     if( now nextUpdateTime > )
@@ -139,7 +139,7 @@ class: atcAirplane extends iAtcAirplane
         else
     
           if( region.getBeacon(beaconNum).at(x y) )
-            // plane has arrived at beacon
+            \ plane has arrived at beacon
             -1 beaconNum!
             if(kAASMovingUnmarked status =)
               kAASMovingMarked status!
@@ -154,7 +154,7 @@ class: atcAirplane extends iAtcAirplane
   ;m
   
   
-  m: executeCommand // COMMAND_INFO_PTR DISPLAY_OBJECT ...
+  m: executeCommand \ COMMAND_INFO_PTR DISPLAY_OBJECT ...
     iAtcDisplay display     display!o
     ptrTo atcCommandInfo commandInfo!
     if( status kAASMovingMarked >= )
@@ -212,22 +212,22 @@ class: atcAirplane extends iAtcAirplane
           commandInfo.beaconNum beaconNum!
         endof
    
-        //display.showWarning("unexpected command ") %d
+        \ display.showWarning("unexpected command ") %d
         display.startWarning "unexpected command " %s dup %d
       endcase
     
     else
 
-      // plane not moving, only possible command is takeoff (altitude)
+      \ plane not moving, only possible command is takeoff (altitude)
       if( commandInfo.command kACTAltitude = )
         if( commandInfo.amount 0> )
-          // handle takeoff
+          \ handle takeoff
           kAASMovingMarked status!
           region.startingFuel fuel!
           commandInfo.amount commandedAltitude!
         endif
       else
-        //display.showWarning("only valid command is altitude(takeoff)")
+        \ display.showWarning("only valid command is altitude(takeoff)")
         display.startWarning "only valid command is altitude(takeoff)" %s
       endif
     endif

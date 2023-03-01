@@ -1,16 +1,16 @@
-// test of refcounts being corrupted when objects are used by multiple threads
+\ test of refcounts being corrupted when objects are used by multiple threads
 
 autoforget HAMMER
 : HAMMER ;
 
 2 -> int numThreads
-//0xFFFFFF constant timesToHammer
+\ $FFFFFF constant timesToHammer
 1000000 -> cell timesToHammer
 1000000 -> cell refCountOffset
 
 : %thread `[` %c thisThread %x "] " %s ;
 
-//  common core for object refcount hammer tests
+\  common core for object refcount hammer tests
 : hammerer
   -> cell hammerOp
   -> ptrTo byte msg
@@ -20,7 +20,7 @@ autoforget HAMMER
   refCountOffset ->+ target.__refCount
   
   ">>>>>>>> " %s msg %s %nl
-  ms@ // "start\n" %s
+  ms@ \ "start\n" %s
   
   if(numThreads 1 >)
     system.createThread(
@@ -89,7 +89,7 @@ autoforget HAMMER
 
 : keepHammer
   -> Object target
-  // %thread target.__refCount %d %nl
+  \ %thread target.__refCount %d %nl
 
   do(timesToHammer 0)
     target.keep     target.keep     target.keep     target.keep
@@ -128,11 +128,11 @@ autoforget HAMMER
 
 : objStoreHammer
   -> Object target
-  // %thread target.__refCount %d %nl
+  \ %thread target.__refCount %d %nl
   Object aa  Object bb  Object cc  Object dd
   mko Object moo
   1000000 ->+ moo.__refCount
-  // "moo\n" %s moo.show
+  \ "moo\n" %s moo.show
   
   do(timesToHammer 0)
     target -> aa  moo -> aa  target -> aa  moo -> aa

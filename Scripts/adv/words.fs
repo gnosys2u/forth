@@ -1,9 +1,9 @@
-//========== The vocabulary. ==============================================
-// This section corresponds to sections 4--17 in Knuth.
+\ ========== The vocabulary. ==============================================
+\ This section corresponds to sections 4--17 in Knuth.
 
 : advWords ;
 
-: new_word // (const char *w   int m  WordClass wc)
+: new_word \ (const char *w   int m  WordClass wc)
   WordClass wc!
   int m!
   ptrTo byte w!
@@ -209,12 +209,12 @@
   new_action_word("inven" INVENTORY) 
   new_action_word("score" SCORE) 
   new_action_word("quit" QUIT) 
-//#ifdef SAVE_AND_RESTORE
-//  new_action_word("save" SAVE) 
-//  new_action_word("resto" RESTORE) 
-//#endif /* SAVE_AND_RESTORE */
+\ #ifdef SAVE_AND_RESTORE
+\  new_action_word("save" SAVE) 
+\  new_action_word("resto" RESTORE) 
+\ #endif /* SAVE_AND_RESTORE */
 
-  // Finally, our vocabulary is rounded out by words like HELP, which trigger the printing of fixed messages
+  \ Finally, our vocabulary is rounded out by words like HELP, which trigger the printing of fixed messages
   new_message_word("abra" ABRA) 
   new_message_word("abrac" ABRA) 
   new_message_word("opens" ABRA) 

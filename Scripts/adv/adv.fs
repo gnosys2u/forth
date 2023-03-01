@@ -1,6 +1,6 @@
 requires randoms
 
-//true compileDebug!
+\ true compileDebug!
 
 autoforget collosalCaveAdventure
 vocabulary collosalCaveAdventure
@@ -24,8 +24,8 @@ ptrTo byte _spName
 ;
 alias sp? sp@
 
-// spoo MESSAGE_UNTIL_END_OF_LINE - spit out message while debugging
-//   good for tracking down when loading just dies quietly
+\ spoo MESSAGE_UNTIL_END_OF_LINE - spit out message while debugging
+\   good for tracking down when loading just dies quietly
 : spoo
   0 $word ptrTo byte msg!
   d[ t{ msg %s %nl ds }t ]d
@@ -35,11 +35,11 @@ spoo before defs
 requires defs
 spoo after defs
 
-// The Z-machine's "@random 42" instruction returns a value in the range 1..42.
+\ The Z-machine's "@random 42" instruction returns a value in the range 1..42.
 : ran random swap mod ;
 : pct ran(100) swap < ;
 : streq 
-  //5 strncmp 0=
+  \ 5 strncmp 0=
   true bool result!
   ptrTo byte pStr1!
   ptrTo byte pStr2!
@@ -59,16 +59,16 @@ spoo after defs
 : puts %s %nl ;
 
 spoo before Place
-//=============================== Place ===============================
+\ =============================== Place ===============================
 class: Place
   String long_desc
   String short_desc
   uint flags
   int locID
-  int objects  // ObjectWord - first object at this location, or NOTHING
+  int objects  \ ObjectWord - first object at this location, or NOTHING
   int visits
   
-  // locationID longDescription shortDescription flags ...
+  \ locationID longDescription shortDescription flags ...
   m: init
     flags!
     new String short_desc!  short_desc.set
@@ -76,7 +76,7 @@ class: Place
     locID!
     NOTHING objects!
     0 visits!
-    // flags if short_desc.get %s " has flags 0x" %s flags %x %nl endif
+    \ flags if short_desc.get %s " has flags $" %s flags %x %nl endif
   ;m
   
   m: delete
@@ -90,21 +90,21 @@ class: Place
 ;class
 
 
-//=============================== IObjectData ===============================
+\ =============================== IObjectData ===============================
 class: ObjectData
-    ObjectWord link  // next object at this location, or NOTHING
-    ObjectWord base  // NOTHING for mobile objects
+    ObjectWord link  \ next object at this location, or NOTHING
+    ObjectWord base  \ NOTHING for mobile objects
     int prop
     Location place
     String name
-    Array of String desc  // .prop ranges from 0 to 3
+    Array of String desc  \ .prop ranges from 0 to 3
     
     m: delete
       name~
       desc~
     ;m
     
-    m: init  // NAME_STRING BASE? LOC_ID
+    m: init  \ NAME_STRING BASE? LOC_ID
       place!
       base!
       new String name!
@@ -123,7 +123,7 @@ class: ObjectData
     ;m
 ;class
 
-//=============================== Dwarf ===============================
+\ =============================== Dwarf ===============================
 class: Dwarf
   bool seen
   Location oldloc
@@ -142,7 +142,7 @@ class: Dwarf
 ;class
   
 spoo before Word
-//=============================== Word ===============================
+\ =============================== Word ===============================
 class: Word
   String text
   int meaning
@@ -161,7 +161,7 @@ class: Word
   
 ;class
 
-//=============================== Hint ===============================
+\ =============================== Hint ===============================
 class: Hint
   int count
   bool given
@@ -197,8 +197,8 @@ class: AdventureState
 ;class
   
 spoo before IGame
-//=============================== IGame ===============================
-// IGame is abstract interface for Game class
+\ =============================== IGame ===============================
+\ IGame is abstract interface for Game class
 72 constant BUF_SIZE
 350 constant MAX_SCORE
 3 constant MAX_DEATHS
@@ -212,40 +212,40 @@ class: IGame
   StringIntMap wordMap
   Array of Word words
 
-  733 arrayOf Instruction travels       //Instruction travels[733];
-  MAX_LOC 22+ arrayOf ptrTo Instruction start    //Instruction *start[MAX_LOC + 2];
+  733 arrayOf Instruction travels       \ Instruction travels[733];
+  MAX_LOC 22+ arrayOf ptrTo Instruction start    \ Instruction *start[MAX_LOC + 2];
   Array of Place places
 
-  int holding_count          // how many objects have objs(t).place < 0?
+  int holding_count          \ how many objects have objs(t).place < 0?
   Location last_knife_loc
-  int tally                 // treasures awaiting you
-  int lost_treasures  // treasures that you won't find
+  int tally                 \ treasures awaiting you
+  int lost_treasures  \ treasures that you won't find
   Array of ObjectData _objs
   
-  //BUF_SIZE arrayOf byte buffer // your input goes here 
-  //BUF_SIZE arrayOf byte word1 // and then we snarf it to here
-  //BUF_SIZE arrayOf byte word2 // and here
+  \ BUF_SIZE arrayOf byte buffer \ your input goes here 
+  \ BUF_SIZE arrayOf byte word1 \ and then we snarf it to here
+  \ BUF_SIZE arrayOf byte word2 \ and here
   ByteArray inBuffer
   ByteArray inWord1
   ByteArray inWord2
-  int dwarfAngerLevel  // how angry are the dwarves?
+  int dwarfAngerLevel  \ how angry are the dwarves?
   Array of Dwarf dwarves
   Dwarf pirate
   
   bool gave_up
   int death_count
 
-  int lamp_limit  // countdown till darkness
-  int clock1   int clock2  // clocks that govern closing time
-  bool closed  // set only when you're in the repository
-  int bonus  // extra points awarded for exceptional adventuring skills
+  int lamp_limit  \ countdown till darkness
+  int clock1   int clock2  \ clocks that govern closing time
+  bool closed  \ set only when you're in the repository
+  int bonus  \ extra points awarded for exceptional adventuring skills
 
   bool warnedOfClosing
   bool closingPanic
   
-  int turns  // how many times we've read your commands
-  int verbose_interval  // command BRIEF sets this to 10000
-  int foobar  // progress in the FEE FIE FOE FOO incantation
+  int turns  \ how many times we've read your commands
+  int verbose_interval  \ command BRIEF sets this to 10000
+  int foobar  \ progress in the FEE FIE FOE FOO incantation
 
   Array of String classMessages
   IntArray classScores  
@@ -264,22 +264,22 @@ class: IGame
   String restoreFileName
   FileOutStream saveStream
   
-  // start adventure state machine variables
+  \ start adventure state machine variables
   Location mOldOldLoc
   Location mOldLoc
   Location mLoc
   Location mNewLoc
-  MotionWord mMotion   // currently specified motion
-  ActionWord mVerb  // currently specified action
-  ActionWord mOldVerb  // mVerb before it was changed
-  ObjectWord mObj  // currently specified object, if any
-  ObjectWord mOldObj  // former value of mObj
+  MotionWord mMotion   \ currently specified motion
+  ActionWord mVerb  \ currently specified action
+  ActionWord mOldVerb  \ mVerb before it was changed
+  ObjectWord mObj  \ currently specified object, if any
+  ObjectWord mOldObj  \ former value of mObj
   bool mWasDark
   bool mQuit
   int mLookCount
   int mWordTemp
   eAdventureState mCurStateNum
-  // end adventure state machine variables
+  \ end adventure state machine variables
 
   m: delete
     words~
@@ -355,7 +355,7 @@ class: IGame
     hints.push
   ;m
   
-  m: objs returns ObjectData    // OBJID ... OBJDATA
+  m: objs returns ObjectData    \ OBJID ... OBJDATA
     MIN_OBJ - _objs.get
   ;m
   
@@ -379,7 +379,7 @@ class: IGame
 ;class
 spoo after IGame
 
-"OK." $constant okMsg   // Woods' Fortran version didn't include the period, by the way.
+"OK." $constant okMsg   \ Woods' Fortran version didn't include the period, by the way.
 "It is now pitch dark.  If you proceed you will most likely fall into a pit." $constant pitchDarkMsg
 
 : is_forced
@@ -424,7 +424,7 @@ spoo after IGame
 
 : has_oil R_EPIT = ;
 
-//===============================  ===============================
+\ ===============================  ===============================
 
 spoo before game
 requires game

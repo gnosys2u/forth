@@ -1,7 +1,7 @@
 autoforget _snake
 : _snake ;
 
-// ported from snake program on http://skilldrick.github.io/easyforth/ by Nick Morgan   11/27/2015
+\ ported from snake program on http://skilldrick.github.io/easyforth/ by Nick Morgan   11/27/2015
 
 40 constant width
 40 constant height
@@ -31,21 +31,21 @@ int length
   rand swap mod
 ;
 
-: snakeX       // offset -- address
+: snakeX       \ offset -- address
   ref snakeXHead
 ;
-: snakeY       // offset -- address
+: snakeY       \ offset -- address
   ref snakeYHead
 ;
 
-: convertXY       // x y -- offset
+: convertXY       \ x y -- offset
   width * +
 ;
 
 int penChar
 : setPen -> penChar ;
 
-: draw       // x y --
+: draw       \ x y --
   -> int y   -> int x
   penChar convertXY(x y) -> graphics
   
@@ -104,7 +104,7 @@ int penChar
   endcase
 ;
 
-// Move each segment of the snake forward by one
+\ Move each segment of the snake forward by one
 : moveSnakeTail
   do(0 length)
     i snakeX @ i 1+ snakeX !
@@ -131,13 +131,13 @@ int penChar
 
 false -> int gameOver
 
-: changeDirection       // key -- 
+: changeDirection       \ key -- 
   case
     of(`a`) turnLeft   endof
     of(`w`) turnUp     endof
     of(`d`) turnRight  endof
     of(`s`) turnDown   endof
-    of(0x1b) true -> gameOver endof
+    of($1b) true -> gameOver endof
   endcase
 ;
 
@@ -147,8 +147,8 @@ false -> int gameOver
   endif
 ;
 
-// get random x or y position within playable area
-: randomPosition       // -- pos 
+\ get random x or y position within playable area
+: randomPosition       \ -- pos 
   4- random 2+
 ;
 
@@ -168,14 +168,14 @@ false -> int gameOver
   endif
 ;
 
-: checkCollision       // -- flag 
-  // get current x/y position 
+: checkCollision       \ -- flag 
+  \ get current x/y position 
   snakeXHead(0) snakeYHead(0) 
  
-  // get color at current position 
+  \ get color at current position 
   convertXY graphics
  
-  // leave boolean flag on stack 
+  \ leave boolean flag on stack 
   or( dup wallChar = swap snakeChar =)
 ;
 
@@ -193,7 +193,7 @@ false -> int gameOver
   draw(appleX appleY)
 ;
 
-: gameLoop       // -- 
+: gameLoop       \ -- 
   false -> gameOver
   begin 
     drawSnake 

@@ -4,7 +4,7 @@ requires randoms
 autoforget TREE_EXAMPLES
 : TREE_EXAMPLES ;
 
-false -> bool beNoisy   // set beNoisy to true to display sort array before and after sort
+false -> bool beNoisy   \ set beNoisy to true to display sort array before and after sort
 
 setRandomSeed(ms@)
 : smallRandom
@@ -15,7 +15,7 @@ mko IntArray elemSpacing
 r[ 56   26 55   12 25 25 25  4 10 10 10 10 10 10 10   1 1 4 1 4 1 4 1 4 1 4 1 4 1 4 1 4 ]r
 elemSpacing.load
 
-//========================================= Node =========================================
+\ ========================================= Node =========================================
 
 class: Node
   int val
@@ -24,10 +24,10 @@ class: Node
   Node parent
 
   m: delete
-    // "deleting " %s val . %nl
+    \ "deleting " %s val . %nl
     oclear left
     oclear right
-    // we don't need to do anything with our parent, since if they still referenced us, we wouldn't be deleted
+    \ we don't need to do anything with our parent, since if they still referenced us, we wouldn't be deleted
   ;m
   
   m: compare
@@ -127,9 +127,9 @@ class: Node
   
 ;class
 
-//========================================= Node2 =========================================
+\ ========================================= Node2 =========================================
 
-// Node2 is just a test of sort/compare - reverse order of compare to reverse sort order
+\ Node2 is just a test of sort/compare - reverse order of compare to reverse sort order
 class: Node2 extends Node
   
   m: compare
@@ -139,7 +139,7 @@ class: Node2 extends Node
   
 ;class
 
-//========================================= Tree =========================================
+\ ========================================= Tree =========================================
 
 class: Tree
   Node root
@@ -257,7 +257,7 @@ class: Tree
   
   m: addLeft
     ->o Node n
-    //"addLeft " %s dup . %nl
+    \ "addLeft " %s dup . %nl
     if(n.left objIsNull)
       1 ->+ numNodes
     endif
@@ -267,7 +267,7 @@ class: Tree
   
   m: addRight
     ->o Node n
-    //"addRight " %s dup . %nl
+    \ "addRight " %s dup . %nl
     if(n.right objIsNull)
       1 ->+ numNodes
     endif
@@ -314,7 +314,7 @@ class: Tree
           otherQ.addTail(null)
         endif
       repeat
-      otherQ q ->o otherQ ->o q   // swap q and otherQ
+      otherQ q ->o otherQ ->o q   \ swap q and otherQ
       %nl
     repeat
   ;m
@@ -374,7 +374,7 @@ class: Tree
         branchRoot.setRight(a.get(right))
       endof
       
-      // default case
+      \ default case
       dup 2/ left + -> int middle
       a.get(middle) ->o branchRoot
       branchRoot.setLeft(_fromArray(a left middle 1-))
@@ -443,15 +443,15 @@ class: Tree
     endif
     
     a.sort
-    a.reverse  // reversed sort order is only difference from minHeap
+    a.reverse  \ reversed sort order is only difference from minHeap
     _makeHeap(a)
     a.count -> numNodes
     oclear a
   ;m
 
   m: swapNodes
-    // this is a major pain in the ass because of the parent links
-    // this would make more sense if the Node's data payload was more than just an int
+    \ this is a major pain in the ass because of the parent links
+    \ this would make more sense if the Node's data payload was more than just an int
     ->o Node a
     ->o Node b
     true -> bool aIsRoot
@@ -461,11 +461,11 @@ class: Tree
     a.left b.left ->o a.left ->o b.left
     a.parent b.parent ->o a.parent ->o b.parent
 
-    // fix childrens parent links
+    \ fix childrens parent links
     a._adoptChildren
     b._adoptChildren
     
-    // fix parent of a
+    \ fix parent of a
     a.parent ->o Node aParent
     if(aParent objNotNull)
       false -> aIsRoot
@@ -480,7 +480,7 @@ class: Tree
       endif
     endif
     
-    // fix parent of b
+    \ fix parent of b
     b.parent ->o Node bParent
     if(bParent objNotNull)
       false -> bIsRoot
@@ -510,15 +510,15 @@ class: Tree
     a.val b.val -> a.val -> b.val
   ;m
 
-  // this assumes tree has all levels except bottom completely filled,
-  //  bottom level is filled left-to-right
+  \ this assumes tree has all levels except bottom completely filled,
+  \  bottom level is filled left-to-right
   m: insertInNextHeapSlot
     ->o Node n
     if(root objNotNull)
-      // a relatively simple way of determining the left-right path to the rightmost node on
-      //  the bottom (incomplete) layer of the tree - take the bits below the top set bit of the (numNodes + 1)
-      // here we stick them on the stack starting at the low bit to do the reversing
-      // this is a terrible way of reversing the bits, but it is fine for the trees we are dealing with (depth < 8 or so)
+      \ a relatively simple way of determining the left-right path to the rightmost node on
+      \  the bottom (incomplete) layer of the tree - take the bits below the top set bit of the (numNodes + 1)
+      \ here we stick them on the stack starting at the low bit to do the reversing
+      \ this is a terrible way of reversing the bits, but it is fine for the trees we are dealing with (depth < 8 or so)
       numNodes 1+ -> int branchChoices
       0 -> int numChoices
       root -> Node insertPoint
@@ -602,20 +602,20 @@ class: Tree
       endif
       null ->o n.parent
     else
-      // removed node is root, clear tree
+      \ removed node is root, clear tree
       clear
     endif
   ;m
 
-  // this assumes tree has all levels except bottom completely filled,
-  //  bottom level is filled left-to-right
+  \ this assumes tree has all levels except bottom completely filled,
+  \  bottom level is filled left-to-right
   m: findBottomHeapSlot
     int branchChoices
     if(root objNotNull)
-      // a relatively simple way of determining the left-right path to the rightmost node on
-      //  the bottom (incomplete) layer of the tree - take the bits below the top set bit of the (numNodes + 1)
-      // here we stick them on the stack starting at the low bit to do the reversing
-      // this is a terrible way of reversing the bits, but it is fine for the trees we are dealing with (depth < 8 or so)
+      \ a relatively simple way of determining the left-right path to the rightmost node on
+      \  the bottom (incomplete) layer of the tree - take the bits below the top set bit of the (numNodes + 1)
+      \ here we stick them on the stack starting at the low bit to do the reversing
+      \ this is a terrible way of reversing the bits, but it is fine for the trees we are dealing with (depth < 8 or so)
       numNodes -> branchChoices
       0 -> int numChoices
       root -> Node bottomSlot
@@ -642,18 +642,18 @@ class: Tree
   ;m
   
   m: _extractHeapTopValue
-    // overall idea:
-    //  return value in top slot
-    //  stuff value from right-bottommost slot into top slot
-    //  remove right-bottommost slot
-    //  swap value from top-slot down into its child with the smaller value until value reaches bottom level,
-    //    reestablishing that this is a min heap
+    \ overall idea:
+    \  return value in top slot
+    \  stuff value from right-bottommost slot into top slot
+    \  remove right-bottommost slot
+    \  swap value from top-slot down into its child with the smaller value until value reaches bottom level,
+    \    reestablishing that this is a min heap
     -> op compareOp
     if(root objNotNull)
       root.val
       findBottomHeapSlot ->o Node bottomSlot
       if(bottomSlot objNotNull)
-        // replace value in bottomMost heap element in top slot of heap
+        \ replace value in bottomMost heap element in top slot of heap
         bottomSlot.val dup -> root.val
         -> int movingValue
         remove(bottomSlot)
@@ -664,7 +664,7 @@ class: Tree
           null ->o nextMovingSlot
           if(movingSlot.left objNotNull)
             if(movingSlot.right objNotNull)
-              // node has left & right children
+              \ node has left & right children
               if(compareOp(movingSlot.right.val movingSlot.left.val))
                 if(compareOp(movingValue movingSlot.left.val))
                   movingSlot.left ->o nextMovingSlot
@@ -675,13 +675,13 @@ class: Tree
                 endif
               endif
             else
-              // there is only a left child
+              \ there is only a left child
               if(compareOp(movingValue movingSlot.left.val))
                 movingSlot.left ->o nextMovingSlot
               endif
             endif
           else
-            // there is no left child
+            \ there is no left child
             if(movingSlot.right objNotNull)
               if(compareOp(movingValue movingSlot.right.val))
                 movingSlot.right ->o nextMovingSlot
@@ -711,8 +711,8 @@ class: Tree
     _extractHeapTopValue(['] <)
   ;m  
   
-  // create a binary tree, not sorted, not necessarily balanced
-  m: fillRandom    // rootNode numNodes ...
+  \ create a binary tree, not sorted, not necessarily balanced
+  m: fillRandom    \ rootNode numNodes ...
     1- -> int nodeCount
     setRoot(new Node)
     mko List q
@@ -748,8 +748,8 @@ class: Tree
     count -> numNodes
   ;m
 
-  // create a sorted binary tree, not necessarily balanced
-  m: fillSorted    // numNodes ...
+  \ create a sorted binary tree, not necessarily balanced
+  m: fillSorted    \ numNodes ...
     1- -> int nodeCount
     setRoot(new Node)
     "seed: " %s getRandomSeed . %nl
@@ -771,8 +771,8 @@ mko Tree t
 
 
 
-// create an unsorted binary tree, not necessarily balanced but close
-: fillTree    // rootNode numNodes ...
+\ create an unsorted binary tree, not necessarily balanced but close
+: fillTree    \ rootNode numNodes ...
   1- -> int numNodes
   t.root ->o Node root
   root.clear
@@ -846,7 +846,7 @@ mko Tree t
   loop
 ;
 
-: tt5  // list nodes at depth
+: tt5  \ list nodes at depth
   mko List qA
   mko List qB
   Node n
@@ -854,7 +854,7 @@ mko Tree t
   qA.addTail(t.root)
   begin
   while(not(qA.isEmpty))
-    // print qA nodes
+    \ print qA nodes
     qA.headIter -> ListIter iter
     begin
     while(iter.next)
@@ -864,7 +864,7 @@ mko Tree t
     %nl
     null ->o n
     
-    // add children of qA to qB
+    \ add children of qA to qB
     begin
     while(not(qA.isEmpty))
       qA.unrefHead -> n
@@ -877,7 +877,7 @@ mko Tree t
     repeat
     oclear n
     
-    // swap qA and qB
+    \ swap qA and qB
     qA qB ->o qA ->o qB
     
   repeat

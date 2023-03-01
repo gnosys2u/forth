@@ -1,6 +1,6 @@
-//
-// something to display info from titan quest .que files
-//
+\
+\ something to display info from titan quest .que files
+\
 
 int _infile
 0 -> _infile
@@ -8,7 +8,7 @@ int _infile
 int _inbuff
 here 4096 allot -> _inbuff
 
-// open for read
+\ open for read
 : openr
   "rb" fopen -> _infile
   _infile 0= if
@@ -23,7 +23,7 @@ here 4096 allot -> _inbuff
   endif
 ;
 
-// get stuff from open file
+\ get stuff from open file
 : getc
   _infile fgetc
 ;
@@ -82,7 +82,7 @@ int nameIndexNext   0 -> nameIndexNext
 ;
 
 
-// something to display info from titan quest .que files
+\ something to display info from titan quest .que files
 
 : getq
   _infile ftell %x %bl

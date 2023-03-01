@@ -1,30 +1,30 @@
-//
-// support for appending files to a forth executable
-//
+\
+\ support for appending files to a forth executable
+\
 
-// a temporary archive file named fortharc.bin is created
+\ a temporary archive file named fortharc.bin is created
 
 autoforget make_archive
 
 : make_archive ;
 
-// the format is:
-//
-// PER FILE:
-// ... file1 databytes...
-// length of file1 as int
-// 0xDEADBEEF
-// ... file1name ...
-// length of file1name as int
-//
-// ... fileZ databytes...
-// length of fileZ as int
-// 0xDEADBEEF
-// ... fileZname ...
-// length of fileZname as int
-//
-// number of appended files as int
-// 0x34323137
+\ the format is:
+\
+\ PER FILE:
+\ ... file1 databytes...
+\ length of file1 as int
+\ $DEADBEEF
+\ ... file1name ...
+\ length of file1name as int
+\
+\ ... fileZ databytes...
+\ length of fileZ as int
+\ $DEADBEEF
+\ ... fileZname ...
+\ length of fileZname as int
+\
+\ number of appended files as int
+\ $34323137
 
 : chekit
   -> int fname
@@ -51,20 +51,20 @@ autoforget make_archive
   
   fopen( srcName "rb" ) dup -> srcFile "Opening" srcName chekit
   flen( srcFile ) -> srcLen
-  "Appending " %s srcLen %d " bytes from " %s srcName %s " at 0x" %s ftell( exeFile ) %x %nl
+  "Appending " %s srcLen %d " bytes from " %s srcName %s " at $" %s ftell( exeFile ) %x %nl
   malloc( srcLen ) -> buff
   fread( buff srcLen 1 srcFile ) 1 = "Reading" srcName chekit
   fclose( srcFile ) drop
   fwrite( buff srcLen 1 exeFile ) 1 = "Writing" srcName chekit
   write32( exeFile srcLen "file length" )
-  write32( exeFile 0xDEADBEEF "magic1" )
+  write32( exeFile $DEADBEEF "magic1" )
   strlen( srcName ) -> srcLen
   fwrite( srcName srcLen 1 exeFile ) 1 = "Writing filename of" srcName chekit
   write32( exeFile srcLen "filename length" )
   free( buff )
 ;
 
-// r[ ...SOURCEFILES... ]r EXE_FILENAME makeExe
+\ r[ ...SOURCEFILES... ]r EXE_FILENAME makeExe
 : makeExe
   int fileCount!
 
@@ -82,7 +82,7 @@ autoforget make_archive
     exeFile appendFile
   loop
   fwrite( ref fileCount 4 1 exeFile ) 1 = "Writing filecount to" exeName chekit
-  0x37313234 -> buff
+  $37313234 -> buff
   fwrite( ref buff 4 1 exeFile ) 1 = "Writing magic2 to" exeName chekit
   fclose( exeFile ) drop
 ;
@@ -123,7 +123,7 @@ loaddone
   fileCount 0 do
 #if 0
     -> srcName
-    "Appending " %s srcName %s " at 0x" %s ftell( exeFile ) %x %nl
+    "Appending " %s srcName %s " at $" %s ftell( exeFile ) %x %nl
     fopen( srcName "rb" ) dup -> srcFile "Opening" srcName chekit
     flen( srcFile ) -> srcLen
     malloc( srcLen ) -> buff
@@ -132,7 +132,7 @@ loaddone
     fwrite( buff srcLen 1 exeFile ) 1 = "Writing" srcName chekit
     srcLen buff !
     fwrite( buff 4 1 exeFile ) 1 = "Writing length of" srcName chekit
-    0xDEADBEEF buff !
+    $DEADBEEF buff !
     fwrite( buff 4 1 exeFile ) 1 = "Writing magic after" srcName chekit
     srcName strlen -> srcLen
     fwrite( srcName srcLen 1 exeFile ) 1 = "Writing filename of" srcName chekit
@@ -141,7 +141,7 @@ loaddone
 #endif
   loop
   fwrite( ref fileCount 4 1 exeFile ) 1 = "Writing filecount to" exeName chekit
-  0x37313234 buff !
+  $37313234 buff !
   fwrite( buff 4 1 exeFile ) 1 = "Writing magic2 to" exeName chekit
   fclose( exeFile ) drop
 ;
@@ -165,15 +165,15 @@ loaddone
   
   fopen( srcName "rb" ) dup -> srcFile "Opening" srcName chekit
   flen( srcFile ) -> srcLen
-  "Appending " %s srcLen %d " bytes from " %s srcName %s " at 0x" %s ftell( exeFile ) %x %nl
+  "Appending " %s srcLen %d " bytes from " %s srcName %s " at $" %s ftell( exeFile ) %x %nl
   malloc( srcLen ) -> buff
   fread( buff srcLen 1 srcFile ) 1 = "Reading" srcName chekit
   fclose( srcFile ) drop
   fwrite( buff srcLen 1 exeFile ) 1 = "Writing" srcName chekit
   write32( exeFile srcLen "file length" )
-  write32( exeFile 0xDEADBEEF "magic1" )
+  write32( exeFile $DEADBEEF "magic1" )
   strlen( srcName ) -> srcLen
   fwrite( srcName srcLen 1 exeFile ) 1 = "Writing filename of" srcName chekit
   write32( exeFile srcLen "filename length" )
-  //free( buff )
+  \free( buff )
 ;

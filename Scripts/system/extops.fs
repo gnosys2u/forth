@@ -1,4 +1,4 @@
-// basic ops not included in the kernel
+\ basic ops not included in the kernel
 
 FORTH64 [if]
 
@@ -52,9 +52,9 @@ precedence doescode
   remainder quotient
 ;
 
-// ud1 c-addr1 u1 -- ud2 c-addr2 u2 
+\ ud1 c-addr1 u1 -- ud2 c-addr2 u2 
 : >number
-  //ds
+  \ ds
   int numChars!
   int pSrc!
   long accum!
@@ -65,10 +65,10 @@ precedence doescode
       `0` ch!-
     else
       if( ch `A` >= ch `Z` <= and  ch `a` >= ch `z` <= and  or )
-        ch 0x20 or ch!  // lowercase it
-        `a` 0xa - ch!-
+        ch $20 or ch!  \ lowercase it
+        `a` $a - ch!-
       else
-        // force exit
+        \ force exit
         base @ ch!
       endif
     endif
@@ -76,7 +76,7 @@ precedence doescode
       pSrc++
       numChars--
       accum lbase l* ch i2l l+ accum!
-      //"adding " %s ch %d " total " %s accum %2d  %bl %bl numChars %d " chars left" %s %nl
+      \ "adding " %s ch %d " total " %s accum %2d  %bl %bl numChars %d " chars left" %s %nl
       numChars 0=
     else
       true

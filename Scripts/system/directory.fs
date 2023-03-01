@@ -21,7 +21,7 @@ class: Directory extends Object
     close
   ;m
   
-  // PATH_STRING ... OPEN_SUCCEEDED
+  \ PATH_STRING ... OPEN_SUCCEEDED
   m: open
     new String -> path
     path.set(dup)
@@ -37,8 +37,8 @@ class: Directory extends Object
     open(".")
   ;m
   
-  // ... STRING_PTR IS_DIRECTORY true      if there is an entry
-  // ... false                             if no entries left
+  \ ... STRING_PTR IS_DIRECTORY true      if there is an entry
+  \ ... false                             if no entries left
   m: nextEntry
     if(dirHandle)
       if(readdir(dirHandle entry))
@@ -59,7 +59,7 @@ class: Directory extends Object
     endif
   ;m
   
-  // ... ARRAY_OF_FILENAME_STRINGS
+  \ ... ARRAY_OF_FILENAME_STRINGS
   m: getFilenames returns Array
     ptrTo byte pName
     mko Array of String filenames
@@ -69,10 +69,10 @@ class: Directory extends Object
       
       begin
       while(nextEntry)
-        // TOS: isDirectory pathString
+        \ TOS: isDirectory pathString
         drop
         -> pName
-        //format(pEntry.d_type "%08x ") %s pName %s %nl ds
+        \ format(pEntry.d_type "%08x ") %s pName %s %nl ds
         if(pName c@ `.` <>)
           new String -> String filename
           filename.append(pName)
@@ -119,7 +119,7 @@ OIterable interface:
         METHOD_RET( "findNext",				unimplementedMethodOp, NATIVE_TYPE_TO_CODE(kDTIsMethod, kBaseTypeInt) ),
         METHOD_RET( "clone",                unimplementedMethodOp, OBJECT_TYPE_TO_CODE(kDTIsMethod, kBCIIter) ),
         
-// "DIRECTORY_PATH" ... Array of String
+\ "DIRECTORY_PATH" ... Array of String
 : getFilesInDirectory
   int dirHandle
   ptrTo dirent pEntry

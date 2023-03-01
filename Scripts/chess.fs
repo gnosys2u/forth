@@ -60,7 +60,7 @@ ply      nodes  time score  pv
 
 \ Tom Kerrigan's TSCP chess engine (v1.73) ported from C to ANS Forth
 \  with some modifications, such as:
-\ 1* 0x88 vs. mailbox edge detection
+\ 1* $88 vs. mailbox edge detection
 \  * different piece & color values
 \  * fine-grain factoring
 \  * different command set, UI
@@ -113,10 +113,8 @@ ply      nodes  time score  pv
 
 \ ============= ANS Forth definitions =============
 \ uncomment this section for use with ANS Forth
-//(
 : a@ @ ;
 : ?allot HERE SWAP ALLOT ;
-//)
 \ ============= end ANS Forth definitions =========
 
 \ ============= kForth definitions ================
@@ -129,7 +127,7 @@ ply      nodes  time score  pv
 	CREATE DUP CELLS ?allot OVER 1- CELLS + SWAP
 	0 ?DO DUP >R ! R> 1 CELLS - LOOP DROP ;
 
-//: ptr CREATE 1 CELLS ?allot ! DOES> a@ ;
+\ : ptr CREATE 1 CELLS ?allot ! DOES> a@ ;
 : ptr builds , does a@ ;
 
 
@@ -212,7 +210,7 @@ CREATE board 80 ALLOT
 : edge? ( sq+offset -- nz ) 88 AND ;
 
 : bd! ( piece sq -- ) board + c! ;
-: bd@ ( sq -- piece ) s" board + c@ " evaluate ; precedence bd@ //immediate
+: bd@ ( sq -- piece ) s" board + c@ " evaluate ; precedence bd@ \ immediate
 : ?bd@ ( sq -- piece ) DUP edge? IF DROP EDGE ELSE bd@ THEN ;
 \ : bd@else ( fail sq -- piece / fail )
 \   DUP edge? IF DROP ELSE board + c@ NIP THEN ;
@@ -1348,8 +1346,8 @@ CREATE repsBd numSquares CELLS ALLOT
 : quiesce ( a b -- value )   ( adds -b -a -- when recursing )
   recursive
   nodes @ 1+ DUP nodes !
-  //[ hex 3FF decimal ] literal  AND 0= 
-  0x3FF AND 0=
+  \ [ hex 3FF decimal ] literal  AND 0= 
+  $3FF AND 0=
   IF checkTime IF 2DROP abortScore EXIT THEN THEN
   ply @ DUP resetPVend
   1+ MAX_PLY > histTop a@ 1+ histMax > OR IF 2DROP eval EXIT THEN
@@ -1389,8 +1387,8 @@ CREATE searchFlags MAX_PLY CELLS ALLOT
 : sfCheck! 1 sfPly +! ;
 : sfCheck? sfPly @ 15 AND ;
 : sfMoves!  16 sfPly +! ;
-//: sfMoves?  sfPly @ [ hex FF0 decimal ] literal AND ;
-: sfMoves?  sfPly @ 0xFF0 AND ;
+\ : sfMoves?  sfPly @ [ hex FF0 decimal ] literal AND ;
+: sfMoves?  sfPly @ $FF0 AND ;
 
 VARIABLE msStart
 VARIABLE lastScore
@@ -1436,8 +1434,8 @@ VARIABLE lastScore
 : _search ( a b -- value )     \ recursive
   recursive
   nodes @ 1+ DUP nodes !
-//  [ hex 3FF decimal ] literal AND 0= 
-  0x3FF AND 0= 
+\  [ hex 3FF decimal ] literal AND 0= 
+  $3FF AND 0= 
   IF checkTime IF 2DROP abortScore EXIT THEN THEN
   ply @ DUP resetPVend
   DUP IF reps IF DROP 2DROP drawScore EXIT THEN THEN    \ draw: repeated pos

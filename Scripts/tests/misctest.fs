@@ -1,10 +1,10 @@
 autoforget MISCTEST
 : MISCTEST ;
 
-// these are less rigorous tests than those in forthtest, they are mainly looking for compile failures or runtime exceptions
+\ these are less rigorous tests than those in forthtest, they are mainly looking for compile failures or runtime exceptions
 : section ds " ======================== " dup %s 0 $word %s %s %nl ;
 
-//===========================================================================
+\ ===========================================================================
 section filetest
 
 : filetest
@@ -13,7 +13,7 @@ section filetest
   buffer.resize(2000)
   "testOutput" -> ptrTo byte dirName
   if(not(fexists(dirName)))
-    mkdir(dirName 0x1ff) drop      // 0x1ff is the same as 777 octal (rwx permissions)
+    mkdir(dirName $1ff) drop      \ $1ff is the same as 777 octal (rwx permissions)
   endif
 
   mko String fname
@@ -37,7 +37,7 @@ section filetest
   fname.get %s " has " %s fileSize %d " bytes.\n" %s
   fread( buffer.base 1 200 tfile ) -> int bytesActuallyRead
   "Read " %s bytesActuallyRead %d " bytes.\n" %s
-  buffer.set(0 bytesActuallyRead)  // add a terminating null
+  buffer.set(0 bytesActuallyRead)  \ add a terminating null
   buffer.base %s
   fclose( tfile ) drop
   oclear buffer
@@ -48,7 +48,7 @@ section filetest
 
 filetest
 
-//===========================================================================
+\ ===========================================================================
 section test op variables
 
 : woohoo "woohoo!" %s ;
@@ -61,7 +61,7 @@ section test op variables
 
 t1 t2
 
-//===========================================================================
+\ ===========================================================================
 section test bsearch
 requires forth_internals
 
@@ -71,21 +71,21 @@ variable aa
 8 allot
 
 
-0x87553427 aa !
-0xFAC2AA90 aa 4+ !
+$87553427 aa !
+$FAC2AA90 aa 4+ !
 
 : findit
   bb c!
-  // bsearch( KEY_ADDR ARRAY_ADDR NUM_ELEMENTS ELEMENT_SIZE COMPARE_TYPE COMPARE_OFFSET )
+  \ bsearch( KEY_ADDR ARRAY_ADDR NUM_ELEMENTS ELEMENT_SIZE COMPARE_TYPE COMPARE_OFFSET )
   bsearch(bb aa 8 1 kBTUByte 0 )
   bb c@ %x " is at index " %s %d %nl
 ;
 
-0x55 findit
-0x44 findit
-0x12 findit
+$55 findit
+$44 findit
+$12 findit
 
-//===========================================================================
+\ ===========================================================================
 section test outstream redirection
 
 class: DoubleOutStream extends OutStream
@@ -128,7 +128,7 @@ resetConsoleOut
 %nl
 oclear dsObj
 
-//===========================================================================
+\ ===========================================================================
 section test stats
 
 system.stats
@@ -138,7 +138,7 @@ system.getSearchVocabTop.getName %s %nl
 system.getSearchVocabDepth %d %bl system.getOpsTable %x %nl
 dump(system.getDefinitionsVocab.getNewestEntry 32)
 
-//===========================================================================
+\ ===========================================================================
 section test showStruct
 
 struct: boo
@@ -183,7 +183,7 @@ moo mm
 
 testmoo
 forget boo
-//===========================================================================
+\ ===========================================================================
 section goto and labels
 
 : testGotoLabels
@@ -225,7 +225,7 @@ label exit
 4 testAll  5 testAll 7 testAll 10 testAll 11 testAll 20 testAll 100 testAll 101 testAll %nl
 forget testGotoLabels
 
-//===========================================================================
+\ ===========================================================================
 section more funcs
 
 : moo
@@ -243,7 +243,7 @@ wahoo %nl
 boo wahoo %nl
 forget moo
 
-//===========================================================================
+\ ===========================================================================
 section test custom show method
 
 class: customShowTest
@@ -292,7 +292,7 @@ boo.push(cc)
 boo.show %nl
 
 forget customShowTest
-//===========================================================================
+\ ===========================================================================
 section test file out stream
 
 mko FileOutStream outFile
@@ -300,12 +300,12 @@ mko FileInStream inFile
 
 outFile.open("_testData.txt" "wb") drop
 outFile.putChar(`a`)
-outFile.putChar(0xD)
+outFile.putChar($D)
 outFile.putChar(`b`)
-outFile.putChar(0xD)
-outFile.putChar(0xA)
+outFile.putChar($D)
+outFile.putChar($A)
 outFile.putChar(`c`)
-outFile.putChar(0xD)
+outFile.putChar($D)
 outFile.close
 
 inFile.open("_testData.txt" "r") drop

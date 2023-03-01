@@ -1,5 +1,5 @@
-// a simple maze generator I made to test some ideas for mazes
-//  for an abandoned Subatomic Studios game, CandyRunners.
+\ a simple maze generator I made to test some ideas for mazes
+\  for an abandoned Subatomic Studios game, CandyRunners.
 
 autoforget MAZE
 : MAZE ;
@@ -7,12 +7,12 @@ autoforget MAZE
 
 1 [if]
 ms@ int seed!
-//: random ( -- u ) seed 31241 * 6927 + dup seed! ;
-//: random ( -- u ) seed 0x107465 * 0x234567 + dup seed! ;
-0xff800000 constant ROL9MASK
-: rol9 // u1 -- u2 | rotate u1 left by 9 bits
+\ : random ( -- u ) seed 31241 * 6927 + dup seed! ;
+\ : random ( -- u ) seed $107465 * $234567 + dup seed! ;
+$ff800000 constant ROL9MASK
+: rol9 \ u1 -- u2 | rotate u1 left by 9 bits
     dup ROL9MASK and 23 rshift swap 9 lshift or ;     
-: random // -- u
+: random \ -- u
 seed 107465 * 234567 + rol9 dup seed! ;
 
 [else]
@@ -79,8 +79,8 @@ enum: eMazeTileTypes
 : ?pick 0= if swap endif drop ;
   
 
-// maze sizes do not include the boundary around the maze, so a 10 by 20 maze
-// will have valid x indices from 0 to 11 and y indices from 0 to 21
+\ maze sizes do not include the boundary around the maze, so a 10 by 20 maze
+\ will have valid x indices from 0 to 11 and y indices from 0 to 21
 
 class: mazeArray
   
@@ -113,7 +113,7 @@ class: mazeArray
     maze.ref( rowBytes * + )
   ;m
    
-  // width height startX startY exitX exitY ...
+  \ width height startX startY exitX exitY ...
   m: init
     exitY!
     exitX!
@@ -189,7 +189,7 @@ class: mazeDisplay
     ref c!
   ;
 
-  // mazeArray endX endY reachedExit  ...
+  \ mazeArray endX endY reachedExit  ...
   m: init
     
     int reachedExit!
@@ -212,9 +212,9 @@ class: mazeDisplay
       ref( x y ) ptrTo byte pPos!
       kMTTOpen pPos c!
       char2dir( maze.get( x y ) ) dir!
-      //x %d %bl y %d %bl maze.get( x y ) %c %bl dir %d %nl
+      \ x %d %bl y %d %bl maze.get( x y ) %c %bl dir %d %nl
       kMTTOpen pPos dir2Offset( dir ) + c!
-      //draw %nl
+      \ draw %nl
       x dir dirs.dx@+ x!
       y dir dirs.dy@+ y!
     repeat
@@ -301,12 +301,12 @@ class: mazeGenerator
     if( maze.get( posX posY 1- ) kMTTUnused = )
       1+
     endif
-    //dup %d " possible moves\n" %s
+    \ dup %d " possible moves\n" %s
   ;
 
   : randomNewDirection
     direction 4 choose 1- + 3 and
-    //dup %d %bl dup dirs.ch %c " is new dir\n" %s
+    \ dup %d %bl dup dirs.ch %c " is new dir\n" %s
   ;
   
   m: draw
@@ -317,7 +317,7 @@ class: mazeGenerator
     and( posX exitX = posY exitY = )
   ;
 
-  // posX posY dir ... newX newY
+  \ posX posY dir ... newX newY
   : move
     tuck dirs.dy + >r
     dirs.dx + r>
@@ -373,10 +373,10 @@ class: mazeGenerator
         newDir direction!
         newX posX!
         newY posY!
-        //"Moving " %s newDir dirs.ch %c " to " %s newX %d %bl newY %d %nl
+        \ "Moving " %s newDir dirs.ch %c " to " %s newX %d %bl newY %d %nl
       else
         1 if
-        //"stuck at " %s posX %d %bl posY %d %nl
+        \ "stuck at " %s posX %d %bl posY %d %nl
         numStuck++
         begin
           findPreviousTile newY! newX!
@@ -384,7 +384,7 @@ class: mazeGenerator
           newX posX!
           newY posY!
           numBacksteps++
-          //"back to " %s posX %d %bl posY %d %bl numPossibleMoves %d " moves" %s %nl
+          \ "back to " %s posX %d %bl posY %d %bl numPossibleMoves %d " moves" %s %nl
         until( numPossibleMoves )
         endif
       endif
@@ -414,10 +414,10 @@ m.gen m.drawBig
 
 requires randoms
 
-// recursive backtracking maze generator
-// algorithm from http://weblog.jamisbuck.org/2010/12/27/maze-generation-recursive-backtracking
+\ recursive backtracking maze generator
+\ algorithm from http://weblog.jamisbuck.org/2010/12/27/maze-generation-recursive-backtracking
 
-// may have a bug where it accesses one beyond end of maze storage
+\ may have a bug where it accesses one beyond end of maze storage
 
 class: MazeDirection
   cell wall
@@ -499,7 +499,7 @@ class: MazeGen1
         if(nextPosRef b@ 0=)
           posRef b@ dir.wall or posRef b!
           nextPosRef b@ dir.oppositeWall or nextPosRef b!
-          //"carve @" %s cx %d %bl cy %d %bl dir.name %c %nl 
+          \ "carve @" %s cx %d %bl cy %d %bl dir.name %c %nl 
           carvePassages(nx ny)
         endif
       endif
@@ -521,7 +521,7 @@ class: MazeGen1
         gridRef(i j) posRef!
         if(posRef b@ south.wall and) ` ` else `_` endif %c
         if(posRef b@ east.wall and)
-          // isn't this possibly looking one beyond end of maze?
+          \ isn't this possibly looking one beyond end of maze?
           if(posRef b@ posRef 1+ b@ or south.wall and) ` ` else `_` endif %c
         else
           `|` %c

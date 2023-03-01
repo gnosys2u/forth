@@ -17,18 +17,18 @@ also sdl2_ttf
 480 constant HEIGHT
 
 struct: Scene
-  cell captionTexture          // SDL_Texture*
+  cell captionTexture          \ SDL_Texture*
   SDL_Rect captionRect
-  cell messageTexture          // SDL_Texture*
+  cell messageTexture          \ SDL_Texture*
   SDL_Rect messageRect
 ;struct
 
-: drawScene  // SDL_Renderer *renderer, Scene *scene
+: drawScene  \ SDL_Renderer *renderer, Scene *scene
   ptrTo Scene scene!
-  cell renderer!     // SDL_Renderer*
+  cell renderer!     \ SDL_Renderer*
   
-  // Clear the background to background color
-  SDL_SetRenderDrawColor(renderer 0xFF 0xFF 0xFF 0xFF) drop
+  \ Clear the background to background color
+  SDL_SetRenderDrawColor(renderer $FF $FF $FF $FF) drop
   SDL_RenderClear(renderer) drop
 
   SDL_RenderCopy(renderer scene.captionTexture null scene.captionRect) drop
@@ -46,13 +46,13 @@ struct: Scene
 ;
 
 : test
-  cell window        // SDL_Window *window;
-  cell renderer      // SDL_Renderer *renderer;
-  cell font          // TTF_Font *font;
-  ptrTo SDL_Surface text          // SDL_Surface *text;
+  cell window        \ SDL_Window *window;
+  cell renderer      \ SDL_Renderer *renderer;
+  cell font          \ TTF_Font *font;
+  ptrTo SDL_Surface text          \ SDL_Surface *text;
   Scene scene
   DEFAULT_PTSIZE int ptsize!
-  0xFFFFFF int white!
+  $FFFFFF int white!
   0 int black!
   white int backcol!
   black int forecol!
@@ -64,14 +64,14 @@ struct: Scene
   TTF_HINTING_NORMAL int hinting!
   1 int kerning!
   
-  // Initialize the TTF library
+  \ Initialize the TTF library
   if(TTF_Init() 0<)
     failed("TTF_Init")
     SDL_Quit
     exit
   endif
 
-  // Open the font file with the requested point size
+  \ Open the font file with the requested point size
   TTF_OpenFont(fontName ptsize) font!
   if(font null =)
     failed("TTF_OpenFont")
@@ -83,13 +83,13 @@ struct: Scene
   TTF_SetFontKerning(font kerning)
   TTF_SetFontHinting(font hinting)
 
-  // Create a window
+  \ Create a window
   if(SDL_CreateWindowAndRenderer(WIDTH HEIGHT 0 window& renderer&) 0<)
     failed("SDL_CreateWindowAndRenderer")
     exit
   endif
 
-  // Show which font file we're looking at
+  \ Show which font file we're looking at
   if(rendersolid)
     TTF_RenderText_Solid(font fontName forecol) text!
   else
@@ -105,8 +105,8 @@ struct: Scene
     SDL_FreeSurface(text)
   endif
 
-  // Render and center the message
-  //message = DEFAULT_TEXT
+  \ Render and center the message
+  \ message = DEFAULT_TEXT
 
   if(rendersolid)
     TTF_RenderText_Solid(font DEFAULT_TEXT forecol) text!
@@ -127,7 +127,7 @@ struct: Scene
 
   drawScene(renderer scene)
 
-  // Wait for a keystroke and blit text on mouse press
+  \ Wait for a keystroke and blit text on mouse press
   true int notDone!
   begin
   while(notDone)
@@ -142,9 +142,9 @@ struct: Scene
       of(SDL_MOUSEBUTTONDOWN)
         event.button.x text.w 2/ - scene.messageRect.x!
         event.button.y text.h 2/ - scene.messageRect.y!
-        //event -> ptrTo SDL_MouseButtonEvent mmb
-        //mmb.x text.w 2/ - scene.messageRect.x!
-        //mmb.y text.h 2/ - scene.messageRect.y!
+        \ event -> ptrTo SDL_MouseButtonEvent mmb
+        \ mmb.x text.w 2/ - scene.messageRect.x!
+        \ mmb.y text.h 2/ - scene.messageRect.y!
         text.w scene.messageRect.w!
         text.h scene.messageRect.h!
         drawScene(renderer scene)
@@ -202,7 +202,7 @@ SDL_Rect dstPos
 #endif
 
 		
-: %sx swap %bl %bl %s "=0x" %s %x ;
+: %sx swap %bl %bl %s "=$" %s %x ;
 
 : showKeyEvent
   ptrTo SDL_KeyboardEvent ke!
@@ -234,11 +234,11 @@ SDL_Rect dstPos
   startSDL
 
   false int buttonDown!
-  sc( -1 )		// draw in white
+  sc( -1 )		\ draw in white
   
   do( 800 0 )
     SDL_WaitEvent( ev ) drop
-    //ds
+    \ ds
     case( ev.common.type )
       of( SDL_KEYDOWN )
         "key down " %s showKeyEvent( ev.key )
@@ -248,26 +248,26 @@ SDL_Rect dstPos
         "key up " %s showKeyEvent( ev.key )
       endof
       
-      of( SDL_MOUSEMOTION )			// Mouse moved
+      of( SDL_MOUSEMOTION )			\ Mouse moved
         "mouse motion " %s showMotionEvent( ev.motion )
         if( buttonDown )
           ev.motion.x screenInstance.width 2/ + screenInstance.height 2/ ev.motion.y - dp
         endif
       endof
       
-      of( SDL_MOUSEBUTTONDOWN )		// Mouse button pressed
+      of( SDL_MOUSEBUTTONDOWN )		\ Mouse button pressed
         "mouse down " %s showButtonEvent( ev.button )
         dp( ev.button.x screenInstance.width 2/ + screenInstance.height 2/ ev.button.y - )
 	    true -> buttonDown
       endof
       
-      of( SDL_MOUSEBUTTONUP )		// Mouse button released
+      of( SDL_MOUSEBUTTONUP )		\ Mouse button released
         "mouse up " %s showButtonEvent( ev.motion )
 	    false -> buttonDown
       endof
       
-      // default:
-      "event type 0x" %s dup %x %bl %bl
+      \ default:
+      "event type $" %s dup %x %bl %bl
       dump( ev 16 )
     endcase
   loop

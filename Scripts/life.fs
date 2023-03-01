@@ -1,16 +1,16 @@
-// Conway's Game of Life, or Occam's Razor Dulled
+\ Conway's Game of Life, or Occam's Razor Dulled
 
-// The original ANS Forth version by Leo Wong (see bottom) 
-//   has been modified slightly to allow it to run under 
-//   kForth. Also, delays have been changed from 1000 ms to 
-//   100 ms for faster update --- K. Myneni, 12-26-2001
+\ The original ANS Forth version by Leo Wong (see bottom) 
+\   has been modified slightly to allow it to run under 
+\   kForth. Also, delays have been changed from 1000 ms to 
+\   100 ms for faster update --- K. Myneni, 12-26-2001
 
-// modified this to work in my forth without requiring ansi compatability mode
-//   Pat McElhatton February 28 2017
+\ modified this to work in my forth without requiring ansi compatability mode
+\   Pat McElhatton February 28 2017
 
 requires sdlscreen
 
-// char c-addr -- 
+\ char c-addr -- 
 : c+!  dup >r  c@ +  r> c! ;
 
 1024 constant windowHeight
@@ -18,101 +18,101 @@ requires sdlscreen
 
 windowHeight 2/ 5- constant cellRows
 windowWidth 2/ 5- constant cellColumns
-//200 constant cellRows
-//200 constant cellColumns
+\ 200 constant cellRows
+\ 200 constant cellColumns
 
 cellColumns cellRows *  constant totalCells
 
-// world wrap
+
+\ world wrap
 : World
   builds
     totalCells  allot
   does
-    // u -- c-addr 
+    \ u -- c-addr 
     swap totalCells +  totalCells mod   + 
 ;
 
 World lastGeneration
 World nextGeneration
 
-// biostatistics
+\ biostatistics
 
-// begin hexadecimal numbering
-hex  // hex xy : x holds life , y holds neighbors count
+\ begin hexadecimal numbering
+hex  \ hex xy : x holds life , y holds neighbors count
+\ high nibble is 1 for alive, 0 for dead
+\ low nibble is count of living neighbors
 
-0x10 constant Alive  // 0y = not alive
+$10 constant Alive  \ 0y = not alive
 
-// Conway's rules:
-// a life depends on the number of its next-door neighbors
-// rules take a byte (Alive + numNeighbors) and return a bool
+\ Conway's rules:
+\ a life depends on the number of its next-door neighbors
+\ rules take a byte (Alive + numNeighbors) and return a bool
 
-// it dies if it has fewer than 2 neighbors
-: lonelyRule    0x12 < ;
+\ it dies if it has fewer than 2 neighbors
+: lonelyRule    $12 < ;
 
-// it dies if it has more than 3 neighbors
-: crowdedRule    0x13 > ;
+\ it dies if it has more than 3 neighbors
+: crowdedRule    $13 > ;
 
 : willDieRule  
     dup lonelyRule  swap crowdedRule  or ;
 
-// it is born if it has exactly 3 neighbors
+\ it is born if it has exactly 3 neighbors
 : willGiveBirthRule  
-    0x03 = ;
+    $03 = ;
 
-// back to decimal
+\ back to decimal
 decimal
 
-// compass points
+\ compass points
 : N    cellColumns - ;
 : S    cellColumns + ;
 : E    1+ ;
 : W    1- ;
 
-// census
-: setCellLife  // -1|1 i -- 
+\ census
+: setCellLife  \ -1|1 i -- 
   >r  Alive *  r> nextGeneration c+! ;
 
-: updateNeighborCounts  // -1|0|1 i -- 
+: updateNeighborCounts  \ -1|0|1 i -- 
   over if
     2dup N W nextGeneration c+!  2dup N nextGeneration c+!  2dup N E nextGeneration c+!
     2dup   W nextGeneration c+!                             2dup   E nextGeneration c+!
     2dup S W nextGeneration c+!  2dup S nextGeneration c+!       S E nextGeneration c+!
-//    cellColumns - 1- nextGeneration
-//    2dup c+!         1+ 2dup c+!    1+ 2dup c+!  cellColumns +
-//    2- 2dup c+!                     2+ 2dup c+!  cellColumns +
-//    2- 2dup c+!      1+ 2dup c+!    1+ c+!
+\    cellColumns - 1- nextGeneration
+\    2dup c+!         1+ 2dup c+!    1+ 2dup c+!  cellColumns +
+\    2- 2dup c+!                     2+ 2dup c+!  cellColumns +
+\    2- 2dup c+!      1+ 2dup c+!    1+ c+!
  else
     2drop
   endif
 ;
 
-: updateCell // -1|1 i -- 
+: updateCell \ -1|1 i -- 
    2dup setCellLife  updateNeighborCounts ;
 
-// mortal coils
+\ mortal coils
 `?` constant liveCell
 bl constant emptyCell
 
 cellRows 2/ constant cellRowsOffset
 cellColumns 2/ constant cellColumnsOffset
-//: displayLiveCell  cellColumns /mod setConsoleCursor  liveCell %c ;0
-//: displayEmptyCell  cellColumns /mod setConsoleCursor  emptyCell %c ;
-//: displayLiveCell  cellColumns /mod   sc(0xFFFFFF) dp ;
-//: displayEmptyCell  cellColumns /mod sc(0) dp ;
-int gpx int gpy
-: displayCell
+\ : displayLiveCell  cellColumns /mod setConsoleCursor  liveCell %c ;0
+\ : displayEmptyCell  cellColumns /mod setConsoleCursor  emptyCell %c ;
+\ : displayLiveCell  cellColumns /mod   sc($FFFFFF) dp ;
+\ : displayEmptyCell  cellColumns /mod sc(0) dp ;
+: displayCell   \ cellIndex cellColor --
   sc
   cellColumns /mod
   cellRowsOffset - 2* int py!
   cellColumnsOffset - 2* int px!
-  px gpx!
-  py gpy!
   mt(px py) fsq(2)
-  //px . py .
+  \ px . py .
   dp(px py)
 ;
 : displayLiveCell
-  0xFFFFFF
+  $FFFFFF
   displayCell
 ;
 : displayEmptyCell
@@ -120,16 +120,16 @@ int gpx int gpy
   displayCell
 ;
 
-// changes, changes
-: Is-Born  // i -- 
+\ changes, changes
+: Is-Born  \ i -- 
    dup displayLiveCell
    1 swap updateCell ;
-: Dies  // i -- 
+: Dies  \ i -- 
    dup displayEmptyCell
    -1 swap updateCell ;
 
-// the one and the many
-: cellAddr>cellIndex  // c-addr -- i 
+\ the one and the many
+: cellAddr>cellIndex  \ c-addr -- i 
    0 lastGeneration -  ;
    
 : updateNextGeneration  
@@ -153,26 +153,26 @@ int gpx int gpy
     cellsLeft--
     pNextCell++
   repeat
-  cellColumns 1- cellRows 1- setConsoleCursor
+  \ cellColumns 1- cellRows 1- setConsoleCursor   \ huh? holdover from character console display?
   endFrame
 ;
 
-// in the beginning
+\ in the beginning
 : clearLastGeneration    
    0 lastGeneration  totalCells bl fill ;
 
 : clearDisplay
   sc(0)
   cl
-   //clearConsole
+   \ clearConsole
 ;
 
-: setLiveCell   // x y ...   make cell at x, y live
+: setLiveCell   \ x y ...   make cell at x, y live
   cellRows 2/ + swap cellColumns 2/ + swap
   cellColumns * + Alive swap lastGeneration c!
 ;
 
-: setLiveCells // {xyPairs} numXYPairs xOffset yOffset xFlip yFlip ...
+: setLiveCells \ {xyPairs} numXYPairs xOffset yOffset xFlip yFlip ...
   int yFlip!
   int xFlip!
   int yOffset!
@@ -187,6 +187,7 @@ int gpx int gpy
 : rPentomino
   0 0   1 0   -1 1  0 1  0 2   5
 ;
+
 : setInitialLiveCells  
   setLiveCells(rPentomino 0 0 false false)
   
@@ -202,27 +203,28 @@ int gpx int gpy
   setLiveCells(rPentomino -100 0 true true)
 ;
 
-// subtlety
+\ subtlety
 : Serpent  
-   //0 2 setConsoleCursor
+   \ 0 2 setConsoleCursor
    "Press a key for knowledge."  %s key drop
-   //0 2 setConsoleCursor
+   \ 0 2 setConsoleCursor
    "Press space to re-start, Esc to escape life." %s
 ;
 
-// the primal state
+\ the primal state
 : Innocence  
    totalCells 0
    do  i nextGeneration c@  Alive /  i updateNeighborCounts  loop ;
 
-// children become parents
+\ children become parents
 : copyNextToLast    0 nextGeneration  0 lastGeneration  totalCells  move ;
 
-// a garden
+\ a garden
 : Paradise  
-  // non-blank elements in lastGeneration become living in nextGeneration
+  \ non-blank elements in lastGeneration become living in nextGeneration
   0 lastGeneration
   beginFrame
+  sc(0) cl
   do(totalCells 0)
     dup 1+ swap c@ bl <>
     dup if
@@ -240,7 +242,7 @@ int gpx int gpy
   Paradise
 ;
 
-// the human element
+\ the human element
 
 1 constant Ideas
 : Dreams    Ideas ms ;
@@ -248,17 +250,17 @@ int gpx int gpy
 1 constant Images
 : Meditation    Images ms ;
 
-// free will
-: handleInput  // -- char 
+\ free will
+: handleInput  \ -- char 
    key? dup 
    if  drop key
        dup bl = if  initLife  endif
    endif ;
 
-// environmental dependence
+\ environmental dependence
 27 constant Escape
 
-// history
+\ history
 : runLife  
   begin
     updateNextGeneration

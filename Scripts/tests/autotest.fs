@@ -1,9 +1,9 @@
 autoforget _testfile
 
 int _testfile
-// run the next line when more tests have been added and you need to regenerate the "known good" output file
-// do this only if you are sure that forth isn't broken and more tests have been added
-// "good_test_output.txt" "w" fopen -> _testfile _testfile outToFile load forthtest.txt outToScreen _testfile fclose drop
+\ run the next line when more tests have been added and you need to regenerate the "known good" output file
+\ do this only if you are sure that forth isn't broken and more tests have been added
+\ "good_test_output.txt" "w" fopen -> _testfile _testfile outToFile load forthtest.txt outToScreen _testfile fclose drop
 
 : checktest
   100 string fname!

@@ -1,20 +1,20 @@
-//	ax		free
-//	bx		free
-//	cx		IP
-//	dx		SP
-//	si		free
-//	di		inner interp PC (constant)
-//	bp		core ptr (constant)
-//	sp		unused
+\ 	ax		free
+\ 	bx		free
+\ 	cx		IP
+\ 	dx		SP
+\ 	si		free
+\ 	di		inner interp PC (constant)
+\ 	bp		core ptr (constant)
+\ 	sp		unused
 
 requires asm_pentium
 autoforget _inlineAsm
 also assembler
 
 
-//
-// inline assembly stuff will be put in asm_pentium when done testing
-//
+\
+\ inline assembly stuff will be put in asm_pentium when done testing
+\
 
 code _inlineAsm
   esi eax mov,

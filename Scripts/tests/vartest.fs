@@ -6,16 +6,16 @@ requires testbase
 
 decimal
 
-// empty stack markers - should still be here after all tests done
-0xDEADBEEF 123456789
+\ empty stack markers - should still be here after all tests done
+$DEADBEEF 123456789
 
-//true beNoisy!
+\ true beNoisy!
 0 numFailedTests!
 
 testBuff.set( "aba" )
 test[ checkResult( "aba" ) ]
 
-///////////////////////////////////////////////////////////
+\ =========================================================
 
 -11 byte gvb!   4 ubyte gvub!   short gvs   55 ushort gvus!   12 int gvi!   uint gvui
 55L long gvl!   12L ulong gvul!   7.5f float gvf!   -100.25l double gvd!
@@ -23,12 +23,12 @@ test[ checkResult( "aba" ) ]
 test[ -11 gvb = 4 gvub = 0 gvs = 55 gvus = 12 gvi = 0 gvui = ]
 test[ 55L gvl l= 12l gvul l= 7.5f gvf f= -100.25l gvd d= ]
 
-test[ 0x1ffffffffl gvl! gvl++ gvl 0x200000000l l= ]
-test[ gvl-- gvl 0x1ffffffffl l= ]
-test[ 1l gvl@+   0x200000000l l= ]
-test[ 0x200000000l gvl@- 1l l= ]
-test[ 1l gvl!+ gvl 0x200000000l l= ]
-test[ 0x200000000l gvl!- gvl l0= ]
+test[ $1ffffffffl gvl! gvl++ gvl $200000000l l= ]
+test[ gvl-- gvl $1ffffffffl l= ]
+test[ 1l gvl@+   $200000000l l= ]
+test[ $200000000l gvl@- 1l l= ]
+test[ 1l gvl!+ gvl $200000000l l= ]
+test[ $200000000l gvl!- gvl l0= ]
 
 : longtest1
   long vv
@@ -38,14 +38,14 @@ test[ 0x200000000l gvl!- gvl l0= ]
   vv++ vv %2d %bl
   vv-- vv-- vv %2d %bl
   vv~ vv %2d %bl
-  0x1ffffffffl vv! vv++ vv %2x %bl
+  $1ffffffffl vv! vv++ vv %2x %bl
   5l vv@+ %2x %bl
-  0x3fffffffal vv@- %2x %bl
+  $3fffffffal vv@- %2x %bl
 ;
 test[ longtest1 checkResult( "0 1 -1 0 200000000 200000005 1fffffffa " ) ]
 
 : longtest2
-  0x200000000l long vv!
+  $200000000l long vv!
 
   startTest
   vv@-- %2x %bl vv %2x %bl
@@ -143,7 +143,7 @@ test[ testLocalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 test[ testStringVars checkResult( "woohoo woohooey! {} done" ) ]
 
 
-test[ 0xDEADBEEF 123456789 2= ]	// check for stack underflow or extra items
+test[ $DEADBEEF 123456789 2= ]	\ check for stack underflow or extra items
 
 "vartest" %s showPassFail
 

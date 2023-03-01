@@ -1,4 +1,4 @@
-// basic ops not included in the kernel
+\ basic ops not included in the kernel
 
 FORTH64 [if]
 

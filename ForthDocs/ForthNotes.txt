@@ -5,6 +5,8 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+- I had a case statement with multiple missing 'of' ops, no errors were reported
+
 - add a way to 'push' current arena to memory manager - used when running an app
   o idea is that when app exits, entire arena is deleted
   o each arena would need a memory to allocate from, and set of recycle buckets
@@ -17,8 +19,6 @@ TBDs:
   o things like an event system might screw this up
 
 ? add a '#ifdef _autoTest' section to all script files
-
-- test network.fs and fix if necessary
 
 - test sdl audio
 
@@ -90,6 +90,8 @@ TBDs:
 - also optimize stuff like offset,2@,drop
   -> these drops don't exist anymore, since getting rid of methods/data pair, right?
   
++ test network.fs - it works
+
 + add FORTH_RESOURCES environment variable for paths to things like fonts and bitmaps
 
 + generalize loading from multiple paths to more than just scripts - use for DLLs and resources
@@ -196,11 +198,12 @@ x have "woof -> foo( blah )" compile into "woof blah -> foo"
   
 - "forget" doesn't complain about bogus symbols
 
-- add ops for getting current search & definition vocabularies
++ add ops for getting current search & definition vocabularies
 
 - a method for saving and restoring state
   -> maybe use memory mapped files for the dictionary, and only allow the restore if
      the file can be mapped at the same address
+   ? what about global objects
 
 - testing
   - automated tests using outputToFile & comparison of test result file to known good file
@@ -271,6 +274,26 @@ Double has consistent layout, long is reversed on param stack.
 
 
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+February 28 2023
+
+I decided to do some script programming for a change, partly for fun and partly
+to see how what it was like to actually use the language in its current form.
+It wasn't too bad, but there are still too many crashes.  Usually this was because
+of access violations, the code was doing a lot of direct pointer arithmetic, but
+some were because of object use errors - like I forgot that Map:find returns an
+iterator, not the found object (Map:grab is what I should have used).
+
+The script project I did (life3.fs) is yet another Conway's Game of Life program,
+this one uses a dynamic universe composed of multiple sub grids.
+
+I think my next big thing is becoming more ANSI Forth compatable.
++ get rid of double-slash comments
+? support paren comments without needing to set the feature flag - a stand-along left paren
+  shouldn't be treated as part of a parenthesized expression
+- see where we fail the Forth-2012 test suite
+I remember having a problem switching back to non-ansi after running the ansi
+tests, I don't remember the details.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 February 15 2023
 

@@ -22,7 +22,7 @@ null  -> ptrTo byte sdlTexture
 ' dummyFetchOp -> op getPixel
 ' 2drop -> op setPixel
 
-0x00FFFF00 -> int pixelColor
+$00FFFF00 -> int pixelColor
 
 screenW 2/ -> int screenCenterX 
 screenH 2/ -> int screenCenterY
@@ -55,7 +55,7 @@ SDL_Rect dstPos
   true -> _sdlStarted
   
   SDL_Init( SDL_INIT_VIDEO ) "SDL_Init returns " %s %d %nl
-  //SDL_SetVideoMode( screenW screenH 0 SDL_SWSURFACE ) -> sdlSurface
+  \ SDL_SetVideoMode( screenW screenH 0 SDL_SWSURFACE ) -> sdlSurface
   SDL_CreateWindow( "My Game Window" SDL_WINDOWPOS_UNDEFINED_MASK SDL_WINDOWPOS_UNDEFINED_MASK screenW screenH SDL_WINDOW_SHOWN ) -> sdlWindow
   
   if( sdlWindow 0= )
@@ -65,37 +65,37 @@ SDL_Rect dstPos
     SDL_CreateRenderer(sdlWindow -1 0) -> sdlRenderer
     SDL_CreateTexture(sdlRenderer SDL_PIXELFORMAT_ARGB8888 SDL_TEXTUREACCESS_STREAMING screenW screenH) -> sdlTexture
     bitsPerPixel
-    //"bits per pixel: " %s dup %d %nl
+    \ "bits per pixel: " %s dup %d %nl
     case
       8 of
         lit c@ -> getPixel
         lit c! -> setPixel
-        0x55 -> pixelColor
+        $55 -> pixelColor
       endof
       16 of
         lit w@ -> getPixel
         lit w! -> setPixel
-        0x5555 -> pixelColor
+        $5555 -> pixelColor
       endof
       32 of
         lit @ -> getPixel
         lit ! -> setPixel
-        0x00FFFF00 -> pixelColor
+        $00FFFF00 -> pixelColor
       endof
-      // unhandled pixel size
+      \ unhandled pixel size
       lit dummyFetchOp -> getPixel
       lit 2drop -> setPixel
       "startSDL: Unhandled pixel size " %s dup %d %nl
     endcase
     
-    // set coordinates so center of screen is 0,0
+    \ set coordinates so center of screen is 0,0
     screenW 2/ dup -> screenCenterX dup -> screenRightLimit negate -> screenLeftLimit
     screenH 2/ dup -> screenCenterY dup -> screenBottomLimit negate -> screenTopLimit
     screenCenterY sdlSurface.pitch *
     screenCenterX sdlSurface.format.BytesPerPixel *
     + sdlSurface.pixels + -> _screenCenterPixelAddr
     
-    // setup draw count and full-screen dirty rect for beginDraw/endDraw
+    \ setup draw count and full-screen dirty rect for beginDraw/endDraw
     screenW -> srcPos.w
     screenH -> srcPos.h
     screenW -> dstPos.w
@@ -131,7 +131,7 @@ SDL_Rect dstPos
   -> curY -> curX
 ;
 
-// X Y screenAddress -> address of pixel on screen
+\ X Y screenAddress -> address of pixel on screen
 : screenAddress
   sdlSurface.pitch * negate
   swap
@@ -139,7 +139,7 @@ SDL_Rect dstPos
   + _screenCenterPixelAddr +
 ;
 
-// dX dY screenAddressRelative -> address of pixel on screen
+\ dX dY screenAddressRelative -> address of pixel on screen
 : screenAddressRelative
   curY + sdlSurface.pitch * negate
   swap
@@ -148,8 +148,8 @@ SDL_Rect dstPos
 ;
 
 
-// drawPixel & drawPixelRelative assume that you are handling SDL_LockSurface/SDL_UnlockSurface/SDL_UpdateRects
-// X Y drawPixel  - draw a dot at X,Y with color specified by pixelColor
+\ drawPixel & drawPixelRelative assume that you are handling SDL_LockSurface/SDL_UnlockSurface/SDL_UpdateRects
+\ X Y drawPixel  - draw a dot at X,Y with color specified by pixelColor
 : drawPixel
   screenAddress pixelColor swap setPixel
 ;
@@ -158,12 +158,12 @@ SDL_Rect dstPos
   screenAddressRelative pixelColor swap setPixel
 ;
 
-// X Y getPixel -> fetches pixel value at X,Y
+\ X Y getPixel -> fetches pixel value at X,Y
 : getPixel
   screenAddress getPixel
 ;
 
-// X Y isOnScreen -> true/false
+\ X Y isOnScreen -> true/false
 : isOnScreen
   screenTopLimit screenBottomLimit within
   if

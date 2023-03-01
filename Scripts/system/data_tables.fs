@@ -2,19 +2,19 @@ autoforget data_tables
 
 : data_tables ;
 
-// local variables can't be used inside a builds/does op, so this op does the builds part
-// the top of the stack is the number of ints, followed by the ints themselves
-// the ints on stack are in reverse order of how we want to store them
+\ local variables can't be used inside a builds/does op, so this op does the builds part
+\ the top of the stack is the number of ints, followed by the ints themselves
+\ the ints on stack are in reverse order of how we want to store them
 
 
-// ====================== bytes ======================
+\ ====================== bytes ======================
 
 : buildByteTable
-  here -> int pBase
-  dup  allot -> int tableSize
-  tableSize 1-  pBase + -> int pDst
+  here cell pBase!
+  dup  allot cell tableSize!
+  tableSize 1-  pBase + cell pDst!
   tableSize 0 do
-    pDst c! 1 ->- pDst
+    pDst b! pDst--
   loop
   align
 ;
@@ -23,36 +23,36 @@ autoforget data_tables
   builds
     buildByteTable
   does
-    swap + c@
+    byte[] b@
 ;
 
-// ====================== words ======================
+\ ====================== shorts ======================
 
-: buildWordTable
-  here -> int pBase
-  dup 2* allot -> int tableSize
-  tableSize 1- 2* pBase + -> int pDst
+: buildShortTable
+  here -> cell pBase
+  dup 2* allot -> cell tableSize
+  tableSize 1- 2* pBase + -> cell pDst
   tableSize 0 do
-    pDst w! 2 ->- pDst
+    pDst s! 2 pDst!-
   loop
   align
 ;
 
-: wordTable
+: shortTable
   builds
-    buildWordTable
+    buildShortTable
   does
-    swap 2* + w@
+    short[] s@
 ;
 
-// ====================== ints ======================
+\ ====================== ints ======================
 
 : buildIntTable
-  here -> int pBase
-  dup 4* allot -> int tableSize
-  tableSize 1- 4* pBase + -> int pDst
+  here -> cell pBase
+  dup 4* allot -> cell tableSize
+  tableSize 1- 4* pBase + -> cell pDst
   tableSize 0 do
-    pDst ! 4 ->- pDst
+    pDst i! 4 pDst!-
   loop
 ;
 
@@ -60,26 +60,44 @@ autoforget data_tables
   builds
     buildIntTable
   does
-    swap 4* + @
+    int[] i@
 ;
 
-// ====================== floats ======================
+\ ====================== longs ======================
+
+: buildLongTable
+  here int pBase!
+  dup 8* allot int tableSize!
+  tableSize 1- 8* pBase + int pDst!
+  tableSize 0 do
+    pDst! 8 pDst!-
+  loop
+;
+
+: longTable
+  builds
+    buildLongTable
+  does
+    long[] @
+;
+
+\ ====================== floats ======================
 
 : floatTable
   builds
     buildIntTable
   does
-    swap 4* + @
+    float[] i@
 ;
 
-// ====================== doubles ======================
+\ ====================== doubles ======================
 
 : buildDoubleTable
-  here -> int pBase
-  dup 8* allot -> int tableSize
-  tableSize 1- 8* pBase + -> int pDst
+  here int pBase!
+  dup 8* allot int tableSize!
+  tableSize 1- 8* pBase + int pDst!
   tableSize 0 do
-    pDst 2! 8 ->- pDst
+    pDst 2! 8 pDst!-
   loop
   dstack
 ;
@@ -91,7 +109,7 @@ autoforget data_tables
     swap 8* + 2@
 ;
 
-// ====================== strings ======================
+\ ====================== strings ======================
 
 : buildStringTable
   here -> int pBase
@@ -99,17 +117,17 @@ autoforget data_tables
   4 * allot
   tableSize 1- 4* pBase + -> int pDst
   int pSrc
-  // create the table of string pointers
+  \ create the table of string pointers
   tableSize 0 do
-    // dup %s %nl
+    \ dup %s %nl
     pDst ! 4 ->- pDst
   loop
-  // now copy the string data after the string pointer table
+  \ now copy the string data after the string pointer table
   tableSize 0 do
     here dup -> pDst
     pBase @ -> pSrc
     pBase !
-    // pSrc dup %x %bl %s %nl
+    \ pSrc dup %x %bl %s %nl
     allot( strlen( pSrc ) 1+ )
     strcpy( pDst pSrc )
      4 ->+ pBase
@@ -126,7 +144,7 @@ autoforget data_tables
 
 loaddone
 
-// tests
+\ tests
 
 r[ 1 2 3 5 7 11 13 ]r intTable primes
 

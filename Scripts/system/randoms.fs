@@ -1,34 +1,34 @@
 
 autoforget randoms
 
-// park-miller random number generator
+\ park-miller random number generator
 
 : randoms ;
 
-// some other linear congruential random generators
-//   which use form randomSeed = ((a * randomSeed) + c) % m
-//Borosh-Niederreiter: a = 1812433253, m = 2^32
-//Fishman18: a = 62089911, m = 2^31 - 1
-//Fishman20: a = 48271, m = 2^31 - 1
-//L'Ecuyer: a = 40692, m = 2^31 - 249
-//Waterman: a = 1566083941, m = 2^32. 
+\ some other linear congruential random generators
+\   which use form randomSeed = ((a * randomSeed) + c) % m
+\ Borosh-Niederreiter: a = 1812433253, m = 2^32
+\ Fishman18: a = 62089911, m = 2^31 - 1
+\ Fishman20: a = 48271, m = 2^31 - 1
+\ L'Ecuyer: a = 40692, m = 2^31 - 249
+\ Waterman: a = 1566083941, m = 2^32. 
 
-// these generator ops take a seed on TOS, leave TOS: newSeed generatedRandom
+\ these generator ops take a seed on TOS, leave TOS: newSeed generatedRandom
 
-// randu sucks, but is famous
+\ randu sucks, but is famous
 : _randu 65539 * dup ;
 
-// randVax is okay
+\ randVax is okay
 : _randVax 69069 * 1+ dup ;
 
-// randInmos is probably nearly as bad as randu
+\ randInmos is probably nearly as bad as randu
 : _randInmos 1664525 * dup ;
 
-// this was in a description of how rand in C runtime lib works
+\ this was in a description of how rand in C runtime lib works
 : _randCLib  1103515245 * 12345 + dup 16 rshift 32767 and swap ;
 
 : _randParkMiller
-  // seed 16807 * MAXINT mod     (doesn't work because of integer overflows turning negative)
+  \ seed 16807 * MAXINT mod     (doesn't work because of integer overflows turning negative)
   127773 /mod
   swap 16807 * swap 2836 * -
   dup 0<= if
@@ -37,7 +37,7 @@ autoforget randoms
   dup
 ;
 
-// park-miller is default generator
+\ park-miller is default generator
 ' _randParkMiller -> op _randomGeneratorOp
 
 #if FORTH64
@@ -47,18 +47,18 @@ time or ms@ xor -> int _randomSeed
 #endif
 
 
-// _randomSeed 16807 * MAXINT mod
-// doesn't work because of integer overflows turning negative
+\ _randomSeed 16807 * MAXINT mod
+\ doesn't work because of integer overflows turning negative
 
 : random
   _randomSeed _randomGeneratorOp -> _randomSeed
 ;
   
 : setRandomSeed
-  // randomSeed must be between 1 and 2147483646 (MAXINT - 1)
-  // this is tailored for park-miller, should be okay for other linear-congruential gens
+  \ randomSeed must be between 1 and 2147483646 (MAXINT - 1)
+  \ this is tailored for park-miller, should be okay for other linear-congruential gens
   MAXINT and
-  // seed is now between 0 and 2147483647
+  \ seed is now between 0 and 2147483647
   dup 0= if
     drop 3802896
   else
@@ -105,7 +105,7 @@ class: RandomIntGenerator
   
   m: generate
     if(fetch generatorOp 0=)
-      // first time only
+      \ first time only
       init
     endif
     
@@ -119,7 +119,7 @@ class: RandomIntGenerator
     begin
       mod(generate ii) -> cell jj
       1 ->- ii
-      //"swap " %s ii %d " with " %s jj %d %nl
+      \ "swap " %s ii %d " with " %s jj %d %nl
       a.swap(ii jj)
     until(ii 1 =)
     oclear a
@@ -129,13 +129,13 @@ class: RandomIntGenerator
 
 
 class: XorWowIntRandom extends RandomIntGenerator
-  // by Marsaglia
+  \ by Marsaglia
   uint seedB  uint seedC  uint seedD
   uint counter
   
   m: setSeed
     dup -> seed
-    dup 0x12345678 xor -> seedB
+    dup $12345678 xor -> seedB
     dup dup * -> seedC
     42 * 17 / -> seedD
     0 -> counter
@@ -147,7 +147,7 @@ class: XorWowIntRandom extends RandomIntGenerator
   
   m: generate
     if(fetch generatorOp 0=)
-      // first time only
+      \ first time only
       init
     endif
     
@@ -156,7 +156,7 @@ class: XorWowIntRandom extends RandomIntGenerator
   : _randXorWow
     seedD -> uint temp
     
-  // seed 16807 * MAXINT mod     (doesn't work because of integer overflows turning negative)
+  \ seed 16807 * MAXINT mod     (doesn't work because of integer overflows turning negative)
     127773 /mod
     swap 16807 * swap 2836 * -
   dup 0<= if
@@ -199,7 +199,7 @@ uint32_t xorwow(struct xorwow_state *state)
 class: MarsagliaRandomIntGenerator extends RandomIntGenerator
 
   m: init
-    0x7A3B5CFE -> seed
+    $7A3B5CFE -> seed
   ;m
 ;class
 
@@ -247,7 +247,7 @@ uint64_t xorshift64(struct xorshift64_state *state)
 	return state->a = x;
 }
 
-// https://en.wikipedia.org/wiki/Xorshift#xoshiro_and_xoroshiro
+\ https://en.wikipedia.org/wiki/Xorshift#xoshiro_and_xoroshiro
 
 struct xorshift128p_state {
   uint64_t a, b;
@@ -259,16 +259,16 @@ uint64_t xorshift128p(struct xorshift128p_state *state)
 	uint64_t t = state->a;
 	uint64_t const s = state->b;
 	state->a = s;
-	t ^= t << 23;		// a
-	t ^= t >> 17;		// b
-	t ^= s ^ (s >> 26);	// c
+	t ^= t << 23;		\ a
+	t ^= t >> 17;		\ b
+	t ^= s ^ (s >> 26);	\ c
 	state->b = t;
 	return t + s;
 }
 
 loaddone
 
-// the park & miller article specifies the 10000th value must be 1043618065
+\ the park & miller article specifies the 10000th value must be 1043618065
 : test
   1 setRandomSeed
   9999 0 do
@@ -283,7 +283,7 @@ loaddone
 : randomRaw
   seed 1103515245 *
   12345 +
-  0x7fffffff and
+  $7fffffff and
   dup -> seed
 ;
 
@@ -294,18 +294,18 @@ loaddone
 
 loaddone
 
-// http://c-faq.com/lib/rand.html portable parks-miller
+\ http://c-faq.com/lib/rand.html portable parks-miller
 #define a 16807
 #define m 2147483647
 #define q (m / a)
 #define r (m % a)
-// q is 127773
-// r is 2836
+\ q is 127773
+\ r is 2836
 static long int seed = 1;
 
 long int PMrand()
 {
-    // this hoohah does ((a*seed) mod m) without overflowing in the multiply
+    \ this hoohah does ((a*seed) mod m) without overflowing in the multiply
 	long int hi = seed / q;
 	long int lo = seed % q;
 	long int test = a * lo - r * hi;

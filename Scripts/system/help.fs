@@ -1,9 +1,9 @@
-// this file is loaded the first time "help" is executed - if this file hasn't been loaded, help just leaves the address of the
-// desired symbol on TOS and loads this file - the last line in this file should be a $help op which will display the desired
-// help after these definitions have been loaded
+\ this file is loaded the first time "help" is executed - if this file hasn't been loaded, help just leaves the address of the
+\ desired symbol on TOS and loads this file - the last line in this file should be a $help op which will display the desired
+\ help after these definitions have been loaded
 
 "Loading help definitions\n" %s
-// help definitions for builtin ops
+\ help definitions for builtin ops
 addHelp abort			abort		terminate execution with fatal error
 addHelp drop			VAL drop	drop top element of param stack
 addHelp _doDoes			INTERNAL	compiled at start of "does" section of words created by a builds...does word
@@ -471,8 +471,7 @@ addHelp getConOutFile		... FILE	returns redirected output file
 
 addHelp blword					... STRING_ADDR						fetch next whitespace-delimited token from input stream, return its address
 addHelp $word					CHARVAL ... STRING_ADDR				fetch next token delimited by CHARVAL from input stream, return its address
-addHelp /*						/* COMMENT TEXT */					inline comment, ends at '*/' or end of line
-addHelp (						(  COMMENT TEXT )					inline comment, ends at ')' or end of line, only works if kFFParenIsComment feature is enabled
+addHelp (						(  COMMENT TEXT )					inline comment, ends at ')' or end of line
 addHelp features			                                        variable that allows you to enable and disable language features
 addHelp .features                                                   displays what features are currently enabled
 addHelp source					... INPUT_BUFFER_ADDR LENGHT		return address of base of input buffer and its length
@@ -549,6 +548,6 @@ addHelp dumpProfile         ...         dump opcode execution counts.  start pro
 addHelp resetProfile        ...         reset opcode execution counts.
 
 
-// THIS NEXT LINE MUST BE THE LAST IN THIS FILE!
+\ THIS NEXT LINE MUST BE THE LAST IN THIS FILE!
 
 $help

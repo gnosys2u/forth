@@ -4,7 +4,7 @@ autoforget TEST
 
 decimal
 
-//FileOutStream testFileOut
+\ FileOutStream testFileOut
 
 scSetShowID(false)
 
@@ -30,7 +30,7 @@ cd ..
   endif
   oclear testName
   oclear testScriptName
-  //showMemory
+  \ showMemory
 ;
 
 runtest helpdeck   help classes   forget HELPDECK
@@ -60,7 +60,7 @@ runtest structtest   forget STRUCTTEST
 runtest misctest   forget MISCTEST
 runtest forthtest
 runtest vartest
-//runtest ansitest
+\ runtest ansitest
 
 dumpTestSummary
 cleanupTestBase

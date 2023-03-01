@@ -61,7 +61,7 @@ variable seed
 : randomize	time&date + + + + + seed ! ;
 
 1 cells 4 = [IF]
-0x10450405 Constant generator
+$10450405 Constant generator
 
 : rnd  ( -- n )  seed @ generator um* drop 1+ dup seed ! ;
 

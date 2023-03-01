@@ -1,8 +1,8 @@
 
 : advHints ;
 
-//========== Hints. =======================================================
-// This section corresponds to sections 80 and 193--196 in Knuth.
+\ ========== Hints. =======================================================
+\ This section corresponds to sections 80 and 193--196 in Knuth.
 
 : addHint
   new Hint Hint newHint!
@@ -17,7 +17,7 @@
 ;
 
 : build_hints
-  // hints - threshold cost prompt hint
+  \ hints - threshold cost prompt hint
   0  5  "Welcome to Adventure!!  Would you like instructions? "
   "Somewhere nearby is Colossal Cave  where others have found fortunes in\n\+
 treasure and gold  though it is rumored that some who enter are never\n\+

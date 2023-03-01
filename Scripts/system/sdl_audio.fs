@@ -7,14 +7,14 @@ autoforget sdl_audio
 also sdl
 
 subroutine _sdlAudioCallback
-	// void (SDLCALL *callback)(void *userdata, Uint8 *stream, int len);
+	\ void (SDLCALL *callback)(void *userdata, Uint8 *stream, int len);
 	eax push,
 	ebx push,
 	ecx push,
-	// 0x0c ret 0x10=userdata 0x14=stream 0x18=len
-	0x14 esp d] eax mov,	// eax = stream
-	0x10 esp d] ebx mov,	// ebx = userdata
-	0x18 esp d] ecx mov,	// ecx = len
+	\ $0c ret $10=userdata $14=stream $18=len
+	$14 esp d] eax mov,	\ eax = stream
+	$10 esp d] ebx mov,	\ ebx = userdata
+	$18 esp d] ecx mov,	\ ecx = len
 
 	here 
 	  bl eax ] mov,
@@ -37,7 +37,7 @@ SDL_AudioSpec actualSpec
   44100 -> desiredSpec.freq
   AUDIO_U8 -> desiredSpec.format
   1 -> desiredSpec.channels
-  0 -> desiredSpec.silence // not needed?
+  0 -> desiredSpec.silence \ not needed?
   _sdlAudioCallback -> desiredSpec.callback
   null -> desiredSpec.userdata
   
@@ -55,9 +55,9 @@ SDL_AudioSpec actualSpec
 ;
 
 loaddone
-	0x14 [esp] eax mov,	// eax = stream
-	0x10 [esp] ebx mov,	// ebx = userdata
-	0x18 [esp] ecx mov,	// ecx = len
+	$14 [esp] eax mov,	\ eax = stream
+	$10 [esp] ebx mov,	\ ebx = userdata
+	$18 [esp] ecx mov,	\ ecx = len
 
 
 	mov	eax, [edx]	; pop file pointer
@@ -73,18 +73,18 @@ loaddone
 	call	eax
 	add		sp, 16
 
-	int			freq				// DSP frequency -- samples per second
-	short			format			// Audio data format
-	byte			channels 		// Number of channels: 1 mono, 2 stereo
-	byte			silence			// Audio buffer silence value (calculated)
-	short			samples			// Audio buffer size in samples (power of 2)
-	short			padding			// Necessary for some compile environments
-	int			size				// Audio buffer size in bytes (calculated)
-	// This function is called when the audio device needs more data.
-	//   'stream' is a pointer to the audio data buffer
-	//   'len' is the length of that buffer in bytes.
-	//   Once the callback returns, the buffer will no longer be valid.
-	//   Stereo samples are stored in a LRLRLR ordering.
-	// void (SDLCALL *callback)(void *userdata, Uint8 *stream, int len);
+	int			freq				\ DSP frequency -- samples per second
+	short			format			\ Audio data format
+	byte			channels 		\ Number of channels: 1 mono, 2 stereo
+	byte			silence			\ Audio buffer silence value (calculated)
+	short			samples			\ Audio buffer size in samples (power of 2)
+	short			padding			\ Necessary for some compile environments
+	int			size				\ Audio buffer size in bytes (calculated)
+	\ This function is called when the audio device needs more data.
+	\   'stream' is a pointer to the audio data buffer
+	\   'len' is the length of that buffer in bytes.
+	\   Once the callback returns, the buffer will no longer be valid.
+	\   Stereo samples are stored in a LRLRLR ordering.
+	\ void (SDLCALL *callback)(void *userdata, Uint8 *stream, int len);
 	ptrTo int	callback
 	ptrTo int	userdata
