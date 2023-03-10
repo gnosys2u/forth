@@ -122,7 +122,7 @@ int cellColumnsOffset
 \ grids are identified by gridId, which is a 32-bit int
 \   whose low 16 bits are x, high 16 bits are y
 
-0x10 constant Alive
+$10 constant Alive
 
 enum: neighborDirs
   nDir neDir eDir seDir sDir swDir wDir nwDir
@@ -666,7 +666,7 @@ class: LifeGrid
     while(pCell pLastCell <=)
       pCell b@ cellVal!
       if(cellVal Alive and)
-        if(cellVal 0x13 > cellVal 0x12 < or)
+        if(cellVal $13 > cellVal $12 < or)
           \ doesn't have 2 or 3 neighbors, overcrowded or lonely, will die
           t[ "killing cell @" %s pCell mem2xy swap %d `,` %c %d " count:" %s cellVal %d %nl ]t
           drawEmpty(pCell)
@@ -747,8 +747,8 @@ class: LifeWorld extends ILifeGame
   : xy2grid      \ x y ... offsetInGrid gridId
     cell y!   cell x!
     cell gridId   cell offset
-    y dim /moddy 0x10 lshift gridId! dim * offset!
-    x dim /moddy 0xFFFF and gridId!+
+    y dim /moddy $10 lshift gridId! dim * offset!
+    x dim /moddy $FFFF and gridId!+
     offset@+ gridId
   ;
   
@@ -807,14 +807,14 @@ class: LifeWorld extends ILifeGame
 
     ?dup if
       0> if
-        0x10000 gridId!+
+        $10000 gridId!+
       else
-        0x10000 gridId!-
+        $10000 gridId!-
       endif
     endif
 
     ?dup if
-      gridId + 0xFFFF and gridId 0xFFFF0000 and or gridId!
+      gridId + $FFFF and gridId $FFFF0000 and or gridId!
     endif
 
     findOrAddGrid(gridId)
@@ -847,7 +847,7 @@ class: LifeWorld extends ILifeGame
     beginFrame
     sc(0) cl
 
-    drawGrid(dim 0xff00ff)
+    drawGrid(dim $ff00ff)
 
     begin
     while(iter.next)
