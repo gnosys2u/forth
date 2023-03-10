@@ -134,7 +134,7 @@ OuterInterpreter::OuterInterpreter(Engine* pEngine)
     , mpVocabStack(nullptr)
     , mpOpcodeCompiler(nullptr)
     , mFeatures(kFFCCharacterLiterals | kFFMultiCharacterLiterals | kFFCStringLiterals
-        | kFFCHexLiterals | kFFDoubleSlashComment | kFFCFloatLiterals | kFFParenIsExpression
+        | kFFCFloatLiterals | kFFParenIsExpression
         | kFFAllowVaropSuffix | kFFDollarHexLiterals | kFFParenIsComment)
     , mContinuationIx(0)
     , mContinueDestination(nullptr)
@@ -2079,7 +2079,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
     //    try to covert to a floating point number
     // else
     //    try to convert to an integer
-    if ( ((pInfo->GetFlags() & PARSE_FLAG_HAS_PERIOD) || !CheckFeature(kFFCFloatLiterals))
+    if ( ((pInfo->GetFlags() & PARSE_FLAG_HAS_PERIOD) && CheckFeature(kFFCFloatLiterals))
           && ScanFloatToken( pToken, fvalue, dvalue, isSingle, isApproximate ) )
     {
        if ( isSingle )
@@ -2147,7 +2147,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
               *(double *) mpCore->SP = dvalue;
           }
        }
-        
+       return OpResult::kOk;
     }
     else if ( ScanIntegerToken( pToken, lvalue, mpCore->base, isOffset, isSingle ) )
     {
@@ -2159,6 +2159,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
         ////////////////////////////////////
         SPEW_OUTER_INTERPRETER( "Integer literal %lld\n", lvalue );
         ProcessConstant(lvalue, isOffset, isSingle);
+        return OpResult::kOk;
     }
     else if ( CheckFlag( kEngineFlagInEnumDefinition ) )
     {
@@ -2181,10 +2182,11 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
         {
             // number is out of range of kOpConstant, need to define a user op
             StartOpDefinition( pToken );
-            CompileBuiltinOpcode( OP_DO_CONSTANT );
+            CompileBuiltinOpcode( OP_DO_ICONSTANT );
             CompileCell( mNextEnum );
         }
         mNextEnum++;
+        return OpResult::kOk;
     }
     else if (CheckFeature(kFFAllowVaropSuffix))
     {
@@ -2264,10 +2266,10 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
             pInfo->UnchopVaropSuffix();
         }
 
-        SPEW_ENGINE( "Unknown symbol %s\n", pToken );
-		mpCore->error = ForthError::kUnknownSymbol;
-		exitStatus = OpResult::kError;
     }
+    SPEW_ENGINE("Unknown symbol %s\n", pToken);
+    mpCore->error = ForthError::kUnknownSymbol;
+    exitStatus = OpResult::kError;
 
     // TODO: return exit-shell flag
     return exitStatus;
