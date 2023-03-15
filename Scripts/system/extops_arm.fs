@@ -219,20 +219,20 @@ code 2roll
   next,
   
 code lnegate
-  rsp ia { r0 r1 } ldm,
+  rsp ] r0 ldrd,  \ r1 is hiword   r0 is lowword
   r2 r2 r2 eor,
-  r2 r1 r1 subs,
-  r2 r0 r0 sbc,
-  rsp ia { r0 r1 } stm,
+  r2 r0 r0 subs,
+  r2 r1 r1 sbc,
+  rsp ] r0 strd,
   next,
   
 code labs
-  rsp ] r0 ldrd,  \ r0 is hiword   r1 is lowword
-  r0 r0 r0 orrs,
+  rsp ] r0 ldrd,  \ r1 is hiword   r0 is lowword
+  r1 r1 r1 orrs,
   lr ge bx,				\ bail if not negative
   r2 r2 r2 eor,
-  r2 r1 r1 subs,
-  r2 r0 r0 sbc,
+  r2 r0 r0 subs,
+  r2 r1 r1 sbc,
   rsp ] r0 strd,
   next,
 
@@ -289,6 +289,34 @@ code compareMemory
   eq until,
   { r3 } ppush,
   { r4 } pop,
+  next,
+  
+code dnegate
+  rsp ] r0 ldrd,  \ r0 is hiword   r1 is lowword
+  r2 r2 r2 eor,
+  r2 r1 r1 subs,
+  r2 r0 r0 sbc,
+  rsp ] r0 strd,
+  next,
+  
+code d+
+  \ rsp ia { r0 r1 r2 r3 } ldm,
+  \ rsp 8 # rsp add,
+  { r0 r1 r2 r3 } ppop,
+  r1 r3 r1 adds,
+  r0 r2 r0 adc,
+  \ rsp db { r0 r1 } stm,
+  { r0 r1 } ppush,
+  next,
+  
+code d-
+  \ rsp ia { r0 r1 r2 r3 } ldm,
+  \ rsp 8 # rsp add,
+  { r0 r1 r2 r3 } ppop,
+  r1 r3 r1 subs,
+  r0 r2 r0 sbc,
+  \ rsp db { r0 r1 } stm,
+  { r0 r1 } ppush,
   next,
   
 loaddone

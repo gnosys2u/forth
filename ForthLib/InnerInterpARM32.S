@@ -202,8 +202,8 @@ filePutString	=		48
 	.global	minusBop, noopBop, devolveBop
 	.global	timesBop, times2Bop, times4Bop, times8Bop, divideBop, divide2Bop, divide4Bop, divide8Bop, divmodBop, modBop, negateBop
 	.global fplusBop, fminusBop, ftimesBop, fdivideBop,	dplusBop, dminusBop, dtimesBop, ddivideBop
-	.global orBop, andBop, xorBop, invertBop, lshiftBop, arshiftBop, rotateBop, notBop, trueBop, falseBop
-	.global nullBop, dnullBop, lshift64Bop, rshift64Bop, rotate64Bop, reverseBop, countLeadingZerosBop, countTrailingZerosBop
+	.global orBop, andBop, xorBop, invertBop, ilshiftBop, arshiftBop, irotateBop, notBop, trueBop, falseBop
+	.global nullBop, dnullBop, llshiftBop, lrshiftBop, lrotateBop, ireverseBop, countLeadingZerosBop, countTrailingZerosBop
 	.global equalsBop, notEqualsBop, greaterThanBop, greaterEqualsBop, lessThanBop, lessEqualsBop
 	.global equals0Bop, notEquals0Bop, greaterThan0Bop, greaterEquals0Bop, lessThan0Bop, lessEquals0Bop
 	.global rpushBop, rpopBop, rdropBop, rpBop, r0Bop, dupBop, checkDupBop, swapBop, overBop
@@ -224,7 +224,7 @@ filePutString	=		48
 	.global byteVarActionBop, ubyteVarActionBop, shortVarActionBop, ushortVarActionBop, intVarActionBop, floatVarActionBop
 	.global fopenBop, fcloseBop, fseekBop, freadBop, fwriteBop, fgetcBop, fputcBop, feofBop, fexistsBop, ftellBop, flenBop, fgetsBop, fputsBop
 	.global withinBop, fMinBop, fMaxBop, fWithinBop, dMinBop, dMaxBop, dWithinBop, unsignedGreaterThanBop, unsignedLessThanBop
-	.global umtimesBop, rshiftBop, reverseRotBop, doCheckDoBop, archARMBop, archX86Bop
+	.global umtimesBop, irshiftBop, reverseRotBop, doCheckDoBop, archARMBop, archX86Bop
 	.global lEqualsBop, lNotEqualsBop, lGreaterThanBop, lGreaterEqualsBop, lLessThanBop, lLessEqualsBop
 	.global lEquals0Bop, lNotEquals0Bop, lGreaterThan0Bop, lGreaterEquals0Bop, lLessThan0Bop, lLessEquals0Bop
 	@ these are just dummies:
@@ -1926,12 +1926,12 @@ localLongClear:
 
 @ add long @ r0 to TOS
 localLongPlus:
-	ldm	rsp, {r2,r3}			@ load TOS long value into r2,r3
+	ldrd	r2, [rsp]			@ load TOS long value into r2,r3
 	push	{r4,r5}
     ldrd    r4, [r0]				@ r4 is lo, r5 is hi
 	adds r2, r2, r4
 	adc	r3, r3, r5
-	strd	r2, [r0]
+	strd	r2, [rsp]
 	pop	{r4,r5}
 	bx	lr
 	
@@ -1945,12 +1945,12 @@ localLongInc:
 	
 @ subtract long @ r0 from TOS
 localLongMinus:
-	ldm	rsp, {r2,r3}			@ load TOS long value into r2,r3
+	ldrd	r2, [rsp]			@ load TOS long value into r2,r3
 	push	{r4,r5}
     ldrd    r4, [r0]				@ r4 is lo, r5 is hi
-	subs r3, r3, r5
-	sbc	r2, r2, r4
-    strd    r2, [r0]
+	subs	r2, r2, r4
+	sbc r3, r3, r5
+	strd	r2, [rsp]
 	pop	{r4,r5}
 	bx	lr
 	
@@ -4288,11 +4288,11 @@ ltimes1:
 	subs	r2, rfp, r2
 	sbc	r3, rfp, r3
 ltimes2:
-	umull	rrp, rfp, r1, r3		@ rrp = resultLo, rfp = resultHi (of alo * blo)
-	umull	r0, r3, r1, r2			@ r0 = low 32 bits of (bhi * alo)
-	add	rfp, r0
-	umull	r0, r3, r3, r0			@ r0 = low 32 bits of (ahi * blo)
-	add	rfp, r0
+	umull	rrp, rfp, r0, r2		@ rrp = resultLo, rfp = resultHi (of alo * blo)
+	umull	r1, r2, r1, r2			@ r1 = low 32 bits of (bhi * alo)
+	add	rfp, r1
+	umull	r1, r3, r3, r0			@ r1 = low 32 bits of (ahi * blo)
+	add	rfp, r1
 	@ rrp = resultLo, rfp = resultHi
 	tst	rip, #1
 	beq	ltimes3
@@ -4735,12 +4735,12 @@ rot64_2:
 	and	r2, r3, r4
 	and	r1, r0, r5
 	orr	r2, r1
-	str	r2, [rsp]
+	str	r2, [rsp, #4]
 	@ make lopart
 	and	r2, r3, r5
 	and	r1, r0, r4
 	orr	r2, r1
-	str	r2, [rsp, #4]
+	str	r2, [rsp]
 	pop	{r4, r5}
 	bx	lr
 

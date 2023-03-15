@@ -251,7 +251,9 @@ FORTHOP( umDivModOp )
 {
     stackInt64 a;
     uint32_t denom = SPOP;
-    LPOP(a);
+    //LPOP(a);
+    a.s32[1] = SPOP;
+    a.s32[0] = SPOP;
 	uint32_t quotient = a.u64 / denom;
 	uint32_t remainder = a.u64 % denom;
 	SPUSH(remainder);
@@ -262,7 +264,9 @@ FORTHOP( smRemOp )
 {
     stackInt64 a;
     int denom = SPOP;
-    LPOP(a);
+    //LPOP(a);
+    a.s32[1] = SPOP;
+    a.s32[0] = SPOP;
 	int quotient = a.s64 / denom;
 	int remainder = a.s64 % denom;
 	SPUSH(remainder);

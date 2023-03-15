@@ -189,7 +189,7 @@ int had-cc
    ?offset  dup %P and 0=
    abort" Only post-indexed addressing, ]#, ]+ or ]- , allowed here" ;
 : ?0#]  \ 0 'offset' --
-   ?offset    0 #] drop d<>
+   ?offset    0 #] drop l<>
    abort" Only addresses without offset, e.g r0 ] allowed here" ;
 : #offset12,  \ n --
    ?upwards  dup 000 1000 within 0= abort" Offset out of range"  encode ;
