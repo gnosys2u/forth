@@ -250,7 +250,9 @@ alias c! b!
 alias c, b,
 
 : count dup 1+ swap c@ ;
+
 : 2, , , ;
+: 2constant create 2, does 2@ ;
 
 #if(FORTH64)
 alias land and
