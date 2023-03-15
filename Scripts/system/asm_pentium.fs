@@ -359,7 +359,7 @@ $AB bc.b: stos,  $AD bc.b: lods,  $AF bc.b: scas,
 : assign#  byte? 0= if  osize@ -> imm#  else 1 -> imm# endif ;
 
 : ?ofax \ reg eax -- flag
-  .anow if 55 else 66 endif eax d= ;
+  .anow if 55 else 66 endif eax l= ;
 
 \ r/m reg / reg r/m / reg --
 : mov,

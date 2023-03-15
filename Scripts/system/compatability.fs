@@ -8,10 +8,10 @@ autoforget compatability
 
 : countedStringToString
   \ src dst
-  -> ptrTo byte dst
+  ptrTo byte dst!
   count
-  -> int numBytes
-  -> ptrTo byte src
+  int numBytes!
+  ptrTo byte src!
   move( src dst numBytes )
   0 dst numBytes + c!
 ;
@@ -19,15 +19,15 @@ autoforget compatability
 : stringToCountedString
   \ src dst
   over strlen over c!
-  \ src len 
+  \ src dst 
   1+ swap strcpy
 ;
 
 : blockToString
   \ src count dst
-  -> ptrTo byte dst
-  -> int numBytes
-  -> ptrTo byte src
+  ptrTo byte dst!
+  int numBytes!
+  ptrTo byte src!
   move( src dst numBytes )
   0 dst numBytes + c!
 ;
@@ -56,7 +56,7 @@ autoforget compatability
   \ countedStr ptrToSymbolEntry
   if( dup )
     nip			\ discard original counted string ptr
-    @			\ fetch opcode from first word of symbol entry value field
+    i@			\ fetch opcode from first word of symbol entry value field
     if( opType:isImmediate( opType:getOptype( dup ) ) )
       1   \ immediate op
     else
@@ -70,7 +70,7 @@ autoforget compatability
 ;
 precedence .(
 
-: [char]  opType:makeOpcode( opType:litInt blword c@ ) , ; precedence [char]
+: [char]  opType:makeOpcode( opType:litInt blword c@ ) i, ; precedence [char]
 
 : _abortQuote
   swap
@@ -80,20 +80,21 @@ precedence .(
     drop
   endif
 ;
+
 : abort" 
   `"` $word state @
   if
     compileStringLiteral
-    lit _abortQuote ,
+    ['] _abortQuote i,
   else
     _abortQuote
   endif
 ; precedence abort"
 
-: value -> postpone int ;
+: value -> postpone cell ;
 alias to ->
 
-int __sp
+cell __sp
 : !csp sp -> __sp ;
 : ?csp
   sp __sp <> if
@@ -121,10 +122,10 @@ true constant locals-ext
   257 string varExpression
   ptrTo byte varName
   begin
-    blword -> varName
+    blword varName!
   while( and( varName null <>   strcmp( varName "|" ) ) )
-    "-> int " -> varExpression
-    varName ->+ varExpression
+    "-> cell " varExpression!
+    varName varExpression!+
     $evaluate( varExpression )
   repeat
 ; precedence locals|
@@ -133,8 +134,8 @@ true constant locals-ext
   250 string varName
   257 string varExpression
   blockToString( varName )
-  "int " -> varExpression
-  ->+ varExpression
+  "cell " varExpression!
+  varExpression!+
   $evaluate( varExpression )
 ; precedence (local)
 
@@ -144,28 +145,28 @@ alias is ->
 : off false swap ! ;
 : on true swap ! ;
 
-: s>d i2l ;
+: s>d dup 0< ;
 
 int _handler
 
 : catch  \ ... xt -- ... 0
   _handler  >r
   sp >r
-  rp -> _handler
+  rp _handler!
   execute 0
   r> drop
-  r> -> _handler
+  r> _handler!
 ;
 
 : throw  \ error -- error
   dup 0= if
     drop exit
   endif
-  _handler -> rp
+  _handler rp!
   \ RTOS: oldSP oldHandlerRP
-  r> swap >r -> sp
+  r> swap >r sp!
   \ RTOS: errorCode oldHandlerRP
-  r> r> -> _handler
+  r> r> _handler!
 ;
 
 : /string
@@ -185,7 +186,7 @@ alias include lf
 
 : recurse
   system.getDefinitionsVocab -> Vocabulary vocab
-  vocab.getNewestEntry @ ,
+  vocab.getNewestEntry @ i,
   oclear vocab
 ; precedence recurse
 
@@ -205,12 +206,12 @@ alias at-xy setConsoleCursor
 ;
 
 : -trailing
-  -> int numChars
-  -> ptrTo byte pStr
+  int numChars!
+  ptrTo byte pStr!
   
   begin
   while( and( numChars 0>   pStr numChars + 1- c@ ` ` <> ) )
-    1 ->- numChars
+    numChars--
   repeat
     
   pStr numChars
@@ -224,7 +225,6 @@ precedence [defined]  precedence [undefined]
 
 alias fconstant constant
 alias s>f i2f
-alias s>d i2l
 alias f>d f2l
 alias d>f l2f
 : fround
@@ -238,8 +238,26 @@ alias d>f l2f
 : >float
   float fval
   _TempStringA blockToString
-  _TempStringA "%f" ref fval 1 sscanf
-  fval swap
+  _TempStringA "%f" fval& 1 sscanf
+  if
+    fval true
+  else
+    false
+  endif
+;
+
+: environment?
+  mko String ss
+  ss.setBytes
+  if(ss.equals("CORE"))
+  orif(ss.equals("BLOCK"))
+  orif(ss.equals("FLOATING"))
+    true true
+  else
+    false
+  endif
+
+  ss~
 ;
 
 loaddone

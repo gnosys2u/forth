@@ -46,7 +46,7 @@ class: NoteTagDef extends NoteDef
     super.init
     
     if(id 64 <)
-      2lshift(1L id) -> mask
+      llshift(1L id) -> mask
     endif
   ;m
   
@@ -142,7 +142,7 @@ class: Note
   m: addTag             \ TAG_ID ...
     -> int tagId
     if(tagId 64 <)
-      lshift(1 tagId) tags l+ -> tags
+      llshift(1 tagId) tags l+ -> tags
     else
       \ TODO: deal with when extended tags are added
     endif
@@ -152,7 +152,7 @@ class: Note
     -> int tagId
     if(tagId 64 <)
       0
-      if(lshift(1 tagId) tags and)
+      if(llshift(1 tagId) tags and)
         1-
       endif
     else
@@ -169,16 +169,16 @@ class: Note
   ;m
   
   : link2type
-    26 rshift
+    26 lrshift
   ;
   
   : linkSplit           \ LINK ... NODE_ID LINK_TYPE
     dup $3FFFFFF and
-    swap 26 rshift
+    swap 26 lrshift
   ;
   
   m: addLink            \ NODE_ID LINK_TYPE ...
-    links.push(26 lshift or)
+    links.push(26 llshift or)
   ;m
   
   m: findNextLink       \ START_INDEX LINK_TYPE ...    false   OR    NODE_ID NEXT_INDEX true

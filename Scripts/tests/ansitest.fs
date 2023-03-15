@@ -487,16 +487,21 @@ TESTING DIVIDE: FM/MOD SM/REM UM/MOD */ */MOD / /MOD MOD
 
 \ THE SYSTEM MIGHT DO EITHER FLOORED OR SYMMETRIC DIVISION.
 \ SINCE WE HAVE ALREADY TESTED M*, FM/MOD, AND SM/REM WE CAN USE THEM IN TEST.
-IFFLOORED : T/MOD  >R S>D R> FM/MOD ;
-IFFLOORED : T/     T/MOD SWAP DROP ;
-IFFLOORED : TMOD   T/MOD DROP ;
-IFFLOORED : T*/MOD >R M* R> FM/MOD ;
-IFFLOORED : T*/    T*/MOD SWAP DROP ;
-IFSYM     : T/MOD  >R S>D R> SM/REM ;
-IFSYM     : T/     T/MOD SWAP DROP ;
-IFSYM     : TMOD   T/MOD DROP ;
-IFSYM     : T*/MOD >R M* R> SM/REM ;
-IFSYM     : T*/    T*/MOD SWAP DROP ;
+#if -3 2 / -2 =
+\ floored division
+: T/MOD  >R S>D R> FM/MOD ;
+: T/     T/MOD SWAP DROP ;
+: TMOD   T/MOD DROP ;
+: T*/MOD >R M* R> FM/MOD ;
+: T*/    T*/MOD SWAP DROP ;
+#else
+\ symmetric division
+: T/MOD  >R S>D R> SM/REM ;
+: T/     T/MOD SWAP DROP ;
+: TMOD   T/MOD DROP ;
+: T*/MOD >R M* R> SM/REM ;
+: T*/    T*/MOD SWAP DROP ;
+#endif
 
 { 0 1 /MOD -> 0 1 T/MOD }
 { 1 1 /MOD -> 1 1 T/MOD }

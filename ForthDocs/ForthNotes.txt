@@ -5,6 +5,11 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+- sort out d/l/2 ops, there are definitely bugs and inconsistencies there
+  - 64-bit non-asm l@/l! swap order on TOS when it shouldn't
+  - d! exists on 32-bit but not 64-bit?
+  - 2xxx doesn't always mean 64-bit
+
 - I had a case statement with multiple missing 'of' ops, no errors were reported
 
 - add a way to 'push' current arena to memory manager - used when running an app
@@ -274,6 +279,72 @@ Double has consistent layout, long is reversed on param stack.
 
 
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+March 14 2023
+
+I'm still having tons of fun with ANSIizing.  Most of my pain is because of how
+I played fast and loose with the relationship of my 64-bit 'long' type and the
+ANSI double number type.  I've made a number of changes that break old scripts,
+here are some:
+o ',' used to always compile a 32-bit value, now it compiles a cell, so stuff
+  that was compiling opcodes or int values with comma now need to use 'i,'
+o floating point print operations have changed:
+  %f    print double precision float (was single precision before)
+  %sf   print single precision float
+  %g    print double precision float, g-style (was single precision before)
+  %sg   print single precision float, g-style
+  there are now also f. sf. g. sg. which add a blank after the number
+o %2d is now %ld, %2x is now %lx
+
+At the end of the day, test.fs and ansitest.fs work on Windows 32 & 64 bit,
+with and without assembler inner interpreter, all combinations.  The Linux
+and MacOs versions _should_ just work, but are untested.  The rpi ARM32
+version still needs to be updated.
+
+This is far from being ANSI 2012 compliant, but it is a good first step.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+March 10 2023
+
+As I started looking at being compliant with ANSI 2012 double numbers, I realized
+the mess was even uglier than I guessed.  The mess includes (at least):
+
+1) deal with ANSI defined ops which do double numbers - right now many of them
+  treat 'double number' as being the same as '64-bit number'
+2) change my non-ANSI 'long' stuff to not try to be double number compliant
+  -> changing LPOP and LPUSH macros handles most of this for non-asm builds
+3) fix bad naming I did of non-ANSI things - like '%2d' and '%2x' should be '%ld' and '%lx
+
+There was a major bug lurking in the shadows - in assembler, all the array-type
+opcodes weren't checking for the varop in the high nibble.  I hadn't rewritten
+the tests to use varop suffixes in most cases, so nothing was producing opcodes
+for local/member/field arrays that included the varop, the varop was still done
+with explicit opcodes (like -> ->+ ...).
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+March 9 2023
+
+I've been looking into implementing the ANSI 2012 floating point and double
+number extensions.  This will require some breaking changes:
+o use ANSI format for 64-bit float literals - need to include 'E', only
+  happen when BASE is 10
+o change 64-bit ops like dsin, dsqrt be fsin, fsqrt
+o change 32-bit ops like fsin, fsqrt be ssin, ssqrt ('s' means single precision)
+o require 32-bit float literals to end with 's'
+o have numbers which have '.' but no 'E' be double numbers
+
+I will change the builtin ops constant/dconstant to be named iconstant/lconstant,
+and assign aliases in autoload to constant/dconstant based on the FORTH64 flag.
+There will be other ops which will be changed in a similar way.
+
+I am also thinking of making the 'long' native type always use native ordering
+on TOS, and only doing the hi/lo swapping when using ANSI double numbers.
+-> that would require that things like d+/d- couldn't be aliases of l+/l-.
+? add a builtin op for swapping hi and lo halves of a 64-bit int?
+
+gforth uses swapped ordering for double numbers in 2variables as well as on TOS,
+I need to do this also since 2@ is defined as 'DUP CELL+ @ SWAP @'
+
+The D>F op in 64-bits requires converting a 128-bit integer to a double, I'll
+add an op in C++ which will use the int128 type.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 February 28 2023
 

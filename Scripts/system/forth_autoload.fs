@@ -11,16 +11,21 @@ makeObject System system
 : cell+ 8+ ;
 : cell- 8- ;
 : cell/ 8/ ;
-8 constant cellsize
-: p@ 2@ ;
+8 iconstant cellsize
+: p@ l@ ;
 #else
 : cells 4* ;
 : cell+ 4+ ;
 : cell- 4- ;
 : cell/ 4/ ;
-4 constant cellsize
-: p@ @ ;
+4 iconstant cellsize
+: p@ i@ ;
 #endif
+
+struct: dcell
+  cell hi
+  cell lo
+;struct
 
 \ initialize the system object
 : _initSystemObject
@@ -105,11 +110,11 @@ $forget("_initSystemObject") drop
 
 alias ->o ->+    \ ->o stores to an object variable without changing refcounts
 alias mko makeObject
-alias bool int
+alias bool byte
 alias objIsNull 0=
 alias objNotNull 0<>
 alias ds dstack
-alias , i,
+alias sf@ ui@       \ 32-bit float fetch is same as unsigned 32-bit int
 
 $7FFFFFFF int MAXINT!
 $80000000 int MININT!
@@ -119,24 +124,42 @@ $8000000000000000L long MINLONG!
 $FFFFFFFFFFFFFFFFL long MAXULONG!
 
 #if FORTH64
+alias constant lconstant
 alias Cell Long
 alias CellArray LongArray
 MAXULONG cell MAXCELL!
 MINLONG  cell MINCELL!
 MAXULONG cell MAXUCELL!
+alias rshift lrshift
+alias lshift llshift
+alias rotate lrotate
 
 : depth s0 sp - 3 rshift 1- ;
 : aligned 7+ -8 and ;
+alias align lalign
+
+alias , l,
+: 2@ dup cell+ @ swap @ ;
+: 2! dup >r ! r> cell+ ! ;
 
 #else
+alias constant iconstant
 alias Cell Int
 alias CellArray IntArray
 MAXINT  cell MAXCELL!
 MININT  cell MINCELL!
 MAXUINT cell MAXUCELL!
+alias rshift irshift
+alias lshift ilshift
+alias rotate irotate
 
 : depth s0 sp - 2 rshift 1- ;
 : aligned 3+ -4 and ;
+alias align ialign
+
+alias , i,
+alias 2@ l@
+alias 2! l!
 
 #endif
 
@@ -174,11 +197,11 @@ MAXUINT cell MAXUCELL!
 
 : see verbose describe ;
 
-: %nc swap 0 ?do dup %c loop drop ;
-$20 constant bl
+: %nc swap 0 ?do dup %c loop drop ;     \ NUM CHAR ...      prints CHAR NUM times
+$20 iconstant bl
 : spaces bl %nc ;
 
-: autoload
+: autoload      \ autoload OPNAME SCRIPTFILE        load SCRIPTFILE if OPNAME undefined
   if( blword $find  0= )
     $load( blword )
   else
@@ -196,7 +219,7 @@ $20 constant bl
   swap strcpy
 ;
 
-: $constant create $, align ;
+: $constant create $, ialign ;
 
 : _buildConstantArray
   -> int numStrings
@@ -224,6 +247,8 @@ $20 constant bl
 
 alias c@ ub@
 alias c! b!
+alias c, b,
+
 : count dup 1+ swap c@ ;
 : 2, , , ;
 
@@ -233,8 +258,6 @@ alias lor or
 alias lxor xor
 alias ucell ulong
 alias l* *
-alias 2lshift lshift
-alias 2rshift rshift
 alias l= =
 alias 2rotate rotate
 alias l+ +
@@ -263,7 +286,6 @@ alias cmp icmp
 alias ucmp uicmp
 alias lit ilit
 #endif
-alias 2lit llit
 
 : time&date splitTime(time) ;
 
@@ -282,15 +304,22 @@ enum: eFeatures
   $0080  kFFDollarHexLiterals
   $0100  kFFCFloatLiterals
   $0200  kFFParenIsExpression
+  $0400  kFFAllowContinuations
+  $0800  kFFAllowVaropSuffix
+  
   \ kFFAnsi and kFFRegular are the most common feature combinations
   kFFParenIsComment kFFIgnoreCase + kFFDollarHexLiterals +    kFFAnsi
   
   kFFCCharacterLiterals kFFMultiCharacterLiterals + kFFCStringLiterals +
-    kFFCHexLiterals + kFFDoubleSlashComment + kFFCFloatLiterals +    kFFRegular
+    kFFDoubleSlashComment + kFFDollarHexLiterals + kFFCFloatLiterals +
+    kFFAllowContinuations + kFFAllowVaropSuffix +           kFFRegular
     
 ;enum
 
-: .features
+: setAnsiMode  kFFAnsi features! ;
+: setNonAnsiMode  kFFRegular features! ;
+
+: showFeatures
   features
   "$" %s dup %x
   dup kFFParenIsComment and if " kFFParenIsComment" %s endif
@@ -301,7 +330,10 @@ enum: eFeatures
   dup kFFDoubleSlashComment and if " kFFDoubleSlashComment" %s endif
   dup kFFIgnoreCase and if " kFFIgnoreCase" %s endif
   dup kFFDollarHexLiterals and if " kFFDollarHexLiterals" %s endif
-  kFFCFloatLiterals and if " kFFCFloatLiterals" %s endif
+  dup kFFCFloatLiterals and if " kFFCFloatLiterals" %s endif
+  dup kFFParenIsExpression and if " kFFParenIsExpression" %s endif
+  dup kFFAllowContinuations and if " kFFAllowContinuations" %s endif
+  kFFAllowVaropSuffix and if " kFFAllowVaropSuffix" %s endif
 ;
 
 \ ######################################################################
@@ -506,10 +538,12 @@ addHelp $hash   STRING_ADDR $hash     return hash of string
   strlen( dup ) phHash
 ;
 
-: literal postpone lit , ;
-alias fliteral literal
-: dliteral postpone dlit 2, ;
+: iliteral ['] ilit i, i, ;
+alias fliteral iliteral
+: literal ['] lit i, , ;
+: dliteral ['] dlit i, 2, ;
 precedence literal   precedence fliteral   precedence dliteral
+precedence iliteral
 
 : chars ;
 : char blword c@ ;
@@ -517,10 +551,10 @@ precedence literal   precedence fliteral   precedence dliteral
 \ given ptr to cstring, compile code which will push ptr to cstring
 : compileStringLiteral
   ptrTo byte src!
-  src strlen int len!
-  len 4+ $FFFFFFFC and 2 rshift int lenInts!
-  \ opType:makeOpcode( opType:litString lenInts ) ,		\ compile literal string opcode
-  or($15000000 lenInts) ,		\ compile literal string opcode
+  src strlen cell len!
+  len 4+ $FFFFFFFC and 2 rshift cell lenInts!
+  \ opType:makeOpcode( opType:litString lenInts ) i,		\ compile literal string opcode
+  or($15000000 lenInts) i,		\ compile literal string opcode
   strcpy( here src )
   allot( lenInts 4* )
 ;
@@ -542,7 +576,7 @@ precedence ."
   `"` $word
   if( state @ )
     compileStringLiteral( dup )
-    strlen postpone literal
+    strlen postpone iliteral
   else
     dup strlen
   endif
@@ -1120,19 +1154,20 @@ addHelp oshow   OBJECT oshow ...    like OBJECT.show, but doesn't crash if OBJEC
 \ ######################################################################
 \ floating point constants
 
-$400921fb54442d18L 2constant dpi
-$400a934f0979a371L 2constant dlog2ten
-$3ff71547652b82feL 2constant dlog2e
-$3fd34413509f79ffL 2constant dlog10two
-$3fe62e42fefa39efL 2constant dlntwo
-$7fffffffffffffffL 2constant dnan
+$400921fb54442d18L lconstant dpi
+$400a934f0979a371L lconstant dlog2ten
+$3ff71547652b82feL lconstant dlog2e
+$3fd34413509f79ffL lconstant dlog10two
+$3fe62e42fefa39efL lconstant dlntwo
+$7fffffffffffffffL lconstant dnan
 
-$40490fdb constant fpi
-$40549a78 constant flog2ten
-$3fb8aa3b constant flog2e
-$3e9a209b constant flog10two
-$3f317218 constant flntwo
-$7fffffff constant fnan
+$40490fdb iconstant fpi
+$40549a78 iconstant flog2ten
+$3fb8aa3b iconstant flog2e
+$3e9a209b iconstant flog10two
+$3f317218 iconstant flntwo
+$7fffffff iconstant fnan
+
 \ ######################################################################
 \ automated test support
 
@@ -1311,13 +1346,10 @@ struct: sockaddr
 : goclient $6701a8c0 client ;
 : goserver server ;
 
-: vd verbose describe ;
 : f. %f %bl ;
 : g. %g %bl ;
-: x. %x %bl ;
-: 2f. %2f %bl ;
-: 2g. %2g %bl ;
-: 2x. %2x %bl ;
+: sf. %sf %bl ;
+: sg. %sg %bl ;
 
 \ ######################################################################
 \  DLL support

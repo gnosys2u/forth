@@ -1417,8 +1417,14 @@ OuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
 #else
                 stackInt64 val;
                 val.s64 = value;
+#if 0
+                // if long type is reverse ordered on stack in 32-bit mode
                 *pDP++ = val.s32[1];
                 *pDP++ = val.s32[0];
+#else
+                *pDP++ = val.s32[0];
+                *pDP++ = val.s32[1];
+#endif
 #endif
                 mpDictionary->pCurrent = pDP;
             }
@@ -1457,8 +1463,14 @@ OuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
             {
                 stackInt64 val;
                 val.s64 = value;
+#if 0
+                // if long type is reverse ordered on stack in 32-bit mode
                 *--mpCore->SP = val.s32[0];
                 *--mpCore->SP = val.s32[1];
+#else
+                *--mpCore->SP = val.s32[1];
+                *--mpCore->SP = val.s32[0];
+#endif
             }
 #endif
         }

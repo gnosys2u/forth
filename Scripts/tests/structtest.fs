@@ -15,22 +15,22 @@ struct: line
 \ test simple assignment
 point p
 
-5 -> p.x
-8 -> p.y
+5 p.x!
+8 p.y!
 p.x %d %bl p.y %d %bl %nl
 
 line l1
-77 -> l1.p1.x  88 -> l1.p1.y
-30 -> l1.p2.x  40 -> l1.p2.y
+77 l1.p1.x!  88 l1.p1.y!
+30 l1.p2.x!  40 l1.p2.y!
 
 p %x %nl
 
-p -> ptrTo point pp
+p ptrTo point pp!
 
 pp.x %d %bl pp.y %d %bl %nl
 
 : %point
-  -> ptrTo point q
+  ptrTo point q!
   "x=" %s q.x %d
   " y=" %s q.y %d
   %nl
@@ -41,7 +41,7 @@ l1.p1 %point
 l1.p2 %point
 
 : %line
-  -> ptrTo line r
+  ptrTo line r!
   "p1: " %s r.p1 %point
   "p2: " %s r.p2 %point
 ;
@@ -60,13 +60,13 @@ struct: rgb32
 \ test global pointer to structs
 ptrTo rgb32 gpp
 : %grgb32
-  -> gpp
+  gpp!
   gpp.r %d %bl gpp.g %d %bl gpp.b %d %bl gpp.alpha %d %bl %nl
 ;
 
 : gsetrgb32
-  -> gpp
-  -> gpp.alpha -> gpp.b -> gpp.g -> gpp.r
+  gpp!
+  gpp.alpha! gpp.b! gpp.g! gpp.r!
 ;
 
 \ test global arrayOf pointers to structs
@@ -79,14 +79,14 @@ here swap - "Expected size: 28 Actual size: " %s %d %nl
 : testGAPS
   1 2 3 4 go0 gsetrgb32
   5 6 7 8 go1 gsetrgb32
-  go0 -> 0 gqq
-  go1 -> 1 gqq
+  go0 gqq!(0)
+  go1 gqq!(1)
   0 gqq %grgb32
   1 gqq %grgb32
   \ test assignment through pointers
-  77 0 -> gqq.g
-  11 1 -> gqq.r
-  13 -> go0.b
+  77 gqq.g!(0)
+  11 gqq.r!(1)
+  13 go0.b!
   0 gqq %grgb32
   1 gqq %grgb32
 ;
@@ -96,13 +96,13 @@ testGAPS
 "using local structs:\n" %s
 \ test local pointer to structs
 : %rgb32
-  -> ptrTo rgb32 pp
+  ptrTo rgb32 pp!
   pp.r %d %bl pp.g %d %bl pp.b %d %bl pp.alpha %d %bl %nl
 ;
 
 : setrgb32
-  -> ptrTo rgb32 pp
-  -> pp.alpha -> pp.b -> pp.g -> pp.r
+  ptrTo rgb32 pp!
+  pp.alpha! pp.b! pp.g! pp.r!
 ;
 
 \ test local arrayOf pointers to structs
@@ -113,16 +113,16 @@ testGAPS
   ptrTo rgb32 qp
   1 2 3 4 o0 setrgb32
   5 6 7 8 o1 setrgb32
-  o0 -> 0 qq
-  o1 -> 1 qq
+  o0 qq!(0)
+  o1 qq!(1)
   0 qq %rgb32
   1 qq %rgb32
   \ test assignment through pointers
-  0 qq -> qp
-  77 -> qp.g
-  1 qq -> qp
-  11 -> qp.r
-  13 -> o0.b
+  0 qq qp!
+  77 qp.g!
+  1 qq qp!
+  11 qp.r!
+  13 o0.b!
   0 qq %rgb32
   1 qq %rgb32
 ;
@@ -139,13 +139,13 @@ struct: colorTri
 ;struct
 
 : %colorTri
-  -> ptrTo colorTri t
+  ptrTo colorTri t!
   "p[0] " %s 0 t.p %point
   "p[1] " %s 1 t.p %point
   "p[2] " %s 2 t.p %point
   "RGBA: " %s t.color %rgb32
-  "size: " %s t.size %f
-  " cost: " %s t.cost %2f %nl
+  "size: " %s t.size %sf
+  " cost: " %s t.cost %f %nl
   "pNext: " %s t.pNext %x %nl
 ;
 
@@ -156,16 +156,16 @@ struct: colorTri
 
 \ X Y INDEX TRI ...
 : setpt
-  -> ptrTo colorTri t
-  t.p -> ptrTo point p
-  -> p.y -> p.x
+  ptrTo colorTri t!
+  t.p ptrTo point p!
+  p.y! p.x!
 ;
   
 \ X0 Y0 X1 Y1 X2 Y2 R G B ALPHA SIZE COST PNEXT TRI ...
 : setTri
-  -> ptrTo colorTri t
-  drop \ -> t.pNext
-  -> t.cost -> t.size
+  ptrTo colorTri t!
+  drop \ t.pNext!
+  t.cost! t.size!
   t.color setrgb32
   2 t setpt
   1 t setpt

@@ -326,7 +326,7 @@ namespace OString
     FORTHOP(oStringSetBytesMethod)
     {
         GET_THIS(oStringStruct, pString);
-        int len = SPOP;
+        cell len = SPOP;
         const char* srcStr = (const char *)SPOP;
         oString* dst = pString->str;
         if (len > dst->maxLen)

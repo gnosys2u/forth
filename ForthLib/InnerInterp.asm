@@ -121,6 +121,21 @@ _%1:
 	jmp	rnext
 %endmacro
 	
+;-----------------------------------------------
+;
+; handle the varop encoded in bits 20-23 of opcodes
+;
+%macro handleVarop 0
+	mov	eax, ebx
+	; see if a varop is specified
+	and	eax, VAROP_HIMASK
+	jz .noVarop
+	shr	eax, VAROP_SHIFT
+	mov	[rcore + FCore.varMode], eax
+.noVarop:
+	and	ebx, VAROP_LOMASK
+%endmacro
+	
 ;========================================
 ;  safe exception handler
 ;.safeseh SEH_handler
@@ -895,16 +910,9 @@ entry memberRefType
 ; byte ops
 ;
 entry localByteType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz localByteType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-localByteType1:
+    handleVarop
 	; get ptr to byte var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -947,16 +955,9 @@ localByteActionTable:
     DD  localByteGetDec
 
 entry localUByteType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz localUByteType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-localUByteType1:
+	handleVarop
 	; get ptr to byte var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -1165,71 +1166,43 @@ localUByteGetDec:
 	jmp	rnext
 
 entry fieldByteType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz fieldByteType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-fieldByteType1:
+    handleVarop
 	; get ptr to byte var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	byteEntry
 
 entry fieldUByteType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz fieldUByteType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-fieldUByteType1:
+    handleVarop
 	; get ptr to byte var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	ubyteEntry
 
 entry memberByteType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz memberByteType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-memberByteType1:
+    handleVarop
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	byteEntry
 
 entry memberUByteType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz memberUByteType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-memberUByteType1:
+    handleVarop
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	ubyteEntry
 
 entry localByteArrayType
+    handleVarop
 	; get ptr to byte var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 00FFFFFFh
 	sal	ebx, 2
 	sub	eax, ebx
 	add	eax, [rpsp]		; add in array index on TOS
@@ -1237,9 +1210,9 @@ entry localByteArrayType
 	jmp	byteEntry
 
 entry localUByteArrayType
+    handleVarop
 	; get ptr to byte var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 00FFFFFFh
 	sal	ebx, 2
 	sub	eax, ebx
 	add	eax, [rpsp]		; add in array index on TOS
@@ -1247,46 +1220,46 @@ entry localUByteArrayType
 	jmp	ubyteEntry
 
 entry fieldByteArrayType
+    handleVarop
 	; get ptr to byte var into eax
 	; TOS is struct base ptr, NOS is index
 	; ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	eax, [rpsp+4]
 	add	rpsp, 8
-	and	ebx, 00FFFFFFh
 	add	eax, ebx
 	jmp	byteEntry
 
 entry fieldUByteArrayType
+    handleVarop
 	; get ptr to byte var into eax
 	; TOS is struct base ptr, NOS is index
 	; ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	eax, [rpsp+4]
 	add	rpsp, 8
-	and	ebx, 00FFFFFFh
 	add	eax, ebx
 	jmp	ubyteEntry
 
 entry memberByteArrayType
+    handleVarop
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
 	add	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 00FFFFFFh
 	add	eax, ebx
 	jmp	byteEntry
 
 entry memberUByteArrayType
+    handleVarop
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
 	add	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, 00FFFFFFh
 	add	eax, ebx
 	jmp	ubyteEntry
 
@@ -1295,16 +1268,9 @@ entry memberUByteArrayType
 ;  short ops
 ;
 entry localShortType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz localShortType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-localShortType1:
+    handleVarop
 	; get ptr to short var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -1347,16 +1313,9 @@ localShortActionTable:
     DD  localShortGetDec
 
 entry localUShortType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz localUShortType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-localUShortType1:
+    handleVarop
 	; get ptr to short var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -1560,71 +1519,44 @@ localUShortGetDec:
 	jmp	rnext
 
 entry fieldShortType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz fieldShortType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-fieldShortType1:
+    handleVarop
 	; get ptr to short var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	shortEntry
 
 entry fieldUShortType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz fieldUShortType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-fieldUShortType1:
+    handleVarop
 	; get ptr to unsigned short var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	ushortEntry
 
 entry memberShortType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz memberShortType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-memberShortType1:
+    handleVarop
 	; get ptr to short var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	shortEntry
 
 entry memberUShortType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz memberUShortType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-memberUShortType1:
+    handleVarop
 	; get ptr to unsigned short var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	ushortEntry
 
 entry localShortArrayType
+    handleVarop
 	; get ptr to int var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 00FFFFFFh	; ebx is frame offset in longs
+	; ebx is frame offset in longs
 	sal	ebx, 2
 	sub	eax, ebx
 	mov	ebx, [rpsp]		; add in array index on TOS
@@ -1634,9 +1566,10 @@ entry localShortArrayType
 	jmp	shortEntry
 
 entry localUShortArrayType
+    handleVarop
 	; get ptr to int var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 00FFFFFFh	; ebx is frame offset in longs
+	; ebx is frame offset in longs
 	sal	ebx, 2
 	sub	eax, ebx
 	mov	ebx, [rpsp]		; add in array index on TOS
@@ -1646,6 +1579,7 @@ entry localUShortArrayType
 	jmp	ushortEntry
 
 entry fieldShortArrayType
+    handleVarop
 	; get ptr to short var into eax
 	; TOS is struct base ptr, NOS is index
 	; ebx is field offset in bytes
@@ -1653,11 +1587,11 @@ entry fieldShortArrayType
 	sal	eax, 1
 	add	eax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	shortEntry
 
 entry fieldUShortArrayType
+    handleVarop
 	; get ptr to short var into eax
 	; TOS is struct base ptr, NOS is index
 	; ebx is field offset in bytes
@@ -1665,11 +1599,11 @@ entry fieldUShortArrayType
 	sal	eax, 1
 	add	eax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	ushortEntry
 
 entry memberShortArrayType
+    handleVarop
 	; get ptr to short var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
@@ -1677,11 +1611,11 @@ entry memberShortArrayType
 	sal	eax, 1
 	add	eax, [rcore + FCore.TPtr]
 	add	rpsp, 4
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	shortEntry
 
 entry memberUShortArrayType
+    handleVarop
 	; get ptr to short var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
@@ -1689,7 +1623,6 @@ entry memberUShortArrayType
 	sal	eax, 1
 	add	eax, [rcore + FCore.TPtr]
 	add	rpsp, 4
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	ushortEntry
 
@@ -1699,16 +1632,9 @@ entry memberUShortArrayType
 ;  int ops
 ;
 entry localIntType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz localIntType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-localIntType1:
+    handleVarop
 	; get ptr to int var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -1861,38 +1787,24 @@ localIntGetDec:
 entry fieldIntType
 	; get ptr to int var into eax
 	; TOS is base ptr, ebx is field offset in bytes
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz fieldIntType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-fieldIntType1:
+    handleVarop
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	intEntry
 
 entry memberIntType
 	; get ptr to int var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz memberIntType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-memberIntType1:
+    handleVarop
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	intEntry
 
 entry localIntArrayType
+    handleVarop
 	; get ptr to int var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 00FFFFFFh
 	sub	ebx, [rpsp]		; add in array index on TOS
 	add	rpsp, 4
 	sal	ebx, 2
@@ -1900,6 +1812,7 @@ entry localIntArrayType
 	jmp	intEntry
 
 entry fieldIntArrayType
+    handleVarop
 	; get ptr to int var into eax
 	; TOS is struct base ptr, NOS is index
 	; ebx is field offset in bytes
@@ -1907,11 +1820,11 @@ entry fieldIntArrayType
 	sal	eax, 2
 	add	eax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	intEntry
 
 entry memberIntArrayType
+    handleVarop
 	; get ptr to short var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
@@ -1919,7 +1832,6 @@ entry memberIntArrayType
 	sal	eax, 2
 	add	eax, [rcore + FCore.TPtr]
 	add	rpsp, 4
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	intEntry
 
@@ -1928,16 +1840,9 @@ entry memberIntArrayType
 ;  float ops
 ;
 entry localFloatType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz localFloatType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-localFloatType1:
+    handleVarop
 	; get ptr to float var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -2030,40 +1935,26 @@ localFloat1:
 	jmp	ebx
 
 entry fieldFloatType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz fieldFloatType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-fieldFloatType1:
+    handleVarop
 	; get ptr to float var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	floatEntry
 
 entry memberFloatType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz memberFloatType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-memberFloatType1:
+    handleVarop
 	; get ptr to float var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	floatEntry
 
 entry localFloatArrayType
+    handleVarop
 	; get ptr to float var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 00FFFFFFh
 	sub	ebx, [rpsp]		; add in array index on TOS
 	add	rpsp, 4
 	sal	ebx, 2
@@ -2071,6 +1962,7 @@ entry localFloatArrayType
 	jmp	floatEntry
 
 entry fieldFloatArrayType
+    handleVarop
 	; get ptr to float var into eax
 	; TOS is struct base ptr, NOS is index
 	; ebx is field offset in bytes
@@ -2078,11 +1970,11 @@ entry fieldFloatArrayType
 	sal	eax, 2
 	add	eax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	floatEntry
 
 entry memberFloatArrayType
+    handleVarop
 	; get ptr to short var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
@@ -2090,7 +1982,6 @@ entry memberFloatArrayType
 	sal	eax, 2
 	add	eax, [rcore + FCore.TPtr]
 	add	rpsp, 4
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	floatEntry
 	
@@ -2099,16 +1990,9 @@ entry memberFloatArrayType
 ;  double ops
 ;
 entry localDoubleType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz localDoubleType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-localDoubleType1:
+    handleVarop
 	; get ptr to double var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -2205,40 +2089,26 @@ localDouble1:
 	jmp	ebx
 
 entry fieldDoubleType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz fieldDoubleType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-fieldDoubleType1:
+    handleVarop
 	; get ptr to double var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	doubleEntry
 
 entry memberDoubleType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz memberDoubleType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-memberDoubleType1:
+    handleVarop
 	; get ptr to double var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	doubleEntry
 
 entry localDoubleArrayType
+    handleVarop
 	; get ptr to double var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 00FFFFFFh
 	sal	ebx, 2
 	sub	eax, ebx
 	mov	ebx, [rpsp]		; add in array index on TOS
@@ -2248,6 +2118,7 @@ entry localDoubleArrayType
 	jmp doubleEntry
 
 entry fieldDoubleArrayType
+    handleVarop
 	; get ptr to double var into eax
 	; TOS is struct base ptr, NOS is index
 	; ebx is field offset in bytes
@@ -2255,11 +2126,11 @@ entry fieldDoubleArrayType
 	sal	eax, 3
 	add	eax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	doubleEntry
 
 entry memberDoubleArrayType
+    handleVarop
 	; get ptr to short var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
@@ -2267,7 +2138,6 @@ entry memberDoubleArrayType
 	sal	eax, 3
 	add	eax, [rcore + FCore.TPtr]
 	add	rpsp, 4
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	doubleEntry
 	
@@ -2277,16 +2147,9 @@ entry memberDoubleArrayType
 ;
 GLOBAL localStringType, stringEntry, localStringFetch, localStringStore, localStringAppend, localStringClear
 entry localStringType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz localStringType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-localStringType1:
+    handleVarop
 	; get ptr to string var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -2428,40 +2291,26 @@ localStringActionTable:
 	DD	localStringClear
 
 entry fieldStringType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz fieldStringType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-fieldStringType1:
+    handleVarop
 	; get ptr to byte var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	stringEntry
 
 entry memberStringType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz memberStringType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-memberStringType1:
+    handleVarop
 	; get ptr to byte var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	stringEntry
 
 entry localStringArrayType
+    handleVarop
 	; get ptr to int var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 00FFFFFFh
 	sal	ebx, 2
 	sub	eax, ebx		; eax -> maxLen field of string[0]
 	mov	ebx, [eax]
@@ -2474,10 +2323,10 @@ entry localStringArrayType
 	jmp stringEntry
 
 entry fieldStringArrayType
+    handleVarop
 	; get ptr to string var into eax
 	; TOS is struct base ptr, NOS is index
 	; ebx is field offset in bytes
-	and	ebx, 00FFFFFFh
 	add	ebx, [rpsp]		; ebx -> maxLen field of string[0]
 	mov	eax, [ebx]		; eax = maxLen
 	sar	eax, 2
@@ -2489,10 +2338,10 @@ entry fieldStringArrayType
 	jmp	stringEntry
 
 entry memberStringArrayType
+    handleVarop
 	; get ptr to string var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
-	and	ebx, 00FFFFFFh
 	add	ebx, [rcore + FCore.TPtr]	; ebx -> maxLen field of string[0]
 	mov	eax, [ebx]		; eax = maxLen
 	sar	eax, 2
@@ -2508,16 +2357,9 @@ entry memberStringArrayType
 ;  op ops
 ;
 entry localOpType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz localOpType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-localOpType1:
+    handleVarop
 	; get ptr to op var into ebx
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch (execute for ops)
@@ -2556,40 +2398,26 @@ localOp1:
 	jmp	ebx
 
 entry fieldOpType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz fieldOpType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-fieldOpType1:
+    handleVarop
 	; get ptr to op var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	opEntry
 
 entry memberOpType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz memberOpType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-memberOpType1:
+    handleVarop
 	; get ptr to op var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	opEntry
 
 entry localOpArrayType
+    handleVarop
 	; get ptr to op var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 00FFFFFFh
 	sub	ebx, [rpsp]		; add in array index on TOS
 	add	rpsp, 4
 	sal	ebx, 2
@@ -2597,6 +2425,7 @@ entry localOpArrayType
 	jmp	opEntry
 
 entry fieldOpArrayType
+    handleVarop
 	; get ptr to op var into eax
 	; TOS is struct base ptr, NOS is index
 	; ebx is field offset in bytes
@@ -2604,11 +2433,11 @@ entry fieldOpArrayType
 	sal	eax, 2
 	add	eax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	opEntry
 
 entry memberOpArrayType
+    handleVarop
 	; get ptr to short var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
@@ -2616,7 +2445,6 @@ entry memberOpArrayType
 	sal	eax, 2
 	add	eax, [rcore + FCore.TPtr]
 	add	rpsp, 4
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	opEntry
 	
@@ -2625,16 +2453,9 @@ entry memberOpArrayType
 ;  long (int64) ops
 ;
 entry localLongType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz localLongType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-localLongType1:
+    handleVarop
 	; get ptr to long var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -2646,9 +2467,9 @@ longEntry:
 localLongFetch:
 	sub	rpsp, 8
 	mov	ebx, [eax]
-	mov	[rpsp+4], ebx
-	mov	ebx, [eax+4]
 	mov	[rpsp], ebx
+	mov	ebx, [eax+4]
+	mov	[rpsp+4], ebx
 	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
@@ -2671,9 +2492,9 @@ localLongRef:
 	
 localLongStore:
 	mov	ebx, [rpsp]
-	mov	[eax+4], ebx
-	mov	ebx, [rpsp+4]
 	mov	[eax], ebx
+	mov	ebx, [rpsp+4]
+	mov	[eax+4], ebx
 	add	rpsp, 8
 	; set var operation back to default
 	xor	eax, eax
@@ -2682,10 +2503,10 @@ localLongStore:
 
 localLongPlusStore:
 	mov	ebx, [eax]
-	add	ebx, [rpsp+4]
+	add	ebx, [rpsp]
 	mov	[eax], ebx
 	mov	ebx, [eax+4]
-	adc	ebx, [rpsp]
+	adc	ebx, [rpsp+4]
 	mov	[eax+4], ebx
 	; set var operation back to default
 	xor	ebx, ebx
@@ -2695,10 +2516,10 @@ localLongPlusStore:
 
 localLongMinusStore:
 	mov	ebx, [eax]
-	sub	ebx, [rpsp+4]
+	sub	ebx, [rpsp]
 	mov	[eax], ebx
 	mov	ebx, [eax+4]
-	sbb	ebx, [rpsp]
+	sbb	ebx, [rpsp+4]
 	mov	[eax+4], ebx
 	; set var operation back to default
 	xor	ebx, ebx
@@ -2716,11 +2537,11 @@ localLongClear:
 
 localLongPlus:
 	mov	ebx, [eax]
-	add	ebx, [rpsp+4]
-	mov	[rpsp+4], ebx
-	mov	ebx, [eax+4]
-	adc	ebx, [rpsp]
+	add	ebx, [rpsp]
 	mov	[rpsp], ebx
+	mov	ebx, [eax+4]
+	adc	ebx, [rpsp+4]
+	mov	[rpsp+4], ebx
 	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
@@ -2739,12 +2560,12 @@ localLongInc1:
     jmp	rnext
 
 localLongMinus:
-    mov ebx, [rpsp+4]
-    sub ebx, [eax]
-	mov	[rpsp+4], ebx
     mov ebx, [rpsp]
-    sbb ebx, [eax+4]
+    sub ebx, [eax]
 	mov	[rpsp], ebx
+    mov ebx, [rpsp+4]
+    sbb ebx, [eax+4]
+	mov	[rpsp+4], ebx
 	; set var operation back to default
 	xor	eax, eax
 	mov	[rcore + FCore.varMode], eax
@@ -2771,13 +2592,13 @@ localLongIncGet:
     inc ebx
     add ebx, [eax]
     mov [eax], ebx
-    mov [rpsp+4], ebx
+    mov [rpsp], ebx
     mov ebx, [eax+4]
     jnc localLongIncGet1
     inc ebx
 localLongIncGet1:
     mov [eax+4], ebx
-    mov [rpsp], ebx
+    mov [rpsp+4], ebx
 	jmp	rnext
 
 localLongDecGet:
@@ -2793,9 +2614,9 @@ localLongDecGet:
 localLongDecGet1:
     dec ebx
     mov [eax], ebx
-    mov [rpsp+4], ebx
+    mov [rpsp], ebx
     mov [eax+4], ecx
-    mov [rpsp], ecx
+    mov [rpsp+4], ecx
 	jmp	rnext
 
 localLongGetInc:
@@ -2805,11 +2626,11 @@ localLongGetInc:
 	mov	[rcore + FCore.varMode], ebx
     inc ebx
     mov ecx, [eax]
-    mov [rpsp+4], ecx
+    mov [rpsp], ecx
     add ecx, ebx
     mov [eax], ecx
     mov ecx, [eax+4]
-    mov [rpsp], ecx
+    mov [rpsp+4], ecx
     jnc localLongGetInc1
     inc ecx
 localLongGetInc1:
@@ -2823,8 +2644,8 @@ localLongGetDec:
 	mov	[rcore + FCore.varMode], ebx
     mov ebx, [eax]
     mov ecx, [eax+4]
-    mov [rpsp+4], ebx
-    mov [rpsp], ecx
+    mov [rpsp], ebx
+    mov [rpsp+4], ecx
     or  ebx, ebx
     jnz localLongGetDec1
     dec ecx
@@ -2852,40 +2673,26 @@ localLongActionTable:
     DD  localLongGetDec
 
 entry fieldLongType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz fieldLongType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-fieldLongType1:
+    handleVarop
 	; get ptr to double var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	longEntry
 
 entry memberLongType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz memberLongType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-memberLongType1:
+    handleVarop
 	; get ptr to double var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	longEntry
 
 entry localLongArrayType
+    handleVarop
 	; get ptr to double var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 00FFFFFFh
 	sal	ebx, 2
 	sub	eax, ebx
 	mov	ebx, [rpsp]		; add in array index on TOS
@@ -2895,6 +2702,7 @@ entry localLongArrayType
 	jmp longEntry
 
 entry fieldLongArrayType
+    handleVarop
 	; get ptr to double var into eax
 	; TOS is struct base ptr, NOS is index
 	; ebx is field offset in bytes
@@ -2902,11 +2710,11 @@ entry fieldLongArrayType
 	sal	eax, 3
 	add	eax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	longEntry
 
 entry memberLongArrayType
+    handleVarop
 	; get ptr to short var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
@@ -2914,7 +2722,6 @@ entry memberLongArrayType
 	sal	eax, 3
 	add	eax, [rcore + FCore.TPtr]
 	add	rpsp, 4
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	longEntry
 	
@@ -2923,16 +2730,9 @@ entry memberLongArrayType
 ;  object ops
 ;
 entry localObjectType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz localObjectType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-localObjectType1:
+    handleVarop
 	; get ptr to Object var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, VAROP_LOMASK
 	sal	ebx, 2
 	sub	eax, ebx
 	; see if it is a fetch
@@ -3107,40 +2907,26 @@ localObjectActionTable:
 	DD	localObjectClear
 
 entry fieldObjectType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz fieldObjectType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-fieldObjectType1:
+    handleVarop
 	; get ptr to Object var into eax
 	; TOS is base ptr, ebx is field offset in bytes
 	mov	eax, [rpsp]
 	add	rpsp, 4
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	objectEntry
 
 entry memberObjectType
-	mov	eax, ebx
-	; see if a varop is specified
-	and	eax, VAROP_HIMASK
-	jz memberObjectType1
-	shr	eax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], eax
-memberObjectType1:
+    handleVarop
 	; get ptr to Object var into eax
 	; this data ptr is base ptr, ebx is field offset in bytes
 	mov	eax, [rcore + FCore.TPtr]
-	and	ebx, VAROP_LOMASK
 	add	eax, ebx
 	jmp	objectEntry
 
 entry localObjectArrayType
+    handleVarop
 	; get ptr to Object var into eax
 	mov	eax, [rcore + FCore.FPtr]
-	and	ebx, 00FFFFFFh
 	sal	ebx, 2
 	sub	eax, ebx
 	mov	ebx, [rpsp]		; add in array index on TOS
@@ -3150,6 +2936,7 @@ entry localObjectArrayType
 	jmp objectEntry
 
 entry fieldObjectArrayType
+    handleVarop
 	; get ptr to Object var into eax
 	; TOS is struct base ptr, NOS is index
 	; ebx is field offset in bytes
@@ -3157,11 +2944,11 @@ entry fieldObjectArrayType
 	sal	eax, 3
 	add	eax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	objectEntry
 
 entry memberObjectArrayType
+    handleVarop
 	; get ptr to short var into eax
 	; this data ptr is base ptr, TOS is index
 	; ebx is field offset in bytes
@@ -3169,7 +2956,6 @@ entry memberObjectArrayType
 	sal	eax, 3
 	add	eax, [rcore + FCore.TPtr]
 	add	rpsp, 4
-	and	ebx, 00FFFFFFh
 	add	eax, ebx		; add in field offset
 	jmp	objectEntry
 	
@@ -4980,25 +4766,25 @@ entry ffmodBop
 ;========================================
 
 entry lplusBop
-	mov     ebx, [rpsp+4]
-	mov     eax, [rpsp]
+	mov     ebx, [rpsp]
+	mov     eax, [rpsp+4]
 	add     rpsp, 8
-	add     ebx, [rpsp+4]
-	adc     eax, [rpsp]
-	mov     [rpsp+4], ebx
-	mov     [rpsp], eax
+	add     ebx, [rpsp]
+	adc     eax, [rpsp+4]
+	mov     [rpsp], ebx
+	mov     [rpsp+4], eax
 	jmp     rnext
 
 ;========================================
 
 entry lminusBop
-	mov     ebx, [rpsp+12]
-	mov     eax, [rpsp+8]
-	sub     ebx, [rpsp+4]
-	sbb     eax, [rpsp]
+	mov     ebx, [rpsp+8]
+	mov     eax, [rpsp+12]
+	sub     ebx, [rpsp]
+	sbb     eax, [rpsp+4]
 	add     rpsp, 8
-	mov     [rpsp+4], ebx
-	mov     [rpsp], eax
+	mov     [rpsp], ebx
+	mov     [rpsp+4], eax
 	jmp     rnext
 
 ;========================================
@@ -5007,9 +4793,10 @@ entry ltimesBop
 	; based on http://stackoverflow.com/questions/1131833/how-do-you-multiply-two-64-bit-numbers-in-x86-assembler
 	push	rnext
 	push	rip
-	; rpsp always holds hi 32 bits of mul result
+	; rpsp (AKA edx) always holds hi 32 bits of mul result
 	mov	ebx, rpsp	; so we will use ebx for the forth stack ptr
-	; TOS: bhi ebx   blo ebx+4   ahi ebx+8   alo ebx+12
+	; old TOS: bhi ebx   blo ebx+4   ahi ebx+8   alo ebx+12
+	; new TOS: blo ebx   bhi ebx+4   alo ebx+8   ahi ebx+12
 	xor	ecx, ecx	; ecx holds sign flag
 	mov	eax, [ebx]
 
@@ -5017,17 +4804,17 @@ entry ltimesBop
 	jge	ltimes1
 	; b is negative
 	not	ecx
-	mov	rip, [ebx+4]
+	mov	rip, [ebx]
 	not	rip
 	not	eax
 	add	rip, 1
 	adc	eax, 0
-	mov	[ebx+4], rip
-	mov	[ebx], eax
+	mov	[ebx], rip
+	mov	[ebx+4], eax
 ltimes1:
 
-	mov	eax, [ebx+8]
-	mov	rip, [ebx+12]
+	mov	eax, [ebx+12]
+	mov	rip, [ebx+8]
 	or	eax, eax
 	jge	ltimes2
 	; a is negative
@@ -5036,41 +4823,41 @@ ltimes1:
 	not	eax
 	add	rip, 1
 	adc	eax, 0
-	mov	[ebx+12], rip
-	mov	[ebx+8], eax
+	mov	[ebx+8], rip
+	mov	[ebx+12], eax
 ltimes2:
   
 	; alo(rip) * blo
-	mov	eax, [ebx+4]
+	mov	eax, [ebx]
 	mul	rip				; rpsp is hipart, eax is final lopart
 	mov	rnext, rpsp		; rnext is hipart accumulator
   
-	mov	rip, [ebx+12]	; rip = alo
-	mov	[ebx+12], eax	; ebx+12 = final lopart
+	mov	rip, [ebx+8]	; rip = alo
+	mov	[ebx+8], eax	; ebx+12 = final lopart
 
 	; alo * bhi
-	mov	eax, [ebx]		; eax = bhi
+	mov	eax, [ebx+4]	; eax = bhi
 	mul	rip
 	add	rnext, eax
   
 	; ahi * blo
-	mov	rip, [ebx+8]	; rip = ahi
-	mov	eax, [ebx+4]	; eax = blo
+	mov	rip, [ebx+12]	; rip = ahi
+	mov	eax, [ebx]	    ; eax = blo
 	mul	rip
 	add	rnext, eax		; rnext = hiResult
   
 	; invert result if needed
 	or	ecx, ecx
 	jge	ltimes3
-	mov	eax, [ebx+12]	; eax = loResult
+	mov	eax, [ebx+8]	; eax = loResult
 	not	eax
 	not	rnext
 	add	eax, 1
 	adc	rnext, 0
-	mov	[ebx+12], eax
+	mov	[ebx+8], eax
 ltimes3:
 
-	mov	[ebx+8], rnext
+	mov	[ebx+12], rnext
 
 	add	ebx, 8
 	mov	rpsp, ebx
@@ -5454,7 +5241,7 @@ entry invertBop
 	
 ;========================================
 
-entry lshiftBop
+entry ilshiftBop
 	mov	ecx, [rpsp]
 	add	rpsp, 4
 	mov	ebx, [rpsp]
@@ -5464,15 +5251,15 @@ entry lshiftBop
 	
 ;========================================
 
-entry lshift64Bop
+entry llshiftBop
 	mov	ecx, [rpsp]
 	add	rpsp, 4
-	mov	ebx, [rpsp]
-	mov	eax, [rpsp+4]
+	mov	ebx, [rpsp+4]
+	mov	eax, [rpsp]
 	shld	ebx, eax, cl
 	shl	eax, cl
-	mov	[rpsp], ebx
-	mov	[rpsp+4], eax
+	mov	[rpsp+4], ebx
+	mov	[rpsp], eax
 	jmp	rnext
 	
 ;========================================
@@ -5487,7 +5274,7 @@ entry arshiftBop
 	
 ;========================================
 
-entry rshiftBop
+entry irshiftBop
 	mov	ecx, [rpsp]
 	add	rpsp, 4
 	mov	ebx, [rpsp]
@@ -5497,20 +5284,20 @@ entry rshiftBop
 	
 ;========================================
 
-entry rshift64Bop
+entry lrshiftBop
 	mov	ecx, [rpsp]
 	add	rpsp, 4
-	mov	ebx, [rpsp]
-	mov	eax, [rpsp+4]
+	mov	ebx, [rpsp+4]
+	mov	eax, [rpsp]
 	shrd	eax, ebx, cl
 	shr	ebx, cl
-	mov	[rpsp], ebx
-	mov	[rpsp+4], eax
+	mov	[rpsp+4], ebx
+	mov	[rpsp], eax
 	jmp	rnext
 	
 ;========================================
 
-entry rotateBop
+entry irotateBop
 	mov	ecx, [rpsp]
 	add	rpsp, 4
 	mov	ebx, [rpsp]
@@ -5521,10 +5308,10 @@ entry rotateBop
 	
 ;========================================
 
-entry rotate64Bop
+entry lrotateBop
 	mov	ecx, [rpsp]
-	mov	ebx, [rpsp+4]
-	mov	eax, [rpsp+8]
+	mov	ebx, [rpsp+8]
+	mov	eax, [rpsp+4]
 	push	rpsp
 	; if rotate count is >31, swap lo & hi parts
 	bt ecx, 5
@@ -5539,12 +5326,12 @@ rotate64Bop_1:
 	mov	ebx, rpsp
 	pop	rpsp
 	add	rpsp, 4
-	mov	[rpsp], ebx
-	mov	[rpsp+4], eax
+	mov	[rpsp+4], ebx
+	mov	[rpsp], eax
 	jmp	rnext
 
 ;========================================
-entry reverseBop
+entry ireverseBop
     ; Knuth's algorithm
     ; a = (a << 15) | (a >> 17);
 	mov	eax, [rpsp]
@@ -6429,9 +6216,9 @@ entry dpBop
 entry lstoreBop
 	mov	eax, [rpsp]
 	mov	ebx, [rpsp+4]
-	mov	[eax+4], ebx
-	mov	ebx, [rpsp+8]
 	mov	[eax], ebx
+	mov	ebx, [rpsp+8]
+	mov	[eax+4], ebx
 	add	rpsp, 12
 	jmp	rnext
 	
@@ -6440,9 +6227,9 @@ entry lstoreBop
 entry lstoreNextBop
 	mov	eax, [rpsp]		; eax -> dst ptr
 	mov	ecx, [eax]
-	mov	ebx, [rpsp+8]
-	mov	[ecx], ebx
 	mov	ebx, [rpsp+4]
+	mov	[ecx], ebx
+	mov	ebx, [rpsp+8]
 	mov	[ecx+4], ebx
 	add	ecx, 8
 	mov	[eax], ecx
@@ -6454,9 +6241,9 @@ entry lstoreNextBop
 entry lfetchBop
 	mov	eax, [rpsp]
 	sub	rpsp, 4
-	mov	ebx, [eax+4]
-	mov	[rpsp], ebx
 	mov	ebx, [eax]
+	mov	[rpsp], ebx
+	mov	ebx, [eax+4]
 	mov	[rpsp+4], ebx
 	jmp	rnext
 	
@@ -6467,9 +6254,9 @@ entry lfetchNextBop
 	sub	rpsp, 4
 	mov	ecx, [eax]		; ecx is src ptr
 	mov	ebx, [ecx+4]
-	mov	[rpsp], ebx
-	mov	ebx, [ecx]
 	mov	[rpsp+4], ebx
+	mov	ebx, [ecx]
+	mov	[rpsp], ebx
 	add	ecx, 8
 	mov	[eax], ecx
 	jmp	rnext
@@ -6507,6 +6294,7 @@ entry istoreBop
 	
 ;========================================
 
+entry uifetchBop
 entry ifetchBop
 	mov	eax, [rpsp]
 	mov	ebx, [eax]
@@ -6608,6 +6396,14 @@ entry sstoreNextBop
 	
 ;========================================
 
+entry usfetchBop
+	mov	eax, [rpsp]
+	mov bx, WORD[eax]
+	mov	[rpsp], ebx
+	jmp	rnext
+	
+;========================================
+
 entry sfetchBop
 	mov	eax, [rpsp]
 	movsx ebx, WORD[eax]
@@ -6622,56 +6418,6 @@ entry sfetchNextBop
 	movsx ebx, WORD[ecx]
 	mov	[rpsp], ebx
 	add	ecx, 2
-	mov	[eax], ecx
-	jmp	rnext
-	
-;========================================
-
-entry dstoreBop
-	mov	eax, [rpsp]
-	mov	ebx, [rpsp+4]
-	mov	[eax], ebx
-	mov	ebx, [rpsp+8]
-	mov	[eax+4], ebx
-	add	rpsp, 12
-	jmp	rnext
-	
-;========================================
-
-entry dstoreNextBop
-	mov	eax, [rpsp]		; eax -> dst ptr
-	mov	ecx, [eax]
-	mov	ebx, [rpsp+4]
-	mov	[ecx], ebx
-	mov	ebx, [rpsp+8]
-	mov	[ecx+4], ebx
-	add	ecx, 8
-	mov	[eax], ecx
-	add	rpsp, 12
-	jmp	rnext
-	
-;========================================
-
-entry dfetchBop
-	mov	eax, [rpsp]
-	sub	rpsp, 4
-	mov	ebx, [eax]
-	mov	[rpsp], ebx
-	mov	ebx, [eax+4]
-	mov	[rpsp+4], ebx
-	jmp	rnext
-	
-;========================================
-
-entry dfetchNextBop
-	mov	eax, [rpsp]
-	sub	rpsp, 4
-	mov	ecx, [eax]
-	mov	ebx, [ecx]
-	mov	[rpsp], ebx
-	mov	ebx, [ecx+4]
-	mov	[rpsp+4], ebx
-	add	ecx, 8
 	mov	[eax], ecx
 	jmp	rnext
 	
@@ -7294,7 +7040,7 @@ entry doVariableBop
 	
 ;========================================
 
-entry doConstantBop
+entry doIConstantBop
 	; push longword @ IP
 	mov	eax, [rip]
 	sub	rpsp, 4
@@ -7308,7 +7054,7 @@ entry doConstantBop
 	
 ;========================================
 
-entry doDConstantBop
+entry doLConstantBop
 	; push quadword @ IP
 	mov	eax, [rip]
 	sub	rpsp, 8
@@ -8249,17 +7995,17 @@ entry squishedLongType
 	jnz	longConstantNegative
 	; positive constant
 	and	ebx,00FFFFFFh
-	mov	[rpsp+4], ebx
-	xor	ebx, ebx
 	mov	[rpsp], ebx
+	xor	ebx, ebx
+	mov	[rpsp+4], ebx
 	jmp	rnext
 
 longConstantNegative:
 	or	ebx, 0FF000000h
-	mov	[rpsp+4], ebx
+	mov	[rpsp], ebx
 	xor	ebx, ebx
 	sub	ebx, 1
-	mov	[rpsp], ebx
+	mov	[rpsp+4], ebx
 	jmp	rnext
 	
 

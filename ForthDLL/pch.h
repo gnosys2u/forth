@@ -23,6 +23,9 @@
 
 #include <cassert>
 
+#include <winnt.h>
+
+
 #define ASSERT assert
 
 // these had to be added to get ForthDLL DbgAsm and RelAsm configurations to compile

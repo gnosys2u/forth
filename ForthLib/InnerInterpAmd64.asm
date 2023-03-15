@@ -202,6 +202,21 @@ EXTERN %2
     movss DWORD[rpsp], xmm0
 	jmp	restoreNext
 %endmacro
+
+;-----------------------------------------------
+;
+; handle the varop encoded in bits 20-23 of opcodes
+;
+%macro handleVarop 0
+	mov	rax, rbx
+	; see if a varop is specified
+	and	rax, VAROP_HIMASK
+	jz .noVarop
+	shr	rax, VAROP_SHIFT
+	mov	[rcore + FCore.varMode], rax
+.noVarop:
+	and	rbx, VAROP_LOMASK
+%endmacro
 	
 ;========================================
 ;  safe exception handler
@@ -1059,16 +1074,9 @@ entry memberRefType
 ; byte ops
 ;
 entry localByteType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz localByteType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localByteType1:
+    handleVarop
 	; get ptr to byte var into rax
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch
@@ -1112,16 +1120,9 @@ localByteActionTable:
     DQ  localByteGetDec
 
 entry localUByteType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz localUByteType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localUByteType1:
+    handleVarop
 	; get ptr to byte var into rax
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch
@@ -1333,71 +1334,43 @@ localUByteGetDec:
 	jmp	rnext
 
 entry fieldByteType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldByteType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldByteType1:
+    handleVarop
 	; get ptr to byte var into rax
 	; TOS is base ptr, rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	byteEntry
 
 entry fieldUByteType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldUByteType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldUByteType1:
+    handleVarop
 	; get ptr to byte var into rax
 	; TOS is base ptr, rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	ubyteEntry
 
 entry memberByteType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberByteType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberByteType1:
+    handleVarop
 	; get ptr to byte var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	byteEntry
 
 entry memberUByteType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberUByteType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberUByteType1:
+    handleVarop
 	; get ptr to byte var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	ubyteEntry
 
 entry localByteArrayType
-	; get ptr to byte var into rax
+    handleVarop
+    ; get ptr to byte var into rax
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh
 	sal	rbx, 3
 	sub	rax, rbx
 	add	rax, [rpsp]		; add in array index on TOS
@@ -1405,9 +1378,9 @@ entry localByteArrayType
 	jmp	byteEntry
 
 entry localUByteArrayType
+    handleVarop
 	; get ptr to byte var into rax
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh
 	sal	rbx, 3
 	sub	rax, rbx
 	add	rax, [rpsp]		; add in array index on TOS
@@ -1415,46 +1388,46 @@ entry localUByteArrayType
 	jmp	ubyteEntry
 
 entry fieldByteArrayType
+    handleVarop
 	; get ptr to byte var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rax, [rpsp + 8]
 	add	rpsp, 16
-	and	rbx, 00FFFFFFh
 	add	rax, rbx
 	jmp	byteEntry
 
 entry fieldUByteArrayType
+    handleVarop
 	; get ptr to byte var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rax, [rpsp + 8]
 	add	rpsp, 16
-	and	rbx, 00FFFFFFh
 	add	rax, rbx
 	jmp	ubyteEntry
 
 entry memberByteArrayType
+    handleVarop
 	; get ptr to byte var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
 	add	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx
 	jmp	byteEntry
 
 entry memberUByteArrayType
+    handleVarop
 	; get ptr to byte var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
 	add	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx
 	jmp	ubyteEntry
 
@@ -1463,16 +1436,9 @@ entry memberUByteArrayType
 ; short ops
 ;
 entry localShortType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz localShortType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localShortType1:
+    handleVarop
 	; get ptr to short var into rax
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch
@@ -1516,16 +1482,9 @@ localShortActionTable:
     DQ  localShortGetDec
 
 entry localUShortType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz localUShortType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localUShortType1:
+    handleVarop
 	; get ptr to short var into rax
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch
@@ -1730,71 +1689,44 @@ localUShortGetDec:
 	jmp	rnext
 
 entry fieldShortType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldShortType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldShortType1:
+    handleVarop
 	; get ptr to short var into rax
 	; TOS is base ptr, rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	shortEntry
 
 entry fieldUShortType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldUShortType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldUShortType1:
+    handleVarop
 	; get ptr to unsigned short var into rax
 	; TOS is base ptr, rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	ushortEntry
 
 entry memberShortType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberShortType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberShortType1:
+    handleVarop
 	; get ptr to short var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	shortEntry
 
 entry memberUShortType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberUShortType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberUShortType1:
+    handleVarop
 	; get ptr to unsigned short var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	ushortEntry
 
 entry localShortArrayType
+    handleVarop
 	; get ptr to int var into rax
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh	; rbx is frame offset in cells
+	; rbx is frame offset in cells
 	sal	rbx, 3
 	sub	rax, rbx
 	mov	rbx, [rpsp]		; add in array index on TOS
@@ -1804,9 +1736,9 @@ entry localShortArrayType
 	jmp	shortEntry
 
 entry localUShortArrayType
-	; get ptr to int var into rax
+    handleVarop
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh	; rbx is frame offset in cells
+	; rbx is frame offset in cells
 	sal	rbx, 3
 	sub	rax, rbx
 	mov	rbx, [rpsp]		; add in array index on TOS
@@ -1816,6 +1748,7 @@ entry localUShortArrayType
 	jmp	ushortEntry
 
 entry fieldShortArrayType
+    handleVarop
 	; get ptr to short var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
@@ -1823,11 +1756,11 @@ entry fieldShortArrayType
 	sal	rax, 1
 	add	rax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	shortEntry
 
 entry fieldUShortArrayType
+    handleVarop
 	; get ptr to short var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
@@ -1835,11 +1768,11 @@ entry fieldUShortArrayType
 	sal	rax, 1
 	add	rax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	ushortEntry
 
 entry memberShortArrayType
+    handleVarop
 	; get ptr to short var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
@@ -1847,11 +1780,11 @@ entry memberShortArrayType
 	sal	rax, 1
 	add	rax, [rcore + FCore.TPtr]
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	shortEntry
 
 entry memberUShortArrayType
+    handleVarop
 	; get ptr to short var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
@@ -1859,7 +1792,6 @@ entry memberUShortArrayType
 	sal	rax, 1
 	add	rax, [rcore + FCore.TPtr]
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	ushortEntry
 
@@ -1869,16 +1801,9 @@ entry memberUShortArrayType
 ; int ops
 ;
 entry localIntType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz localIntType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localIntType1:
+    handleVarop
 	; get ptr to int var into rax
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch
@@ -1922,16 +1847,9 @@ localIntActionTable:
     DQ  localIntGetDec
 
 entry localUIntType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz localUIntType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localUIntType1:
+    handleVarop
 	; get ptr to int var into rax
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch
@@ -2135,71 +2053,43 @@ localUIntGetDec:
 	jmp	rnext
 
 entry fieldIntType
+    handleVarop
 	; get ptr to int var into rax
 	; TOS is base ptr, rbx is field offset in bytes
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldIntType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldIntType1:
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	intEntry
 
 entry fieldUIntType
+    handleVarop
 	; get ptr to uint var into rax
 	; TOS is base ptr, rbx is field offset in bytes
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldUIntType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldUIntType1:
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	uintEntry
 
 entry memberIntType
+    handleVarop
 	; get ptr to int var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberIntType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberIntType1:
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	intEntry
 
 entry memberUIntType
+    handleVarop
 	; get ptr to int var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberUIntType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberUIntType1:
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	uintEntry
 
 entry localIntArrayType
+    handleVarop
 	; get ptr to int var into rax
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh
 	sub	rbx, [rpsp]		; add in array index on TOS
 	add	rpsp, 8
 	sal	rbx, 3
@@ -2207,9 +2097,9 @@ entry localIntArrayType
 	jmp	intEntry
 
 entry localUIntArrayType
+    handleVarop
 	; get ptr to int var into rax
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh
 	sub	rbx, [rpsp]		; add in array index on TOS
 	add	rpsp, 8
 	sal	rbx, 3
@@ -2217,6 +2107,7 @@ entry localUIntArrayType
 	jmp	uintEntry
 
 entry fieldIntArrayType
+    handleVarop
 	; get ptr to int var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
@@ -2224,11 +2115,11 @@ entry fieldIntArrayType
 	sal	rax, 2
 	add	rax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	intEntry
 
 entry fieldUIntArrayType
+    handleVarop
 	; get ptr to int var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
@@ -2236,11 +2127,11 @@ entry fieldUIntArrayType
 	sal	rax, 2
 	add	rax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	uintEntry
 
 entry memberIntArrayType
+    handleVarop
 	; get ptr to short var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
@@ -2248,11 +2139,11 @@ entry memberIntArrayType
 	sal	rax, 2
 	add	rax, [rcore + FCore.TPtr]
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	intEntry
 
 entry memberUIntArrayType
+    handleVarop
 	; get ptr to short var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
@@ -2260,7 +2151,6 @@ entry memberUIntArrayType
 	sal	rax, 2
 	add	rax, [rcore + FCore.TPtr]
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	uintEntry
 
@@ -2269,16 +2159,9 @@ entry memberUIntArrayType
 ; float ops
 ;
 entry localFloatType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz localFloatType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localFloatType1:
+    handleVarop
 	; get ptr to float var into rax
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch
@@ -2363,40 +2246,26 @@ localFloat1:
 	jmp	rbx
 
 entry fieldFloatType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldFloatType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldFloatType1:
+    handleVarop
 	; get ptr to float var into rax
 	; TOS is base ptr, rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	floatEntry
 
 entry memberFloatType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberFloatType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberFloatType1:
+    handleVarop
 	; get ptr to float var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	floatEntry
 
 entry localFloatArrayType
+    handleVarop
 	; get ptr to float var into rax
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh
 	sub	rbx, [rpsp]		; add in array index on TOS
 	add	rpsp, 8
 	sal	rbx, 3
@@ -2404,6 +2273,7 @@ entry localFloatArrayType
 	jmp	floatEntry
 
 entry fieldFloatArrayType
+    handleVarop
 	; get ptr to float var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
@@ -2411,11 +2281,11 @@ entry fieldFloatArrayType
 	sal	rax, 2
 	add	rax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	floatEntry
 
 entry memberFloatArrayType
+    handleVarop
 	; get ptr to short var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
@@ -2423,7 +2293,6 @@ entry memberFloatArrayType
 	sal	rax, 2
 	add	rax, [rcore + FCore.TPtr]
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	floatEntry
 	
@@ -2432,16 +2301,9 @@ entry memberFloatArrayType
 ; double ops
 ;
 entry localDoubleType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz localDoubleType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localDoubleType1:
+    handleVarop
 	; get ptr to double var into rax
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch
@@ -2527,40 +2389,26 @@ localDouble1:
 	jmp	rbx
 
 entry fieldDoubleType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldDoubleType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldDoubleType1:
+    handleVarop
 	; get ptr to double var into rax
 	; TOS is base ptr, rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	doubleEntry
 
 entry memberDoubleType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberDoubleType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberDoubleType1:
+    handleVarop
 	; get ptr to double var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	doubleEntry
 
 entry localDoubleArrayType
+    handleVarop
 	; get ptr to double var into rax
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh
 	sal	rbx, 3
 	sub	rax, rbx
 	mov	rbx, [rpsp]		; add in array index on TOS
@@ -2570,6 +2418,7 @@ entry localDoubleArrayType
 	jmp doubleEntry
 
 entry fieldDoubleArrayType
+    handleVarop
 	; get ptr to double var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
@@ -2577,11 +2426,11 @@ entry fieldDoubleArrayType
 	sal	rax, 3
 	add	rax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	doubleEntry
 
 entry memberDoubleArrayType
+    handleVarop
 	; get ptr to short var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
@@ -2589,7 +2438,6 @@ entry memberDoubleArrayType
 	sal	rax, 3
 	add	rax, [rcore + FCore.TPtr]
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	doubleEntry
 	
@@ -2599,17 +2447,9 @@ entry memberDoubleArrayType
 ;
 GLOBAL localStringType, stringEntry, localStringFetch, localStringStore, localStringAppend, localStringClear
 entry localStringType
-	mov	rax, rbx
-	; see if opcode specifies a varop
-	and	rax, VAROP_HIMASK
-	jz localStringType1
-	; store opcode varop in core.varMode
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localStringType1:
+    handleVarop
 	; get ptr to string var into rax
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch
@@ -2790,40 +2630,26 @@ localStringActionTable:
 	DQ	localStringClear
 
 entry fieldStringType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldStringType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldStringType1:
+    handleVarop
 	; get ptr to byte var into rax
 	; TOS is base ptr, rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	stringEntry
 
 entry memberStringType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberStringType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberStringType1:
+    handleVarop
 	; get ptr to byte var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	stringEntry
 
 entry localStringArrayType
+    handleVarop
 	; get ptr to int var into rax
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh
 	sal	rbx, 3
 	sub	rax, rbx		; rax -> maxLen field of string[0]
 	mov	ebx, [rax]
@@ -2836,10 +2662,10 @@ entry localStringArrayType
 	jmp stringEntry
 
 entry fieldStringArrayType
+    handleVarop
 	; get ptr to string var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
-	and	rbx, 00FFFFFFh
 	add	rbx, [rpsp]		; rbx -> maxLen field of string[0]
 	mov	eax, [rbx]		; rax = maxLen
 	sar	rax, 2
@@ -2851,10 +2677,10 @@ entry fieldStringArrayType
 	jmp	stringEntry
 
 entry memberStringArrayType
+    handleVarop
 	; get ptr to string var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
-	and	rbx, 00FFFFFFh
 	add	rbx, [rcore + FCore.TPtr]	; rbx -> maxLen field of string[0]
 	mov	eax, [rbx]		; rax = maxLen
 	sar	rax, 2
@@ -2870,16 +2696,9 @@ entry memberStringArrayType
 ; op ops
 ;
 entry localOpType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz localOpType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localOpType1:
+    handleVarop
 	; get ptr to op var into rbx
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch (execute for ops)
@@ -2910,40 +2729,26 @@ localOp1:
 	jmp	rbx
 
 entry fieldOpType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldOpType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldOpType1:
+    handleVarop
 	; get ptr to op var into rax
 	; TOS is base ptr, rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	opEntry
 
 entry memberOpType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberOpType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberOpType1:
+    handleVarop
 	; get ptr to op var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	opEntry
 
 entry localOpArrayType
+    handleVarop
 	; get ptr to op var into rax
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh
 	sub	rbx, [rpsp]		; add in array index on TOS
 	add	rpsp, 8
 	sal	rbx, 3
@@ -2951,6 +2756,7 @@ entry localOpArrayType
 	jmp	opEntry
 
 entry fieldOpArrayType
+    handleVarop
 	; get ptr to op var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
@@ -2958,11 +2764,11 @@ entry fieldOpArrayType
 	sal	rax, 2
 	add	rax, [rpsp]		; add in struct base ptr
 	add	rpsp, 16
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	opEntry
 
 entry memberOpArrayType
+    handleVarop
 	; get ptr to short var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
@@ -2970,7 +2776,6 @@ entry memberOpArrayType
 	sal	rax, 2
 	add	rax, [rcore + FCore.TPtr]
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	opEntry
 	
@@ -2979,16 +2784,9 @@ entry memberOpArrayType
 ; long (int64) ops
 ;
 entry localLongType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz localLongType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localLongType1:
+    handleVarop
 	; get ptr to long var into rax
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch
@@ -3128,40 +2926,26 @@ localLongActionTable:
     DQ  localLongGetDec
 
 entry fieldLongType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldLongType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldLongType1:
+    handleVarop
 	; get ptr to double var into rax
 	; TOS is base ptr, rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	longEntry
 
 entry memberLongType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberLongType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberLongType1:
+    handleVarop
 	; get ptr to double var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	longEntry
 
 entry localLongArrayType
+    handleVarop
 	; get ptr to double var into rax
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh
 	sal	rbx, 3
 	sub	rax, rbx
 	mov	rbx, [rpsp]		; add in array index on TOS
@@ -3171,6 +2955,7 @@ entry localLongArrayType
 	jmp longEntry
 
 entry fieldLongArrayType
+    handleVarop
 	; get ptr to double var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
@@ -3178,11 +2963,11 @@ entry fieldLongArrayType
 	sal	rax, 3
 	add	rax, [rpsp]		; add in struct base ptr
 	add	rpsp, 16
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	longEntry
 
 entry memberLongArrayType
+    handleVarop
 	; get ptr to short var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
@@ -3190,7 +2975,6 @@ entry memberLongArrayType
 	sal	rax, 3
 	add	rax, [rcore + FCore.TPtr]
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	longEntry
 	
@@ -3199,16 +2983,9 @@ entry memberLongArrayType
 ; object ops
 ;
 entry localObjectType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz localObjectType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-localObjectType1:
+    handleVarop
 	; get ptr to Object var into rax
 	mov	rax, rfp
-	and	rbx, VAROP_LOMASK
 	sal	rbx, 3
 	sub	rax, rbx
 	; see if it is a fetch
@@ -3364,40 +3141,26 @@ localObjectActionTable:
 	DQ	localObjectClear
 
 entry fieldObjectType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz fieldObjectType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-fieldObjectType1:
+    handleVarop
 	; get ptr to Object var into rax
 	; TOS is base ptr, rbx is field offset in bytes
 	mov	rax, [rpsp]
 	add	rpsp, 8
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	objectEntry
 
 entry memberObjectType
-	mov	rax, rbx
-	; see if a varop is specified
-	and	rax, VAROP_HIMASK
-	jz memberObjectType1
-	shr	rax, VAROP_SHIFT
-	mov	[rcore + FCore.varMode], rax
-memberObjectType1:
+    handleVarop
 	; get ptr to Object var into rax
 	; this data ptr is base ptr, rbx is field offset in bytes
 	mov	rax, [rcore + FCore.TPtr]
-	and	rbx, VAROP_LOMASK
 	add	rax, rbx
 	jmp	objectEntry
 
 entry localObjectArrayType
+    handleVarop
 	; get ptr to Object var into rax
 	mov	rax, rfp
-	and	rbx, 00FFFFFFh
 	sal	rbx, 3
 	sub	rax, rbx
 	mov	rbx, [rpsp]		; add in array index on TOS
@@ -3407,6 +3170,7 @@ entry localObjectArrayType
 	jmp objectEntry
 
 entry fieldObjectArrayType
+    handleVarop
 	; get ptr to Object var into rax
 	; TOS is struct base ptr, NOS is index
 	; rbx is field offset in bytes
@@ -3414,11 +3178,11 @@ entry fieldObjectArrayType
 	sal	rax, 3
 	add	rax, [rpsp]		; add in struct base ptr
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	objectEntry
 
 entry memberObjectArrayType
+    handleVarop
 	; get ptr to short var into rax
 	; this data ptr is base ptr, TOS is index
 	; rbx is field offset in bytes
@@ -3426,7 +3190,6 @@ entry memberObjectArrayType
 	sal	rax, 3
 	add	rax, [rcore + FCore.TPtr]
 	add	rpsp, 8
-	and	rbx, 00FFFFFFh
 	add	rax, rbx		; add in field offset
 	jmp	objectEntry
 	
@@ -5519,11 +5282,22 @@ entry invertBop
 	
 ;========================================
 
-entry lshiftBop
+entry llshiftBop
 	mov	rcx, [rpsp]
 	add	rpsp, 8
 	mov	rbx, [rpsp]
 	shl	rbx, cl
+	mov	[rpsp], rbx
+	jmp	rnext
+	
+;========================================
+
+entry ilshiftBop
+	mov	rcx, [rpsp]
+	add	rpsp, 8
+	mov	rbx, [rpsp]
+	shl	rbx, cl
+	and	rbx, 0FFFFFFFFh
 	mov	[rpsp], rbx
 	jmp	rnext
 	
@@ -5539,7 +5313,7 @@ entry arshiftBop
 	
 ;========================================
 
-entry rshiftBop
+entry lrshiftBop
 	mov	rcx, [rpsp]
 	add	rpsp, 8
 	mov	rbx, [rpsp]
@@ -5549,7 +5323,18 @@ entry rshiftBop
 	
 ;========================================
 
-entry rotateBop
+entry irshiftBop
+	mov	rcx, [rpsp]
+	add	rpsp, 8
+	mov	rbx, [rpsp]
+	and	rbx, 0FFFFFFFFh
+	shr	rbx, cl
+	mov	[rpsp], rbx
+	jmp	rnext
+	
+;========================================
+
+entry lrotateBop
 	mov	rcx, [rpsp]
 	add	rpsp, 8
 	mov	rbx, [rpsp]
@@ -5559,7 +5344,19 @@ entry rotateBop
 	jmp	rnext
 	
 ;========================================
-entry reverseBop
+
+entry irotateBop
+	mov	rcx, [rpsp]
+	add	rpsp, 8
+	mov	rbx, [rpsp]
+	and	rbx, 0FFFFFFFFh
+	and	cl, 03Fh
+	rol	ebx, cl
+	mov	[rpsp], rbx
+	jmp	rnext
+	
+;========================================
+entry ireverseBop
     ; TODO!
     ; Knuth's algorithm
     ; a = (a << 15) | (a >> 17);
@@ -6275,7 +6072,6 @@ entry lstoreNextBop
 	
 ;========================================
 
-entry dfetchBop
 entry lfetchBop
 	mov	rax, [rpsp]
 	mov	rbx, [rax]
@@ -6329,6 +6125,15 @@ entry istoreBop
 entry ifetchBop
 	mov	rax, [rpsp]
 	movsx rbx, DWORD[rax]
+	mov	[rpsp], rbx
+	jmp	rnext
+	
+;========================================
+
+entry uifetchBop
+	mov	rax, [rpsp]
+    xor rbx, rbx
+	mov ebx, DWORD[rax]
 	mov	[rpsp], rbx
 	jmp	rnext
 	
@@ -6432,6 +6237,15 @@ entry sstoreNextBop
 entry sfetchBop
 	mov	rax, [rpsp]
 	movsx rbx, WORD[rax]
+	mov	[rpsp], rbx
+	jmp	rnext
+	
+;========================================
+
+entry usfetchBop
+	mov	rax, [rpsp]
+    xor rbx, rbx
+	mov bx, WORD[rax]
 	mov	[rpsp], rbx
 	jmp	rnext
 	
@@ -7094,7 +6908,19 @@ entry doVariableBop
 	
 ;========================================
 
-entry doConstantBop
+entry doIConstantBop
+	; push longword @ IP
+	movsx	rax, DWORD[rip]
+	sub	rpsp, 8
+	mov	[rpsp], rax
+	; rpop new ip
+	mov	rip, [rrp]
+	add	rrp, 8
+	jmp	rnext
+	
+;========================================
+
+entry doLConstantBop
 	; push longword @ IP
 	mov	rax, [rip]
 	sub	rpsp, 8

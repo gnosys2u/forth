@@ -248,7 +248,7 @@ typedef bool (*interpreterExtensionRoutine)( char *pToken );
 typedef void (*traceOutRoutine) ( void *pData, const char* pFormat, va_list argList );
 
 // the varMode state makes variables do something other
-//  than their default behaviour (fetch)
+//  than their default behaviour (fetch)VarOperation xxx = kVarDefaultOp
 enum class VarOperation:ucell {
     kVarDefaultOp = 0,
     kVarGet,
@@ -288,6 +288,7 @@ enum class VarOperation:ucell {
     kNumVarops,
 
     kVarUnref = kVarSetMinus,
+    kVarStoreNoRef = kVarSetPlus,
 
     kNumBasicVarops = kVarGetDec + 1,
     kUnchecked = kNumVarops
@@ -387,18 +388,20 @@ typedef enum {
 } ePrintSignedMode;
 
 typedef enum {
-    kFFParenIsComment           = 0x001,
-    kFFCCharacterLiterals       = 0x002,
-    kFFMultiCharacterLiterals   = 0x004,
-    kFFCStringLiterals          = 0x008,
-    kFFCHexLiterals             = 0x010,
-    kFFDoubleSlashComment       = 0x020,
-    kFFIgnoreCase               = 0x040,
-    kFFDollarHexLiterals        = 0x080,
-    kFFCFloatLiterals           = 0x100,
-    kFFParenIsExpression        = 0x200,
-    kFFAllowContinuations       = 0x400,
-    kFFAllowVaropSuffix         = 0x800
+    kFFParenIsComment           = 0x00000001,
+    kFFCCharacterLiterals       = 0x00000002,
+    kFFMultiCharacterLiterals   = 0x00000004,
+    kFFCStringLiterals          = 0x00000008,
+    kFFCHexLiterals             = 0x00000010,
+    kFFDoubleSlashComment       = 0x00000020,
+    kFFIgnoreCase               = 0x00000040,
+    kFFDollarHexLiterals        = 0x00000080,
+    kFFCFloatLiterals           = 0x00000100,
+    kFFParenIsExpression        = 0x00000200,
+    kFFAllowContinuations       = 0x00000400,
+    kFFAllowVaropSuffix         = 0x00000800,
+    kFFAnsiFloatLiterals        = 0x00001000,
+    kFFAnsiDoubleWordLiterals   = 0x00002000        // period 
 } ForthFeatureFlags;
 
 
@@ -451,6 +454,20 @@ typedef union
     uint64_t    u64;
 } stackInt64;
 
+typedef union
+{
+    cell        cells[2];
+    ucell       ucells[2];
+#ifdef FORTH64
+#if !defined(WINDOWS_BUILD)
+    int128      sdcell;
+    uint128     udcell;
+#endif
+#else
+    int64_t     sdcell;
+    uint64_t    udcell;
+#endif
+} doubleCell;
 
 // stream character output routine type
 typedef void (*streamCharOutRoutine) ( CoreState* pCore, void *pData, char ch );
@@ -515,8 +532,8 @@ enum {
 	OP_LONG_VAL,
 
 	OP_DO_VAR,
-	OP_DO_CONSTANT,
-	OP_DO_DCONSTANT,
+	OP_DO_ICONSTANT,
+	OP_DO_LCONSTANT,
 	OP_DONE,
 	OP_DO_BYTE,
 	OP_DO_UBYTE,

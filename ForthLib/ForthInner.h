@@ -108,7 +108,7 @@ struct CoreState
 
 	ForthObject			consoleOutStream;
 
-    int32_t                base;               // output base
+    ucell               base;               // output base
     ucell               signedPrintMode;   // if numers are printed as signed/unsigned
     int32_t                traceFlags;
 
@@ -178,9 +178,10 @@ inline forthop GetCurrentOp( CoreState *pCore )
 #define POP64                           SPOP
 #define PUSH64(A)                       SPUSH(A)
 
-// LPOP takes a stackInt64
+// LPOP/LPUSH takes a stackInt64
 #define LPOP( _SI64 )                   _SI64.s64 = SPOP
 #define LPUSH( _SI64 )                  SPUSH(_SI64.s64)
+
 #else
 #define DPOP                            *((double *)(pCore->SP)); pCore->SP += 2
 #define DPUSH( A )                      pCore->SP -= 2; *((double *)(pCore->SP)) = A
@@ -189,9 +190,22 @@ inline forthop GetCurrentOp( CoreState *pCore )
 #define PUSH64(A)                        pCore->SP -= 2; *((int64_t *)(pCore->SP)) = A
 
 // LPOP takes a stackInt64
+#if 0
+// use these definitions if long variables have 32-bit halves swapped on TOS (compared to memory)
+// this is to make them more compatible with ANSI Forth double numbers on 32-bit systems
 #define LPOP( _SI64 )                   _SI64.s32[1] = *(pCore->SP); _SI64.s32[0] = (pCore->SP)[1]; pCore->SP += 2
 #define LPUSH( _SI64 )                  pCore->SP -= 2; pCore->SP[1] = _SI64.s32[0]; pCore->SP[0] = _SI64.s32[1]
+#else
+// use these definitions if long variables on TOS have same order as when in regular memory
+#define LPOP( _SI64 )                   _SI64.s64 = *((int64_t *)(pCore->SP)); pCore->SP += 2
+#define LPUSH( _SI64 )                  pCore->SP -= 2; *((int64_t *)(pCore->SP)) = _SI64.s64
 #endif
+#endif
+
+// DCPOP/DCPUSH takes a doubleCell
+#define DCPOP(_DCELL)       _DCELL.cells[1] =  *(pCore->SP); _DCELL.cells[0] = (pCore->SP)[1]; pCore->SP += 2
+#define DCPUSH(_DCELL)      pCore->SP -= 2; pCore->SP[1] = _DCELL.cells[0]; pCore->SP[0] = _DCELL.cells[1]
+
 
 
 #define RPOP                            (*pCore->RP++)

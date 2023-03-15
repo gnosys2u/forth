@@ -61,14 +61,14 @@ test[ theAnswer.getShort $7123 =   theAnswer.getUShort $7123 = ]
 
 mko Float fluffy   fluffy.set(5.625)
 mko Float froofy   froofy.set(i2f(44))
-test[ fluffy.value 8.0 f* 45.0 f= ]
-test[ fluffy.get 1.0 f+ 6.625 f= ]
-test[ fluffy.set(fluffy.value 8.0 f*)  fluffy.compare(froofy) 0> ]
+test[ fluffy.value 8.0 sf* 45.0 sf= ]
+test[ fluffy.get 1.0 sf+ 6.625 sf= ]
+test[ fluffy.set(fluffy.value 8.0 sf*)  fluffy.compare(froofy) 0> ]
 
 mko Double dribble   dribble.set(11.0625L)
 mko Double drabble  drabble.set(i2d(mostRandomNumber.get))
-test[ dribble.get 0.9375L d+ 12 i2d d= ]
-test[ dribble.set(dribble.value 5.9375L d+) drabble.compare(dribble) 0= ]
+test[ dribble.get 0.9375L f+ 12 i2d f= ]
+test[ dribble.set(dribble.value 5.9375L f+) drabble.compare(dribble) 0= ]
 
 mko Long howie    howie.set(1000000000L)
 mko Long face     face.set(howie.get howie.value l*)

@@ -21,7 +21,7 @@ test[ checkResult( "aba" ) ]
 55L long gvl!   12L ulong gvul!   7.5f float gvf!   -100.25l double gvd!
 
 test[ -11 gvb = 4 gvub = 0 gvs = 55 gvus = 12 gvi = 0 gvui = ]
-test[ 55L gvl l= 12l gvul l= 7.5f gvf f= -100.25l gvd d= ]
+test[ 55L gvl l= 12l gvul l= 7.5f gvf sf= -100.25l gvd f= ]
 
 test[ $1ffffffffl gvl! gvl++ gvl $200000000l l= ]
 test[ gvl-- gvl $1ffffffffl l= ]
@@ -34,13 +34,13 @@ test[ $200000000l gvl!- gvl l0= ]
   long vv
 
   startTest
-  vv %2d %bl
-  vv++ vv %2d %bl
-  vv-- vv-- vv %2d %bl
-  vv~ vv %2d %bl
-  $1ffffffffl vv! vv++ vv %2x %bl
-  5l vv@+ %2x %bl
-  $3fffffffal vv@- %2x %bl
+  vv %ld %bl
+  vv++ vv %ld %bl
+  vv-- vv-- vv %ld %bl
+  vv~ vv %ld %bl
+  $1ffffffffl vv! vv++ vv %lx %bl
+  5l vv@+ %lx %bl
+  $3fffffffal vv@- %lx %bl
 ;
 test[ longtest1 checkResult( "0 1 -1 0 200000000 200000005 1fffffffa " ) ]
 
@@ -48,10 +48,10 @@ test[ longtest1 checkResult( "0 1 -1 0 200000000 200000005 1fffffffa " ) ]
   $200000000l long vv!
 
   startTest
-  vv@-- %2x %bl vv %2x %bl
-  vv@++ %2x %bl vv %2x %bl
-  vv--@ %2x %bl vv %2x %bl
-  vv++@ %2x %bl vv %2x %bl
+  vv@-- %lx %bl vv %lx %bl
+  vv@++ %lx %bl vv %lx %bl
+  vv--@ %lx %bl vv %lx %bl
+  vv++@ %lx %bl vv %lx %bl
 ;
 test[ longtest2 checkResult( "200000000 1ffffffff 1ffffffff 200000000 1ffffffff 1ffffffff 200000000 200000000 " ) ]
 
@@ -118,16 +118,16 @@ test[ testLocalVars3 checkResult( "-12345678987654321 -12345678987600000 -123456
 
 : testGlobalVars4
   startTest
-  22.5 gvf! gvf g. -0.125 gvf!+  gvf g. 0.75 gvf!-  gvf g.
-  22.5l gvd! gvd 2g. -0.125l gvd!+  gvd 2g. 0.75l gvd!-  gvd 2g.
+  22.5 gvf! gvf sg. -0.125 gvf!+  gvf sg. 0.75 gvf!-  gvf sg.
+  22.5l gvd! gvd g. -0.125l gvd!+  gvd g. 0.75l gvd!-  gvd g.
 ;
 test[ testGlobalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 
 : testLocalVars4
   startTest
   float lvf   double lvd
-  22.5 lvf! lvf g. -0.125 lvf!+  lvf g. 0.75 lvf!-  lvf g.
-  22.5l lvd! lvd 2g. -0.125l lvd!+  lvd 2g. 0.75l lvd!-  lvd 2g.
+  22.5 lvf! lvf sg. -0.125 lvf!+  lvf sg. 0.75 lvf!-  lvf sg.
+  22.5l lvd! lvd g. -0.125l lvd!+  lvd g. 0.75l lvd!-  lvd g.
 ;
 test[ testLocalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 

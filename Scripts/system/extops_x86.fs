@@ -44,14 +44,6 @@ code abs
   endif,
   next,
   
-code +!
-  edx ] eax mov,
-  4 edx d] ebx mov,
-  eax ] ebx add,
-  ebx eax ] mov,
-  8 # edx add,
-  next,
-  
 code 1+!
   edx ] eax mov,
   4 # edx add,
@@ -420,6 +412,40 @@ code compareMemory
   edi pop,
   next,
   
+code dnegate
+  4 edx d] eax mov,
+  edx ] ebx mov,
+  eax neg,
+  0 # ebx adc,
+  ebx neg,
+  eax 4 edx d] mov,
+  ebx edx ] mov,
+  next,
+  
+code d+
+  4 edx d] ebx mov,
+  $c edx d] eax mov,
+  ebx eax add,
+  eax $c edx d] mov,
+  edx ] ebx mov,
+  8 edx d] eax mov,
+  ebx eax adc,
+  eax 8 edx d] mov,
+  8 # edx add,
+  next,
+
+code d-
+  4 edx d] eax mov,
+  $c edx d] ebx mov,
+  ebx eax sub,
+  eax $c edx d] mov,
+  edx ] eax mov,
+  8 edx d] ebx mov,
+  ebx eax sbb,
+  eax 8 edx d] mov,
+  8 # edx add,
+  next,
+
 loaddone
 
 

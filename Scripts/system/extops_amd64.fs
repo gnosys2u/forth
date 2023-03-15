@@ -51,14 +51,6 @@ code abs
   endif,
   next,
   
-code +!
-  rpsp ] rax mov,
-  8 rpsp d] rbx mov,
-  rax ] rbx add,
-  rbx rax ] mov,
-  $10 # rpsp add,
-  next,
-  
 code 1+!
   rpsp ] rax mov,
   8 # rpsp add,
@@ -75,7 +67,6 @@ code 1-!
   rbx rax ] mov,
   next,
   
-\ $ff setTrace
 code roll
   rpsp ] rcx mov,
   8 # rpsp add,
@@ -342,6 +333,40 @@ code sm/rem
   rax rpsp ] mov,
   next,
   
+code dnegate
+  8 rpsp d] rax mov,
+  rpsp ] rdx mov,
+  rax neg,
+  0 # rdx adc,
+  rdx neg,
+  rax 8 rpsp d] mov,
+  rdx rpsp ] mov,
+  next,
+  
+code d+
+  8 rpsp d] rax mov,
+  $18 rpsp d] rdx mov,
+  rax rdx add,
+  rdx $18 rpsp d] mov,
+  rpsp ] rax mov,
+  $10 rpsp d] rdx mov,
+  rax rdx adc,
+  rdx $10 rpsp d] mov,
+  $10 # rpsp add,
+  next,
+
+code d-
+  8 rpsp d] rax mov,
+  $18 rpsp d] rdx mov,
+  rdx rax sub,
+  rax $18 rpsp d] mov,
+  rpsp ] rax mov,
+  $10 rpsp d] rdx mov,
+  rdx rax sbb,
+  rax $10 rpsp d] mov,
+  $10 # rpsp add,
+  next,
+
 code compareMemory
   \ rpsp: numBytes
   \ rpsp+8: block2

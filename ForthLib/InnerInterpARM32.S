@@ -164,6 +164,16 @@ VAROP_HIMASK            =       0x00F00000
 VAROP_LOMASK            =       0x000FFFFF
 VAROP_SHIFT             =       20
 
+@ macro that takes the varop specified in bits 20-23 of r1, store it in core.varmode, and removes it from r1
+.macro handleVarop
+	lsrs	r0, r1, #VAROP_SHIFT
+	beq	1f
+	str	r0, [rcore, #varmode]
+1:
+	mvn	r2, #VAROP_HIMASK
+	and	r1, r2
+.endm
+
 @ ForthMemorySection
 FMSCurrent				=	0	@ current pointer into section
 FMSBase					=	4	@ base of memory section
@@ -184,10 +194,10 @@ fileGetLength	=		40
 fileGetString	=		44
 filePutString	=		48
 
-	.global	abortBop, dropBop, nipBop, doDoesBop, litBop, litBop, dlitBop, doVariableBop, doConstantBop, doDConstantBop, doneBop, yieldBop
+	.global	abortBop, dropBop, nipBop, doDoesBop, litBop, litBop, dlitBop, doVariableBop, doIConstantBop, doLConstantBop, doneBop, yieldBop
 	.global	doByteBop, doShortBop, doIntBop, doFloatBop, refVaractionBop, fetchVaractionBop, intoVaractionBop, addToVaractionBop, subtractFromVaractionBop, doExitBop
 	.global	doExitLBop, doExitMBop, doExitMLBop, doVocabBop, doByteArrayBop, doShortArrayBop, doIntArrayBop, doFloatArrayBop
-	.global	plusBop, ifetchBop, doStructBop, doStructArrayBop, doDoBop, doLoopBop, doLoopNBop, dfetchBop
+	.global	plusBop, ifetchBop, uifetchBop, doStructBop, doStructArrayBop, doDoBop, doLoopBop, doLoopNBop, dfetchBop
 	.global	thisBop, executeBop, executeMethodBop, callBop, gotoBop, iBop, jBop, unloopBop, leaveBop, hereBop, dpBop
 	.global	minusBop, noopBop, devolveBop
 	.global	timesBop, times2Bop, times4Bop, times8Bop, divideBop, divide2Bop, divide4Bop, divide8Bop, divmodBop, modBop, negateBop
@@ -198,7 +208,7 @@ filePutString	=		48
 	.global equals0Bop, notEquals0Bop, greaterThan0Bop, greaterEquals0Bop, lessThan0Bop, lessEquals0Bop
 	.global rpushBop, rpopBop, rdropBop, rpBop, r0Bop, dupBop, checkDupBop, swapBop, overBop
 	.global rotBop, tuckBop, pickBop, spBop, s0Bop, fpBop, ddupBop, dswapBop, ddropBop, doverBop, drotBop
-	.global istoreBop, bstoreBop, ubfetchBop, bfetchBop, c2iBop, sstoreBop, sfetchBop, swfetchBop, w2iBop, dstoreBop
+	.global istoreBop, bstoreBop, ubfetchBop, bfetchBop, c2iBop, sstoreBop, sfetchBop, usfetchBop, w2iBop, dstoreBop
 	.global lstoreBop, lfetchBop, lstoreNextBop, lfetchNextBop, odropBop, plusStoreCellBop, plusStoreAtomicCellBop
 	.global	moveBop, memcmpBop, fillBop, setVaropBop, getVaropBop, strcpyBop, strncpyBop, strlenBop, strcatBop, strncatBop
 	.global	strchrBop, strrchrBop, strcmpBop, strncmpBop, stricmpBop, strstrBop, strtokBop, initStringBop, strFixupBop
@@ -603,12 +613,7 @@ userDef64Type:
 @ local byte ops
 @
 localByteType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	localByteType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-localByteType1:
+    handleVarop
 	lsl	r1, #2
 	sub	r0, rfp, r1					@ r0 points to the byte field
 	@ see if it is a fetch
@@ -637,12 +642,7 @@ localByteFetch:
 
 @------------ unsigned byte support ----------------
 localUByteType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	localUByteType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-localUByteType1:
+	handleVarop
 	lsl	r1, #2
 	sub	r0, rfp, r1					@ r0 points to the byte field
 	@ see if it is a fetch
@@ -866,12 +866,7 @@ localUByteActionTable:
 	.word	localUByteGetDec
 
 fieldByteType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	fieldByteType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-fieldByteType1:
+    handleVarop
 	@ get ptr to byte var into r0
 	@ TOS is base ptr, r1 is field offset in bytes
 	
@@ -880,12 +875,7 @@ fieldByteType1:
 	b	byteEntry	
 
 memberByteType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	memberByteType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-memberByteType1:
+    handleVarop
 	@ get ptr to byte var into r0
 	@ this ptr is base ptr, r1 is field offset in bytes
 	ldr	r0, [rcore, #tp]
@@ -893,6 +883,7 @@ memberByteType1:
 	b	byteEntry	
 	
 localByteArrayType:
+    handleVarop
 	@ get ptr to byte var into r0
 	@ FP is base ptr, r1 is offset in longs
 	ldmia	rsp!, {r0}			@ r0 = array index
@@ -902,6 +893,7 @@ localByteArrayType:
 	b	byteEntry
 
 fieldByteArrayType:
+    handleVarop
 	@ get ptr to byte var into r0
 	@ TOS is struct base ptr, NOS is index
 	@ r1 is field offset in bytes
@@ -911,6 +903,7 @@ fieldByteArrayType:
 	b	byteEntry
 
 memberByteArrayType:
+    handleVarop
 	@ get ptr to into var into r0
 	@ this ptr is base ptr, TOS is index
 	@ r1 is field offset in bytes
@@ -922,12 +915,7 @@ memberByteArrayType:
 
 @----------------- unsigned byte ---------------------------------------
 fieldUByteType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	fieldUByteType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-fieldUByteType1:
+    handleVarop
 	@ get ptr to byte var into r0
 	@ TOS is base ptr, r1 is field offset in bytes
 	
@@ -936,12 +924,7 @@ fieldUByteType1:
 	b	ubyteEntry	
 
 memberUByteType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	memberUByteType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-memberUByteType1:
+    handleVarop
 	@ get ptr to byte var into r0
 	@ this ptr is base ptr, r1 is field offset in bytes
 	ldr	r0, [rcore, #tp]
@@ -949,6 +932,7 @@ memberUByteType1:
 	b	ubyteEntry	
 	
 localUByteArrayType:
+    handleVarop
 	@ get ptr to byte var into r0
 	@ FP is base ptr, r1 is offset in longs
 	ldmia	rsp!, {r0}			@ r0 = array index
@@ -958,6 +942,7 @@ localUByteArrayType:
 	b	ubyteEntry
 
 fieldUByteArrayType:
+    handleVarop
 	@ get ptr to byte var into r0
 	@ TOS is struct base ptr, NOS is index
 	@ r1 is field offset in bytes
@@ -967,6 +952,7 @@ fieldUByteArrayType:
 	b	ubyteEntry
 
 memberUByteArrayType:
+    handleVarop
 	@ get ptr to into var into r0
 	@ this ptr is base ptr, TOS is index
 	@ r1 is field offset in bytes
@@ -988,12 +974,7 @@ memberUByteArrayType:
 @ local short ops
 @
 localShortType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	localShortType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-localShortType1:
+    handleVarop
 	lsl	r1, #2
 	sub	r0, rfp, r1					@ r0 points to the byte field
 	@ see if it is a fetch
@@ -1022,12 +1003,7 @@ localShortFetch:
 
 @------------ unsigned short support ----------------
 localUShortType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	localUShortType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-localUShortType1:
+    handleVarop
 	lsl	r1, #2
 	sub	r0, rfp, r1					@ r0 points to the byte field
 ushortEntry:
@@ -1244,12 +1220,7 @@ localUShortActionTable:
 	.word	localUShortGetDec
 
 fieldShortType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	fieldShortType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-fieldShortType1:
+    handleVarop
 	@ get ptr to short var into r0
 	@ TOS is base ptr, r1 is field offset in bytes
 	
@@ -1258,12 +1229,7 @@ fieldShortType1:
 	b	shortEntry	
 
 memberShortType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	memberShortType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-memberShortType1:
+    handleVarop
 	@ get ptr to short var into r0
 	@ this ptr is base ptr, r1 is field offset in bytes
 	ldr	r0, [rcore, #tp]
@@ -1271,6 +1237,7 @@ memberShortType1:
 	b	shortEntry	
 	
 localShortArrayType:
+    handleVarop
 	@ get ptr to short var into r0
 	@ FP is base ptr, r1 is offset in longs
 	ldmia	rsp!, {r0}			@ r0 = array index
@@ -1281,6 +1248,7 @@ localShortArrayType:
 	b	shortEntry
 
 fieldShortArrayType:
+    handleVarop
 	@ get ptr to short var into r0
 	@ TOS is struct base ptr, NOS is index
 	@ r1 is field offset in bytes
@@ -1291,6 +1259,7 @@ fieldShortArrayType:
 	b	shortEntry
 
 memberShortArrayType:
+    handleVarop
 	@ get ptr to into var into r0
 	@ this ptr is base ptr, TOS is index
 	@ r1 is field offset in bytes
@@ -1304,12 +1273,7 @@ memberShortArrayType:
 @----------------- unsigned short ---------------------------------------
 
 fieldUShortType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	fieldUShortType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-fieldUShortType1:
+    handleVarop
 	@ get ptr to short var into r0
 	@ TOS is base ptr, r1 is field offset in bytes
 	
@@ -1318,12 +1282,7 @@ fieldUShortType1:
 	b	ushortEntry	
 
 memberUShortType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	memberUShortType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-memberUShortType1:
+    handleVarop
 	@ get ptr to short var into r0
 	@ this ptr is base ptr, r1 is field offset in bytes
 	ldr	r0, [rcore, #tp]
@@ -1331,6 +1290,7 @@ memberUShortType1:
 	b	ushortEntry	
 	
 localUShortArrayType:
+    handleVarop
 	@ get ptr to short var into r0
 	@ FP is base ptr, r1 is offset in longs
 	ldmia	rsp!, {r0}			@ r0 = array index
@@ -1341,6 +1301,7 @@ localUShortArrayType:
 	b	ushortEntry
 
 fieldUShortArrayType:
+    handleVarop
 	@ get ptr to short var into r0
 	@ TOS is struct base ptr, NOS is index
 	@ r1 is field offset in bytes
@@ -1351,6 +1312,7 @@ fieldUShortArrayType:
 	b	ushortEntry
 
 memberUShortArrayType:
+    handleVarop
 	@ get ptr to into var into r0
 	@ this ptr is base ptr, TOS is index
 	@ r1 is field offset in bytes
@@ -1373,12 +1335,7 @@ memberUShortArrayType:
 @ local int ops
 @
 localIntType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	localIntType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-localIntType1:
+    handleVarop
 	lsl	r1, #2
 	sub	r0, rfp, r1					@ r0 points to the int field
 	@ see if it is a fetch
@@ -1532,12 +1489,7 @@ localIntActionTable:
 	.word	localIntGetDec
 
 fieldIntType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	fieldIntType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-fieldIntType1:
+    handleVarop
 	@ get ptr to int var into r0
 	@ TOS is base ptr, r1 is field offset in bytes
 	
@@ -1546,12 +1498,7 @@ fieldIntType1:
 	b	intEntry	
 
 memberIntType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	memberIntType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-memberIntType1:
+    handleVarop
 	@ get ptr to int var into r0
 	@ this ptr is base ptr, r1 is field offset in bytes
 	ldr	r0, [rcore, #tp]
@@ -1559,6 +1506,7 @@ memberIntType1:
 	b	intEntry	
 	
 localIntArrayType:
+    handleVarop
 	@ get ptr to int var into r0
 	@ FP is base ptr, r1 is offset in longs
 	ldmia	rsp!, {r0}			@ r0 = array index
@@ -1568,6 +1516,7 @@ localIntArrayType:
 	b	intEntry
 
 fieldIntArrayType:
+    handleVarop
 	@ get ptr to int var into r0
 	@ TOS is struct base ptr, NOS is index
 	@ r1 is field offset in bytes
@@ -1578,6 +1527,7 @@ fieldIntArrayType:
 	b	intEntry
 
 memberIntArrayType:
+    handleVarop
 	@ get ptr to into var into r0
 	@ this ptr is base ptr, TOS is index
 	@ r1 is field offset in bytes
@@ -1600,12 +1550,7 @@ memberIntArrayType:
 @ local float ops
 @
 localFloatType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	localFloatType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-localFloatType1:
+    handleVarop
 	lsl	r1, #2
 	sub	r0, rfp, r1					@ r0 points to the int field
 	@ see if it is a fetch
@@ -1700,12 +1645,7 @@ localFloatActionTable:
 	.word	localFloatMinus
 
 fieldFloatType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	fieldFloatType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-fieldFloatType1:
+    handleVarop
 	@ get ptr to float var into r0
 	@ TOS is base ptr, r1 is field offset in bytes
 	
@@ -1714,12 +1654,7 @@ fieldFloatType1:
 	b	floatEntry	
 
 memberFloatType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	memberFloatType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-memberFloatType1:
+    handleVarop
 	@ get ptr to float var into r0
 	@ this ptr is base ptr, r1 is field offset in bytes
 	ldr	r0, [rcore, #tp]
@@ -1727,6 +1662,7 @@ memberFloatType1:
 	b	floatEntry	
 	
 localFloatArrayType:
+    handleVarop
 	@ get ptr to float var into r0
 	@ FP is base ptr, r1 is offset in longs
 	ldmia	rsp!, {r0}			@ r0 = array index
@@ -1736,6 +1672,7 @@ localFloatArrayType:
 	b	floatEntry
 
 fieldFloatArrayType:
+    handleVarop
 	@ get ptr to float var into r0
 	@ TOS is struct base ptr, NOS is index
 	@ r1 is field offset in bytes
@@ -1746,6 +1683,7 @@ fieldFloatArrayType:
 	b	floatEntry
 
 memberFloatArrayType:
+    handleVarop
 	@ get ptr to into var into r0
 	@ this ptr is base ptr, TOS is index
 	@ r1 is field offset in bytes
@@ -1768,12 +1706,7 @@ memberFloatArrayType:
 @ local double ops
 @
 localDoubleType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	localDoubleType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-localDoubleType1:
+    handleVarop
 	lsl	r1, #2
 	sub	r0, rfp, r1					@ r0 points to the int field
 	@ see if it is a fetch
@@ -1868,12 +1801,7 @@ localDoubleActionTable:
 	.word	localDoubleMinus
 
 fieldDoubleType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	fieldDoubleType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-fieldDoubleType1:
+    handleVarop
 	@ get ptr to double var into r0
 	@ TOS is base ptr, r1 is field offset in bytes
 	
@@ -1882,12 +1810,7 @@ fieldDoubleType1:
 	b	doubleEntry	
 
 memberDoubleType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	memberDoubleType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-memberDoubleType1:
+    handleVarop
 	@ get ptr to double var into r0
 	@ this ptr is base ptr, r1 is field offset in bytes
 	ldr	r0, [rcore, #tp]
@@ -1895,6 +1818,7 @@ memberDoubleType1:
 	b	doubleEntry	
 	
 localDoubleArrayType:
+    handleVarop
 	@ get ptr to double var into r0
 	@ FP is base ptr, r1 is offset in longs
 	ldmia	rsp!, {r0}			@ r0 = array index
@@ -1904,6 +1828,7 @@ localDoubleArrayType:
 	b	doubleEntry
 
 fieldDoubleArrayType:
+    handleVarop
 	@ get ptr to double var into r0
 	@ TOS is struct base ptr, NOS is index
 	@ r1 is field offset in bytes
@@ -1914,6 +1839,7 @@ fieldDoubleArrayType:
 	b	doubleEntry
 
 memberDoubleArrayType:
+    handleVarop
 	@ get ptr to into var into r0
 	@ this ptr is base ptr, TOS is index
 	@ r1 is field offset in bytes
@@ -1936,12 +1862,7 @@ memberDoubleArrayType:
 @ local long ops
 @
 localLongType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	localLongType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-localLongType1:
+    handleVarop
 	lsl	r1, #2
 	sub	r0, rfp, r1					@ r0 points to the int field
 	@ see if it is a fetch
@@ -1965,8 +1886,7 @@ longEntry:
 	@ fetch local long
 localLongFetch:
 	ldrd	r2, [r0]
-	mov	r1, r3
-	stmdb	rsp!, {r1,r2}			@ push long on TOS
+	stmdb	rsp!, {r2,r3}			@ push long on TOS
 	bx	lr
 
 localLongRef:
@@ -1974,28 +1894,27 @@ localLongRef:
 	bx	lr
 	
 localLongStore:
-	ldmia	rsp!, {r1,r2}			@ pop TOS long value into r2,r3
-	mov	r3, r1						@ r2 is lo, r3 is hi
+	ldmia	rsp!, {r2,r3}			@ pop TOS long value into r2,r3
 	strd	r2, [r0]				@ store long
 	bx	lr
 	
 localLongPlusStore:
 	ldmia	rsp!, {r2,r3}			@ pop TOS long value into r2,r3
 	push	{r4,r5}
-	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
-	adds r4, r3, r4
-	adc	r5, r2, r5
-	stm	r0!, {r4,r5}
+    ldrd    r4, [r0]				@ r4 is lo, r5 is hi
+	adds r4, r2, r4
+	adc	r5, r3, r5
+    strd    r4, [r0]
 	pop	{r4,r5}
 	bx	lr
 	
 localLongMinusStore:
 	ldmia	rsp!, {r2,r3}			@ pop TOS long value into r2,r3
 	push	{r4,r5}
-	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
-	subs r4, r4, r3
-	sbc	r5, r5, r2
-	stm	r0!, {r4,r5}
+    ldrd    r4, [r0]				@ r4 is lo, r5 is hi
+	subs r4, r4, r2
+	sbc	r5, r5, r3
+    strd    r4, [r0]
 	pop	{r4,r5}
 	bx	lr
 
@@ -2009,10 +1928,10 @@ localLongClear:
 localLongPlus:
 	ldm	rsp, {r2,r3}			@ load TOS long value into r2,r3
 	push	{r4,r5}
-	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
-	adds r3, r3, r4
-	adc	r2, r2, r5
-	stm	rsp, {r2,r3}
+    ldrd    r4, [r0]				@ r4 is lo, r5 is hi
+	adds r2, r2, r4
+	adc	r3, r3, r5
+	strd	r2, [r0]
 	pop	{r4,r5}
 	bx	lr
 	
@@ -2028,10 +1947,10 @@ localLongInc:
 localLongMinus:
 	ldm	rsp, {r2,r3}			@ load TOS long value into r2,r3
 	push	{r4,r5}
-	ldm	r0, {r4,r5}					@ r4 is lo, r5 is hi
-	subs r3, r3, r4
-	sbc	r2, r2, r5
-	stm	rsp, {r2,r3}
+    ldrd    r4, [r0]				@ r4 is lo, r5 is hi
+	subs r3, r3, r5
+	sbc	r2, r2, r4
+    strd    r2, [r0]
 	pop	{r4,r5}
 	bx	lr
 	
@@ -2051,8 +1970,7 @@ localLongIncGet:
     adds r2, #1
     addeq r3, #1
     strd    r2, [r0]
-    mov	r1, r3
-	stmdb	rsp!, {r1,r2}				@ push long on TOS
+	stmdb	rsp!, {r2,r3}				@ push long on TOS
 	bx	lr
 	
 @ decrement long @ r0 and push on TOS
@@ -2063,15 +1981,13 @@ localLongDecGet:
 	subeq r3, #1
     sub r2, #1
     strd    r2, [r0]
-    mov	r1, r3
-	stmdb	rsp!, {r1,r2}				@ push long on TOS
+	stmdb	rsp!, {r2,r3}				@ push long on TOS
 	bx	    lr
 	
 @ push long @ r0 on TOS then increment
 localLongGetInc:
 	ldrd	r2, [r0]
-    mov	r1, r3
-	stmdb	rsp!, {r1,r2}				@ push long on TOS
+	stmdb	rsp!, {r2,r3}				@ push long on TOS
     adds r2, #1
     addeq r3, #1
     strd    r2, [r0]
@@ -2080,8 +1996,7 @@ localLongGetInc:
 @ push long @ r0 on TOS then decrement
 localLongGetDec:
 	ldrd	r2, [r0]
-    mov	r1, r3
-	stmdb	rsp!, {r1,r2}				@ push long on TOS
+	stmdb	rsp!, {r2,r3}				@ push long on TOS
 	eor r1, r1
 	cmp r2, r1
 	subeq r3, #1
@@ -2124,12 +2039,7 @@ localLongActionTable:
 
 
 fieldLongType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	fieldLongType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-fieldLongType1:
+    handleVarop
 	@ get ptr to long var into r0
 	@ TOS is base ptr, r1 is field offset in bytes
 	
@@ -2138,12 +2048,7 @@ fieldLongType1:
 	b	longEntry	
 
 memberLongType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	memberLongType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-memberLongType1:
+    handleVarop
 	@ get ptr to long var into r0
 	@ this ptr is base ptr, r1 is field offset in bytes
 	ldr	r0, [rcore, #tp]
@@ -2151,6 +2056,7 @@ memberLongType1:
 	b	longEntry	
 	
 localLongArrayType:
+    handleVarop
 	@ get ptr to long var into r0
 	@ FP is base ptr, r1 is offset in longs
 	ldmia	rsp!, {r0}			@ r0 = array index
@@ -2160,6 +2066,7 @@ localLongArrayType:
 	b	longEntry
 
 fieldLongArrayType:
+    handleVarop
 	@ get ptr to long var into r0
 	@ TOS is struct base ptr, NOS is index
 	@ r1 is field offset in bytes
@@ -2170,6 +2077,7 @@ fieldLongArrayType:
 	b	longEntry
 
 memberLongArrayType:
+    handleVarop
 	@ get ptr to into var into r0
 	@ this ptr is base ptr, TOS is index
 	@ r1 is field offset in bytes
@@ -2192,12 +2100,7 @@ memberLongArrayType:
 @ local string ops
 @
 localStringType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	localStringType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-localStringType1:
+    handleVarop
 	lsl	r1, #2
 	sub	r0, rfp, r1					@ r0 points to the int field
 	@ see if it is a fetch
@@ -2296,12 +2199,7 @@ localStringActionTable:
     .word   localStringClear
 
 fieldStringType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	fieldStringType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-fieldStringType1:
+    handleVarop
 	@ get ptr to string var into r0
 	@ TOS is base ptr, r1 is field offset in bytes
 	
@@ -2310,12 +2208,7 @@ fieldStringType1:
 	b	stringEntry	
 
 memberStringType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	memberStringType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-memberStringType1:
+    handleVarop
 	@ get ptr to string var into r0
 	@ this ptr is base ptr, r1 is field offset in bytes
 	ldr	r0, [rcore, #tp]
@@ -2323,6 +2216,7 @@ memberStringType1:
 	b	stringEntry	
 	
 localStringArrayType:
+    handleVarop
 	@ get ptr to string var into r0
 	@ FP is base ptr, r1 is offset in longs
 	ldmia	rsp!, {r0}			@ r0 = array index
@@ -2332,6 +2226,7 @@ localStringArrayType:
 	b	stringEntry
 
 fieldStringArrayType:
+    handleVarop
 	@ get ptr to string var into r0
 	@ TOS is struct base ptr, NOS is index
 	@ r1 is field offset in bytes
@@ -2342,6 +2237,7 @@ fieldStringArrayType:
 	b	stringEntry
 
 memberStringArrayType:
+    handleVarop
 	@ get ptr to into var into r0
 	@ this ptr is base ptr, TOS is index
 	@ r1 is field offset in bytes
@@ -2364,12 +2260,7 @@ memberStringArrayType:
 @ local op ops
 @
 localOpType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	localOpType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-localOpType1:
+    handleVarop
 	lsl	r1, #2
 	sub	r0, rfp, r1					@ r0 points to the op field
 	@ see if it is a fetch
@@ -2423,12 +2314,7 @@ localOpActionTable:
 	.word	localIntStore
 
 fieldOpType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	fieldOpType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-fieldOpType1:
+    handleVarop
 	@ get ptr to op var opo r0
 	@ TOS is base ptr, r1 is field offset in bytes
 	
@@ -2437,12 +2323,7 @@ fieldOpType1:
 	b	opEntry	
 
 memberOpType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	memberOpType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-memberOpType1:
+    handleVarop
 	@ get ptr to op var opo r0
 	@ this ptr is base ptr, r1 is field offset in bytes
 	ldr	r0, [rcore, #tp]
@@ -2450,6 +2331,7 @@ memberOpType1:
 	b	opEntry	
 	
 localOpArrayType:
+    handleVarop
 	@ get ptr to op var opo r0
 	@ FP is base ptr, r1 is offset in longs
 	ldmia	rsp!, {r0}			@ r0 = array index
@@ -2459,6 +2341,7 @@ localOpArrayType:
 	b	opEntry
 
 fieldOpArrayType:
+    handleVarop
 	@ get ptr to op var opo r0
 	@ TOS is struct base ptr, NOS is index
 	@ r1 is field offset in bytes
@@ -2469,6 +2352,7 @@ fieldOpArrayType:
 	b	opEntry
 
 memberOpArrayType:
+    handleVarop
 	@ get ptr to opo var opo r0
 	@ this ptr is base ptr, TOS is index
 	@ r1 is field offset in bytes
@@ -2491,12 +2375,7 @@ memberOpArrayType:
 @ local object ops
 @
 localObjectType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	localObjectType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-localObjectType1:
+    handleVarop
 	lsl	r1, #2
 	sub	r0, rfp, r1					@ r0 points to the int field
 	@ see if it is a fetch
@@ -2707,12 +2586,7 @@ localObjectActionTable:
 
 	
 fieldObjectType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	fieldObjectType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-fieldObjectType1:
+    handleVarop
 	@ get ptr to object var into r0
 	@ TOS is base ptr, r1 is field offset in bytes
 	
@@ -2721,12 +2595,7 @@ fieldObjectType1:
 	b	objectEntry	
 
 memberObjectType:
-	lsrs	r0, r1, #VAROP_SHIFT
-	beq	memberObjectType1
-	str	r0, [rcore, #varmode]
-	mvn	r2, #VAROP_HIMASK
-	and	r1, r2
-memberObjectType1:
+    handleVarop
 	@ get ptr to object var into r0
 	@ this ptr is base ptr, r1 is field offset in bytes
 	ldr	r0, [rcore, #tp]
@@ -2734,6 +2603,7 @@ memberObjectType1:
 	b	objectEntry	
 	
 localObjectArrayType:
+    handleVarop
 	@ get ptr to object var into r0
 	@ FP is base ptr, r1 is offset in objects
 	ldmia	rsp!, {r0}			@ r0 = array index
@@ -2743,6 +2613,7 @@ localObjectArrayType:
 	b	objectEntry
 
 fieldObjectArrayType:
+    handleVarop
 	@ get ptr to object var into r0
 	@ TOS is struct base ptr, NOS is index
 	@ r1 is field offset in bytes
@@ -2753,6 +2624,7 @@ fieldObjectArrayType:
 	b	objectEntry
 
 memberObjectArrayType:
+    handleVarop
 	@ get ptr to into var into r0
 	@ this ptr is base ptr, TOS is index
 	@ r1 is field offset in bytes
@@ -2869,18 +2741,18 @@ doVariableBop:
 	ldmia	rrp!, {rip}		@ pop return stack into IP
 	bx	lr
 
-@@@@@@@@@@@@@@@@@  _doConstant  @@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@  _doIConstant  @@@@@@@@@@@@@@@@@
 
-doConstantBop:
+doIConstantBop:
 	@ IP points to immediate data field
 	ldr	r0, [rip]			@ fetch data in immedate field pointed to by IP
 	stmdb	rsp!, {r0}
 	ldmia	rrp!, {rip}		@ pop return stack into IP
 	bx	lr
 
-@@@@@@@@@@@@@@@@@  _doDConstant  @@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@  _doLConstant  @@@@@@@@@@@@@@@@@
 
-doDConstantBop:
+doLConstantBop:
 	@ IP points to immediate data field
 	ldmia	rip!, {r0, r1}
 	stmdb	rsp!, {r0, r1}
@@ -3333,6 +3205,7 @@ plusBop:
 	
 @@@@@@@@@@@@@@@@@  @  @@@@@@@@@@@@@@@@@
 
+uifetchBop:
 ifetchBop:
 	ldr	r0, [rsp]
 	ldr	r1, [r0]
@@ -3359,15 +3232,13 @@ ifetchNextBop:
 lfetchBop:
 	ldmia	rsp!, {r0}
 	ldrd	r2, [r0]
-	mov	r1, r3
-	stmdb	rsp!, {r1,r2}			@ push long on TOS
+	stmdb	rsp!, {r2,r3}			@ push long on TOS
 	bx	lr
 
 lstoreNextBop:
-	ldmia	rsp!, {r0,r1,r2}	@ r1/r2 = value, r0 = ptr to dest ptr
+	ldmia	rsp!, {r0,r1,r2}	@ r2/r3 = value, r0 = ptr to dest ptr
 	ldr	r3, [r0]				@ r3 = dest ptr
-	stmia	r3!, {r2}			@ store value and advance dest ptr
-	stmia	r3!, {r1}
+	stmia	r3!, {r1,r2}		@ store value and advance dest ptr
 	str	r3, [r0]				@ update stored dest ptr
 	bx	lr
 
@@ -3376,8 +3247,7 @@ lfetchNextBop:
 	ldr	r1, [r0]			@ r1 = src ptr
 	ldmia	r1!, {r2,r3}		@ r2/r3 = fetched value
 	str	r1, [r0]			@ update stored src ptr
-	mov	r1, r3
-	stmdb	rsp!, {r1,r2}			@ push long on TOS
+	stmdb	rsp!, {r2,r3}			@ push long on TOS
 	bx	lr
 	
 
@@ -4376,18 +4246,18 @@ dfmodBop:
 	bx	lr
 
 lplusBop:
-	ldmia	rsp!, {r2, r3}			@ pop TOS long value into r3(lo),r2(hi)
-	ldmia	rsp, {r0, r1}			@ pop TOS long value into r1(lo),r0(hi)
-	adds	r1, r3, r1
-	adc	r0, r2, r0
+	ldmia	rsp!, {r2, r3}			@ pop TOS long value into r2,r3
+	ldmia	rsp, {r0, r1}			@ pop TOS long value into r0,r1
+	adds	r0, r2, r0
+	adc	r1, r3, r1
 	stmia	rsp, {r0, r1}
 	bx	lr
 
 lminusBop:
-	ldmia	rsp!, {r2, r3}			@ pop TOS long value into r3(lo),r2(hi)
-	ldmia	rsp, {r0, r1}			@ pop TOS long value into r1(lo),r0(hi)
-	subs	r1, r1, r3
-	sbc	r0, r0, r2
+	ldmia	rsp!, {r2, r3}			@ pop TOS long value into r2,r3
+	ldmia	rsp, {r0, r1}			@ pop TOS long value into r0,r1
+	subs	r0, r0, r2
+	sbc	r1, r1, r3
 	stmia	rsp, {r0, r1}
 	bx	lr
 
@@ -4400,28 +4270,28 @@ ltimesBop:
 	eor	rip, rip
 	eor	rfp, rfp
 	@ negate a and/or b and stuff absolute values back in stack
-	ldmia	rsp!, {r0, r1}			@ r0=bhi r1=blo
-	ldmia	rsp, {r2, r3}				@ r2=ahi r3=alo
+	ldmia	rsp!, {r0, r1}			@ r0=blo r1=bhi
+	ldmia	rsp, {r2, r3}				@ r2=alo r3=ahi
 	@ negate b if necessary
-	orrs	r0, r0
+	orrs	r1, r1
 	bge	ltimes1
 	@ negate b
 	add	rip, #1
-	subs	r1, rfp, r1
-	sbc	r0, rfp, r0
+	subs	r0, rfp, r0
+	sbc	r1, rfp, r1
 ltimes1:	
 	@ negate a if necessary
-	orrs	r2, r2
+	orrs	r3, r3
 	bge	ltimes2
 	@ negate a
 	add	rip, #1
-	subs	r3, rfp, r3
-	sbc	r2, rfp, r2
+	subs	r2, rfp, r2
+	sbc	r3, rfp, r3
 ltimes2:
-	umull	rrp, rfp, r1, r3		@ rrp = resultLo, rfp = resultHi
-	umull	r0, r3, r0, r3			@ r0 = low 32 bits of (bhi * alo)
+	umull	rrp, rfp, r1, r3		@ rrp = resultLo, rfp = resultHi (of alo * blo)
+	umull	r0, r3, r1, r2			@ r0 = low 32 bits of (bhi * alo)
 	add	rfp, r0
-	umull	r0, r3, r2, r1			@ r0 = low 32 bits of (ahi * blo)
+	umull	r0, r3, r3, r0			@ r0 = low 32 bits of (ahi * blo)
 	add	rfp, r0
 	@ rrp = resultLo, rfp = resultHi
 	tst	rip, #1
@@ -4431,8 +4301,8 @@ ltimes2:
 	subs	rrp, rip, rrp
 	sbc	rfp, rip, rfp
 ltimes3:
-	str	rfp, [rsp]
-	str	rrp, [rsp, #4]
+	str	rrp, [rsp]
+	str	rfp, [rsp, #4]
 	pop {rip, rrp, rfp}				@ restore IP, RP, FP
 	bx	lr
 
@@ -4441,25 +4311,26 @@ ltimes3:
 @            long comparisons                 @
 @                                             @
 @#############################################@
+
 	
 lcmpBop:
 	ldmia	rsp!, {r0, r1, r2, r3}
-	subs	r1, r1, r3
-	eor	r3, r3
-	sbcs	r0, r0, r2
-	sublt	r3, #1
-	addgt	r3, #1
-	stmdb	rsp!, {r3}
+	subs	r0, r0, r2
+	eor	r2, r2
+	sbcs	r1, r1, r3
+	sublt	r2, #1
+	addgt	r2, #1
+	stmdb	rsp!, {r2}
 	bx	lr
 
 ulcmpBop:
 	ldmia	rsp!, {r0, r1, r2, r3}
-	subs	r1, r1, r3
-	eor	r3, r3
-	sbcs	r0, r0, r2
-	subhi	r3, #1
-	addcc	r3, #1
-	stmdb	rsp!, {r3}
+	subs	r0, r0, r2
+	eor	r2, r2
+	sbcs	r1, r1, r3
+	subhi	r2, #1
+	addcc	r2, #1
+	stmdb	rsp!, {r2}
 	bx	lr
     
 @@@@@@@@@@@@@@@@@  l=  @@@@@@@@@@@@@@@@@
@@ -4492,44 +4363,44 @@ lNotEqualsBop:
 
 lGreaterThanBop:
 	ldmia	rsp!, {r0, r1, r2, r3}
-	subs	r1, r1, r3
-	eor	r3, r3
-	sbcs	r0, r0, r2
-	subgt	r3, #1
-	stmdb	rsp!, {r3}
+	subs	r0, r0, r2
+	eor	r2, r2
+	sbcs	r1, r1, r3
+	subgt	r2, #1
+	stmdb	rsp!, {r2}
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  l>=  @@@@@@@@@@@@@@@@@
 
 lGreaterEqualsBop:
 	ldmia	rsp!, {r0, r1, r2, r3}
-	subs	r1, r1, r3
-	eor	r3, r3
-	sbcs	r0, r0, r2
-	subge	r3, #1
-	stmdb	rsp!, {r3}
+	subs	r0, r0, r2
+	eor	r2, r2
+	sbcs	r1, r1, r3
+	subge	r2, #1
+	stmdb	rsp!, {r2}
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  l<  @@@@@@@@@@@@@@@@@
 
 lLessThanBop:
 	ldmia	rsp!, {r0, r1, r2, r3}
-	subs	r1, r1, r3
-	eor	r3, r3
-	sbcs	r0, r0, r2
-	sublt	r3, #1
-	stmdb	rsp!, {r3}
+	subs	r0, r0, r2
+	eor	r2, r2
+	sbcs	r1, r1, r3
+	sublt	r2, #1
+	stmdb	rsp!, {r2}
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  l<=  @@@@@@@@@@@@@@@@@
 
 lLessEqualsBop:
 	ldmia	rsp!, {r0, r1, r2, r3}
-	subs	r1, r1, r3
-	eor	r3, r3
-	sbcs	r0, r0, r2
-	suble	r3, #1
-	stmdb	rsp!, {r3}
+	subs	r0, r0, r2
+	eor	r2, r2
+	sbcs	r1, r1, r3
+	suble	r2, #1
+	stmdb	rsp!, {r2}
 	bx	lr
 
 @@@@@@@@@@@@@@@@@  l0=  @@@@@@@@@@@@@@@@@
@@ -4559,11 +4430,11 @@ lNotEquals0Bop:
 lGreaterThan0Bop:
 	ldmia	rsp!, {r0, r1}
 	eor	r2, r2
-	cmp	r0, r2
+	cmp	r1, r2
     blt lpushFalse      @ hiword negative, fail
     bne lpushTrue      @ hiword positive, succeed
     @ hiword is zero, check loword
-    cmp r1, r2
+    cmp r0, r2
     bne lpushTrue
     b   lpushFalse
     
@@ -4578,7 +4449,7 @@ lpushFalse:
 lGreaterEquals0Bop:
 	ldmia	rsp!, {r0, r1}
 	eor	r2, r2
-	cmp	r0, r2
+	cmp	r1, r2
     blt lpushFalse      @ hiword negative, fail
     b   lpushTrue
 
@@ -4587,7 +4458,7 @@ lGreaterEquals0Bop:
 lLessThan0Bop:
 	ldmia	rsp!, {r0, r1}
 	eor	r2, r2
-	cmp	r0, r2
+	cmp	r1, r2
     blt lpushTrue      @ hiword negative, succeed
     b   lpushFalse
 
@@ -4596,10 +4467,10 @@ lLessThan0Bop:
 lLessEquals0Bop:
 	ldmia	rsp!, {r0, r1}
 	eor	r2, r2
-	cmp	r0, r2
+	cmp	r1, r2
     blt lpushTrue      @ hiword negative, succeed
     bgt lpushFalse
-    cmp r1, r2
+    cmp r0, r2
     beq lpushTrue
     b   lpushFalse
     
@@ -4705,15 +4576,15 @@ invertBop:
 	str	r0, [rsp]
 	bx	lr
 	
-lshiftBop:
+ilshiftBop:
 	ldmia	rsp!, {r0}		@ r0 = shift count
 	ldr	r1, [rsp]
 	lsl	r1, r0
 	str	r1, [rsp]
 	bx	lr
 
-lshift64Bop:
-	ldmia	rsp!, {r0, r1, r2}		@ r0 = N (shift count),  r1 = hipart, r2 = lopart
+llshiftBop:
+	ldmia	rsp!, {r0, r1, r2}		@ r0 = N (shift count),  r1 = lopart, r2 = hipart
 	eor	r3, r3
 	cmp	r0, r3
 	bgt	lsh64_1
@@ -4729,21 +4600,21 @@ lsh64_1:
 	@ N is in 1..31
 	push	{r4, r5}
 	@ rotate lopart left by N
-	sub	r4, r3, r0
-	ror	r2, r4
+	sub	r4, r3, r0          @ r4 = 32 - shiftCount
+	ror	r1, r4
 	@ shift hipart up by N bits 
-	lsl	r1, r0
+	lsl	r2, r0
 	@ make r5 a mask with the bottom N bits set
 	mov	r5, #1
 	lsl	r5, r0
 	sub	r5, #1
 	@ add top bits from lopart to bottom of hipart
-	and	r0, r2, r5
-	orr	r1, r0
+	and	r0, r1, r5
+	orr	r2, r0
 	@ clear out bottom bits of lopart
 	mvn	r0, #0	@ r0 is all ones
 	eor	r0, r5		@ r0 is inverted mask, bottom N bits clear, others set
-	and	r2, r0
+	and	r1, r0
 	stmdb	rsp!, {r1, r2}
 	pop	{r4, r5}
 	bx	lr
@@ -4756,8 +4627,8 @@ lsh64_2:
 	@ N is in 32..63
 	@ hipart is old lshift(lopart, n - 32), lopart is 0
 	sub	r0, #32
-	lsl	r1, r2, r0
-	eor	r2, r2
+	lsl	r2, r1, r0
+	eor	r1, r1
 	stmdb	rsp!, {r1, r2}
 	bx	lr
 	
@@ -4769,8 +4640,8 @@ lsh64_3:
 	bx	lr
 	
 
-rshift64Bop:
-	ldmia	rsp!, {r0, r1, r2}		@ r0 = N (shift count),  r1 = hipart, r2 = lopart
+lrshiftBop:
+	ldmia	rsp!, {r0, r1, r2}		@ r0 = N (shift count),  r1 = lopart, r2 = hipart
 	eor	r3, r3
 	cmp	r0, r3
 	bgt	rsh64_1
@@ -4786,9 +4657,9 @@ rsh64_1:
 	@ N is in 1..31
 	push	{r4, r5}
 	@ rotate hipart right by N
-	ror	r1, r0
+	ror	r2, r0
 	@ shift lopart down by N bits 
-	lsr r2, r0
+	lsr r1, r0
 	@ make r5 a mask with the top N bits clear, all others set
 	mov	r5, #1
 	ror	r5, r0
@@ -4797,10 +4668,10 @@ rsh64_1:
 	mvn	r0, #0	@ r0 is all ones
 	eor	r4, r0, r5
 	@ add bottom bits from hipart to top of lopart
-	and	r0, r1, r4
-	orr	r2, r0
+	and	r0, r2, r4
+	orr	r1, r0
 	@ clear out top bits of hipart
-	and	r1, r5
+	and	r2, r5
 	stmdb	rsp!, {r1, r2}
 	pop	{r4, r5}
 	bx	lr
@@ -4811,10 +4682,10 @@ rsh64_2:
 	bge	rsh64_3
 
 	@ N is in 32..63
-	@ lopart is rshift(old lopart, n - 32), hipart is 0
+	@ lopart is rshift(old hipart, n - 32), hipart is 0
 	sub	r0, #32
-	lsr	r2, r1, r0
-	eor	r1, r1
+	lsr	r1, r2, r0
+	eor	r2, r2
 	stmdb	rsp!, {r1, r2}
 	bx	lr
 	
@@ -4826,14 +4697,14 @@ rsh64_3:
 	bx	lr
 	
 
-rotate64Bop:
+lrotateBop:
 	ldmia	rsp!, {r0}		@ r0 = N (the shift count)
-	ldmia	rsp, {r1, r2}	@ r1 = hipart, r2 = lopart
+	ldmia	rsp, {r1, r2}	@ r1 = lopart, r2 = hipart
 
 	@ translate from left to right (no rol instruction)
 	mov	r3, #63
 	and	r0, r3
-	rsbs	r0, r0, #64
+	rsbs	r0, r0, #64     @ r0 = 64 - shift count
 	bne	rot64_1
 	@ N == 0, leave unshifted result on TOS
 	bx	lr
@@ -4851,8 +4722,8 @@ rot64_1:
 	sub	r0, #32
 
 rot64_2:
-	ror	r4, r1, r0		@ r4 is rotated hipart
-	ror	r5, r2, r0		@ r5 is rotated lopart
+	ror	r4, r2, r0		@ r4 is rotated hipart
+	ror	r5, r1, r0		@ r5 is rotated lopart
 	@ make r3 a mask with the top N bits clear, all others set
 	mov	r3, #1
 	ror	r3, r0
@@ -4861,15 +4732,15 @@ rot64_2:
 	mvn	r0, #0	@ r0 is all ones
 	eor	r0, r0, r3
 	@ make hipart
-	and	r1, r3, r4
-	and	r2, r0, r5
-	orr	r1, r2
-	str	r1, [rsp]
+	and	r2, r3, r4
+	and	r1, r0, r5
+	orr	r2, r1
+	str	r2, [rsp]
 	@ make lopart
-	and	r1, r3, r5
-	and	r2, r0, r4
-	orr	r1, r2
-	str	r1, [rsp, #4]
+	and	r2, r3, r5
+	and	r1, r0, r4
+	orr	r2, r1
+	str	r2, [rsp, #4]
 	pop	{r4, r5}
 	bx	lr
 
@@ -4881,14 +4752,14 @@ arshiftBop:
 	str	r1, [rsp]
 	bx	lr
 
-rshiftBop:
+irshiftBop:
 	ldmia	rsp!, {r0}		@ r0 = shift count
 	ldr	r1, [rsp]
 	mov	r2, r1, lsr r0
 	str	r2, [rsp]
 	bx	lr
  	
-rotateBop:
+irotateBop:
 	ldmia	rsp!, {r0}		@ r0 = shift count
 	ldr	r1, [rsp]
 	mov	r2, #32
@@ -4948,7 +4819,7 @@ reverse32:
 .revConstants:
 	.word	0x003f801f, 0x0E038421, 0x22488842
 
-reverseBop:
+ireverseBop:
 	ldr	r0, [rsp]
 	push	{lr}
 	bl	reverse32
@@ -5861,8 +5732,7 @@ istoreBop:
 @@@@@@@@@@@@@@@@@  l!  @@@@@@@@@@@@@@@@@
 
 lstoreBop:
-	ldmia	rsp!, {r0,r1,r2}	@ r0 = long ptr
-	mov	r3, r1
+	ldmia	rsp!, {r0,r2,r3}	@ r0 = long ptr
 	strd	r2, [r0]				@ store long
 	bx	lr
 
@@ -5915,18 +5785,24 @@ c2iBop:
 	str	r0, [rsp]
 	bx	lr
 
-@@@@@@@@@@@@@@@@@  w!  @@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@  s!  @@@@@@@@@@@@@@@@@
 
 sstoreBop:
 	ldmia	rsp!, {r0, r1}	@ r0 = short ptr, r1 = value
 	strh	r1, [r0]
 	bx	lr
 
-@@@@@@@@@@@@@@@@@  w@  @@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@  s@  @@@@@@@@@@@@@@@@@
 
 sfetchBop:
 	ldr	r0, [rsp]
 	ldrsh	r1, [r0]
+	str	r1, [rsp]
+	bx	lr
+
+usfetchBop:
+	ldr	r0, [rsp]
+	ldrh	r1, [r0]
 	str	r1, [rsp]
 	bx	lr
 
@@ -7579,17 +7455,16 @@ squishedLongType:
 	@ positive constant
 	ldr	r0, =0x00FFFFFF
 	and	r0, r1
-	stmdb	rsp!, {r0}
-	eor	r0, r0
-	stmdb	rsp!, {r0}
+	eor	r1, r1
+	stmdb	rsp!, {r0,r1}
 	bx	lr
 	
 longConstantNegative:
 	ldr	r0, =0xFF000000
 	orr	r0, r1
 	stmdb	rsp!, {r0}
-	ldr	r0, =0xFFFFFFFF
-	stmdb	rsp!, {r0}
+	ldr	r1, =0xFFFFFFFF
+	stmdb	rsp!, {r0,r1}
 	bx	lr
 
 

@@ -39,13 +39,6 @@ code abs
   rsp ] r0 str,
   next,
   
-code +!
-  rsp ia! { r0 r1 } ldm,	\ r0 is ptr to dst ptr, r1 is amount to add
-  r0 ] r2 ldr,
-  r1 r2 r2 add,
-  r0 ] r2 str,
-  next,
-  
 code roll
   \ TOS is number of entries to roll (1 means swap, 2 means rot)
   { r0 } ppop,

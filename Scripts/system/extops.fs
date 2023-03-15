@@ -29,8 +29,9 @@ lf extops_arm
 ;
 precedence doescode
 
+#if 0
 : fm/mod
-  int denominator!
+  cell denominator!
   long numerator!
   sm/rem( numerator denominator )
   int quotient!
@@ -51,16 +52,28 @@ precedence doescode
   quotient--
   remainder quotient
 ;
+#endif
+
+: fm/mod ( d n -- rem quot )
+  dup >r
+  sm/rem
+  ( if the remainder is not zero and has a different sign than the divisor )
+  over dup 0<> swap 0< r@ 0< xor and if
+    1- swap r> + swap
+  else
+    rdrop
+  then
+;
 
 \ ud1 c-addr1 u1 -- ud2 c-addr2 u2 
 : >number
   \ ds
-  int numChars!
-  int pSrc!
-  long accum!
-  base @ i2l long lbase!
+  cell numChars!
+  cell pSrc!
+  dcell accum
+  accum 2!
   begin
-    pSrc @ byte ch!
+    pSrc b@ byte ch!
     if( ch `0` >= ch `9` <= and )
       `0` ch!-
     else
@@ -75,7 +88,7 @@ precedence doescode
     if( ch base @ < )
       pSrc++
       numChars--
-      accum lbase l* ch i2l l+ accum!
+      accum.lo base @ um* accum.hi base @ um* swap d+ ch 0 d+ accum 2!
       \ "adding " %s ch %d " total " %s accum %2d  %bl %bl numChars %d " chars left" %s %nl
       numChars 0=
     else
@@ -83,10 +96,22 @@ precedence doescode
     endif
   until
 
-  accum
+  accum 2@
   pSrc
   numChars
 ;
+
+: ud/mod
+\  >r 0 i um/mod r> swap >r um/mod r>
+  cell aa! 0 aa um/mod aa swap aa! um/mod aa
+;
+
+: dabs
+  dup 0< if
+    dnegate
+  endif
+;
+
 
 loaddone
 
