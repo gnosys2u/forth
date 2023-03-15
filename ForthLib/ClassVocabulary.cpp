@@ -96,12 +96,24 @@ void ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
 
     // if new instance name ends in '!', chop the '!' and initialize the new instance
     size_t instanceNameLen = strlen(pInstanceName);
-    bool doInitializationVarop = false;
-    if (instanceNameLen > 1 && pInstanceName[instanceNameLen - 1] == '!' && pOuter->CheckFeature(kFFAllowVaropSuffix))
+    VarOperation initVarOp = VarOperation::kVarDefaultOp;
+
+    if (pOuter->CheckFeature(kFFAllowVaropSuffix))
     {
-        instanceNameLen--;
-        pInstanceName[instanceNameLen] = '\0';
-        doInitializationVarop = true;
+        if (instanceNameLen > 1 && pInstanceName[instanceNameLen - 1] == '!')
+        {
+            instanceNameLen--;
+            pInstanceName[instanceNameLen] = '\0';
+            initVarOp = VarOperation::kVarSet;
+        }
+        else if (instanceNameLen > 2
+            && pInstanceName[instanceNameLen - 2] == '!'
+            && pInstanceName[instanceNameLen - 1] == 'o')
+        {
+            instanceNameLen -= 2;
+            pInstanceName[instanceNameLen] = '\0';
+            initVarOp = VarOperation::kVarStoreNoRef;
+        }
     }
 
     if (pContainedClassName != nullptr)
@@ -156,13 +168,13 @@ void ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
             pHere = (ForthObject*)mpEngine->GetDP();
             bool bCompileInstanceOp = pOuter->GetLastCompiledIntoPtr() == (((forthop *)pHere) - 1);
             pOuter->AddLocalVar( pInstanceName, typeCode, nBytes );
-            if (doInitializationVarop)
+            if (initVarOp != VarOperation::kVarDefaultOp)
             {
                 // local var name ended with '!', so compile op for this local var with varop Set
                 //  so it will be initialized
                 forthop* pEntry = pVocab->GetNewestEntry();
                 forthop op = COMPILED_OP((isPtr ? kOpLocalCell : kOpLocalObject), pEntry[0]);
-                pOuter->CompileOpcode(op | ((forthop)VarOperation::kVarSet) << 20);
+                pOuter->CompileOpcode(op | ((forthop)initVarOp) << 20);
             }
             else if (bCompileInstanceOp)
             {
@@ -218,7 +230,7 @@ void ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
                 pOuter->AddGlobalObjectVariable(pHere, this, pInstanceName);
             }
 
-            if ( GET_VAR_OPERATION == VarOperation::kVarSet || doInitializationVarop)
+            if ( GET_VAR_OPERATION == VarOperation::kVarSet || (initVarOp != VarOperation::kVarDefaultOp))
             {
                 ForthObject srcObj = (ForthObject)SPOP;
                 if ( isPtr )
