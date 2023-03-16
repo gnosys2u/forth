@@ -280,6 +280,34 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+March 15 2023
+
+I got the raspberry pi ARM32 build working again with the latest changes.
+There is some odd problem going on, I'm not sure if it is because of the recent
+changes.  Some symptoms are:
+
+o if I load the atc game, none of its symbols appears in the dictionary
+o if I load helpdeck, doing just 'help' will show all the symbols which
+  have been added to the helpdeck, but if I try to get help for an individual
+  operator or class it will say 'not found'
+
+ I know the ARM32 build is in general executing scripts, there were errors found
+ by ansitest, forthtest and vartest.
+
+ DOH! The helpdeck problem also exists on Windows.  The atc problem doesn't happen
+ on Windows.
+
+ The helpdeck problem was caused by me using 64-bit shifts on 32-bit linkIds.
+ I'm surprised there wasn't a stack underflow on ARM32.
+
+ The atc problem only happens if you don't specify the full filename, 'lf atc' fails
+ but 'lf atc.fs' works.  I can't think of a reason why that would be platform specific.
+ If you do 'lf someGarbageName' it will report an error, so the code knows that
+ there is an atc.fs when you just ask for 'atc'.
+
+ Step 1 of ANSI-izing is done, next steps are to support ANSI double number and
+ float literals, and after that start working on full ANSI 2012 compatability.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 March 14 2023
 
 I'm still having tons of fun with ANSIizing.  Most of my pain is because of how

@@ -169,16 +169,16 @@ class: Note
   ;m
   
   : link2type
-    26 lrshift
+    26 irshift
   ;
   
   : linkSplit           \ LINK ... NODE_ID LINK_TYPE
     dup $3FFFFFF and
-    swap 26 lrshift
+    swap 26 irshift
   ;
   
   m: addLink            \ NODE_ID LINK_TYPE ...
-    links.push(26 llshift or)
+    links.push(26 ilshift or)
   ;m
   
   m: findNextLink       \ START_INDEX LINK_TYPE ...    false   OR    NODE_ID NEXT_INDEX true
