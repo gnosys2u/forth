@@ -24,6 +24,9 @@ FORTHDLL_API int fnForthDLL(void);
 #endif
 
 #include "Engine.h"
+#include "BufferInputStream.h"
+#include "ConsoleInputStream.h"
+#include "FileInputStream.h"
 
 FORTHDLL_API Engine* CreateForthEngine();
 FORTHDLL_API Shell* CreateForthShell(int argc, const char** argv, const char** envp,

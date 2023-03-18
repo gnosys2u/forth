@@ -33,7 +33,13 @@ SRCS = \
 	Engine.cpp \
 	OuterInterpreter.cpp \
 	ForthInner.cpp \
-	Input.cpp \
+	InputStack.cpp \
+	InputStream.cpp \
+	BlockInputStream.cpp \
+	BufferInputStream.cpp \
+	ConsoleInputStream.cpp \
+	ExpressionInputStream.cpp \
+	FileInputStream.cpp \
 	Vocabulary.cpp \
 	BuiltinClasses.cpp \
 	Extension.cpp \

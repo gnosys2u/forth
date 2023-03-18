@@ -22,6 +22,8 @@
 #include <ctype.h>
 
 #include <cassert>
+#include <string>
+#include <vector>
 
 #include <winnt.h>
 

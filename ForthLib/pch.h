@@ -79,7 +79,7 @@
 #include "Engine.h"
 #include "Forgettable.h"
 #include "ForthInner.h"
-#include "Input.h"
+#include "InputStream.h"
 #include "Shell.h"
 #include "StructVocabulary.h"
 #include "Thread.h"

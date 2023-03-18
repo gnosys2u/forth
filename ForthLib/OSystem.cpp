@@ -17,6 +17,7 @@
 #include "ShowContext.h"
 #include "Thread.h"
 #include "ForthPortability.h"
+#include "InputStack.h"
 
 #include "TypesManager.h"
 #include "ClassVocabulary.h"

@@ -496,8 +496,13 @@
     <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ForthLib\BlockInputStream.h" />
+    <ClInclude Include="..\ForthLib\BufferInputStream.h" />
     <ClInclude Include="..\ForthLib\ClassVocabulary.h" />
+    <ClInclude Include="..\ForthLib\ConsoleInputStream.h" />
     <ClInclude Include="..\ForthLib\DLLVocabulary.h" />
+    <ClInclude Include="..\ForthLib\ExpressionInputStream.h" />
+    <ClInclude Include="..\ForthLib\FileInputStream.h" />
     <ClInclude Include="..\ForthLib\Forth.h" />
     <ClInclude Include="..\ForthLib\BlockFileManager.h" />
     <ClInclude Include="..\ForthLib\BuiltinClasses.h" />
@@ -506,7 +511,8 @@
     <ClInclude Include="..\ForthLib\Extension.h" />
     <ClInclude Include="..\ForthLib\Forgettable.h" />
     <ClInclude Include="..\ForthLib\ForthInner.h" />
-    <ClInclude Include="..\ForthLib\Input.h" />
+    <ClInclude Include="..\ForthLib\InputStream.h" />
+    <ClInclude Include="..\ForthLib\InputStack.h" />
     <ClInclude Include="..\ForthLib\MemoryManager.h" />
     <ClInclude Include="..\ForthLib\ForthMessages.h" />
     <ClInclude Include="..\ForthLib\Object.h" />
@@ -542,7 +548,10 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\ForthLib\BlockInputStream.cpp" />
+    <ClCompile Include="..\ForthLib\BufferInputStream.cpp" />
     <ClCompile Include="..\ForthLib\ClassVocabulary.cpp" />
+    <ClCompile Include="..\ForthLib\ConsoleInputStream.cpp" />
     <ClCompile Include="..\ForthLib\DLLVocabulary.cpp" />
     <ClCompile Include="..\ForthLib\BlockFileManager.cpp" />
     <ClCompile Include="..\ForthLib\BuiltinClasses.cpp" />
@@ -573,7 +582,9 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">true</BrowseInformation>
     </ClCompile>
+    <ClCompile Include="..\ForthLib\ExpressionInputStream.cpp" />
     <ClCompile Include="..\ForthLib\Extension.cpp" />
+    <ClCompile Include="..\ForthLib\FileInputStream.cpp" />
     <ClCompile Include="..\ForthLib\Forgettable.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">Disabled</Optimization>
@@ -626,32 +637,8 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">true</BrowseInformation>
     </ClCompile>
-    <ClCompile Include="..\ForthLib\Input.cpp">
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">Disabled</Optimization>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">EnableFastChecks</BasicRuntimeChecks>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">true</BrowseInformation>
-    </ClCompile>
+    <ClCompile Include="..\ForthLib\InputStream.cpp" />
+    <ClCompile Include="..\ForthLib\InputStack.cpp" />
     <ClCompile Include="..\ForthLib\MemoryManager.cpp" />
     <ClCompile Include="..\ForthLib\ObjectReader.cpp" />
     <ClCompile Include="..\ForthLib\OpcodeCompiler.cpp" />

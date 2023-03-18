@@ -280,6 +280,93 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+March 17 2023
+
+The handling of character literals and string literals currently gets involved
+in the getting of the next token (tokenizing).  Changing over to ANSI character
+literals would allow removing character literal checking from tokenizing, since
+now character literals can't include any whitespace, but unfortunately string
+literals still need to be involved in tokenizing since they must be allowed to
+include whitespace, otherwise strings would look like "this\sis\sa\sstring"
+which would be horrible.
+
+ParseInfo::ParseSingleQuote is called from:
+    Shell::ParseToken
+    ExpressionInputStream::ProcessExpression
+It is probably easiest to leave character literal processing involved in the
+tokenizing process in order to have it work in both cases.
+
+ExpressionInputStream::ProcessExpression passes keepBackslashes=true to
+ParseSingleQuote - why?
+
+On a different tack, I broke 'Input' into 7 files, with one class in each:
+  InputStack
+  InputStream
+  BlockInputStream
+  BufferInputStream
+  ConsoleInputStream
+  ExpressionInputStream
+  FileInputStream
+
+My first attempt at this angered the Visual Studio gods, I kept getting errors
+reporting that every class I was defining was undefined.  I beat on this for hours,
+and finally went back to the old file and broke out the modules into files a few
+at a time, and finally renamed Input.cpp/h to InputStream.cpp/h, and it worked.
+I have no idea why this was necessary.  I have updated the Makefiles for rpi/linux/macosx
+to reflect the splitting of Input.cpp, but I haven't tried building them.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+March 16 2023
+
+Ugh, I just looked at the ANSI 2012 spec for numeric literals.  It supports
+special literals for decimal (#) and binary (%) as well as hex ($).  The
+optional minus sign appears after the #%$ char.
+
+To make things even more fun, it turns out that they support single character
+literals like 'b' - it says any printable character may be used, I'm not sure
+if that includes space, if so doesn't that break tick (')?  I will need to
+back out my changes for using backtick ` instead of single quote for character
+literals.  I should check if '\' works also.  ' '  and '<TAB>' on gforth gives
+the execution token for tick, not the values of space or tab.
+My backtick changes were on Dec. 27 2019, commit 85b46fdea2c9cca9aa17d7c4dc9433b0a9eff151 .
+
+In gforth the trailing single quote must be followed by whitespace, it doesn't
+act as a delimiter, so {'a'9} is an error - undefined operator.  If I also don't
+allow any whitespace inside character literals, this will mean I don't need to
+have the token grabber know the rules for character literals, it just looks for
+whitespace delimiters.
+
+The double number literal spec only refers to a period being at the end of the
+literal.  gforth accepts 10.0 as a double literal with value 100.
+
+For floating point literals gforth accepts 'e' and 'E' as the exponent specifier.
+gforth only accepts float literals when base is decimal.  '10e0' is a valid
+float value of 10.0.  '10e0' when base is hex is a valid integer value of 0x10e0.
+
+gforth doesn't allow any base prefixes to be used with float literals, not
+even decimal - '#10.0E2' throws an error but '10.0E2' is fine.
+
+gforth also allows string literals - "moo" leaves an address,count pair on TOS
+that can be displayed by 'type'.  I can't find any reference to this in the ANSI 2012
+standard docs.  This would be a big pain for me, since I use a c-style string for
+this, not the addr/count pair.
+
+Character literal changes:
+- switch from using ` to ' as delimiter
+  - in code
+  - in all scripts
+- change code for escaping characters with backslash
+  o space and tab can't appear at all in a multi-character literal now, before they could
+    o add escape sequence for space
+  o remove explicit escape sequences for single quote, double quote and backtick
+  o make sure single backslash {'\'} will work
+  o ParseInfo::BackslashChar currently doesn't have a way to return an error, it will need it now
+o some test cases:
+  {'}       error, empty name string to tick op
+  {''}      error? gforth treats this like ''' - value of single quote character
+  {'''}     value of single quote character
+  {'\'}     value of backslash character
+
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 March 15 2023
 
 I got the raspberry pi ARM32 build working again with the latest changes.

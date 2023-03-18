@@ -35,6 +35,7 @@
 #include "Pipe.h"
 #include "ForthMessages.h"
 #include "Extension.h"
+#include "InputStack.h"
 
 #ifndef SOCKADDR
 #define SOCKADDR struct sockaddr

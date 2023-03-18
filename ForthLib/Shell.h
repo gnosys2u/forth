@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "Engine.h"
-#include "Input.h"
+#include "InputStream.h"
 #if defined(LINUX) || defined(MACOSX)
 #include <limits.h>
 #define MAX_PATH PATH_MAX
@@ -18,6 +18,8 @@
 class InputStack;
 class Extension;
 class ExpressionInputStream;
+class ParseInfo;
+class BlockFileManager;
 
 #if defined(WINDOWS_BUILD)
 #define PATH_SEPARATOR "\\"

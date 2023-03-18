@@ -7,7 +7,7 @@
 #include "Forth.h"
 #include "Engine.h"
 #include "Shell.h"
-#include "Input.h"
+#include "InputStream.h"
 #include <string.h>
 #if defined(WINDOWS_BUILD)
 #include <winsock2.h>

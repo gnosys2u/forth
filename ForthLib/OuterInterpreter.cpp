@@ -29,6 +29,7 @@
 #include "NativeType.h"
 #include "TypesManager.h"
 #include "ClassVocabulary.h"
+#include "InputStack.h"
 
 
 //////////////////////////////////////////////////////////////////////
