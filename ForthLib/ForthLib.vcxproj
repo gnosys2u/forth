@@ -692,7 +692,10 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BlockInputStream.cpp" />
+    <ClCompile Include="BufferInputStream.cpp" />
     <ClCompile Include="ClassVocabulary.cpp" />
+    <ClCompile Include="ConsoleInputStream.cpp" />
     <ClCompile Include="DLLVocabulary.cpp" />
     <ClCompile Include="BlockFileManager.cpp" />
     <ClCompile Include="BuiltinClasses.cpp" />
@@ -729,7 +732,9 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">MaxSpeed</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">MaxSpeed</Optimization>
     </ClCompile>
+    <ClCompile Include="ExpressionInputStream.cpp" />
     <ClCompile Include="Extension.cpp" />
+    <ClCompile Include="FileInputStream.cpp" />
     <ClCompile Include="Forgettable.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">Disabled</Optimization>
@@ -794,38 +799,8 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">MaxSpeed</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">MaxSpeed</Optimization>
     </ClCompile>
-    <ClCompile Include="Input.cpp">
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">Disabled</Optimization>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">EnableFastChecks</BasicRuntimeChecks>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug GUI|Win32'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug GUI|x64'">true</BrowseInformation>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">Disabled</Optimization>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">EnableFastChecks</BasicRuntimeChecks>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Midi|Win32'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug Midi|x64'">true</BrowseInformation>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">Disabled</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">Disabled</Optimization>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">EnableFastChecks</BasicRuntimeChecks>
-      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">EnableFastChecks</BasicRuntimeChecks>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">true</BrowseInformation>
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='DbgAsm|x64'">true</BrowseInformation>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release Midi|Win32'">MaxSpeed</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release Midi|x64'">MaxSpeed</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|Win32'">MaxSpeed</Optimization>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">MaxSpeed</Optimization>
-    </ClCompile>
+    <ClCompile Include="InputStack.cpp" />
+    <ClCompile Include="InputStream.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="ObjectReader.cpp" />
     <ClCompile Include="OpcodeCompiler.cpp" />
@@ -1180,8 +1155,13 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BlockInputStream.h" />
+    <ClInclude Include="BufferInputStream.h" />
     <ClInclude Include="ClassVocabulary.h" />
+    <ClInclude Include="ConsoleInputStream.h" />
     <ClInclude Include="DLLVocabulary.h" />
+    <ClInclude Include="ExpressionInputStream.h" />
+    <ClInclude Include="FileInputStream.h" />
     <ClInclude Include="Forth.h" />
     <ClInclude Include="BlockFileManager.h" />
     <ClInclude Include="BuiltinClasses.h" />
@@ -1190,7 +1170,8 @@
     <ClInclude Include="Extension.h" />
     <ClInclude Include="Forgettable.h" />
     <ClInclude Include="ForthInner.h" />
-    <ClInclude Include="Input.h" />
+    <ClInclude Include="InputStack.h" />
+    <ClInclude Include="InputStream.h" />
     <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="ForthMessages.h" />
     <ClInclude Include="Object.h" />
