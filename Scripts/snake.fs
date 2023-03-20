@@ -18,10 +18,10 @@ enum: snakeEnums
   1     up
   2     right
   3     down
-  `#`   wallChar
-  `.`   emptyChar
-  `@`   appleChar
-  `*`   snakeChar
+  '#'   wallChar
+  '.'   emptyChar
+  '@'   appleChar
+  '*'   snakeChar
 ;enum
 
 int direction
@@ -133,10 +133,10 @@ false -> int gameOver
 
 : changeDirection       \ key -- 
   case
-    of(`a`) turnLeft   endof
-    of(`w`) turnUp     endof
-    of(`d`) turnRight  endof
-    of(`s`) turnDown   endof
+    of('a') turnLeft   endof
+    of('w') turnUp     endof
+    of('d') turnRight  endof
+    of('s') turnDown   endof
     of($1b) true -> gameOver endof
   endcase
 ;

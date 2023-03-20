@@ -89,7 +89,7 @@ class: atcAirplane extends iAtcAirplane
   m: init   \ REGION ID
     id!
     region!o  \ break circular reference  region->tile->airplane->region
-    `plan` tag!
+    'plan' tag!
   ;m
 
   m: setPosition     \ X Y ALTITUDE HEADING
@@ -108,10 +108,10 @@ class: atcAirplane extends iAtcAirplane
     name.clear
     if
       1 updateInterval!
-      name.appendChar( `a` id +)
+      name.appendChar( 'a' id +)
     else
       2 updateInterval!
-      name.appendChar( `A` id +)
+      name.appendChar( 'A' id +)
     endif
   
     nextUpdateTime!

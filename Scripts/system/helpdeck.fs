@@ -53,7 +53,7 @@ class: HelpDeck extends NoteDeck
     addNote("ops" "forth operators") -> opsNote
     addNote("classes" "builtin classes") -> classesNote
     
-    `|` -> separator
+    '|' -> separator
   ;m
   
   m: delete
@@ -1839,7 +1839,7 @@ addMethod getClassNote|NAME ...   false   OR   NOTE_OBJ true|get class selected 
 
 \ use slash for separator so description can have '|' in it
 helpDeck.separator
-`/` -> helpDeck.separator
+'/' -> helpDeck.separator
 addMethod addOp \ add help for op, immediately followed by name|stack behavior|description|extra flags
 addMethod addClass \ add help for class, immediately followed by className|baseClass|description|flags
 addMethod addMethod \ add help for class method, immediately followed by methodName|stack behavior|description|extra flags

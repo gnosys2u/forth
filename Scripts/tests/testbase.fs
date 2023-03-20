@@ -73,6 +73,11 @@ Object oldErrorOut
   outToScreen
   if( strcmp( testBuff.get expected ) )
     err[ "Expected |" %s expected %s "| got |" %s testBuff.get %s "|" %s %nl ]err
+    "--------------------------------" %s %nl
+    testBuff.get dup strlen dump
+    "--------------------------------" %s %nl
+    expected dup strlen dump
+    "--------------------------------" %s %nl
     false
     1 ->+ numFailedTests
   else
@@ -95,7 +100,7 @@ Object oldErrorOut
 \ LINE_OF_STUFF must evaluate to one or more true (-1) values
 : test[
   sp -> ptrTo int oldSP
-  `]` $word string( 250 ) ops!
+  ']' $word string( 250 ) ops!
   \ ops %s %nl
   ops $evaluate
   sp oldSP swap - cell/ -> int numItems
@@ -114,7 +119,7 @@ Object oldErrorOut
     system.getInputInfo -> lineOffset -> lineNumber -> inputPath -> inputLine
     
     err[
-      "FAILED: " %s inputPath %s `:` %c lineNumber %d " { " %s
+      "FAILED: " %s inputPath %s ':' %c lineNumber %d " { " %s
       ops %s " } => " %s
       do( numItems 0 )
         i %d "=" %s pick( numItems 1- i - ) . %bl %nl

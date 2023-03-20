@@ -115,7 +115,7 @@ class: HersheyFont
             new HersheyGlyph -> HersheyGlyph glyph
             mGlyphs.set(glyph glyphIndex)
             \ set leftPos and rightPos
-            glyph.init(pSrc b@@++ `R` -   pSrc b@@++ `R` -)
+            glyph.init(pSrc b@@++ 'R' -   pSrc b@@++ 'R' -)
             glyph.mRightPos glyph.mLeftPos - -> int glyphWidth
             if(glyphWidth mMaxWidth >)
               glyphWidth -> mMaxWidth
@@ -124,11 +124,11 @@ class: HersheyFont
             ?do(numVerts 0)
               pSrc b@@++ -> byte cx
               pSrc b@@++ -> byte cy
-              if(and(cx ` ` = cy `R` =))
+              if(and(cx '\s' = cy 'R' =))
                 true -> isMove
               else
                 \ offset original -64..63 range to 0..127 so we can use high bit of x to flag move mode
-                `R` ->- cx   `R` ->- cy
+                'R' ->- cx   'R' ->- cy
                 if(cy mMinY <)
                   cy -> mMinY
                 endif

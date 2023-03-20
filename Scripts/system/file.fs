@@ -47,10 +47,10 @@ class: File extends Object
     if( fp )
       close
     endif
-    mode c@ `r` = -> readOnly   \ yeah, this is probably wrong
+    mode c@ 'r' = -> readOnly   \ yeah, this is probably wrong
 
     false -> stdHandle
-    if( inpath c@ `<` = )
+    if( inpath c@ '<' = )
       if( strcmp( "<stdin>" inpath ) 0= )
         if( not( readOnly ) )
           error( "open - can't open stdin for write" )

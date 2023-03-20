@@ -388,14 +388,14 @@ typedef enum {
 } ePrintSignedMode;
 
 typedef enum {
-    kFFParenIsComment           = 0x00000001,
-    kFFCCharacterLiterals       = 0x00000002,
+    //kFFParenIsComment           = 0x00000001,     currently unused
+    //kFFCCharacterLiterals       = 0x00000002,     currently unused
     kFFMultiCharacterLiterals   = 0x00000004,
     kFFCStringLiterals          = 0x00000008,
-    kFFCHexLiterals             = 0x00000010,
-    kFFDoubleSlashComment       = 0x00000020,
+    //kFFCHexLiterals             = 0x00000010,     currently unused
+    //kFFDoubleSlashComment       = 0x00000020,     currently unused
     kFFIgnoreCase               = 0x00000040,
-    kFFDollarHexLiterals        = 0x00000080,
+    //kFFDollarHexLiterals        = 0x00000080,     currently unused
     kFFCFloatLiterals           = 0x00000100,
     kFFParenIsExpression        = 0x00000200,
     kFFAllowContinuations       = 0x00000400,

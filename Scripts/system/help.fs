@@ -259,7 +259,7 @@ addHelp strlen	STR ... LEN		returns length of string at STR
 addHelp strcat	STRA STRB ...	appends STRB to string at STRA
 addHelp strncat	STRA STRB N ...	appends up to N chars from STRB to STRA
 addHelp strchr	STR CHAR ... PTR	returns ptr to first occurence of CHAR in string STR
-addHelp strrchr	STR CHAR ... PTR	`returns ptr to last occurence of CHAR is string STR
+addHelp strrchr	STR CHAR ... PTR	returns ptr to last occurence of CHAR is string STR
 addHelp strcmp	STRA STRB ... V		returns 0 iff STRA = STRB, else result of last char comparison
 addHelp stricmp	STRA STRB ... V		returns 0 iff STRA = STRB ignoring case, else result of last char comparison
 addHelp strncmp	STRA STRB N ... V		returns 0 iff STRA = STRB ignoring case, else result of last char comparison, for first N chars

@@ -101,10 +101,10 @@ test[ rudy.copy(blitzen)   rudy.rightBytes(55)   strncmp("Blitzen" -rot) 0= ]
 test[ rudy.copy(blitzen)   rudy.middleBytes(2 3)   strncmp("itz" -rot) 0= ]
 test[ rudy.copy(blitzen)   rudy.middleBytes(2 13)   strncmp("itzen" -rot) 0= ]
 test[ rudy.copy(blitzen)   rudy.middleBytes(12 13)  0= swap strcmp("") 0= ]
-test[ rudy.copy(donner) rudy.append(" Part") rudy.appendChar(`y`) rudy.prepend("The ") rudy.equals("The Donner Party") ]
+test[ rudy.copy(donner) rudy.append(" Part") rudy.appendChar('y') rudy.prepend("The ") rudy.equals("The Donner Party") ]
 test[ donner.toLower strcmp(donner.get "donner") 0=  donner.toUpper donner.equals("DONNER") ]
-test[ donner.replaceChar(`N` `l`) strcmp(donner.get "DOllER") 0= ]
-test[ rudy.split(arr ` `) rudy.join(arr "_") rudy.equals("The_Donner_Party") not(rudy.equals("foo")) ]
+test[ donner.replaceChar('N' 'l') strcmp(donner.get "DOllER") 0= ]
+test[ rudy.split(arr bl) rudy.join(arr "_") rudy.equals("The_Donner_Party") not(rudy.equals("foo")) ]
 test[ rudy.startsWith("Th") not(rudy.startsWith("bl")) rudy.endsWith("rty") not(rudy.endsWith("vw")) ]
 test[ rudy.contains("onne") not(rudy.contains("cheesecake")) ]
 test[ rudy.copy(donner) rudy.resize(3) rudy.length 3 = rudy.equals("DOl") ]
@@ -158,11 +158,11 @@ mko tobj valE
 
 \ "(vb=" %s tb <tobj>.refCount %d " before adding to map)" %s
 mko IntMap imapA
-imapA.set( valA `a` )  imapA.set( valB `b` )  imapA.set( valC `c` )  imapA.set( valD `d` )  imapA.set( valE `e` )
+imapA.set( valA 'a' )  imapA.set( valB 'b' )  imapA.set( valC 'c' )  imapA.set( valD 'd' )  imapA.set( valE 'e' )
 %nl imapA.show %nl
 
 mko LongMap lmapA
-lmapA.set( valA 1l )  lmapA.set( valB `22`l )  lmapA.set( valC 1000000000l )  lmapA.set( valD -15l )  lmapA.set( valE 66l )
+lmapA.set( valA 1l )  lmapA.set( valB '22'l )  lmapA.set( valC 1000000000l )  lmapA.set( valD -15l )  lmapA.set( valE 66l )
 %nl lmapA.show %nl
 
 mko FloatMap fmapA
@@ -201,11 +201,11 @@ mko List listA
     listA.addHead
   endif
 ;
-tlistA(`b`) tlistA(`c`) tlistA(`d`)
+tlistA('b') tlistA('c') tlistA('d')
 %nl listA.show %nl
 
 mko Array arrayA
-arrayA.push(imapA.grab( `a` ) drop)  arrayA.push(valB)  arrayA.push(imapA.grab( `c` ) drop)
+arrayA.push(imapA.grab( 'a' ) drop)  arrayA.push(valB)  arrayA.push(imapA.grab( 'c' ) drop)
 %nl arrayA.show %nl
 
 : showArray

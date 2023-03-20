@@ -36,7 +36,7 @@ enum: atcFileCommands
     error( 2 )
     addErrorText( "missing equals in atc file" )
   endif
-  $evaluate( $word( `;` ) )
+  $evaluate( $word( ';' ) )
 ;
 
 int regionWidth

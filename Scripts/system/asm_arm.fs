@@ -146,9 +146,9 @@ int had-cc
 : ?#shifted-register \ x 'shifted'|'register' -- x
    >r r@ shifted <>  r> register <> and  abort" Need a (shifted) register here"
    dup 010 and  abort" Shift by register not allowed here" ;
-: rhs,  \ x 'r-shifted'|`#-shifted' --
+: rhs,  \ x 'r-shifted'|'#-shifted' --
    ?rhs  encode ;
-: rhs',  \ x 'r-shifted'|`#-shifted' --
+: rhs',  \ x 'r-shifted'|'#-shifted' --
    dup shifted = abort" Shifted registers not allowed here."  rhs, ;
 
 \ Addressing modes

@@ -60,8 +60,9 @@ char* nextStr = NULL;
 #if 0
 #define LOG_EXPRESSION(STR) SPEW_SHELL("ExpressionInputStream::%s L:{%s} R:{%s}  (%s)(%s)\n",\
 	STR, mpLeftBase, mpRightBase, mpStackCursor, (mpStackCursor + strlen(mpStackCursor) + 1))
-#endif
+#else
 #define LOG_EXPRESSION(STR)
+#endif
 
 bool
 ExpressionInputStream::ProcessExpression(InputStream* pInputStream)
@@ -102,14 +103,16 @@ ExpressionInputStream::ProcessExpression(InputStream* pInputStream)
 				done = true;
 			}
 		}
-		if (pSrc != NULL)
+		if (pSrc != nullptr)
 		{
 			c = *pSrc++;
 			//SPEW_SHELL("process character {%c} 0x%x\n", c, c);
-			if (c == '\\')
+#if 0
+            if (c == '\\')
 			{
                 c = ParseInfo::BackslashChar(pSrc);
 			}
+#endif
 			pInputStream->SetBufferPointer(pSrc);
 			switch (c)
 			{
@@ -149,7 +152,8 @@ ExpressionInputStream::ProcessExpression(InputStream* pInputStream)
 					}
 					break;
 
-				case '`':
+#if 0
+				case '\'':
 					if (mpRightCursor != mpRightBase)
 					{
 						CombineRightIntoLeft();
@@ -190,6 +194,7 @@ ExpressionInputStream::ProcessExpression(InputStream* pInputStream)
 						}
 					}
 					break;
+#endif
 
 				case '\"':
 					if (mpRightCursor != mpRightBase)

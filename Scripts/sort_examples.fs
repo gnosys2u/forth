@@ -38,13 +38,13 @@ int _time
 : showResult
   IntArray a!o
   if(beNoisy)
-    `{` %c
+    '{' %c
     if(a.count)
       do(a.count 0)
         a.get(i) .
       loop
     endif
-    `}` %c  %nl
+    '}' %c  %nl
   endif
 ;
 
@@ -170,7 +170,7 @@ int _time
       d[ "Scan: " %s ii . beginIdx . %nl ]d
       begin
       while(ii beginIdx >=)
-        d[ `*` %c ii . ]d
+        d[ '*' %c ii . ]d
         if(v.get(ii) v.get(ii 1+) >)
           v.swap(ii 1+ ii)
           d[ "  Swapping " %s ii . ii 1+ . showResult(v) ]d
@@ -234,7 +234,7 @@ int _time
   do(v.count 1- 0)
     i dstIndex!
     v.get(i) dstVal!
-    d[ `[` %c i %d `]` %c %bl ]d
+    d[ '[' %c i %d ']' %c %bl ]d
     do(v.count dstIndex 1+)
       v.get(i) int curVal!
       if(curVal dstVal <)
@@ -262,7 +262,7 @@ int _time
   do(v.count 1)
     i srcIndex!
     v.get(i) srcVal!
-    d[ `[` %c srcIndex %d `]` %c %bl ]d
+    d[ '[' %c srcIndex %d ']' %c %bl ]d
     do(srcIndex 0)
       if(v.get(i) srcVal >)
         \ this is not optimized, it is to test insert and remove

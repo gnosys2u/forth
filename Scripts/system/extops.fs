@@ -74,12 +74,12 @@ precedence doescode
   accum 2!
   begin
     pSrc b@ byte ch!
-    if( ch `0` >= ch `9` <= and )
-      `0` ch!-
+    if( ch '0' >= ch '9' <= and )
+      '0' ch!-
     else
-      if( ch `A` >= ch `Z` <= and  ch `a` >= ch `z` <= and  or )
+      if( ch 'A' >= ch 'Z' <= and  ch 'a' >= ch 'z' <= and  or )
         ch $20 or ch!  \ lowercase it
-        `a` $a - ch!-
+        'a' $a - ch!-
       else
         \ force exit
         base @ ch!

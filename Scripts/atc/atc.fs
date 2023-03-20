@@ -127,7 +127,7 @@ class: atcTile
   ;m
   
   m: init
-    `tile` tag!
+    'tile' tag!
     altitude~
     kATTEmpty tileType!
     new List airplanes!
@@ -247,7 +247,7 @@ class: iAtcBeacon
   
   m: init  \ X Y ID
     id!    y!    x!
-    `becn` tag!
+    'becn' tag!
   ;m
   
   m: at returns int  \ X Y BOOL
@@ -265,7 +265,7 @@ class: iAtcLine
   
   m: init        \ x0 y0 x1 y1
     y1!  x1!  y0!  x0!
-    `line` tag!
+    'line' tag!
   ;m
 
 ;class
@@ -395,7 +395,7 @@ loaddone
     begin
     while( readdir(dirHandle entry) )
       entry.d_name(0 ref) -> pName \ ref pName !
-      if(pName c@ `.` <>)
+      if(pName c@ '.' <>)
         "   " %s pName %s %nl
       endif
     repeat

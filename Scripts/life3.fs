@@ -131,10 +131,10 @@ enum: neighborDirs
 : printGridId
   int gridId!
   short ss
-  gridId ss! ss %d `:` %c gridId 16 rshift ss! ss %d
+  gridId ss! ss %d ':' %c gridId 16 rshift ss! ss %d
 ;
 
-`#` constant LiveCellChar
+'#' constant LiveCellChar
 
 \ ======================================================
 \
@@ -231,7 +231,7 @@ class: LifeGrid
   \ only use incxx when debugging
   m: incxx
     cell offset!
-    t[ offset offset2xy "inc cell@" %s swap %d `,` %c %d " grid " %s gridId printGridId ]t
+    t[ offset offset2xy "inc cell@" %s swap %d ',' %c %d " grid " %s gridId printGridId ]t
     inc(offset)
     t[ gridBase offset@+ b@ " new value:" %s %d %nl ]t
   ;m
@@ -335,7 +335,7 @@ class: LifeGrid
       
   : updateNWCorner
     if(grid.get(nwCorner) Alive and)
-     t[ "nw corner live cell@" %s nwCorner offset2xy swap %d `,` %c %d
+     t[ "nw corner live cell@" %s nwCorner offset2xy swap %d ',' %c %d
           " grid " %s gridId printGridId %nl ]t
      \ update NW neighbor
       touchNW
@@ -360,7 +360,7 @@ class: LifeGrid
 
   : updateNECorner
     if(grid.get(neCorner) Alive and)
-     t[ "ne corner live cell@" %s neCorner offset2xy swap %d `,` %c %d
+     t[ "ne corner live cell@" %s neCorner offset2xy swap %d ',' %c %d
           " grid " %s gridId printGridId %nl ]t
       \ update NE neighbor
       touchNE
@@ -386,7 +386,7 @@ class: LifeGrid
  
   : updateSWCorner
     if(grid.get(swCorner) Alive and)
-     t[ "sw corner live cell@" %s swCorner offset2xy swap %d `,` %c %d
+     t[ "sw corner live cell@" %s swCorner offset2xy swap %d ',' %c %d
           " grid " %s gridId printGridId %nl ]t
       \ update SW neighbor
       touchSW
@@ -411,7 +411,7 @@ class: LifeGrid
   
   : updateSECorner
     if(grid.get(seCorner) Alive and)
-     t[ "se corner live cell@" %s seCorner offset2xy swap %d `,` %c %d
+     t[ "se corner live cell@" %s seCorner offset2xy swap %d ',' %c %d
           " grid " %s gridId printGridId %nl ]t
       \ update SE neighbor
       touchSE
@@ -454,7 +454,7 @@ class: LifeGrid
     begin
     while(offset neCorner <)
       if(gridBase offset@+ b@ Alive and)
-       t[ "north edge live cell@" %s offset offset2xy swap %d `,` %c %d
+       t[ "north edge live cell@" %s offset offset2xy swap %d ',' %c %d
           " grid " %s gridId printGridId %nl ]t
         \ found a live cell on north edge
         \ update N neighbor: off-N,off-N+1,off-N+2
@@ -492,7 +492,7 @@ class: LifeGrid
     begin
     while(offset seCorner <)
       if(gridBase offset@+ b@ Alive and)
-       t[ "south edge live cell@" %s offset offset2xy swap %d `,` %c %d
+       t[ "south edge live cell@" %s offset offset2xy swap %d ',' %c %d
           " grid " %s gridId printGridId %nl ]t
         \ found a live cell on south edge
         \ update S neighbor: NW+off-1,NW+off,NW+off+1
@@ -530,7 +530,7 @@ class: LifeGrid
     begin
     while(offset neCorner <)
       if(gridBase offset@+ b@ Alive and)
-       t[ "east edge live cell@" %s offset offset2xy swap %d `,` %c %d
+       t[ "east edge live cell@" %s offset offset2xy swap %d ',' %c %d
           " grid " %s gridId printGridId %nl ]t
         \ found a live cell on east edge
         \ update E neighbor: off-2dim+1 off-dim+1 off+dim+1
@@ -569,7 +569,7 @@ class: LifeGrid
     begin
     while(offset nwCorner <)
       if(gridBase offset@+ b@ Alive and)
-       t[ "west edge live cell@" %s offset offset2xy swap %d `,` %c %d
+       t[ "west edge live cell@" %s offset offset2xy swap %d ',' %c %d
           " grid " %s gridId printGridId %nl ]t
         \ found a live cell on west edge
         \ update w neighbor: off-1 off+dim-1 off+2dim-1
@@ -599,7 +599,7 @@ class: LifeGrid
     do(dim 2-  0)
       do(dim 2-  0)
         if(gridBase offset@+ b@ Alive and)
-          t[ "core live cell@" %s offset offset2xy swap %d `,` %c %d
+          t[ "core live cell@" %s offset offset2xy swap %d ',' %c %d
             " grid " %s gridId printGridId %nl ]t
           \ cell is live, increment count of 8 neighbors
           offset dim@- 1-
@@ -668,13 +668,13 @@ class: LifeGrid
       if(cellVal Alive and)
         if(cellVal $13 > cellVal $12 < or)
           \ doesn't have 2 or 3 neighbors, overcrowded or lonely, will die
-          t[ "killing cell @" %s pCell mem2xy swap %d `,` %c %d " count:" %s cellVal %d %nl ]t
+          t[ "killing cell @" %s pCell mem2xy swap %d ',' %c %d " count:" %s cellVal %d %nl ]t
           drawEmpty(pCell)
           liveCount--
           \ 0 cellVal!    cellVal~
           0 pCell b!
         else
-          t[ "still living cell @" %s pCell mem2xy swap %d `,` %c %d " count:" %s cellVal %d %nl ]t
+          t[ "still living cell @" %s pCell mem2xy swap %d ',' %c %d " count:" %s cellVal %d %nl ]t
           \ Alive cellVal!
           Alive pCell b!
         endif
@@ -682,7 +682,7 @@ class: LifeGrid
         if(cellVal 3 =)
           \ has 3 neighbors, will become alive
           drawLive(pCell)
-          t[ "birthing cell @" %s pCell mem2xy swap %d `,` %c %d " count:" %s cellVal %d %nl ]t
+          t[ "birthing cell @" %s pCell mem2xy swap %d ',' %c %d " count:" %s cellVal %d %nl ]t
           \ Alive cellVal!
           Alive pCell b!
           liveCount++
@@ -779,7 +779,7 @@ class: LifeWorld extends ILifeGame
   m: addCell        \ x y ...
     cell y!  cell x!
     xy2grid(x y) int gridId!  int offset!
-    t[ "LifeGrid:addCell " %s x %d `,` %c y %d
+    t[ "LifeGrid:addCell " %s x %d ',' %c y %d
       " grid:" %s printGridId(gridId) " off:" %s offset %d %nl ]t
     LifeGrid grid
     findOrAddGrid(gridId)  grid!o
@@ -1156,44 +1156,44 @@ class: LifeApp
   : handleCommand
     byte ch!
     case(ch)
-      `a`   of   initLife(['] onePentominoAtOrigin) endof
-      `b`   of   initLife(['] onePentomino)         endof
-      `c`   of   initLife(['] manyPentominos)       endof
-      `d`   of   initLife(['] fourGliders)          endof
-      `e`   of   initLife(['] methuseleh)           endof
-      `f`   of   initLife(['] fourHerschels)        endof
+      'a'   of   initLife(['] onePentominoAtOrigin) endof
+      'b'   of   initLife(['] onePentomino)         endof
+      'c'   of   initLife(['] manyPentominos)       endof
+      'd'   of   initLife(['] fourGliders)          endof
+      'e'   of   initLife(['] methuseleh)           endof
+      'f'   of   initLife(['] fourHerschels)        endof
         
-      `g`   of   -1 updatesToDo!                    endof
-      `h`   of   showHelp                           endof
+      'g'   of   -1 updatesToDo!                    endof
+      'h'   of   showHelp                           endof
         
-      `s`   of   world.printStats                   endof
+      's'   of   world.printStats                   endof
   
-      `w`   of   initLife(['] gliderN)              endof
-      `x`   of   initLife(['] gliderE)              endof
-      `y`   of   initLife(['] gliderS)              endof
-      `z`   of   initLife(['] gliderW)              endof
+      'w'   of   initLife(['] gliderN)              endof
+      'x'   of   initLife(['] gliderE)              endof
+      'y'   of   initLife(['] gliderS)              endof
+      'z'   of   initLife(['] gliderW)              endof
         
-      `+`   of
+      '+'   of
         if(zoomFactor 16 <)
           zoomFactor++
           redisplay
         endif
       endof
   
-      `-`   of
+      '-'   of
         if(zoomFactor 1 >)
           zoomFactor--
           redisplay
         endif
       endof
    
-      `\e`  of
+      '\e'  of
         keepGoing~
         "You can start life up again by executing \'Life\'\n" %s
       endof
         
-      if(ch `0` >= ch `9` <= and)
-        ch `0` - updatesToDo!
+      if(ch '0' >= ch '9' <= and)
+        ch '0' - updatesToDo!
       endif
     endcase
   ;
@@ -1226,13 +1226,13 @@ class: LifeApp
           if(event.common.type SDL_KEYDOWN =)
             event.key.keysym.sym ch!
 
-            if(ch `=` =) andif(event.key.keysym.mod 1 and)
-              `+` ch!       \ plus key in sdl event is equals+shiftModifier
+            if(ch '=' =) andif(event.key.keysym.mod 1 and)
+              '+' ch!       \ plus key in sdl event is equals+shiftModifier
             endif
 
             \ event.key.keysym.sym %x  %bl event.key.keysym.mod %x %nl
           elseif(event.common.type SDL_QUIT =)
-            `\e` ch!        \ user tried to close SDL window, send an escape
+            '\e' ch!        \ user tried to close SDL window, send an escape
           endif
         endif
       endif

@@ -23,18 +23,17 @@ test[ checkResult( "aba" ) ]
 
 \ test special characters in strings and characters
 
-test[ `\0` 0= ] test[ `\a` 7 = ] test[ `\b` 8 = ] test[ `\t` 9 = ] test[ `\n` $0a = ] test[ `\v` $0b = ]
-test[ `\f` $0c = ] test[ `\r` $0d = ] test[ `"` $22 = ] test[ `'` $27 = ] test[ `\\` $5c = ]
+test[ '\0' 0= ] test[ '\a' 7 = ] test[ '\b' 8 = ] test[ '\t' 9 = ] test[ '\n' $0a = ] test[ '\v' $0b = ]
+test[ '\f' $0c = ] test[ '\r' $0d = ] test[ '"' $22 = ] test[ ''' $27 = ] test[ '\\' $5c = ]
 
 startTest
-`\a` %c `\b` %c `\t` %c `\n` %c `\v` %c `\f` %c `\r` %c `"` %c `'` %c  `\\` %c outToScreen
-
-test[ checkResult( "\a\b\t\n\v\f\r\"\'\\" ) ]
+'\a' %c '\b' %c '\t' %c '\n' %c '\v' %c '\f' %c '\r' %c '"' %c ''' %c  '\' %c outToScreen
+test[ checkResult( "\a\b\t\n\v\f\r\"'\\" ) ]
 
 \ verify that character constants work
-: testCharacterConstants startTest `a` %c ` ` %c `b` %c `\t` %c `c` %c `\n` %c `z` %c %nl ;
+: testCharacterConstants startTest 'a' %c '\s' %c 'b' %c '\t' %c 'c' %c '\n' %c 'z' %c %nl ;
 outToTestBuffer( testBuff2 )
-`a` %c ` ` %c `b` %c `\t` %c `c` %c `\n` %c `z` %c %nl
+'a' %c '\s' %c 'b' %c '\t' %c 'c' %c '\n' %c 'z' %c %nl
 test[ testCharacterConstants checkResult( testBuff2.get ) ]
 
 \ ==================================
@@ -44,8 +43,8 @@ test[ testCharacterConstants checkResult( testBuff2.get ) ]
 : testIf if "t" addBuff endif ;
 test[ startTest "A" addBuff 1 testIf "B" addBuff 0 testIf "C" addBuff checkResult( "AtBC" ) ]
 
-: testIfElse if `t` else `f` endif ;
-test[ 1 testIfElse `t` = ]  test[ 0 testIfElse `f` = ]
+: testIfElse if 't' else 'f' endif ;
+test[ 1 testIfElse 't' = ]  test[ 0 testIfElse 'f' = ]
 
 : testBeginUntil
   startTest
@@ -69,7 +68,7 @@ test[ testBeginWhile checkResult( "5 4 3 2 1 " ) ]
 ;
 test[ testDoLoop checkResult( "0 1 2 3 4 0 -1 -2 -3 -4 -5 0 0 1 2 " ) ]
 
-\ testBuff.get %s `|` %c %nl
+\ testBuff.get %s '|' %c %nl
 
 : casetest
   case
@@ -186,9 +185,9 @@ test[ "blahblah" -> aaa  strncpy( aaa bbb 2 ) strcmp( aaa "boahblah" ) 0= ]
 test[ "head" -> aaa "tail" -> bbb strcat( aaa bbb ) strcmp( aaa "headtail" ) 0= ]
 test[ "head" -> aaa "tail" -> bbb strncat( aaa bbb 3 ) strcmp( aaa "headtai" ) 0= ]
 
-test[ "blahblah" -> aaa  strcmp( strchr( aaa `l` ) "lahblah" ) 0= ]
-test[ "blahblah" -> aaa  strcmp( strrchr( aaa `l` ) "lah" ) 0= ]
-test[ "blahblah" -> aaa  strchr( aaa `q` ) 0= ]
+test[ "blahblah" -> aaa  strcmp( strchr( aaa 'l' ) "lahblah" ) 0= ]
+test[ "blahblah" -> aaa  strcmp( strrchr( aaa 'l' ) "lah" ) 0= ]
+test[ "blahblah" -> aaa  strchr( aaa 'q' ) 0= ]
 
 test[ strcmp( aaa "blahblah" ) 0= ]
 test[ strcmp( aaa "BlahblaH" ) 1 = ]
@@ -453,10 +452,10 @@ test[ $DEADBEEF 123456789 2= ]	\ check for stack underflow or extra items
 \ ==================================
 \ test $evaluate
 
-: ee $evaluate( "`e` %c `y` %c" );
-: cc $evaluate( "`c` %c" );
-: bb $evaluate( "`b` %c" ) cc $evaluate( "`d` %c" ) ;
-: aa $evaluate( "`a` %c" ) bb ee $evaluate( "`z` %c" ) ;
+: ee $evaluate( "'e' %c 'y' %c" );
+: cc $evaluate( "'c' %c" );
+: bb $evaluate( "'b' %c" ) cc $evaluate( "'d' %c" ) ;
+: aa $evaluate( "'a' %c" ) bb ee $evaluate( "'z' %c" ) ;
 
 \ test[ strcmp( aa "abcdeyz" ) 0= ]
 

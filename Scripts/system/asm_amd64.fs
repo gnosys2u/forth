@@ -54,7 +54,6 @@ also assembler definitions
 \ allow inline comments using (...) to allow easier porting from GForth
 features
 base @
-kFFParenIsComment ->+ features
 octal
 
 \ Assembler Forth words                                11mar00py

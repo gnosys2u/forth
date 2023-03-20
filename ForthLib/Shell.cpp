@@ -953,12 +953,6 @@ Shell::ParseString( ParseInfo *pInfo )
             pSrc++;
         }
 
-        // support C++ end-of-line style comments
-        if ( (*pSrc == '/') && (pSrc[1] == '/') && pOuter->CheckFeature( kFFDoubleSlashComment ) )
-        {
-            return true;
-        }
-
         // parse symbol up till next white space
         switch ( *pSrc )
         {
@@ -1092,12 +1086,6 @@ Shell::ParseToken( ParseInfo *pInfo )
             pSrc++;
         }
 
-        // support C++ end-of-line style comments
-        if ( (*pSrc == '/') && (pSrc[1] == '/') && pOuter->CheckFeature( kFFDoubleSlashComment ) )
-        {
-            return true;
-        }
-
         // parse symbol up till next white space
         switch ( *pSrc )
         {
@@ -1111,14 +1099,11 @@ Shell::ParseToken( ParseInfo *pInfo )
               }
               break;
 
-           case '`':
-              // support C-style quoted characters like `a` or `\n`
-              if ( pOuter->CheckFeature( kFFCCharacterLiterals ) )
-              {
-				  pEndSrc = pInfo->ParseSingleQuote(pSrc, pSrcLimit, mpEngine);
-                  gotAToken = true;
-              }
-              break;
+           case '\'':
+               // support C-style quoted characters like 'a' or '\n'
+               pEndSrc = pInfo->ParseSingleQuote(pSrc, pSrcLimit, mpEngine);
+               gotAToken = true;
+               break;
 
            default:
               break;
@@ -1192,11 +1177,7 @@ Shell::ParseToken( ParseInfo *pInfo )
                      break;
 
                   case ')':
-                     if ( pOuter->CheckFeature( kFFParenIsComment ) )
-                     {
-                        *pDst++ = *pEndSrc++;
-                     }
-					 else if (pOuter->CheckFeature(kFFParenIsExpression))
+					 if (pOuter->CheckFeature(kFFParenIsExpression))
 					 {
                         // process accumulated token (if any), pop shell stack, compile/interpret if not empty
                         pEndSrc++;

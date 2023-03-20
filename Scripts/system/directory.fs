@@ -73,7 +73,7 @@ class: Directory extends Object
         drop
         -> pName
         \ format(pEntry.d_type "%08x ") %s pName %s %nl ds
-        if(pName c@ `.` <>)
+        if(pName c@ '.' <>)
           new String -> String filename
           filename.append(pName)
           filenames.push(filename)
@@ -132,7 +132,7 @@ OIterable interface:
       readdir(dirHandle) -> pEntry
     while( pEntry )
       pEntry.d_name(0 ref) -> pName
-      if(pName c@ `.` <>)
+      if(pName c@ '.' <>)
         new String -> String filename
         filename.set(pName)
         filenames.push(filename)

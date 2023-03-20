@@ -1,5 +1,4 @@
 requires ansi   \ PJM
-kFFCHexLiterals ->+ features \ PJM
 
 \
 \ tt.pfe	Tetris for terminals, redone in ANSI-Forth.
@@ -128,7 +127,7 @@ def-pit pit
 : show-key	\ char --- ; visualization of that character
 		dup bl <
 		if  [char] @ or  [char] ^ emit  emit  space
-		else  [char] ` emit  emit  [char] ' emit
+		else  [char] ' emit  emit  [char] ' emit
 		then ;
 
 : show-help	\ --- ; display some explanations

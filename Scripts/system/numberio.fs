@@ -60,7 +60,7 @@ ptrTo byte holdend								\ current nested end of hold buffer
 
 : sign
   if( 0< )
-    hold( `-` )
+    hold( '-' )
   endif
 ;
 
@@ -91,7 +91,7 @@ ptrTo byte holdend								\ current nested end of hold buffer
 : .r \ n1 n2 -- ) \ core-ext	dot-r
     \ Display n1 right-aligned in a field n2 characters wide. If more than
     \ n2 characters are needed to display the number, all digits are displayed.
-    \ If appropriate, @var{n2} must include a character for a leading ``-''.
+    \ If appropriate, @var{n2} must include a character for a leading ''-''.
     >r s>d r> d.r ;
 
 : u.r \ u n -- )  \ core-ext	u-dot-r

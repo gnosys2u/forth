@@ -121,7 +121,7 @@ class: DoubleOutStream extends OutStream
 mko DoubleOutStream dsObj
 getConsoleOut dsObj.init
 dsObj setConsoleOut
-`a` %c `b` %c %nl
+'a' %c 'b' %c %nl
 "jklmn" dup strlen type
 "does this work?" %s
 resetConsoleOut
@@ -299,27 +299,27 @@ mko FileOutStream outFile
 mko FileInStream inFile
 
 outFile.open("_testData.txt" "wb") drop
-outFile.putChar(`a`)
+outFile.putChar('a')
 outFile.putChar($D)
-outFile.putChar(`b`)
+outFile.putChar('b')
 outFile.putChar($D)
 outFile.putChar($A)
-outFile.putChar(`c`)
+outFile.putChar('c')
 outFile.putChar($D)
 outFile.close
 
 inFile.open("_testData.txt" "r") drop
 long bb
 
-`12345678` -> bb
+'12345678' -> bb
 inFile.getLine(ref bb 7) drop
 dump(ref bb 8)
 
-`12345678` -> bb
+'12345678' -> bb
 inFile.getLine(ref bb 7) drop
 dump(ref bb 8)
 
-`12345678` -> bb
+'12345678' -> bb
 inFile.getLine(ref bb 7) drop
 dump(ref bb 8)
 

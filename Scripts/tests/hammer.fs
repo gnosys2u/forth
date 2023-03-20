@@ -8,7 +8,7 @@ autoforget HAMMER
 1000000 -> cell timesToHammer
 1000000 -> cell refCountOffset
 
-: %thread `[` %c thisThread %x "] " %s ;
+: %thread '[' %c thisThread %x "] " %s ;
 
 \  common core for object refcount hammer tests
 : hammerer

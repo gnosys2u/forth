@@ -38,8 +38,7 @@ ParseInfo::~ParseInfo()
 
 // copy string to mpToken buffer, set length, and pad with nulls to a longword boundary
 // if pSrc is null, just set length and do padding
-void
-ParseInfo::SetToken(const char* pSrc)
+void ParseInfo::SetToken(const char* pSrc)
 {
     size_t symLen, padChars;
     char* pDst;
@@ -118,8 +117,7 @@ int hexValue(char c)
     return result;
 }
 
-char
-ParseInfo::BackslashChar(const char*& pSrc)
+char ParseInfo::BackslashChar(const char*& pSrc)
 {
     char c = *pSrc;
     char cResult = c;
@@ -135,10 +133,14 @@ ParseInfo::BackslashChar(const char*& pSrc)
         case 'e':        cResult = 0x1b;        break;		// x1b	escape
         case 'f':        cResult = '\f';        break;		// x0b	formfeed
         case 'n':        cResult = '\n';        break;		// x0a	newline
+        case 'q':        cResult = '\'';        break;		// x27	single quote
         case 'r':        cResult = '\r';        break;		// x0d	carriage return
+        case 's':        cResult = ' ';         break;		// x20	space
         case 't':        cResult = '\t';        break;		// x09	tab (horizontal)
         case 'v':        cResult = '\v';        break;		// x0b	vertical tab
         case '0':        cResult = '\0';        break;		// x00	nul
+        case '\\':       cResult = '\\';        break;		// x5c	backslash
+        case '\"':       cResult = '\"';        break;		// x22	double quote
 
         case 'x':											// hex-value
         {
@@ -156,9 +158,9 @@ ParseInfo::BackslashChar(const char*& pSrc)
             break;
         }
 
-		// this handles \'  \"  \\  \` among others
-        default:         cResult = c;           break;
-
+        default:
+            pSrc--;
+            return '\\';
         }
     }
 
@@ -166,18 +168,19 @@ ParseInfo::BackslashChar(const char*& pSrc)
 }
 
 
-const char *
-ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, Engine *pEngine, bool keepBackslashes)
+const char * ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, Engine *pEngine, bool keepBackslashes)
 {
 	char cc[9];
 	bool isQuotedChar = false;
 	bool isLongConstant = false;
 
+    // pSrcIn[0] is a single quote char
 	if ((pSrcIn[1] != 0) && (pSrcIn[2] != 0))      // there must be at least 2 more chars on line
 	{
 		const char *pSrc = pSrcIn + 1;
 		int iDst = 0;
 		int maxChars = pEngine->GetOuterInterpreter()->CheckFeature(kFFMultiCharacterLiterals) ? 8 : 1;
+        bool brokeOnWhitespace = false;
 		while ((iDst < maxChars) && (pSrc < pSrcLimit))
 		{
 			char ch = *pSrc++;
@@ -185,7 +188,15 @@ ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, Engine *p
 			{
 				break;
 			}
-			else if (ch == '\\')
+			else if (ch == ' ' || ch == '\t')
+			{
+                // brokeOnWhitespace is needed to make the string "' '" be treated as using
+                //  the tick operator to get the execution token for the tick operator,
+                //  not just a literal space character
+                brokeOnWhitespace = true;
+				break;
+			}
+            else if (ch == '\\')
 			{
 				if (keepBackslashes)
 				{
@@ -199,15 +210,30 @@ ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, Engine *p
                 ch = BackslashChar(pSrc);
                 cc[iDst++] = ch;
 			}
-			else if (ch == '`')
-			{
-				cc[iDst++] = '\0';
-				isQuotedChar = true;
+            else if (ch == '\'')
+            {
+                // we need to support 2 ugly special cases for ANSI 2012 compatablity:
+                //  '''    - single quote character constant
+                //  ''<anythingButSingleQuote> - also single quote character constant (gforth does this)
+                // in a multi-character literal, single quote must be done with \'
+                cc[iDst++] = '\0';
+                isQuotedChar = true;
+                if (iDst == 1)
+                {
+                    cc[0] = '\'';
+                    cc[iDst++] = '\0';
+                    if (*pSrc == '\'')
+                    {
+                        pSrc++;
+                    }
+                }
+
 				if (pSrc < pSrcLimit)
 				{
 					ch = *pSrc;
 					if ((ch == 'l') || (ch == 'L'))
 					{
+                        // trailing L after closing quote forces this to be treated as a long value
 						isLongConstant = true;
 						ch = *++pSrc;
 					}
@@ -230,9 +256,9 @@ ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, Engine *p
 			}
 		}
 
-		if (iDst == maxChars)
+		if (!brokeOnWhitespace && iDst == maxChars)
 		{
-			if (*pSrc == '`')
+			if (*pSrc == '\'')
 			{
 				pSrc++;
 				cc[iDst++] = '\0';
@@ -251,12 +277,18 @@ ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, Engine *p
 			pSrcIn = pSrc;
 		}
 	}
+    else if (pSrcIn[1] == '\'')
+    {
+        // handle the {''} case - return one single quote (is this a gforth only thing?)
+        SetFlag(PARSE_FLAG_QUOTED_CHARACTER);
+        SetToken("\'");
+        pSrcIn += 2;
+    }
 	return pSrcIn;
 }
 
 
-void
-ParseInfo::ParseDoubleQuote(const char *&pSrc, const char *pSrcLimit, bool keepBackslashes)
+void ParseInfo::ParseDoubleQuote(const char *&pSrc, const char *pSrcLimit, bool keepBackslashes)
 {
 	char  *pDst = GetToken();
 
@@ -280,10 +312,14 @@ ParseInfo::ParseDoubleQuote(const char *&pSrc, const char *pSrcLimit, bool keepB
 		case '\\':
 			if (keepBackslashes)
 			{
-				*pDst++ = '\\';
-			}
-            pSrc++;
-			ch = BackslashChar(pSrc);
+                *pDst++ = *pSrc++;
+                ch = *pSrc++;
+            }
+            else
+            {
+                pSrc++;
+                ch = BackslashChar(pSrc);
+            }
 			break;
 
 		default:

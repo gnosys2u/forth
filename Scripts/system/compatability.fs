@@ -39,7 +39,7 @@ autoforget compatability
 : lowerCaseIt
   dup strlen 0 do
     dup c@
-    if( and( dup `A` >= over `Z` <= ) )
+    if( and( dup 'A' >= over 'Z' <= ) )
       $20 + over c!
     else
       drop
@@ -66,7 +66,7 @@ autoforget compatability
 ;
 
 : .(
-  `)` $word %s
+  ')' $word %s
 ;
 precedence .(
 
@@ -82,7 +82,7 @@ precedence .(
 ;
 
 : abort" 
-  `"` $word state @
+  '"' $word state @
   if
     compileStringLiteral
     ['] _abortQuote i,
@@ -196,7 +196,7 @@ alias at-xy setConsoleCursor
 : bounds over + swap ;
 
 : ,"
-  `"` $word
+  '"' $word
   here over strlen 1+ allot
   swap strcpy align
 ;
@@ -210,7 +210,7 @@ alias at-xy setConsoleCursor
   ptrTo byte pStr!
   
   begin
-  while( and( numChars 0>   pStr numChars + 1- c@ ` ` <> ) )
+  while( and( numChars 0>   pStr numChars + 1- c@ '\s' <> ) )
     numChars--
   repeat
     

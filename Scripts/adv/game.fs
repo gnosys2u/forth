@@ -470,14 +470,14 @@ treasure before you may cross.")
       q %s
       getInputLine("\n**") ptrTo byte answer!
       writeToSaveFile(answer)
-      if(tolower(answer c@) `y` =)
+      if(tolower(answer c@) 'y' =)
         if(y null <>)
           y %s %nl
         endif
         true
         exit
       else
-        if(tolower(answer c@) `n` =)
+        if(tolower(answer c@) 'n' =)
           if(n null <>)
             n %s %nl
             endif
@@ -513,7 +513,7 @@ continue:
         tolower(p c@) q c!
         p++   q++
       repeat
-      `\0` q c!
+      '\0' q c!
       p++
       begin
       while(isspace(p c@))
@@ -521,7 +521,7 @@ continue:
       repeat
       inWord2.base q!
       if(p c@ 0=)
-        `\0` q c!
+        '\0' q c!
         exit
       endif
       begin
@@ -529,7 +529,7 @@ continue:
         tolower(p c@) q c!
         p++   q++
       repeat
-      `\0` q c!
+      '\0' q c!
       p++
       begin
       while(isspace(p c@))
@@ -545,7 +545,7 @@ continue:
 
   : shift_words
     strcpy(inWord1.base inWord2.base) 
-    `\0` inWord2.base c!
+    '\0' inWord2.base c!
   ;
 
 
@@ -1036,7 +1036,7 @@ spoo before spot_treasure
     null ptrTo byte room_description!
     if(dark) andif(not(is_forced(loc)))
       if(was_dark) andif(pct(35))
-        `p`  \ goto pitch_dark;
+        'p'  \ goto pitch_dark;
         exit
       endif
       pitchDarkMsg room_description!
@@ -1053,7 +1053,7 @@ spoo before spot_treasure
       %nl room_description %s %nl
     endif
     if(is_forced(loc))
-      `t`  \ goto try_move;
+      't'  \ goto try_move;
       exit
     endif
     give_optional_plugh_hint(loc) 
@@ -1227,7 +1227,7 @@ continue:
     0 int rank!
     initScoreClasses
     "You scored " %s s %d " out of a possible " %s MAX_SCORE %d ", using " %s turns %d
-    " turn" %s if(turns 1 >) `s` %c endif ".\n" %s
+    " turn" %s if(turns 1 >) 's' %c endif ".\n" %s
  
     begin
     while(classScores.get(rank) s <=)
@@ -1236,7 +1236,7 @@ continue:
     classMessages.get(rank).get %s "\nTo achieve the next higher rating" %s
     if(rank HIGHEST_CLASS <)
       classScores.get(rank) s - int delta!
-      ", you need " %s delta %d " more point" %s if(delta 1 >) `s` %c endif ".\n" %s
+      ", you need " %s delta %d " more point" %s if(delta 1 >) 's' %c endif ".\n" %s
     else
       puts(" would be a neat trick!\nCongratulations!!")
     endif
@@ -1975,31 +1975,31 @@ probably just as well.")
         if(loc MIN_LOWER_LOC <)
           case(loc)
             of(R_ROAD) of(R_VALLEY) of(R_SLIT)
-              `d`  \ try moving to DEPRESSION
+              'd'  \ try moving to DEPRESSION
               exit
             endof
             of(R_COBBLES) of(R_DEBRIS) of(R_AWK) of(R_BIRD) of(R_SPIT)
-              `e`  \ try moving to ENTRANCE
+              'e'  \ try moving to ENTRANCE
               exit
             endof
           endcase
         endif
-        `c`  \ can't see it
+        'c'  \ can't see it
         exit
       endof
       of(DWARF)
         if(dwarfAngerLevel 2 >=) andif(dwarf_at(loc))
           0
         else
-          `c`  \ can't see it
+          'c'  \ can't see it
         endif
         exit
       endof
       of(PLANT)
         if(is_at_loc(PLANT2 loc)) andif(objs(PLANT2).prop 0<>)
-          `p`  \ obj = PLANT2
+          'p'  \ obj = PLANT2
         else
-          `c`  \ can't see it
+          'c'  \ can't see it
         endif
         exit
       endof
@@ -2008,19 +2008,19 @@ probably just as well.")
         \ informs you that the knife has vanished; and from then on,
         \ it never reappears.
         if(haveTriedToGetKnife) orif((loc last_knife_loc <>))
-          `c`  \ can't see it
+          'c'  \ can't see it
           exit
         endif
         puts("The dwarves' knives vanish as they strike the walls of the cave.")
         true haveTriedToGetKnife!
-        `f`  \ action is finished
+        'f'  \ action is finished
         exit
       endof
       of(ROD)
         if(not(here(ROD2 loc)))
-          `c`
+          'c'
         else
-          `r`  \ obj = ROD2
+          'r'  \ obj = ROD2
         endif
         exit
       endof
@@ -2033,7 +2033,7 @@ probably just as well.")
           0
           exit
         endif
-        `c`
+        'c'
         exit
       endof
       of(OIL)
@@ -2045,11 +2045,11 @@ probably just as well.")
           0
           exit
         endif
-        `c`
+        'c'
         exit
       endof
     endcase
-    `c`
+    'c'
   ;
   
 spoo before determine_motion_instruction
@@ -2465,8 +2465,8 @@ knives at you!  All of them get you!")
     endif
     look_around(mLoc now_in_darkness(mLoc) mWasDark) lookResult!
     case(lookResult)
-      of(`p`) setState(kStatePitchDark) exit endof
-      of(`t`) setState(kStateTryMove) exit endof
+      of('p') setState(kStatePitchDark) exit endof
+      of('t') setState(kStateTryMove) exit endof
     endcase
     setState(kStateInnerLoop)
   ;
@@ -2599,28 +2599,28 @@ knives at you!  All of them get you!")
         \ water and oil might be present inside the bottle or
         \ as a feature of the location.
         case(check_noun_validity(mObj mLoc))
-          of(`c`)
+          of('c')
             setState(kStateCantSeeIt)
             exit
           endof
-          of(`d`)
+          of('d')
             DEPRESSION mMotion!
             setState(kStateTryMove)
             exit
           endof
-          of(`e`)
+          of('e')
             ENTRANCE mMotion!
             setState(kStateTryMove)
             exit
           endof
-          of(`f`)
+          of('f')
             setState(kStateInnerLoop)
             exit
           endof
-          of(`p`)
+          of('p')
             PLANT2 mObj!
           endof
-          of(`r`)
+          of('r')
             ROD2 mObj!
           endof
           \ of(0) endof
@@ -3350,7 +3350,7 @@ long description of your location.")
     mko AdventureState advState
     root.set(blword)
     result.resize(64)
-    result.appendFormatted("\"%s\" \' state%s kState%s" root.get dup dup 3)
+    result.appendFormatted("\"%s\" \q state%s kState%s" root.get dup dup 3)
     d[ "Defining " %s root.get %s  %bl result.get %s %nl ]d
     result.get $evaluate
     advState.init

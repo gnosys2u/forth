@@ -45,7 +45,7 @@ class: atcConsoleDisplay extends iAtcDisplay
   ;
 
   m: init         \ REGION ...
-    `disp` tag!
+    'disp' tag!
     region!o
     getConsoleColor -> defaultColors
     new ByteArray -> text
@@ -68,27 +68,27 @@ class: atcConsoleDisplay extends iAtcDisplay
     
     \ draw the top line of dashes   ------
     do( rowBytes 2- 0 )
-      `-` pDst b@!++
+      '-' pDst b@!++
     loop
     bl pDst b@!++
     0 pDst b@!++
 
     \ draw the lines below top line | . . . |
     do( rows 2- 0 )
-      `|` pDst b@!++
+      '|' pDst b@!++
       bl pDst b@!++
       do( columns 2- 0)
-        `.` pDst b@!++
+        '.' pDst b@!++
         bl pDst b@!++
       loop
-      `|` pDst b@!++
+      '|' pDst b@!++
       bl pDst b@!++
       0 pDst b@!++
     loop
     
     \ draw the bottom line of dashes   ------
     do( rowBytes 2- 0 )
-      `-` pDst b@!++
+      '-' pDst b@!++
     loop
     bl pDst b@!++
     0 pDst b@!++
@@ -105,11 +105,11 @@ class: atcConsoleDisplay extends iAtcDisplay
       
       begin
         \ x %d %bl y %d %nl
-        `+` xyAddr(x y) c!
+        '+' xyAddr(x y) c!
         dx ->+ x
         dy ->+ y
       until( and(x line.x1 =  y line.y1 =) )
-      `+` xyAddr(x y) c!
+      '+' xyAddr(x y) c!
       
       oclear line
     repeat
@@ -122,9 +122,9 @@ class: atcConsoleDisplay extends iAtcDisplay
     begin
     while( iter.next )
       -> iAtcBeacon beacon
-      xyAddr(beacon.x beacon.y) `*` over c!
+      xyAddr(beacon.x beacon.y) '*' over c!
       1 ->- id
-      1+ beacon.id `0` + swap c!
+      1+ beacon.id '0' + swap c!
       oclear beacon
     repeat
     oclear iter
@@ -134,7 +134,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     begin
     while( iter.next )
       -> iAtcPortal portal
-      portal.id `0` + xyAddr(portal.x portal.y)  c!
+      portal.id '0' + xyAddr(portal.x portal.y)  c!
       oclear portal
     repeat
     oclear iter
@@ -145,7 +145,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     while( iter.next )
       -> iAtcAirport airport
       xyAddr(airport.x airport.y) airport.entryDirection "^^>>vv<<" + c@ over c!
-      1+ airport.id `0` +  swap c!
+      1+ airport.id '0' +  swap c!
       oclear airport
     repeat
     oclear iter
@@ -199,9 +199,9 @@ class: atcConsoleDisplay extends iAtcDisplay
           startPlaneStatus(planeRow)
           1 ->+ planeRow
           plane.name.get %s plane.altitude 1000 / %d
-          if(plane.fuel region.warningFuel >) bl else `*` endif %c    \ low fuel indicator
-          if(plane.destinationType kATTPortal =) `E` else `A` endif %c
-          plane.destination %d `:` %c
+          if(plane.fuel region.warningFuel >) bl else '*' endif %c    \ low fuel indicator
+          if(plane.destinationType kATTPortal =) 'E' else 'A' endif %c
+          plane.destination %d ':' %c
           if( plane.circle )
             " Circle " %s
             if( plane.circle 0< )
@@ -242,11 +242,11 @@ class: atcConsoleDisplay extends iAtcDisplay
         1 ->+ planeRow
         plane.name.get %s 0 %d %bl
         if( plane.destinationType kATTPortal = )
-          `E` %c
+          'E' %c
         else
-          `A` %c
+          'A' %c
         endif
-        plane.destination %d `:` %c
+        plane.destination %d ':' %c
       " Holding @ A" %s region.getAirport@(plane.x plane.y).id %d
       endif
     repeat

@@ -39,10 +39,10 @@ enum: eMazeDirs
 
 : char2dir
   case
-    `R` of kDirRight endof
-    `L` of kDirLeft  endof
-    `U` of kDirUp    endof
-    `D` of kDirDown  endof
+    'R' of kDirRight endof
+    'L' of kDirLeft  endof
+    'U' of kDirUp    endof
+    'D' of kDirDown  endof
   endcase
 ;
 
@@ -54,26 +54,26 @@ kNumDirs arrayOf mazeDirs dirs
   ix dirs.ch!
 ;
 
-initDir( `R`  1  0 kDirRight )
-initDir( `D`  0  1 kDirDown )
-initDir( `L`  -1  0 kDirLeft )
-initDir( `U`  0  -1 kDirUp )
+initDir( 'R'  1  0 kDirRight )
+initDir( 'D'  0  1 kDirDown )
+initDir( 'L'  -1  0 kDirLeft )
+initDir( 'U'  0  -1 kDirUp )
 
 : reverseDir
   2+ 3 and
 ;
 
 enum: eMazeTileTypes
-  `#` kMTTWall
-  `R` kMTTRight
-  `L` kMTTLeft
-  `U` kMTTUp
-  `D` kMTTDown
-  `[` kMTTEntrance
-  `]` kMTTExit
-  `.` kMTTUnused
-  `?` kMTTDeadEnd
-  ` ` kMTTOpen
+  '#' kMTTWall
+  'R' kMTTRight
+  'L' kMTTLeft
+  'U' kMTTUp
+  'D' kMTTDown
+  '[' kMTTEntrance
+  ']' kMTTExit
+  '.' kMTTUnused
+  '?' kMTTDeadEnd
+  '\s' kMTTOpen
 ;enum
 
 : ?pick 0= if swap endif drop ;
@@ -472,10 +472,10 @@ class: MazeGen1
     grid.resize(width height *)
     
     new Array dirs!
-    `N` 1 2   0 -1 addDirection north!
-    `S` 2 1   0  1 addDirection south!
-    `E` 4 8   1  0 addDirection east!
-    `W` 8 4  -1  0 addDirection west!
+    'N' 1 2   0 -1 addDirection north!
+    'S' 2 1   0  1 addDirection south!
+    'E' 4 8   1  0 addDirection east!
+    'W' 8 4  -1  0 addDirection west!
   ;m
 
   : gridRef grid.ref(width * +) ;
@@ -510,21 +510,21 @@ class: MazeGen1
   
   m: draw
     ptrTo byte posRef
-    ` ` %c
+    '\s' %c
     do(width 2* 1- 0)
-      `_` %c
+      '_' %c
     loop
     %nl
     do(height 0)
-      `|` %c
+      '|' %c
       do(width 0)
         gridRef(i j) posRef!
-        if(posRef b@ south.wall and) ` ` else `_` endif %c
+        if(posRef b@ south.wall and) '\s' else '_' endif %c
         if(posRef b@ east.wall and)
           \ isn't this possibly looking one beyond end of maze?
-          if(posRef b@ posRef 1+ b@ or south.wall and) ` ` else `_` endif %c
+          if(posRef b@ posRef 1+ b@ or south.wall and) '\s' else '_' endif %c
         else
-          `|` %c
+          '|' %c
         endif
       loop
       %nl

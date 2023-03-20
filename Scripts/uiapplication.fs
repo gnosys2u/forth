@@ -51,7 +51,7 @@ class: UIApplication extends UIGroup
   m: onEvent
     \ "UIApplication:onEvent " %s this %x %bl %x %nl
     ->o Event ev
-    if(ev.param1 `quit` =)
+    if(ev.param1 'quit' =)
       true -> mQuit
     endif
   ;m

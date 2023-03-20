@@ -67,6 +67,8 @@ struct: dcell
 _initSystemObject
 $forget("_initSystemObject") drop
 
+$20 iconstant bl
+
 \  gets next token from input stream, returns:
 \  DELIM ... false                 if token is empty or end of line
 \  DELIM ... TOKEN_PTR true        if token found
@@ -77,7 +79,7 @@ $forget("_initSystemObject") drop
     drop false
   endif
 ;
-: blword? word?(` `) ;
+: blword? word?(bl) ;
 
 : $alias
   ptrTo byte oldSymbol!
@@ -198,7 +200,6 @@ alias 2! l!
 : see verbose describe ;
 
 : %nc swap 0 ?do dup %c loop drop ;     \ NUM CHAR ...      prints CHAR NUM times
-$20 iconstant bl
 : spaces bl %nc ;
 
 : autoload      \ autoload OPNAME SCRIPTFILE        load SCRIPTFILE if OPNAME undefined
@@ -296,24 +297,23 @@ alias lit ilit
 
 \ values to be used with features variable
 enum: eFeatures
-  $0001  kFFParenIsComment
-  $0002  kFFCCharacterLiterals
+  \ $0001  kFFParenIsComment            currently unused
+  \ $0002  kFFCCharacterLiterals        currently unused
   $0004  kFFMultiCharacterLiterals
   $0008  kFFCStringLiterals
-  $0010  kFFCHexLiterals
-  $0020  kFFDoubleSlashComment
+  \ $0010  kFFCHexLiterals              currently unused
+  \ $0020  kFFDoubleSlashComment        currently unused
   $0040  kFFIgnoreCase
-  $0080  kFFDollarHexLiterals
+  \ $0080  kFFDollarHexLiterals
   $0100  kFFCFloatLiterals
   $0200  kFFParenIsExpression
   $0400  kFFAllowContinuations
   $0800  kFFAllowVaropSuffix
   
   \ kFFAnsi and kFFRegular are the most common feature combinations
-  kFFParenIsComment kFFIgnoreCase + kFFDollarHexLiterals +    kFFAnsi
+  kFFIgnoreCase         kFFAnsi
   
-  kFFCCharacterLiterals kFFMultiCharacterLiterals + kFFCStringLiterals +
-    kFFDoubleSlashComment + kFFDollarHexLiterals + kFFCFloatLiterals +
+  kFFMultiCharacterLiterals kFFCStringLiterals + kFFCFloatLiterals +
     kFFAllowContinuations + kFFAllowVaropSuffix +           kFFRegular
     
 ;enum
@@ -324,14 +324,9 @@ enum: eFeatures
 : showFeatures
   features
   "$" %s dup %x
-  dup kFFParenIsComment and if " kFFParenIsComment" %s endif
-  dup kFFCCharacterLiterals and if " kFFCCharacterLiterals" %s endif
   dup kFFMultiCharacterLiterals and if " kFFMultiCharacterLiterals" %s endif
   dup kFFCStringLiterals and if " kFFCStringLiterals" %s endif
-  dup kFFCHexLiterals and if " kFFCHexLiterals" %s endif
-  dup kFFDoubleSlashComment and if " kFFDoubleSlashComment" %s endif
   dup kFFIgnoreCase and if " kFFIgnoreCase" %s endif
-  dup kFFDollarHexLiterals and if " kFFDollarHexLiterals" %s endif
   dup kFFCFloatLiterals and if " kFFCFloatLiterals" %s endif
   dup kFFParenIsExpression and if " kFFParenIsExpression" %s endif
   dup kFFAllowContinuations and if " kFFAllowContinuations" %s endif
@@ -445,7 +440,7 @@ int dumpWidth
       if( ch bl >  ch 127 < and )
         ch
       else
-        `.`
+        '.'
       endif
       %c
     loop
@@ -483,7 +478,7 @@ int dumpWidth
       if( ch bl >  ch 127 < and )
         ch
       else
-        `.`
+        '.'
       endif
       %c
     loop
@@ -564,7 +559,7 @@ precedence iliteral
 : cmove 0 do over i + c@ over i + c! loop 2drop ;
 : cmove> 0 swap 1- do over i + c@ over i + c! -1 +loop 2drop ;
 : ."
-  `"` $word
+  '"' $word
   if( state @ )
     compileStringLiteral
     postpone %s
@@ -575,7 +570,7 @@ precedence iliteral
 precedence ."
 
 : s"
-  `"` $word
+  '"' $word
   if( state @ )
     compileStringLiteral( dup )
     strlen postpone iliteral
@@ -602,7 +597,7 @@ alias space %bl
   if(fgets(buffer bufferLen stdin))
     strlen(buffer) bytesRead!
     if( bytesRead )
-      if( buffer bytesRead@+ 1- c@ `\n` = )
+      if( buffer bytesRead@+ 1- c@ '\n' = )
         \ trim trailing linefeed from count
         bytesRead--
       endif
@@ -859,7 +854,7 @@ addHelp pwd	pwd			display working directory
 
 addHelp ls	ls BLAH		display directory (BLAH is optional filespec)
 : ls
-  `\n` $word _TempStringA!
+  '\n' $word _TempStringA!
 #if WINDOWS
   "dir" _TempStringB!
 #else
@@ -915,7 +910,7 @@ addHelp more more FILENAME	display FILENAME on screen
         0 lineCounter!
         "Hit q to quit, any other key to continue\n" %s
         fgetc( stdin ) dup
-        if( `q` = swap `Q` = or )
+        if( 'q' = swap 'Q' = or )
           true done!
         endif
       endif
@@ -959,7 +954,7 @@ precedence demo
 addHelp list     BLOCK_NUM ...     display specified block
 variable scr  0 scr !
 : list dup scr ! block 16 0 do dup 64 type %nl 64+ loop drop ;
-: lb dup scr ! block 16 0 do i %d `\t` %c `|` %c dup 64 type `|` %c %nl 64+ loop drop ;
+: lb dup scr ! block 16 0 do i %d '\t' %c '|' %c dup 64 type '|' %c %nl 64+ loop drop ;
 : load dup thru ;
 
 enum: threadRunStates
@@ -1062,7 +1057,7 @@ enum: DIRENT_TYPE_BITS
     begin
     while( readdir(dirHandle entry) )
       entry.d_name(0 ref) pName!
-      if(pName c@ `.` <>)
+      if(pName c@ '.' <>)
         new String String filename!
         filename.set(pName)
         filenames.push(filename)
@@ -1133,7 +1128,7 @@ precedence ]t
 ;
 
 : assert[
-  $word( `]` )
+  $word( ']' )
   if( compileAsserts )
     $evaluate postpone _assert
   else
@@ -1269,13 +1264,13 @@ addHelp pushContext save the current base, search vocabularies and definitions v
   system.getSearchVocabDepth
   system.getDefinitionsVocab
   base @
-  `fctx`
+  'fctx'
 ;
 
 addHelp popContext restore the current base, search vocabularies and definitions vocabulary from stack
 : popContext
   int numSearchVocabs
-  if(`fctx` <>)
+  if('fctx' <>)
     error("popContext - wrong stuff on stack")
   else
     base !

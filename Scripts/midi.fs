@@ -184,13 +184,13 @@ cell boo
       
 	    kMSNoteOff of
 	      if( midiOutDev 0>= )
-	        `a` %c echoShortMessage( dwParam1 )
+	        'a' %c echoShortMessage( dwParam1 )
 	      endif
 	    endof
 	    
 	    kMSNoteOn of
 	      if( midiOutDev 0>= )
-	        `b` %c echoShortMessage( dwParam1 )
+	        'b' %c echoShortMessage( dwParam1 )
 	      endif
 	    endof
 	    
@@ -199,7 +199,7 @@ cell boo
 	    
 	    kMSControlChange of
 	      if( midiOutDev 0>= )
-	        `c` %c echoShortMessage( dwParam1 )
+	        'c' %c echoShortMessage( dwParam1 )
 	      endif
 	    endof
 	    

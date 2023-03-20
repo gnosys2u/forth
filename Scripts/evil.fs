@@ -48,9 +48,9 @@ class: evil
 		int forward!
 
 		if( standardMark )
-			`m`
+			'm'
 		else
-			`j`
+			'j'
 		endif
 		byte mark!
 		
@@ -134,18 +134,18 @@ class: evil
 	m: doOne
 		byte cmd!
 		
-		`m` byte mark!
-		`j` byte altmark!
+		'm' byte mark!
+		'j' byte altmark!
 		byte b
 
 		case( cmd )
-			`a` of	areg++  							endof
+			'a' of	areg++  							endof
 
-			`b` of	jump(false)							endof
+			'b' of	jump(false)							endof
 
-			`c` of	wopen								endof
+			'c' of	wopen								endof
 
-			`d` of
+			'd' of
 				wheelPos int ix!
 				begin
 				while(ix wheelSize 1- <)
@@ -159,63 +159,63 @@ class: evil
 				endif
 			endof
 			
-			`e` of	weave(areg) areg!					endof
+			'e' of	weave(areg) areg!					endof
 
-			`f` of	jump(true)							endof
+			'f' of	jump(true)							endof
 
-			`g` of	pental.get(pentalPos) areg! 		endof
+			'g' of	pental.get(pentalPos) areg! 		endof
 
-			`h` of
+			'h' of
 				pentalPos 1+ pentalSize mod pentalPos!
 			endof
 			
-			`i` of
+			'i' of
 				wheelPos 1+ wheelSize mod wheelPos!
 			endof
 			
-			`k` of	pental.set(areg pentalPos)			endof
+			'k' of	pental.set(areg pentalPos)			endof
 
-			`l` of
+			'l' of
 				wheel.get(wheelPos) b!
 				wheel.set(areg wheelPos)
 				b areg!
 			endof
 			
-			`n` of
+			'n' of
                 pentalPos--
                 if( pentalPos 0< )   pentalSize 1- pentalPos!   endif
 			endof
 
-			`o` of
+			'o' of
                 wheelPos--
                 if( wheelPos 0< )   wheelSize 1- wheelPos!   endif
 			endof
 
-			`p` of	wheel.get(wheelPos) areg!			endof
+			'p' of	wheel.get(wheelPos) areg!			endof
 
-			`q` of	swap								endof
+			'q' of	swap								endof
 
-			`r` of	read areg!  						endof
+			'r' of	read areg!  						endof
 
-			`s` of	if(areg 0=)  sourcePos++ endif	    endof
+			's' of	if(areg 0=)  sourcePos++ endif	    endof
 
-			`t` of	if(areg 0<>) sourcePos++ endif	    endof
+			't' of	if(areg 0<>) sourcePos++ endif	    endof
 
-			`u` of	areg--  							endof
+			'u' of	areg--  							endof
 
-			`v` of
+			'v' of
                 pental.get(pentalPos) b!
                 pental.set(areg pentalPos)
                 b areg!
 			endof
 
-			`w` of	write(areg)							endof
+			'w' of	write(areg)							endof
 
-			`x` of	not(standardMark) standardMark!	    endof
+			'x' of	not(standardMark) standardMark!	    endof
 
-			`y` of	wheel.set(areg wheelPos)			endof
+			'y' of	wheel.set(areg wheelPos)			endof
 
-			`z` of	areg~   							endof
+			'z' of	areg~   							endof
 
 		endcase
 		

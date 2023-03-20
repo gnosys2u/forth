@@ -13,14 +13,14 @@ class: atcGame extends iAtcGame
   int commandKey
   
   m: init
-    `game` tag!
+    'game' tag!
     new String name!
     name.set("games/")
     if( dup strlen 0=)
       drop "default"
     endif
     name.append
-    \ name.get %s `!` %c %nl
+    \ name.get %s '!' %c %nl
     new Array airplanes!
     new List activeAirplanes!
     new List inactiveAirplanes!
@@ -63,7 +63,7 @@ class: atcGame extends iAtcGame
       new atcAirplane plane!
       plane.init( region i )
       new String plane.name!
-      plane.name.appendChar(`A` i +)
+      plane.name.appendChar('A' i +)
       airplanes.push(plane)
       inactiveAirplanes.addTail(plane)
       plane~
@@ -86,7 +86,7 @@ class: atcGame extends iAtcGame
     \ display.showWarning(plane.name.get) %bl newX %d %bl newY %d %bl
     region.getTile( plane.x plane.y ) oldTile!o 
     oldTile.removeAirplane( plane )
-    t{ "plane " %s plane.name.get %s " moved to " %s newX %d `,` %c newY %d " at " %s plane.altitude %d %nl }t
+    t{ "plane " %s plane.name.get %s " moved to " %s newX %d ',' %c newY %d " at " %s plane.altitude %d %nl }t
     if( and(within(newX 0 region.columns) within(newY 0 region.rows)) )
       \ plane still in airspace
       region.getTile(newX newY) newTile!o 

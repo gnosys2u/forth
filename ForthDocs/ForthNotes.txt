@@ -4,6 +4,8 @@
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
+- document how ExpressionInputStream works, I believe I did this somewhere, it
+  probably just needs to be updated
 
 - sort out d/l/2 ops, there are definitely bugs and inconsistencies there
   - 64-bit non-asm l@/l! swap order on TOS when it shouldn't
@@ -279,6 +281,12 @@ Double has consistent layout, long is reversed on param stack.
 
 
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+March 19 2023
+
+ANSI 2012 Character literals are working now.  I also ripped out a bunch of the
+kFF feature flags which are now standard: kFFParenIsComment, kFFCCharacterLiterals,
+kFFCHexLiterals, kFFDoubleSlashComment, kFFDollarHexLiterals.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 March 17 2023
 

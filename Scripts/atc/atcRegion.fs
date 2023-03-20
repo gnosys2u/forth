@@ -3,7 +3,7 @@
 class: atcRegion extends iAtcRegion
 
   m: init
-    `regn` tag!
+    'regn' tag!
     2dup
     rows!
     columns!
@@ -248,7 +248,7 @@ class: atcRegion extends iAtcRegion
     int x1!
     int y0!
     int x0!
-    \ "new line from " %s x0 %d `,` %c y0 %d " to " %s x1 %d `,` %c y1 %d %nl
+    \ "new line from " %s x0 %d ',' %c y0 %d " to " %s x1 %d ',' %c y1 %d %nl
     mko iAtcLine line
     line.init(x0 y0 x1 y1)
     lines.insert(line 0)

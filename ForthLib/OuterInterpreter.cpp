@@ -134,9 +134,9 @@ OuterInterpreter::OuterInterpreter(Engine* pEngine)
     , mpTypesManager(nullptr)
     , mpVocabStack(nullptr)
     , mpOpcodeCompiler(nullptr)
-    , mFeatures(kFFCCharacterLiterals | kFFMultiCharacterLiterals | kFFCStringLiterals
+    , mFeatures(kFFMultiCharacterLiterals | kFFCStringLiterals
         | kFFCFloatLiterals | kFFParenIsExpression
-        | kFFAllowVaropSuffix | kFFDollarHexLiterals | kFFParenIsComment)
+        | kFFAllowVaropSuffix)
     , mContinuationIx(0)
     , mContinueDestination(nullptr)
     , mContinueCount(0)
@@ -991,7 +991,7 @@ bool OuterInterpreter::ScanIntegerToken( char         *pToken,
         isSingle = (strchr(pToken, '.') == nullptr);
     }
 
-    if ( (pToken[0] == '$') && CheckFeature(kFFDollarHexLiterals) )
+    if (pToken[0] == '$')
     {
 #if defined(WIN32)
         if (sscanf(pToken + 1, "%I64x", &value) == 1)
@@ -1007,22 +1007,6 @@ bool OuterInterpreter::ScanIntegerToken( char         *pToken,
         }
     }
 	
-    if ( !isValid && ((pToken[0] == '0') && (pToken[1] == 'x')) && CheckFeature(kFFCHexLiterals) )
-    {
-#if defined(WIN32)
-        if (sscanf(pToken + 2, "%I64x", &value) == 1)
-#else
-        if (sscanf(pToken + 2, "%llx", &value) == 1)
-#endif
-        {
-            if (isNegative)
-            {
-                value = 0 - value;
-            }
-            isValid = true;
-        }
-    }
-
     if ( !isValid )
     {
 

@@ -93,7 +93,7 @@ decimal
    2dup setCellLife  updateNeighborCounts ;
 
 \ mortal coils
-`?` constant liveCell
+'?' constant liveCell
 bl constant emptyCell
 
 cellRows 2/ constant cellRowsOffset
