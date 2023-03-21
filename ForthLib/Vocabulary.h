@@ -49,6 +49,7 @@ enum class VocabularyType :ucell
     kLocalVariables,
     kStruct,
     kClass,
+    kUsing,
     kInterface
 };
 
@@ -70,16 +71,16 @@ public:
     virtual const char *GetName( void );
     virtual const char *GetTypeName( void );
 
-    void                Empty( void );
+    virtual void        Empty( void );
 
     // add symbol to symbol table, return ptr to new symbol entry
     virtual forthop*    AddSymbol( const char *pSymName, forthop symValue);
 
     // copy a symbol table entry, presumably from another vocabulary
-    void                CopyEntry(forthop* pEntry );
+    virtual void        CopyEntry(forthop* pEntry );
 
     // delete single symbol table entry
-    void                DeleteEntry(forthop* pEntry );
+    virtual void        DeleteEntry(forthop* pEntry );
 
     // delete symbol entry and all newer entries
     // return true IFF symbol was forgotten
@@ -124,9 +125,9 @@ public:
     // will fail, and an earlier symbol with the same name will be compiled instead
     // this is to allow you to re-define a symbol by layering on top of an earlier
     // symbol of the same name
-    void                SmudgeNewestSymbol( void );
+    virtual void        SmudgeNewestSymbol( void );
     // unsmudge a symbol when its definition is complete
-    void                UnSmudgeNewestSymbol( void );
+    virtual void        UnSmudgeNewestSymbol( void );
 
 	ForthObject& GetVocabularyObject(void);
 

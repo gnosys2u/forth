@@ -37,10 +37,11 @@ public:
     void            UnchopVaropSuffix();
     VarOperation    CheckVaropSuffix();
 
+    void UpdateLength(size_t symLen);
+
     static const char* GetVaropSuffix(VarOperation varop);
 
 private:
-    void UpdateLength(size_t symLen);
     
     int32_t*        mpToken;         // pointer to token buffer, first byte is strlen(token)
 	int             mFlags;          // flags set by Shell::ParseToken for Engine::ProcessToken

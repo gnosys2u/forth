@@ -337,6 +337,27 @@ namespace OSystem
         METHOD_RETURN;
     }
 
+    FORTHOP(oSystemAddUsingVocabularyMethod)
+    {
+        Engine* pEngine = GET_ENGINE;
+
+        const char* pVocabName = (const char*)(SPOP);
+        Vocabulary* pVocab = Vocabulary::FindVocabulary(pVocabName);
+        if (pVocab)
+        {
+            OuterInterpreter* outer = pEngine->GetOuterInterpreter();
+            outer->AddUsingVocabulary(pVocab);
+        }
+        METHOD_RETURN;
+    }
+    
+    FORTHOP(oSystemClearUsingVocabulariesMethod)
+    {
+        Engine* pEngine = GET_ENGINE;
+        OuterInterpreter* outer = pEngine->GetOuterInterpreter();
+        outer->ClearUsingVocabularies();
+        METHOD_RETURN;
+    }
 
     baseMethodEntry oSystemMembers[] =
     {
@@ -364,6 +385,8 @@ namespace OSystem
         METHOD_RET("getErrOut", oSystemGetErrorOutMethod, RETURNS_OBJECT(kBCIErrorOutStream)),
         METHOD("setWorkDir", oSystemSetWorkDirMethod),
         METHOD("getWorkDir", oSystemGetWorkDirMethod),
+        METHOD("addUsingVocabulary", oSystemAddUsingVocabularyMethod),
+        METHOD("clearUsingVocabularies", oSystemClearUsingVocabulariesMethod),
 
         MEMBER_VAR("namedObjects", OBJECT_TYPE_TO_CODE(0, kBCIStringMap)),
         MEMBER_VAR("args", OBJECT_TYPE_TO_CODE(0, kBCIArray)),

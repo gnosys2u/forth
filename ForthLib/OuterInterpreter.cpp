@@ -30,7 +30,7 @@
 #include "TypesManager.h"
 #include "ClassVocabulary.h"
 #include "InputStack.h"
-
+#include "UsingVocabulary.h"
 
 //////////////////////////////////////////////////////////////////////
 ////
@@ -146,6 +146,7 @@ OuterInterpreter::OuterInterpreter(Engine* pEngine)
     , mpLocalAllocOp(nullptr)
     , mCompileState(0)
     , mCompileFlags(0)
+    , mpUsingVocab(nullptr)
 {
     mpShell = mpEngine->GetShell();
     mpCore = mpEngine->GetMainFiber()->GetCore();
@@ -162,7 +163,9 @@ OuterInterpreter::OuterInterpreter(Engine* pEngine)
 
     mpForthVocab = new Vocabulary("forth", NUM_FORTH_VOCAB_VALUE_LONGS);
     mpLiteralsVocab = new Vocabulary("literals", NUM_FORTH_VOCAB_VALUE_LONGS);
-    mpLocalVocab = new LocalVocabulary("locals", NUM_LOCALS_VOCAB_VALUE_LONGS);
+    mpLocalVocab = new LocalVocabulary(NUM_LOCALS_VOCAB_VALUE_LONGS);
+    mpUsingVocab = new UsingVocabulary();
+
     mStringBufferASize = 3 * MAX_STRING_SIZE;
     mpStringBufferA = new char[mStringBufferASize];
     mpTempBuffer = new char[MAX_STRING_SIZE];
@@ -183,6 +186,7 @@ OuterInterpreter::~OuterInterpreter()
     delete mpForthVocab;
     delete mpLiteralsVocab;
     delete mpLocalVocab;
+    delete mpUsingVocab;
     delete mpOpcodeCompiler;
     delete[] mpStringBufferA;
     delete[] mpTempBuffer;
@@ -1648,6 +1652,18 @@ bool OuterInterpreter::CompileLocalVariableOpcode(forthop* pEntry, VarOperation 
     // TODO: handle pointer varops
     return false;
 }
+
+void OuterInterpreter::AddUsingVocabulary(Vocabulary* vocab)
+{
+    mpUsingVocab->Push(vocab);
+}
+
+void OuterInterpreter::ClearUsingVocabularies()
+{
+    mpUsingVocab->Empty();
+}
+
+
 
 //############################################################################
 //

@@ -167,6 +167,17 @@ alias 2! l!
 
 : ' blword $' ;
 
+\ "using: STRUCT_NAME" will allow you to reference structure member offsets with MEMBER_NAME#
+\ you can stack multiple structures if needed
+: using:
+  blword system.addUsingVocabulary
+;
+
+\ remove all structures added with "using:" from search order
+: ;using
+  system.clearUsingVocabularies
+;
+
 : lf
   makeObject String srcName
   srcName.set(blword)

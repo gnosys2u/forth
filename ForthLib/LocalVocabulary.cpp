@@ -14,10 +14,10 @@
 //
 //
 
-LocalVocabulary::LocalVocabulary( const char    *pName,
-                                            int           valueLongs,
-                                            int           storageBytes )
-: Vocabulary( pName, valueLongs, storageBytes )
+LocalVocabulary::LocalVocabulary( 
+                                    int           valueLongs,
+                                    int           storageBytes )
+: Vocabulary( "_locals", valueLongs, storageBytes)
 , mDepth( 0 )
 , mFrameCells( 0 )
 , mpAllocOp( NULL )

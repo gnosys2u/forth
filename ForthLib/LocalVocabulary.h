@@ -13,8 +13,7 @@
 class LocalVocabulary : public Vocabulary
 {
 public:
-    LocalVocabulary( const char *pName=NULL,
-                               int valueLongs=NUM_LOCALS_VOCAB_VALUE_LONGS, int storageBytes=DEFAULT_VOCAB_STORAGE );
+    LocalVocabulary( int valueLongs=NUM_LOCALS_VOCAB_VALUE_LONGS, int storageBytes=DEFAULT_VOCAB_STORAGE );
     virtual ~LocalVocabulary();
 
     // return a string telling the type of library

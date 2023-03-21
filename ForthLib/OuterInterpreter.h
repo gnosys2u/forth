@@ -22,6 +22,7 @@ class Shell;
 class OpcodeCompiler;
 class Vocabulary;
 class LocalVocabulary;
+class UsingVocabulary;
 
 typedef enum {
     //kEngineFlagHasLocalVars              = 0x01,
@@ -255,6 +256,9 @@ public:
 
     VocabularyStack*   GetVocabularyStack( void )              { return mpVocabStack; };
 
+    void AddUsingVocabulary(Vocabulary* vocab);
+    void ClearUsingVocabularies();
+
 	// squish float/double down to 24-bits, returns true IFF number can be represented exactly OR approximateOkay==true and number is within range of squished float
 	bool					SquishFloat( float fvalue, bool approximateOkay, uint32_t& squishedFloat );
 	float					UnsquishFloat( uint32_t squishedFloat );
@@ -291,6 +295,7 @@ private:
     Vocabulary * mpForthVocab;              // main forth vocabulary
     Vocabulary * mpLiteralsVocab;            // user-defined literals vocabulary
     LocalVocabulary * mpLocalVocab;         // local variable vocabulary
+    UsingVocabulary* mpUsingVocab;          // vocab for 'using:' feature
 
     Vocabulary * mpDefinitionVocab;    // vocabulary which new definitions are added to
     VocabularyStack * mpVocabStack;
@@ -349,6 +354,5 @@ protected:
     NumberParser    mNumberParser;
 
     ForthEnumInfo*  mpNewestEnum;
-
 };
 

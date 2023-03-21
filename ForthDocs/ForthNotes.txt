@@ -282,6 +282,18 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+March 21 2023
+
+I added a feature to make it easy to get the offsets for structure members
+in assembly code.  I added a new Vocabulary type, UsingVocabulary, which has
+a stack of vocabularies, presumably structure or class vocabularies. When you
+do "using: foo" the foo vocabulary is added to the top of the UsingVocabulary
+stack, and if a symbol which ends in '#' is seen, UsingVocabulary will search
+its vocabulary for that symbol after stripping the '#'.  If the symbol is found
+in one of the stacked vocabularies, the offset of the member that symbol names
+is pushed on TOS, or if you are compiling a constant with that offset value is
+compiled.  Do ";using" to empty the vocabulary stack in UsingVocabulary.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 March 19 2023
 
 I gutted the old integer/float literal parsing and moved all the number parsing

@@ -528,6 +528,7 @@
     <ClInclude Include="..\ForthLib\StructCodeGenerator.h" />
     <ClInclude Include="..\ForthLib\StructVocabulary.h" />
     <ClInclude Include="..\ForthLib\Thread.h" />
+    <ClInclude Include="..\ForthLib\UsingVocabulary.h" />
     <ClInclude Include="..\ForthLib\Vocabulary.h" />
     <ClInclude Include="..\ForthLib\LocalVocabulary.h" />
     <ClInclude Include="..\ForthLib\NativeType.h" />
@@ -728,6 +729,7 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BrowseInformation>
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='RelAsm|x64'">true</BrowseInformation>
     </ClCompile>
+    <ClCompile Include="..\ForthLib\UsingVocabulary.cpp" />
     <ClCompile Include="..\ForthLib\Vocabulary.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='DbgAsm|Win32'">Disabled</Optimization>

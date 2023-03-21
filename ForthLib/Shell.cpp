@@ -1511,9 +1511,10 @@ Shell::SetEnvironmentVars( const char ** envp )
                 tempDir = varValue;
             }
         }
-        else if (tokens.size() < 2)
+        else if (tokens.size() == 1)
         {
-            printf( "Malformed environment variable: %s\n", envp[i] );
+            mEnvVarNames.push_back(tokens[0]);
+            mEnvVarValues.push_back("");
         }
         i++;
     }

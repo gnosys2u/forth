@@ -143,8 +143,7 @@ int Vocabulary::GetEntryName( const forthop* pEntry, char *pDstBuff, int buffSiz
     return len;
 }
 
-void
-Vocabulary::Empty( void )
+void Vocabulary::Empty( void )
 {
     mNumSymbols = 0;
     mpStorageTop = mpStorageBase + mStorageLongs;
