@@ -284,6 +284,17 @@ Double has consistent layout, long is reversed on param stack.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 March 19 2023
 
+I gutted the old integer/float literal parsing and moved all the number parsing
+for the outer interpreter into a NumberParser class.  It is now using ANSI 2012
+syntax for integer and floating point.  The test and ansitest scripts both pass.
+I am sure there are many old-style floating point literals left in script files,
+I'll fix them as I come across them.  Double cell numbers are also working.
+
+The next step is to fill in any holes in the floating point and double number
+optional word sets.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+March 19 2023
+
 ANSI 2012 Character literals are working now.  I also ripped out a bunch of the
 kFF feature flags which are now standard: kFFParenIsComment, kFFCCharacterLiterals,
 kFFCHexLiterals, kFFDoubleSlashComment, kFFDollarHexLiterals.

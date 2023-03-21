@@ -174,7 +174,7 @@ struct: colorTri
 
 colorTri u
 colorTri v
-1 2 3 4 5 6 11 22 33 44 3.1214 2.71828d null u   setTri
+1 2 3 4 5 6 11 22 33 44 3.1214Ef 2.71828E null u   setTri
 u %colorTri
 
 

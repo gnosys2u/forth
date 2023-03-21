@@ -111,7 +111,6 @@ void TokenStack::Clear()
 	mpCurrent = mpLimit;
 }
 
-
 //////////////////////////////////////////////////////////////////////
 ////
 ///
@@ -931,204 +930,6 @@ char* OuterInterpreter::GetLastInputToken( void )
 }
 
 
-// return true IFF token is an integer literal
-// sets isOffset if token ended with a + or -
-// NOTE: temporarily modifies string @pToken
-bool OuterInterpreter::ScanIntegerToken( char         *pToken,
-                               int64_t      &value,
-                               int          base,
-                               bool         &isOffset,
-                               bool&        isSingle )
-{
-    int32_t digit;
-    bool isNegative;
-    char c;
-    int digitsFound = 0;
-    ucell len = (ucell)strlen( pToken );
-    char *pLastChar = pToken + (len - 1);
-    char lastChar = *pLastChar;
-    bool isValid = false;
-
-    // if CFloatLiterals is off, '.' indicates a double-precision number, not a float
-    bool periodMeansDoubleInt = !CheckFeature( kFFCFloatLiterals );
-
-    isOffset = false;
-    isSingle = true;
-
-    // handle leading plus or minus sign
-    isNegative = (pToken[0] == '-');
-    if ( isNegative || (pToken[0] == '+') )
-    {
-        // strip leading plus/minus sign
-        pToken++;
-    }
-
-    // handle trailing plus or minus sign
-    if ( lastChar == '+' )
-    {
-        isOffset = true;
-        *pLastChar = 0;
-    }
-    else if ( lastChar == '-' )
-    {
-        isOffset = true;
-        *pLastChar = 0;
-        isNegative = !isNegative;
-    }
-    else if ( (lastChar == 'L') || (lastChar == 'l') )
-    {
-        isSingle = false;
-        *pLastChar = 0;
-    }
-    else
-    {
-        pLastChar = nullptr;
-    }
-
-    // see if this is ANSI style double precision int
-    if (periodMeansDoubleInt)
-    {
-        isSingle = (strchr(pToken, '.') == nullptr);
-    }
-
-    if (pToken[0] == '$')
-    {
-#if defined(WIN32)
-        if (sscanf(pToken + 1, "%I64x", &value) == 1)
-#else
-        if (sscanf(pToken + 1, "%llx", &value) == 1)
-#endif
-        {
-            if ( isNegative )
-            {
-                value = 0 - value;
-            }
-            isValid = true;
-        }
-    }
-	
-    if ( !isValid )
-    {
-
-        isValid = true;
-        value = 0;
-        while ( (c = *pToken++) != 0 )
-        {
-
-            if ( (c >= '0') && (c <= '9') )
-            {
-                digit = c - '0';
-                digitsFound++;
-            }
-            else if ( (c >= 'A') && (c <= 'Z') )
-            {
-                digit = 10 + (c - 'A');
-                digitsFound++;
-            }
-            else if ( (c >= 'a') && (c <= 'z') )
-            {
-                digit = 10 + (c - 'a');
-                digitsFound++;
-            }
-            else
-            {
-                // char can't be a digit
-                if ( (c == '.') && periodMeansDoubleInt )
-                {
-                    // ignore . in double precision int
-                    continue;
-                }
-                isValid = false;
-                break;
-            }
-
-            if ( digit >= base )
-            {
-                // invalid digit for current base
-                isValid = false;
-                break;
-            }
-            value = (value * base) + digit;
-        }
-
-        if ( digitsFound == 0 )
-        {
-            isValid = false;
-        }
-
-        // all chars were valid digits
-        if ( isNegative )
-        {
-            value = 0 - value;
-        }
-    }
-
-    // restore original last char
-    if ( pLastChar != nullptr )
-    {
-        *pLastChar = lastChar;
-    }
-
-    return isValid;
-}
-
-
-// return true IFF token is a real literal
-// sets isSingle to tell if result is a float or double
-// NOTE: temporarily modifies string @pToken
-bool OuterInterpreter::ScanFloatToken( char *pToken, float& fvalue, double& dvalue, bool& isSingle, bool& isApproximate )
-{
-   bool retVal = false;
-   double dtemp;
-
-   isApproximate = false;
-   // a leading tilde means that value may be approximated with lowest precision 
-   if ( *pToken == '~' )
-   {
-	   isApproximate = true;
-	   pToken++;
-   }
-
-   ucell len = (ucell)strlen( pToken );
-   char *pLastChar = pToken + (len - 1);
-   char lastChar = tolower(*pLastChar);
-   switch ( lastChar )
-   {
-   case 'd':
-   case 'l':
-      *pLastChar = 0;
-      if ( sscanf( pToken, "%lf", &dvalue ) == 1)
-      {
-         retVal = true;
-         isSingle = false;
-      }
-      *pLastChar = lastChar;
-      break;
-   case 'f':
-	  *pLastChar = 0;
-
-      if ( sscanf( pToken, "%lf", &dtemp) == 1)
-      {
-          fvalue = (float)dtemp;
-          retVal = true;
-          isSingle = true;
-      }
-      *pLastChar = lastChar;
-      break;
-   default:
-       if ( sscanf( pToken, "%lf", &dtemp) == 1)
-        {
-            fvalue = (float)dtemp;
-            retVal = true;
-            isSingle = true;
-        }
-        break;
-   }
-
-   return retVal;
-}
-
-
 // squish float down to 24-bits, returns true IFF number can be represented exactly
 //   OR approximateOkay==true and number is within range of squished float
 bool
@@ -1345,15 +1146,13 @@ forthop* OuterInterpreter::GetLastCompiledOpcodePtr( void )
 	return mpOpcodeCompiler->GetLastCompiledOpcodePtr();
 }
 
-forthop*
-OuterInterpreter::GetLastCompiledIntoPtr( void )
+forthop* OuterInterpreter::GetLastCompiledIntoPtr( void )
 {
 	return mpOpcodeCompiler->GetLastCompiledIntoPtr();
 }
 
 // interpret/compile a constant value/offset
-void
-OuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
+void OuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
 {
     if ( mCompileState )
     {
@@ -1461,6 +1260,32 @@ OuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSingle)
         }
     }
 }
+
+void OuterInterpreter::ProcessDoubleCellConstant(const doubleCell& value)
+{
+    if (mCompileState)
+    {
+        // compile the literal value
+        ClearPeephole();
+
+#if defined(FORTH64)
+        CompileBuiltinOpcode(OP_I128_VAL);
+#else
+        CompileBuiltinOpcode(OP_LONG_VAL);
+#endif
+        ucell* pDP = (ucell*)(mpDictionary->pCurrent);
+        *pDP++ = value.ucells[1];
+        *pDP++ = value.ucells[0];
+        mpDictionary->pCurrent = (forthop*)pDP;
+    }
+    else
+    {
+        // leave value on param stack
+        *--mpCore->SP = value.ucells[1];
+        *--mpCore->SP = value.ucells[0];
+    }
+}
+
 
 // return true IFF the last compiled opcode was an integer literal
 bool
@@ -1836,13 +1661,11 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
     forthop* pEntry;
     int64_t lvalue;
     OpResult exitStatus = OpResult::kOk;
-    float fvalue;
-    double dvalue;
     char *pToken = pInfo->GetToken();
     int len = pInfo->GetTokenLength();
     bool isAString = (pInfo->GetFlags() & PARSE_FLAG_QUOTED_STRING) != 0;
 	bool isAQuotedCharacter = (pInfo->GetFlags() & PARSE_FLAG_QUOTED_CHARACTER) != 0;
-    bool isSingle, isOffset, isApproximate;
+    bool isSingle, isOffset;
     double* pDPD;
     Vocabulary* pFoundVocab = nullptr;
 
@@ -2026,7 +1849,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
         }
     }
 
-	// see if this is an array indexing op like structType[] or number[]
+	// see if this is an array indexing op like structType[]
     if ( (len > 2) && (strcmp( "[]", &(pToken[len - 2]) ) == 0) )
     {
 		// symbol ends with [], see if preceeding token is either a number or a structure type
@@ -2048,10 +1871,6 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
 					elementSize = pNative->GetSize();
 				}
 			}
-			else if ( ScanIntegerToken( pToken, lvalue, mpCore->base, isOffset, isSingle ) && isSingle )
-			{
-				elementSize = (int)lvalue;
-			}
 		}
 		pToken[len - 2] = '[';
 		if ( elementSize > 0 )
@@ -2072,91 +1891,92 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
     }
 
     // try to convert to a number
-    // if there is a period in string
-    //    try to covert to a floating point number
-    // else
-    //    try to convert to an integer
-    if ( ((pInfo->GetFlags() & PARSE_FLAG_HAS_PERIOD) && CheckFeature(kFFCFloatLiterals))
-          && ScanFloatToken( pToken, fvalue, dvalue, isSingle, isApproximate ) )
+    NumberType numberType = mNumberParser.ScanNumber(pToken, mpCore->base);
+    if (numberType != NumberType::kInvalid)
     {
-       if ( isSingle )
-       {
-          ////////////////////////////////////
-          //
-          // symbol is a single precision fp literal
-          //
-          ////////////////////////////////////
-          SPEW_OUTER_INTERPRETER( "Floating point literal %f\n", fvalue );
-          if ( mCompileState )
-          {
-              // compile the literal value
-			  uint32_t squishedFloat;
-			  if ( SquishFloat( fvalue, isApproximate, squishedFloat ) )
-			  {
-	              CompileOpcode( kOpSquishedFloat, squishedFloat );
-			  }
-			  else
-			  {
-				  CompileBuiltinOpcode( OP_FLOAT_VAL );
-				  *(float *) mpDictionary->pCurrent++ = fvalue;
-			  }
-          }
-          else
-          {
-              --mpCore->SP;
+        ////////////////////////////////////
+        //
+        // symbol is some type of number
+        //
+        ////////////////////////////////////
+        if (numberType == NumberType::kSingleFloat)
+        {
+            ////////////////////////////////////
+            //
+            // symbol is a single precision fp literal
+            //
+            ////////////////////////////////////
+            float fvalue = mNumberParser.GetSingleFloatValue();
+            SPEW_OUTER_INTERPRETER("Floating point literal %f\n", fvalue);
+            if (mCompileState)
+            {
+                // compile the literal value
+                uint32_t squishedFloat;
+                if (SquishFloat(fvalue, false, squishedFloat))
+                {
+                    CompileOpcode(kOpSquishedFloat, squishedFloat);
+                }
+                else
+                {
+                    CompileBuiltinOpcode(OP_FLOAT_VAL);
+                    *(float*)mpDictionary->pCurrent++ = fvalue;
+                }
+            }
+            else
+            {
+                --mpCore->SP;
 #if defined(FORTH64)
-              *mpCore->SP = 0;
+                *mpCore->SP = 0;
 #endif
-              *(float *) mpCore->SP = fvalue;
-          }
-       }
-       else
-       {
-          ////////////////////////////////////
-          //
-          // symbol is a double precision fp literal
-          //
-          ////////////////////////////////////
-          SPEW_OUTER_INTERPRETER( "Floating point double literal %g\n", dvalue );
-          if ( mCompileState )
-          {
-              // compile the literal value
-			  uint32_t squishedDouble;
-			  if (  SquishDouble( dvalue, isApproximate, squishedDouble ) )
-			  {
-	              CompileOpcode( kOpSquishedDouble, squishedDouble );
-			  }
-			  else
-			  {
-				  CompileBuiltinOpcode( OP_DOUBLE_VAL );
-				  pDPD = (double *) mpDictionary->pCurrent;
-				  *pDPD++ = dvalue;
-				  mpDictionary->pCurrent = (forthop *) pDPD;
-			  }
-          }
-          else
-          {
+                * (float*)mpCore->SP = fvalue;
+            }
+        }
+        else if (numberType == NumberType::kDoubleFloat)
+        {
+            ////////////////////////////////////
+            //
+            // symbol is a double precision fp literal
+            //
+            ////////////////////////////////////
+            double dvalue = mNumberParser.GetDoubleFloatValue();
+            SPEW_OUTER_INTERPRETER("Floating point double literal %g\n", dvalue);
+            if (mCompileState)
+            {
+                // compile the literal value
+                uint32_t squishedDouble;
+                if (SquishDouble(dvalue, false, squishedDouble))
+                {
+                    CompileOpcode(kOpSquishedDouble, squishedDouble);
+                }
+                else
+                {
+                    CompileBuiltinOpcode(OP_DOUBLE_VAL);
+                    pDPD = (double*)mpDictionary->pCurrent;
+                    *pDPD++ = dvalue;
+                    mpDictionary->pCurrent = (forthop*)pDPD;
+                }
+            }
+            else
+            {
 #if defined(FORTH64)
-              mpCore->SP -= 1;
+                mpCore->SP -= 1;
 #else
-              mpCore->SP -= 2;
+                mpCore->SP -= 2;
 #endif
-              *(double *) mpCore->SP = dvalue;
-          }
-       }
+                * (double*)mpCore->SP = dvalue;
+            }
+        }
+        else if (numberType == NumberType::kLong || numberType == NumberType::kInt)
+        {
+            lvalue = mNumberParser.GetLongValue();
+            SPEW_OUTER_INTERPRETER("Integer literal %lld\n", lvalue);
+            ProcessConstant(lvalue, mNumberParser.IsOffset(), numberType == NumberType::kInt);
+        }
+        else if (numberType == NumberType::kDoubleCell)
+        {
+            ProcessDoubleCellConstant(mNumberParser.GetDoubleCellValue());
+        }
        return OpResult::kOk;
-    }
-    else if ( ScanIntegerToken( pToken, lvalue, mpCore->base, isOffset, isSingle ) )
-    {
-
-        ////////////////////////////////////
-        //
-        // symbol is an integer literal
-        //
-        ////////////////////////////////////
-        SPEW_OUTER_INTERPRETER( "Integer literal %lld\n", lvalue );
-        ProcessConstant(lvalue, isOffset, isSingle);
-        return OpResult::kOk;
     }
     else if ( CheckFlag( kEngineFlagInEnumDefinition ) )
     {

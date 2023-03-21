@@ -154,7 +154,7 @@ bb ref boo showStruct
 
 55 -> bb.a
 123456789l -> bb.b
-123.675 -> bb.c
+123.675Ef -> bb.c
 bb ref boo showStruct
 bb 100 dump
 

@@ -515,6 +515,7 @@
     <ClInclude Include="..\ForthLib\InputStack.h" />
     <ClInclude Include="..\ForthLib\MemoryManager.h" />
     <ClInclude Include="..\ForthLib\ForthMessages.h" />
+    <ClInclude Include="..\ForthLib\NumberParser.h" />
     <ClInclude Include="..\ForthLib\Object.h" />
     <ClInclude Include="..\ForthLib\ObjectReader.h" />
     <ClInclude Include="..\ForthLib\OpcodeCompiler.h" />
@@ -640,6 +641,7 @@
     <ClCompile Include="..\ForthLib\InputStream.cpp" />
     <ClCompile Include="..\ForthLib\InputStack.cpp" />
     <ClCompile Include="..\ForthLib\MemoryManager.cpp" />
+    <ClCompile Include="..\ForthLib\NumberParser.cpp" />
     <ClCompile Include="..\ForthLib\ObjectReader.cpp" />
     <ClCompile Include="..\ForthLib\OpcodeCompiler.cpp" />
     <ClCompile Include="..\ForthLib\ForthOps.cpp">

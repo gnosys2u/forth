@@ -15,6 +15,7 @@
 #include "ForthInner.h"
 #include "StructVocabulary.h"
 #include "VocabularyStack.h"
+#include "NumberParser.h"
 
 class Fiber;
 class Shell;
@@ -218,6 +219,7 @@ public:
     forthop*				GetLastCompiledOpcodePtr( void );
     forthop*				GetLastCompiledIntoPtr( void );
     void                    ProcessConstant( int64_t value, bool isOffset=false, bool isSingle=true );
+    void                    ProcessDoubleCellConstant(const doubleCell& value);
 	inline TokenStack*      GetTokenStack() { return &mTokenStack; };
 
     inline Vocabulary  *GetSearchVocabulary( void )   { return mpVocabStack->GetTop(); };
@@ -278,12 +280,6 @@ public:
     forthop*                FindUserDefinition(Vocabulary* pVocab, forthop*& pClosestIP, forthop* pIP, forthop*& pBase);
 
 private:
-    // NOTE: temporarily modifies string @pToken
-    bool                    ScanIntegerToken( char* pToken, int64_t& value, int base, bool& isOffset, bool& isSingle );
-    // NOTE: temporarily modifies string @pToken
-    bool                    ScanFloatToken( char *pToken, float& fvalue, double& dvalue, bool& isSingle, bool& isApproximate );
-
-
 
     Engine* mpEngine;
     Shell* mpShell;
@@ -350,6 +346,7 @@ protected:
     int32_t            mContinuationIx;
     forthop*        mContinueDestination;
     cell            mContinueCount;
+    NumberParser    mNumberParser;
 
     ForthEnumInfo*  mpNewestEnum;
 

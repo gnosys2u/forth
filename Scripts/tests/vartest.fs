@@ -18,10 +18,10 @@ test[ checkResult( "aba" ) ]
 \ =========================================================
 
 -11 byte gvb!   4 ubyte gvub!   short gvs   55 ushort gvus!   12 int gvi!   uint gvui
-55L long gvl!   12L ulong gvul!   7.5f float gvf!   -100.25l double gvd!
+55L long gvl!   12L ulong gvul!   7.5Ef float gvf!   -100.25E double gvd!
 
 test[ -11 gvb = 4 gvub = 0 gvs = 55 gvus = 12 gvi = 0 gvui = ]
-test[ 55L gvl l= 12l gvul l= 7.5f gvf sf= -100.25l gvd f= ]
+test[ 55L gvl l= 12l gvul l= 7.5Ef gvf sf= -100.25E gvd f= ]
 
 test[ $1ffffffffl gvl! gvl++ gvl $200000000l l= ]
 test[ gvl-- gvl $1ffffffffl l= ]
@@ -118,16 +118,16 @@ test[ testLocalVars3 checkResult( "-12345678987654321 -12345678987600000 -123456
 
 : testGlobalVars4
   startTest
-  22.5 gvf! gvf sg. -0.125 gvf!+  gvf sg. 0.75 gvf!-  gvf sg.
-  22.5l gvd! gvd g. -0.125l gvd!+  gvd g. 0.75l gvd!-  gvd g.
+  22.5Ef gvf! gvf sg. -0.125Ef gvf!+  gvf sg. 0.75Ef gvf!-  gvf sg.
+  22.5E gvd! gvd g. -0.125E gvd!+  gvd g. 0.75E gvd!-  gvd g.
 ;
 test[ testGlobalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 
 : testLocalVars4
   startTest
   float lvf   double lvd
-  22.5 lvf! lvf sg. -0.125 lvf!+  lvf sg. 0.75 lvf!-  lvf sg.
-  22.5l lvd! lvd g. -0.125l lvd!+  lvd g. 0.75l lvd!-  lvd g.
+  22.5Ef lvf! lvf sg. -0.125Ef lvf!+  lvf sg. 0.75Ef lvf!-  lvf sg.
+  22.5E lvd! lvd g. -0.125E lvd!+  lvd g. 0.75E lvd!-  lvd g.
 ;
 test[ testLocalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 

@@ -8972,6 +8972,29 @@ FORTHOP( doLConstantBop )
     SET_IP( (forthop*) (RPOP) );
 }
 
+#endif
+
+// push the immediately following literal 128-bit constant
+FORTHOP(i128LitOp)
+{
+    double* pV = (double*)GET_IP;
+    DPUSH(*pV++);
+    DPUSH(*pV++);
+    SET_IP((forthop*)pV);
+}
+
+FORTHOP(doI128ConstantOp)
+{
+    // IP points to data field
+    DPUSH(*((double*)(GET_IP + 2)));
+    DPUSH(*((double*)(GET_IP)));
+    SET_IP((forthop*)(RPOP));
+}
+
+#ifndef ASM_INNER_INTERPRETER
+
+
+
 FORTHOP( thisBop )
 {
     SPUSH( ((cell) GET_TP) );
@@ -9666,9 +9689,9 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     NATIVE_COMPILED_DEF(    litBop,                  "flit",			OP_FLOAT_VAL ),
     NATIVE_COMPILED_DEF(    dlitBop,                 "dlit",			OP_DOUBLE_VAL ),
     NATIVE_COMPILED_DEF(    dlitBop,                 "llit",			OP_LONG_VAL ),
-    NATIVE_COMPILED_DEF(    doVariableBop,           "_doVariable",		OP_DO_VAR ),
-    NATIVE_COMPILED_DEF(    doIConstantBop,          "_doConstant",		OP_DO_ICONSTANT ),
-    NATIVE_COMPILED_DEF(    doLConstantBop,          "_doDConstant",	OP_DO_LCONSTANT ),
+    NATIVE_COMPILED_DEF(    doVariableBop,           "_doVariable",	    OP_DO_VAR ),
+    NATIVE_COMPILED_DEF(    doIConstantBop,          "_doIConstant",	OP_DO_ICONSTANT ),
+    NATIVE_COMPILED_DEF(    doLConstantBop,          "_doLConstant",	OP_DO_LCONSTANT ),
     NATIVE_COMPILED_DEF(    doneBop,                 "done",			OP_DONE ),
     NATIVE_COMPILED_DEF(    doByteBop,               "_doByte",			OP_DO_BYTE ),
     NATIVE_COMPILED_DEF(    doUByteBop,              "_doUByte",		OP_DO_UBYTE ),
@@ -9750,6 +9773,8 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     OP_COMPILED_DEF(unimplementedMethodOp,          "unimplementedMethod", OP_UNIMPLEMENTED),
     NATIVE_COMPILED_DEF(    executeMethodBop,       "_executeMethod",   OP_EXECUTE_METHOD),
     NATIVE_COMPILED_DEF(    thisBop,                "this",             OP_THIS),
+    OP_COMPILED_DEF(        doI128ConstantOp,      "_doI128Constant",	OP_DO_I128_CONSTANT),
+    OP_COMPILED_DEF(        i128LitOp,            "i128lit",			OP_I128_VAL),
 };
 
 
