@@ -286,7 +286,7 @@ int _time
   startTime
 
   v.count int gap!
-  1.3ef float shrink!
+  1.3ef sfloat shrink!
   false bool sorted!
   
   begin

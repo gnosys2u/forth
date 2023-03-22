@@ -116,7 +116,7 @@ alias bool byte
 alias objIsNull 0=
 alias objNotNull 0<>
 alias ds dstack
-alias sf@ ui@       \ 32-bit float fetch is same as unsigned 32-bit int
+alias sf@ ui@       \ 32-bit sfloat fetch is same as unsigned 32-bit int
 
 $7FFFFFFF int MAXINT!
 $80000000 int MININT!

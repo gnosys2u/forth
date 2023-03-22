@@ -422,8 +422,8 @@ mkTag logic Logical|Ops which do logic operations
 mkTag math Arithmetic|Ops which do math
 
 mkTag int 32-bit integer|Ops for 32-bit integers
-mkTag float Single-precision floating-point|Ops for single-precision floating point numbers
-mkTag double Double-precision floating-point|Ops for double-precision floating point numbers
+mkTag sfloat Single-precision floating-point|Ops for 32-bit floating point numbers
+mkTag float Double-precision floating-point|Ops for 64-bit floating point numbers
 mkTag long 64-bit integer|Ops for 64-bit integers
 mkTag string String|Ops for strings
 
@@ -431,7 +431,7 @@ mkTag print Printing|Ops which output to the console
 mkTag format Formatting|Ops which format text
 mkTag internal Internal|Forth compilation internals
 mkTag defining Defining words|Ops for defining ops and functions
-mkTag native Native type defining words|Ops for defining variables or fields of native types - int, float, double, etc.
+mkTag native Native type defining words|Ops for defining variables or fields of native types - int, sfloat, double, etc.
 mkTag compare Comparison|Compare numeric values
 mkTag convert Conversion|Conversion between numeric types
 mkTag memory Memory|Memory fetch and store
@@ -524,8 +524,8 @@ addOp done||makes inner interpreter return - used by outer interpreter
 addOp _doByte||compiled at start of byte global vars
 addOp _doShort||compiled at start of short global vars
 addOp _doInt||compiled at start of int global vars
-addOp _doFloat||compiled at start of float global vars
-addOp _doDouble||compiled at start of double global vars
+addOp _doFloat||compiled at start of sfloat global vars
+addOp _doDouble||compiled at start of float global vars
 addOp _doString||compiled at start of string global vars
 addOp _doOp||compiled at start of opcode global vars
 addOp _doLong||compiled at start of long global vars
@@ -540,8 +540,8 @@ addOp _doVocab||compiled at start of vocabularies
 addOp _doByteArray||compiled at start of byte global arrays
 addOp _doShortArray||compiled at start of short global arrays
 addOp _doIntArray||compiled at start of int global arrays
-addOp _doFloatArray||compiled at start of float global arrays
-addOp _doDoubleArray||compiled at start of double global arrays
+addOp _doFloatArray||compiled at start of sfloat global arrays
+addOp _doDoubleArray||compiled at start of float global arrays
 addOp _doStringArray||compiled at start of string global arrays
 addOp _doOpArray||compiled at start of opcode global arrays
 addOp _doLongArray||compiled at start of 64-bit global arrays
@@ -596,58 +596,58 @@ addOp within|VAL LO HI ... (LO<=VAL<HI)|
 addOp min|A B ... min(A,B)|
 addOp max|A B ... max(A,B)|
 
+tags: sfloat math
+addOp sf+|FA FB ... (FA+FB)|add top two floating point items
+addOp sf-|FA FB ... (FA-FB)|subtract top two floating point items
+addOp sf*|FA FB ... (FA*FB)|multiply top two floating point items
+addOp sf/|FA FB ... (FA/FB)|divide top two floating point items
+addOp sfsin|FA ... sin(FA)|sfloat sine
+addOp sfarcsin|FA ... arcsin(FA)|sfloat arcsine
+addOp sfcos|FA ... cos(FA)|sfloat cosine
+addOp sfarccos|FA ... arccos(FA)|sfloat arccosine
+addOp sftan|FA ... tan(FA)|sfloat tan
+addOp sfarctan|FA ... arctan(FA)|sfloat arctan
+addOp sfarctan2|FA FB ... arctan(FA/FB)|sfloat arctan of ratio
+addOp sfexp|FA ... exp(FA)|
+addOp sfln|FA ... ln(FA)|
+addOp sflog10|FA ... log10(FA)|
+addOp sfpow|FA FB ... FA**FB|
+addOp sfsqrt|FA ... sqrt(FA)|
+addOp sfceil|FA ... ceil(FA)|
+addOp sffloor|FA ... floor(FA)|
+addOp sfabs|FA ... abs(FA)|
+addOp sfldexp|FA B ... ldexp(FA,B)|
+addOp sffrexp|FA ... frac(FA) exponent(FA)|
+addOp sfmodf|FA ... frac(FA) whole(FA)|
+addOp sffmod|FA FB ... fmod(FA,FB)|
+
+tags: sfloat compare
+addOp sf=|FA FB ... FA=FB|
+addOp sf<>|FA FB ... FA<>FB|
+addOp sf>|FA FB ... FA>FB|
+addOp sf>=|FA FB ... FA>=FB|
+addOp sf<|FA FB ... FA<FB|
+addOp sf<=|FA FB ... FA<=FB|
+addOp sf0=|FA ... FA=0|
+addOp sf0<>|FA ... FA<>0|
+addOp sf0>|FA ... FA>0|
+addOp sf0>=|FA ... FA>=0|
+addOp sf0<|FA ... FA<0|
+addOp sf0<=|FA ... FA<=0|
+addOp sfwithin|FVAL FLO FHI ... (FLO<=FVAL<FHI)|
+addOp sfmin|FA FB... min(FA,FB)|
+addOp sfmax|FA FB... max(FA,FB)|
+
+tags: sfloat block
+addOp sfAddBlock|SRCA SRCB DST NUM ...|add blocks of NUM floats at SRCA and SRCB and store results in DST
+addOp sfSubBlock|SRCA SRCB DST NUM ...|subtract blocks of NUM floats at SRCA and SRCB and store results in DST
+addOp sfMulBlock|SRCA SRCB DST NUM ...|multiply blocks of NUM floats at SRCA and SRCB and store results in DST
+addOp sfDivBlock|SRCA SRCB DST NUM ...|divide blocks of NUM floats at SRCA and SRCB and store results in DST
+addOp sfScaleBlock|SRC DST SCALE NUM ...|multiply block of NUM floats at SRC by SCALE and store results in DST
+addOp sfOffsetBlock|SRC DST OFFSET NUM ...|add OFFSET to block of NUM floats at SRC and store results in DST
+addOp sfMixBlock|SRC DST SCALE NUM ...|multiply block of NUM floats at SRC by SCALE and add results into DST
+
 tags: float math
-addOp f+|FA FB ... (FA+FB)|add top two floating point items
-addOp f-|FA FB ... (FA-FB)|subtract top two floating point items
-addOp f*|FA FB ... (FA*FB)|multiply top two floating point items
-addOp f/|FA FB ... (FA/FB)|divide top two floating point items
-addOp fsin|FA ... sin(FA)|float sine
-addOp farcsin|FA ... arcsin(FA)|float arcsine
-addOp fcos|FA ... cos(FA)|float cosine
-addOp farccos|FA ... arccos(FA)|float arccosine
-addOp ftan|FA ... tan(FA)|float tan
-addOp farctan|FA ... arctan(FA)|float arctan
-addOp farctan2|FA FB ... arctan(FA/FB)|float arctan of ratio
-addOp fexp|FA ... exp(FA)|
-addOp fln|FA ... ln(FA)|
-addOp flog10|FA ... log10(FA)|
-addOp fpow|FA FB ... FA**FB|
-addOp fsqrt|FA ... sqrt(FA)|
-addOp fceil|FA ... ceil(FA)|
-addOp ffloor|FA ... floor(FA)|
-addOp fabs|FA ... abs(FA)|
-addOp fldexp|FA B ... ldexp(FA,B)|
-addOp ffrexp|FA ... frac(FA) exponent(FA)|
-addOp fmodf|FA ... frac(FA) whole(FA)|
-addOp ffmod|FA FB ... fmod(FA,FB)|
-
-tags: float compare
-addOp f=|FA FB ... FA=FB|
-addOp f<>|FA FB ... FA<>FB|
-addOp f>|FA FB ... FA>FB|
-addOp f>=|FA FB ... FA>=FB|
-addOp f<|FA FB ... FA<FB|
-addOp f<=|FA FB ... FA<=FB|
-addOp f0=|FA ... FA=0|
-addOp f0<>|FA ... FA<>0|
-addOp f0>|FA ... FA>0|
-addOp f0>=|FA ... FA>=0|
-addOp f0<|FA ... FA<0|
-addOp f0<=|FA ... FA<=0|
-addOp fwithin|FVAL FLO FHI ... (FLO<=FVAL<FHI)|
-addOp fmin|FA FB... min(FA,FB)|
-addOp fmax|FA FB... max(FA,FB)|
-
-tags: float block
-addOp fAddBlock|SRCA SRCB DST NUM ...|add blocks of NUM floats at SRCA and SRCB and store results in DST
-addOp fSubBlock|SRCA SRCB DST NUM ...|subtract blocks of NUM floats at SRCA and SRCB and store results in DST
-addOp fMulBlock|SRCA SRCB DST NUM ...|multiply blocks of NUM floats at SRCA and SRCB and store results in DST
-addOp fDivBlock|SRCA SRCB DST NUM ...|divide blocks of NUM floats at SRCA and SRCB and store results in DST
-addOp fScaleBlock|SRC DST SCALE NUM ...|multiply block of NUM floats at SRC by SCALE and store results in DST
-addOp fOffsetBlock|SRC DST OFFSET NUM ...|add OFFSET to block of NUM floats at SRC and store results in DST
-addOp fMixBlock|SRC DST SCALE NUM ...|multiply block of NUM floats at SRC by SCALE and add results into DST
-
-tags: double math
 addOp d+|DA DB ... (DA+DB)|add top two double floating point items
 addOp d-|DA DB ... (DA-DB)|subtract top two double floating point items
 addOp d*|DA DB ... (DA*DB)|multiply top two double floating point items
@@ -672,44 +672,44 @@ addOp dfrexp|DA ... frac(DA) exponent(DA)|
 addOp dmodf|DA ... frac(DA) whole(DA)|
 addOp dfmod|DA DB ... fmod(DA,DB)|
 
-tags: double compare
-addOp d=|DA DB ... DA=DB|double
-addOp d<>|DA DB ... DA<>DB|
-addOp d>|DA DB ... DA>DB|
-addOp d>=|DA DB ... DA>=DB|
-addOp d<|DA DB ... DA<DB|
-addOp d<=|DA DB ... DA<=DB|
-addOp d0=|DA ... DA=0|
-addOp d0<>|DA ... DA<>0|
-addOp d0>|DA ... DA>0|
-addOp d0>=|DA ... DA>=0|
-addOp d0<|DA ... DA<0|
-addOp d0<=|DA ... DA<=0|
-addOp dwithin|DVAL DLO DHI ... (DLO<=DVAL<DHI)|
-addOp dmin|DA DB ... min(DA,DB)|
-addOp dmax|DA DB ... max(DA,DB)|
+tags: float compare
+addOp f=|DA DB ... DA=DB|
+addOp f<>|DA DB ... DA<>DB|
+addOp f>|DA DB ... DA>DB|
+addOp f>=|DA DB ... DA>=DB|
+addOp f<|DA DB ... DA<DB|
+addOp f<=|DA DB ... DA<=DB|
+addOp f0=|DA ... DA=0|
+addOp f0<>|DA ... DA<>0|
+addOp f0>|DA ... DA>0|
+addOp f0>=|DA ... DA>=0|
+addOp f0<|DA ... DA<0|
+addOp f0<=|DA ... DA<=0|
+addOp fwithin|DVAL DLO DHI ... (DLO<=DVAL<DHI)|
+addOp fmin|DA DB ... min(DA,DB)|
+addOp fmax|DA DB ... max(DA,DB)|
 
-tags: double block
-addOp dAddBlock|SRCA SRCB DST NUM ...|add blocks of NUM doubles at SRCA and SRCB and store results in DST
-addOp dSubBlock|SRCA SRCB DST NUM ...|subtract blocks of NUM doubles at SRCA and SRCB and store results in DST
-addOp dMulBlock|SRCA SRCB DST NUM ...|multiply blocks of NUM doubles at SRCA and SRCB and store results in DST
-addOp dDivBlock|SRCA SRCB DST NUM ...|divide blocks of NUM doubles at SRCA and SRCB and store results in DST
-addOp dScaleBlock|SRC DST SCALE NUM ...|multiply block of NUM doubles at SRC by SCALE and store results in DST
-addOp dOffsetBlock|SRC DST OFFSET NUM ...|add OFFSET to block of NUM doubles at SRC and store results in DST
-addOp dMixBlock|SRC DST SCALE NUM ...|multiply block of NUM doubles at SRC by SCALE and add results into DST
+tags: float block
+addOp fAddBlock|SRCA SRCB DST NUM ...|add blocks of NUM doubles at SRCA and SRCB and store results in DST
+addOp fSubBlock|SRCA SRCB DST NUM ...|subtract blocks of NUM doubles at SRCA and SRCB and store results in DST
+addOp fMulBlock|SRCA SRCB DST NUM ...|multiply blocks of NUM doubles at SRCA and SRCB and store results in DST
+addOp fDivBlock|SRCA SRCB DST NUM ...|divide blocks of NUM doubles at SRCA and SRCB and store results in DST
+addOp fScaleBlock|SRC DST SCALE NUM ...|multiply block of NUM doubles at SRC by SCALE and store results in DST
+addOp fOffsetBlock|SRC DST OFFSET NUM ...|add OFFSET to block of NUM doubles at SRC and store results in DST
+addOp fMixBlock|SRC DST SCALE NUM ...|multiply block of NUM doubles at SRC by SCALE and add results into DST
 
 tags: convert
-addOp i2f|A ... float(A)|convert int to float|int float
-addOp i2d|A ... double(A)|convert int to double|int double
-addOp f2i|A ... int(A)|convert float to int|int float
-addOp f2d|A ... double(A)|convert float to double|float double
-addOp d2i|A ... int(A)|convert double to int|int double
-addOp d2f|A ... float(A)|confert double to float|double float
+addOp i2f|A ... sfloat(A)|convert int to sfloat|int sfloat
+addOp i2d|A ... float(A)|convert int to float|int float
+addOp f2i|A ... int(A)|convert sfloat to int|int sfloat
+addOp f2d|A ... float(A)|convert sfloat to float|sfloat float
+addOp d2i|A ... int(A)|convert float to int|int float
+addOp d2f|A ... sfloat(A)|convert float to sfloat|float sfloat
 addOp i2l|INTA ... LONGA|convert signed 32-bit int to signed 64-bit int|int long
-addOp l2f|LONGA ... FLOATA|convert signed 64-bit int to 32-bit float|long float
-addOp l2d|LONGA ... DOUBLEA|convert signed 64-bit int to 64-bit float|long double
-addOp f2l|FLOATA ... LONGA|convert 32-bit float to signed 64-bit int|float long
-addOp d2l|DOUBLEA ... LONGA|convert 64-bit float to signed 64-bit int|double long
+addOp l2f|LONGA ... FLOATA|convert signed 64-bit int to 32-bit sfloat|long sfloat
+addOp l2d|LONGA ... DOUBLEA|convert signed 64-bit int to 64-bit sfloat|long float
+addOp f2l|FLOATA ... LONGA|convert 32-bit sfloat to signed 64-bit int|sfloat long
+addOp d2l|DOUBLEA ... LONGA|convert 64-bit sfloat to signed 64-bit int|float long
 
 tags: logic
 addOp or|A B ... or(A,B)|
@@ -837,8 +837,8 @@ addOp int|int VAR|declare a 32-bit integer variable or field, may be preceeded w
 addOp uint|uint VAR|declare a unsigned 32-bit integer variable or field, may be preceeded with initializer "VAL ->"
 addOp long|long VAR|declare a 64-bit int variable or field, may be preceeded with initializer "VAL ->"
 addOp ulong|ulong VAR|declare a 64-bit unsigned int variable or field, may be preceeded with initializer "VAL ->"
-addOp float|float VAR|declare a 32-bit floating point variable or field, may be preceeded with initializer "VAL ->"
-addOp double|double VAR|declare a 64-bit floating point variable or field, may be preceeded with initializer "VAL ->"
+addOp sfloat|sfloat VAR|declare a 32-bit floating point variable or field, may be preceeded with initializer "VAL ->"
+addOp float|float VAR|declare a 64-bit floating point variable or field, may be preceeded with initializer "VAL ->"
 addOp string|MAXLEN string NAME declare a string variable or field with a specified maximum length
 addOp op|op VAR|declare a forthop variable or field
 addOp void|returns void declare that a method returns nothing ?does this work?
@@ -931,8 +931,8 @@ addOp DLLVoid||when used prior to dll_0...dll_15, newly defined word will return
 \ TODO: tag these
 tags:
 addOp lit|... IVAL|pushes longword which is compiled immediately after it
-addOp flit|... FVAL|pushes float which is compiled immediately after it
-addOp dlit|... DVAL|pushes double which is compiled immediately after it
+addOp flit|... FVAL|pushes sfloat which is compiled immediately after it
+addOp dlit|... DVAL|pushes float which is compiled immediately after it
 
 addOp ->|V -> VAR|store V in VAR
 addOp ->+|N ->+ VAR ...|add N to VAR, append for strings
@@ -1222,28 +1222,28 @@ addMethod tell|... INDEX|return position of iterator
 addMethod findNext|INT_VALUE ... BOOL|return true if found, iterator is positioned at matching int
 addMember parent|IntArray|IntArray object this iter is associated with
 
-addClass FloatArray|Iterable|array of floats
-addMethod get|INDEX ... FLOAT_VALUE|get float value at specified index
-addMethod set|FLOAT_VALUE INDEX ...|set float value at specified index
-addMethod ref|INDEX ... FLOAT_PTR|return address of float at INDEX
+addClass SFloatArray|Iterable|array of floats
+addMethod get|INDEX ... FLOAT_VALUE|get sfloat value at specified index
+addMethod set|FLOAT_VALUE INDEX ...|set sfloat value at specified index
+addMethod ref|INDEX ... FLOAT_PTR|return address of sfloat at INDEX
 addMethod swap|INDEX_I INDEX_J ...|swap floats at specified indices
 addMethod resize|NEW_SIZE ...|set array size to NEW_SIZE floats
 addMethod insert|FLOAT_VALUE INDEX ...|insert FLOAT_VALUE at INDEX
 addMethod remove|INDEX ... FLOAT_VALUE|remove FLOAT_VALUE at specified index
 addMethod push|FLOAT_VALUE ...|add FLOAT_VALUE to end of array
 addMethod pop|... FLOAT_VALUE|remove last FLOAT_VALUE in array
-addMethod base|... FLOAT_PTR|return address of first float in array
+addMethod base|... FLOAT_PTR|return address of first sfloat in array
 addMethod load|<N FLOAT_VALUEs> N ...|set array to contain N FLOAT_VALUEs on stack
 addMethod fromMemory|FLOAT_PTR N OFFSET ...|copy N floats from memory at FLOAT_PTR into array starting at index OFFSET
 addMethod find|FLOAT_VALUE ... ITER_OBJECT true   OR   false|return iterator positioned at FLOAT_VALUE plus true, or just false if not found in array
-addMethod findValue|FLOAT_VALUE ... INDEX|return INDEX of float in array, return -1 if float not found
+addMethod findValue|FLOAT_VALUE ... INDEX|return INDEX of sfloat in array, return -1 if sfloat not found
 addMethod reverse|...|reverse order of floats in array
 addMethod sort|...|sort array of floats
 
-addClass FloatArrayIter|Iter|float array iterator
+addClass SFloatArrayIter|Iter|sfloat array iterator
 addMethod seek|INDEX ...|set iterator to position specified by INDEX
 addMethod tell|... INDEX|return position of iterator
-addMethod findNext|FLOAT_VALUE ... BOOL|return true if found, iterator is positioned at matching float
+addMethod findNext|FLOAT_VALUE ... BOOL|return true if found, iterator is positioned at matching sfloat
 addMember parent|FloatArray|FloatArray object this iter is associated with
 
 addClass LongArray|Iterable|array of longs
@@ -1272,7 +1272,7 @@ addMethod tell|... INDEX|return position of iterator
 addMethod findNext|LONG_VALUE ... BOOL|return true if found, iterator is positioned at matching long
 addMember parent|LongArray|LongArray object this iter is associated with
 
-addClass DoubleArray|Iterable|array of doubles
+addClass FloatArray|Iterable|array of doubles
 addMethod get|INDEX ... DOUBLE_VALUE|get double value at specified index
 addMethod set|DOUBLE_VALUE INDEX ...|set double value at specified index
 addMethod ref|INDEX ... DOUBLE_PTR|return address of double at INDEX
@@ -1292,7 +1292,7 @@ addMethod sort|...|sort array doubles
 addMethod usort|...|sort array unsigned doubles
 addMethod setFromString|STRING_PTR ...|resize array to hold string at STRING_PTR and copy it there
 
-addClass DoubleArrayIter|Iter|double array iterator - really a renamed LongArrayIter
+addClass FloatArrayIter|Iter|double array iterator - really a renamed LongArrayIter
 
 addClass StructArray|Iterable|array of structs
 addMethod get|DEST_PTR INDEX ...|copy struct at specified index to memory at DEST_PTR
@@ -1405,7 +1405,7 @@ addClass IntMapIter|Iter|integer map iterator
 addMethod currentPair|... OBJECT_VALUE INT_KEY true   OR   false|return item at iterator cursor and true, return false if already at last element
 addMember parent|IntMap|IntMap object this iter is associated with
 
-addClass FloatMap|Iterable|map with float keys and object values
+addClass SFloatMap|Iterable|map with sfloat keys and object values
 addMethod find|FLOAT_KEY ... ITER true   OR   false|return map iterator at position of found object
 addMethod grab|FLOAT_KEY ... OBJECT_VALUE true   OR   false|return object whose key matches FLOAT_KEY and true, return false if not found
 addMethod set|OBJECT_VALUE FLOAT_KEY ...|add a key/value pair to the map
@@ -1414,11 +1414,11 @@ addMethod findValue|OBJECT_VALUE ... FLOAT_KEY true   OR   false|return key int 
 addMethod remove|FLOAT_KEY ...|remove key/value pair from map
 addMethod unref|FLOAT_KEY ... OBJECT_VALUE|remove key/value pair from map, return value object
 
-addClass FloatMapIter|Iter|float map iterator
+addClass SFloatMapIter|Iter|sfloat map iterator
 addMethod currentPair|... OBJECT_VALUE FLOAT_KEY true   OR   false|return item at iterator cursor and true, return false if already at last element
 addMember parent|FloatMap|FloatMap object this iter is associated with
 
-addClass LongMap|Iterable|map with float keys and object values
+addClass LongMap|Iterable|map with sfloat keys and object values
 addMethod find|LONG_KEY ... ITER true   OR   false|return map iterator at position of found object
 addMethod grab|LONG_KEY ... OBJECT_VALUE true   OR   false|return object whose key matches LONG_KEY and true, return false if not found
 addMethod set|OBJECT_VALUE LONG_KEY ...|add a key/value pair to the map
@@ -1431,7 +1431,7 @@ addClass LongMapIter|Iter|long map iterator
 addMethod currentPair|... OBJECT_VALUE LONG_KEY true   OR   false|return item at iterator cursor and true, return false if already at last element
 addMember parent|Map|Map object this iter is associated with
 
-addClass DoubleMap|Iterable|map with float keys and object values
+addClass FloatMap|Iterable|map with sfloat keys and object values
 addMethod find|DOUBLE_KEY ... ITER true   OR   false|return map iterator at position of found object
 addMethod grab|DOUBLE_KEY ... OBJECT_VALUE true   OR   false|return object whose key matches DOUBLE_KEY and true, return false if not found
 addMethod set|OBJECT_VALUE DOUBLE_KEY ...|add a key/value pair to the map
@@ -1440,7 +1440,7 @@ addMethod findValue|OBJECT_VALUE ... DOUBLE_KEY true   OR   false|return key int
 addMethod remove|DOUBLE_KEY ...|remove key/value pair from map
 addMethod unref|DOUBLE_KEY ... OBJECT_VALUE|remove key/value pair from map, return value object
 
-addClass DoubleMapIter|Iter|double map iterator
+addClass FloatMapIter|Iter|double map iterator
 addMethod currentPair|... OBJECT_VALUE DOUBLE_KEY true   OR   false|return item at iterator cursor and true, return false if already at last element
 addMember parent|DoubleMap|DoubleMap object this iter is associated with
 
@@ -1457,9 +1457,9 @@ addClass StringIntMapIter|Iter|string-int map iterator
 addMethod currentPair|... INT_VALUE STRING_KEY true   OR   false|return item at iterator cursor and true, return false if already at last element
 addMember parent|StringIntMap|StringIntMap object this iter is associated with
 
-addClass StringFloatMap|Iterable|map with string keys and float values - clone of StringIntMap with its own showInner method
+addClass StringFloatMap|Iterable|map with string keys and sfloat values - clone of StringIntMap with its own showInner method
 
-addClass StringFloatMapIter|Iter|string-float map iterator - clone of StringIntMapIter
+addClass StringFloatMapIter|Iter|string-sfloat map iterator - clone of StringIntMapIter
 
 addClass StringLongMap|Iterable|map with string keys and long values
 addMethod find|STRING_KEY ... ITER true   OR   false|return map iterator at position of found object
@@ -1616,12 +1616,12 @@ addMethod get|... LONG_VALUE|get the long integer value
 addMethod set|LONG_VALUE ...|set the long integer value
 addMember value|... LONG_VALUE|holds the long integer value
 
-addClass Float|Object|single-precision floating point number wrapper object
-addMethod get|... FLOAT_VALUE|get the float value
-addMethod set|FLOAT_VALUE ...|set the float value
-addMember value|... FLOAT_VALUE|holds the float value
+addClass SFloat|Object|single-precision floating point number wrapper object
+addMethod get|... FLOAT_VALUE|get the sfloat value
+addMethod set|FLOAT_VALUE ...|set the sfloat value
+addMember value|... FLOAT_VALUE|holds the sfloat value
 
-addClass Double|Object|double-precision floating point number wrapper object
+addClass Float|Object|double-precision floating point number wrapper object
 addMethod get|... DOUBLE_VALUE|get the double value
 addMethod set|DOUBLE_VALUE ...|set the double value
 addMember value|... DOUBLE_VALUE|holds the double value
@@ -1772,8 +1772,8 @@ addMethod addRequiredParam|ID ...|add a required param to this schema
 addClass NoteParam|Object|parameter values for a note
 addMethod getInt|... INT_VALUE|get integer param value
 addMethod setInt|INT_VALUE ...|set integer param value
-addMethod getFloat|... INT_VALUE|get float param value
-addMethod setFloat|INT_VALUE ...|set float param value
+addMethod getFloat|... INT_VALUE|get sfloat param value
+addMethod setFloat|INT_VALUE ...|set sfloat param value
 addMethod getLong|... INT_VALUE|get long param value
 addMethod setLong|INT_VALUE ...|set long param value
 addMethod getDouble|... INT_VALUE|get double param value

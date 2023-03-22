@@ -45,11 +45,11 @@ oclear ollie
 \ LongArray: resize ref(N) get(N) set(OBJ N) findIndex(OBJ) push(BYTE) pop base
 \ LongArrayIter: 
 
-\ Int Long Float Double: get set(N) show compare(N)
+\ Int Long SFloat Float: get set(N) show compare(N)
 
 \ Thread: init(PSTACK_SIZE RSTACK_SIZE OP) start push(N) pop rpush(N) rpop getState step reset
 
-\ Int Float Double Long
+\ Int SFloat Float Long
 mko Int mostRandomNumber   mostRandomNumber.set(17)
 mko Int theAnswer   theAnswer.set(42)
 test[ mostRandomNumber.value 2* 8+ theAnswer.get = ]
@@ -59,14 +59,14 @@ test[ theAnswer.getShort -$1e5d =   theAnswer.getUShort $e1a3 = ]
 test[ theAnswer.set($abcf7123)   theAnswer.getByte $23 =   theAnswer.getUByte $23 = ]
 test[ theAnswer.getShort $7123 =   theAnswer.getUShort $7123 = ]
 
-mko Float fluffy   fluffy.set(5.625Ef)
-mko Float froofy   froofy.set(i2f(44))
+mko SFloat fluffy   fluffy.set(5.625Ef)
+mko SFloat froofy   froofy.set(i2f(44))
 test[ fluffy.value 8.0Ef sf* 45.0Ef sf= ]
 test[ fluffy.get 1.0Ef sf+ 6.625Ef sf= ]
 test[ fluffy.set(fluffy.value 8.0Ef sf*)  fluffy.compare(froofy) 0> ]
 
-mko Double dribble   dribble.set(11.0625E)
-mko Double drabble  drabble.set(i2d(mostRandomNumber.get))
+mko Float dribble   dribble.set(11.0625E)
+mko Float drabble  drabble.set(i2d(mostRandomNumber.get))
 test[ dribble.get 0.9375E f+ 12 i2d f= ]
 test[ dribble.set(dribble.value 5.9375E f+) drabble.compare(dribble) 0= ]
 
@@ -165,11 +165,11 @@ mko LongMap lmapA
 lmapA.set( valA 1l )  lmapA.set( valB '22'l )  lmapA.set( valC 1000000000l )  lmapA.set( valD -15l )  lmapA.set( valE 66l )
 %nl lmapA.show %nl
 
-mko FloatMap fmapA
+mko SFloatMap fmapA
 fmapA.set( valA 1.7Ef )  fmapA.set( valB 2.3Ef )  fmapA.set( valC 33.0Ef )  fmapA.set( valD 1.234Ef )  fmapA.set( valE 5.789Ef )
 %nl fmapA.show %nl
 
-mko DoubleMap dmapA
+mko FloatMap dmapA
 dmapA.set( valA 1.7E )  dmapA.set( valB 2.3E )  dmapA.set( valC 33.0E )  dmapA.set( valD 1.234E )  dmapA.set( valE 5.789E )
 %nl dmapA.show %nl
 
@@ -369,10 +369,10 @@ loaddone
 -	IntMapIter
 -	LongMap
 -	LongMapIter
+-	SFloatMap
+?	SFloatMapIter
 -	FloatMap
 ?	FloatMapIter
--	DoubleMap
-?	DoubleMapIter
 -	StringMap
 -	StringMapIter
 +	String
@@ -388,14 +388,14 @@ loaddone
 +	IntArrayIter
 +	LongArray
 +	LongArrayIter
++	SFloatArray
+?	SFloatArrayIter
 +	FloatArray
 ?	FloatArrayIter
-+	DoubleArray
-?	DoubleArrayIter
 +	Int
 +	Long
++	SFloat
 +	Float
-+	Double
 -	Thread
 -	InStream
 -	FileInStream

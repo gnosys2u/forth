@@ -8,8 +8,8 @@ addHelp abort			abort		terminate execution with fatal error
 addHelp drop			VAL drop	drop top element of param stack
 addHelp _doDoes			INTERNAL	compiled at start of "does" section of words created by a builds...does word
 addHelp lit							pushes longword which is compiled immediately after it
-addHelp flit						pushes float which is compiled immediately after it
-addHelp dlit						pushes double which is compiled immediately after it
+addHelp flit						pushes sfloat which is compiled immediately after it
+addHelp dlit						pushes float which is compiled immediately after it
 addHelp _doVariable		INTERNAL	compiled at start of words defined by "variable"
 addHelp _doConstant		INTERNAL	compiled at start of words defined by "constant"
 addHelp _doDConstant	INTERNAL	compiled at start of words defined by "dconstant"
@@ -18,8 +18,8 @@ addHelp done			INTERNAL	makes inner interpreter return - used by outer interpret
 addHelp _doByte			INTERNAL	compiled at start of byte global vars
 addHelp _doShort		INTERNAL	compiled at start of short global vars
 addHelp _doInt			INTERNAL	compiled at start of int global vars
-addHelp _doFloat		INTERNAL	compiled at start of float global vars
-addHelp _doDouble		INTERNAL	compiled at start of double global vars
+addHelp _doFloat		INTERNAL	compiled at start of sfloat global vars
+addHelp _doDouble		INTERNAL	compiled at start of float global vars
 addHelp _doString		INTERNAL	compiled at start of string global vars
 addHelp _doOp			INTERNAL	compiled at start of opcode global vars
 addHelp _doLong			INTERNAL	compiled at start of long global vars
@@ -34,8 +34,8 @@ addHelp _doVocab		INTERNAL	compiled at start of vocabularies
 addHelp _doByteArray    INTERNAL	compiled at start of byte global arrays
 addHelp _doShortArray	INTERNAL	compiled at start of short global arrays
 addHelp _doIntArray		INTERNAL	compiled at start of int global arrays
-addHelp _doFloatArray	INTERNAL	compiled at start of float global arrays
-addHelp _doDoubleArray	INTERNAL	compiled at start of double global arrays
+addHelp _doFloatArray	INTERNAL	compiled at start of sfloat global arrays
+addHelp _doDoubleArray	INTERNAL	compiled at start of float global arrays
 addHelp _doStringArray	INTERNAL	compiled at start of string global arrays
 addHelp _doOpArray		INTERNAL	compiled at start of opcode global arrays
 addHelp _doLongArray	INTERNAL	compiled at start of 64-bit global arrays
@@ -125,10 +125,10 @@ addHelp fScaleBlock  SRC DST SCALE NUM ...   multiply block of NUM floats at SRC
 addHelp fOffsetBlock  SRC DST OFFSET NUM ... add OFFSET to block of NUM floats at SRC and store results in DST
 addHelp fMixBlock    SRC DST SCALE NUM ...   multiply block of NUM floats at SRC by SCALE and add results into DST
 
-addHelp d+	DA DB ... (DA+DB)	add top two double floating point items
-addHelp d-	DA DB ... (DA-DB)	subtract top two double floating point items
-addHelp d*	DA DB ... (DA*DB)	multiply top two double floating point items
-addHelp d/	DA DB ... (DA/DB)	divide top two double floating point items
+addHelp d+	DA DB ... (DA+DB)	add top two 64-bit floating point items
+addHelp d-	DA DB ... (DA-DB)	subtract top two 64-bit floating point items
+addHelp d*	DA DB ... (DA*DB)	multiply top two 64-bit floating point items
+addHelp d/	DA DB ... (DA/DB)	divide top two 64-bit floating point items
 addHelp d=	DA DB ... DA=DB
 addHelp d<>	DA DB ... DA<>DB
 addHelp d>	DA DB ... DA>DB
@@ -173,12 +173,12 @@ addHelp dfrexp		DA    ... frac(DA) exponent(DA)
 addHelp dmodf		DA    ... frac(DA) whole(DA)
 addHelp dfmod		DA DB ... fmod(DA,DB)
 
-addHelp i2f			A ... float(A)
-addHelp i2d			A ... double(A)
+addHelp i2f			A ... sfloat(A)
+addHelp i2d			A ... float(A)
 addHelp f2i			A ... int(A)
-addHelp f2d			A ... double(A)
+addHelp f2d			A ... float(A)
 addHelp d2i			A ... int(A)
-addHelp d2f			A ... float(A)
+addHelp d2f			A ... sfloat(A)
 
 addHelp or			A B ... or(A,B)
 addHelp and			A B ... and(A,B)
@@ -247,7 +247,7 @@ addHelp w!		A PTR ...	stores word A at address PTR
 addHelp w@		PTR ... A	fetches unsigned word from address PTR
 addHelp sw@		PTR ... A	fetches signed word from address PTR
 addHelp w2i		WA ... LA	sign extends word to long
-addHelp 2!		DA PTR ...	store double at address PTR
+addHelp 2!		DA PTR ...	store double cell at address PTR
 addHelp move	SRC DST N ...	copy N bytes from SRC to DST
 addHelp fill	DST N A ...		fill N bytes at DST with byte value A
 addHelp varAction!	A varAction! ...	set varAction to A (use not recommended)
@@ -292,10 +292,10 @@ addHelp lmod	LA LB ... (LA mod LB
 addHelp l/mod	A B ... (LA/LB) (LA mod LB)	divide top two items, return quotient & remainder
 addHelp lnegate	A ... (-LA)	negate top item
 addHelp i2l		INTA ... LONGA		convert signed 32-bit int to signed 64-bit int
-addHelp l2f		LONGA ... FLOATA	convert signed 64-bit int to 32-bit float
-addHelp l2d		LONGA ... DOUBLEA	convert signed 64-bit int to 64-bit float
-addHelp f2l		FLOATA ... LONGA	convert 32-bit float to signed 64-bit int
-addHelp d2l		DOUBLEA ... LONGA	convert 64-bit float to signed 64-bit int
+addHelp l2f		LONGA ... FLOATA	convert signed 64-bit int to 32-bit sfloat
+addHelp l2d		LONGA ... DOUBLEA	convert signed 64-bit int to 64-bit sfloat
+addHelp f2l		FLOATA ... LONGA	convert 32-bit sfloat to signed 64-bit int
+addHelp d2l		DOUBLEA ... LONGA	convert 64-bit sfloat to signed 64-bit int
 
 addHelp l=		LA LB ... LA=LB
 addHelp l<>		LA LB ... LA<>LB
@@ -355,8 +355,8 @@ addHelp int			int VAR				declare a 32-bit integer variable or field, may be prec
 addHelp uint		uint VAR			declare a unsigned 32-bit integer variable or field, may be preceeded with initializer "VAL ->"
 addHelp long		long VAR			declare a 64-bit int variable or field, may be preceeded with initializer "VAL ->"
 addHelp ulong		ulong VAR			declare a 64-bit unsigned int variable or field, may be preceeded with initializer "VAL ->"
-addHelp float		float VAR			declare a 32-bit floating point variable or field, may be preceeded with initializer "VAL ->"
-addHelp double		double VAR			declare a 64-bit floating point variable or field, may be preceeded with initializer "VAL ->"
+addHelp sfloat		sfloat VAR			declare a 32-bit floating point variable or field, may be preceeded with initializer "VAL ->"
+addHelp float		float VAR			declare a 64-bit floating point variable or field, may be preceeded with initializer "VAL ->"
 addHelp string		MAXLEN string NAME	declare a string variable or field with a specified maximum length
 addHelp op			op VAR				declare a forthop variable or field
 addHelp void		returns void		declare that a method returns nothing ?does this work?

@@ -133,8 +133,8 @@ struct: colorTri
   recursive
   3 arrayOf point p
   rgb32 color
-  float size
-  double cost
+  sfloat size
+  float cost
   ptrTo colorTri pNext
 ;struct
 

@@ -28,9 +28,9 @@ NativeType gNativeTypeLong( "long", 8, BaseType::kLong );
 
 NativeType gNativeTypeULong( "ulong", 8, BaseType::kULong );
 
-NativeType gNativeTypeFloat( "float", 4, BaseType::kFloat );
+NativeType gNativeTypeFloat( "sfloat", 4, BaseType::kFloat );
 
-NativeType gNativeTypeDouble( "double", 8, BaseType::kDouble );
+NativeType gNativeTypeDouble( "float", 8, BaseType::kDouble );
 
 NativeType gNativeTypeString( "string", 12, BaseType::kString );
 

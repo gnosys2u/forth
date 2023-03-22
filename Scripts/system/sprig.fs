@@ -67,8 +67,8 @@ enum:	eSPGXformFlags
 
 
 struct: SPG_Point
-    float x
-    float y
+    sfloat x
+    sfloat y
 ;struct
 
 \ A table of dirtyrects for one display page
@@ -196,10 +196,10 @@ dll_3	SPG_CreateSurface8
 dll_3	SPG_GetPixel
 DLLVoid dll_2	SPG_SetClip
 
-\ SDL_Rect SPG_TransformX(SDL_Surface *src, SDL_Surface *dst, float angle, float xscale, float yscale, Uint16 pivotX, Uint16 pivotY, Uint16 destX, Uint16 destY, Uint8 flags);
-\ SDL_Surface* SPG_Transform(SDL_Surface *src, Uint32 bgColor, float angle, float xscale, float yscale, Uint8 flags);
-\ SDL_Surface* SPG_Rotate(SDL_Surface *src, float angle, Uint32 bgColor);
-\ SDL_Surface* SPG_RotateAA(SDL_Surface *src, float angle, Uint32 bgColor);
+\ SDL_Rect SPG_TransformX(SDL_Surface *src, SDL_Surface *dst, sfloat angle, sfloat xscale, sfloat yscale, Uint16 pivotX, Uint16 pivotY, Uint16 destX, Uint16 destY, Uint8 flags);
+\ SDL_Surface* SPG_Transform(SDL_Surface *src, Uint32 bgColor, sfloat angle, sfloat xscale, sfloat yscale, Uint8 flags);
+\ SDL_Surface* SPG_Rotate(SDL_Surface *src, sfloat angle, Uint32 bgColor);
+\ SDL_Surface* SPG_RotateAA(SDL_Surface *src, sfloat angle, Uint32 bgColor);
 dll_10	SPG_TransformX
 dll_6	SPG_Transform
 dll_3	SPG_Rotate
@@ -278,63 +278,63 @@ DLLVoid dll_6	SPG_RectFilled
 DLLVoid dll_7	SPG_RectFilledBlend
 
 
-\ void SPG_RectRound(SDL_Surface *surface, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, float r, Uint32 color);
-\ void SPG_RectRoundBlend(SDL_Surface *surface, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, float r, Uint32 color, Uint8 alpha);
+\ void SPG_RectRound(SDL_Surface *surface, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, sfloat r, Uint32 color);
+\ void SPG_RectRoundBlend(SDL_Surface *surface, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, sfloat r, Uint32 color, Uint8 alpha);
 DLLVoid dll_7	SPG_RectRound
 DLLVoid dll_8	SPG_RectRoundBlend
 
-\ void SPG_RectRoundFilled(SDL_Surface *surface, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, float r, Uint32 color);
-\ void SPG_RectRoundFilledBlend(SDL_Surface *surface, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, float r, Uint32 color, Uint8 alpha);
+\ void SPG_RectRoundFilled(SDL_Surface *surface, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, sfloat r, Uint32 color);
+\ void SPG_RectRoundFilledBlend(SDL_Surface *surface, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, sfloat r, Uint32 color, Uint8 alpha);
 DLLVoid dll_7	SPG_RectRoundFilled
 DLLVoid dll_8	SPG_RectRoundFilledBlend
 
 
-\ void SPG_EllipseFn(SDL_Surface *surface, Sint16 x, Sint16 y, float rx, float ry, Uint32 color, void Callback(SDL_Surface *Surf, Sint16 X, Sint16 Y, Uint32 Color));
-\ void SPG_Ellipse(SDL_Surface *surface, Sint16 x, Sint16 y, float rx, float ry, Uint32 color);
-\ void SPG_EllipseBlend(SDL_Surface *surface, Sint16 x, Sint16 y, float rx, float ry, Uint32 color, Uint8 alpha);
+\ void SPG_EllipseFn(SDL_Surface *surface, Sint16 x, Sint16 y, sfloat rx, sfloat ry, Uint32 color, void Callback(SDL_Surface *Surf, Sint16 X, Sint16 Y, Uint32 Color));
+\ void SPG_Ellipse(SDL_Surface *surface, Sint16 x, Sint16 y, sfloat rx, sfloat ry, Uint32 color);
+\ void SPG_EllipseBlend(SDL_Surface *surface, Sint16 x, Sint16 y, sfloat rx, sfloat ry, Uint32 color, Uint8 alpha);
 DLLVoid dll_7	SPG_EllipseFn
 DLLVoid dll_6	SPG_Ellipse
 DLLVoid dll_7	SPG_EllipseBlend
 
-\ void SPG_EllipseFilled(SDL_Surface *surface, Sint16 x, Sint16 y, float rx, float ry, Uint32 color);
-\ void SPG_EllipseFilledBlend(SDL_Surface *surface, Sint16 x, Sint16 y, float rx, float ry, Uint32 color, Uint8 alpha);
+\ void SPG_EllipseFilled(SDL_Surface *surface, Sint16 x, Sint16 y, sfloat rx, sfloat ry, Uint32 color);
+\ void SPG_EllipseFilledBlend(SDL_Surface *surface, Sint16 x, Sint16 y, sfloat rx, sfloat ry, Uint32 color, Uint8 alpha);
 DLLVoid dll_6	SPG_EllipseFilled
 DLLVoid dll_7	SPG_EllipseFilledBlend
 
 
-\ void SPG_EllipseArb(SDL_Surface *Surface, Sint16 x, Sint16 y, float rx, float ry, float angle, Uint32 color);
-\ void SPG_EllipseBlendArb(SDL_Surface *Surface, Sint16 x, Sint16 y, float rx, float ry, float angle, Uint32 color, Uint8 alpha);
+\ void SPG_EllipseArb(SDL_Surface *Surface, Sint16 x, Sint16 y, sfloat rx, sfloat ry, sfloat angle, Uint32 color);
+\ void SPG_EllipseBlendArb(SDL_Surface *Surface, Sint16 x, Sint16 y, sfloat rx, sfloat ry, sfloat angle, Uint32 color, Uint8 alpha);
 DLLVoid dll_7	SPG_EllipseArb
 DLLVoid dll_8	SPG_EllipseBlendArb
 
-\ void SPG_EllipseFilledArb(SDL_Surface *Surface, Sint16 x, Sint16 y, float rx, float ry, float angle, Uint32 color);
-\ void SPG_EllipseFilledBlendArb(SDL_Surface *Surface, Sint16 x, Sint16 y, float rx, float ry, float angle, Uint32 color, Uint8 alpha);
+\ void SPG_EllipseFilledArb(SDL_Surface *Surface, Sint16 x, Sint16 y, sfloat rx, sfloat ry, sfloat angle, Uint32 color);
+\ void SPG_EllipseFilledBlendArb(SDL_Surface *Surface, Sint16 x, Sint16 y, sfloat rx, sfloat ry, sfloat angle, Uint32 color, Uint8 alpha);
 DLLVoid dll_7	SPG_EllipseFilledArb
 DLLVoid dll_8	SPG_EllipseFilledBlendArb
 
 
-\ void SPG_CircleFn(SDL_Surface *surface, Sint16 x, Sint16 y, float r, Uint32 color, void Callback(SDL_Surface *Surf, Sint16 X, Sint16 Y, Uint32 Color));
-\ void SPG_Circle(SDL_Surface *surface, Sint16 x, Sint16 y, float r, Uint32 color);
-\ void SPG_CircleBlend(SDL_Surface *surface, Sint16 x, Sint16 y, float r, Uint32 color, Uint8 alpha);
+\ void SPG_CircleFn(SDL_Surface *surface, Sint16 x, Sint16 y, sfloat r, Uint32 color, void Callback(SDL_Surface *Surf, Sint16 X, Sint16 Y, Uint32 Color));
+\ void SPG_Circle(SDL_Surface *surface, Sint16 x, Sint16 y, sfloat r, Uint32 color);
+\ void SPG_CircleBlend(SDL_Surface *surface, Sint16 x, Sint16 y, sfloat r, Uint32 color, Uint8 alpha);
 DLLVoid dll_6	SPG_CircleFn
 DLLVoid dll_5	SPG_Circle
 DLLVoid dll_6	SPG_CircleBlend
 
-\ void SPG_CircleFilled(SDL_Surface *surface, Sint16 x, Sint16 y, float r, Uint32 color);
-\ void SPG_CircleFilledBlend(SDL_Surface *surface, Sint16 x, Sint16 y, float r, Uint32 color, Uint8 alpha);
+\ void SPG_CircleFilled(SDL_Surface *surface, Sint16 x, Sint16 y, sfloat r, Uint32 color);
+\ void SPG_CircleFilledBlend(SDL_Surface *surface, Sint16 x, Sint16 y, sfloat r, Uint32 color, Uint8 alpha);
 DLLVoid dll_5	SPG_CircleFilled
 DLLVoid dll_6	SPG_CircleFilledBlend
 
 
-\ void SPG_ArcFn(SDL_Surface* surface, Sint16 cx, Sint16 cy, float radius, float startAngle, float endAngle, Uint32 color, void Callback(SDL_Surface *Surf, Sint16 X, Sint16 Y, Uint32 Color));
-\ void SPG_Arc(SDL_Surface* surface, Sint16 x, Sint16 y, float radius, float startAngle, float endAngle, Uint32 color);
-\ void SPG_ArcBlend(SDL_Surface* surface, Sint16 x, Sint16 y, float radius, float startAngle, float endAngle, Uint32 color, Uint8 alpha);
+\ void SPG_ArcFn(SDL_Surface* surface, Sint16 cx, Sint16 cy, sfloat radius, sfloat startAngle, sfloat endAngle, Uint32 color, void Callback(SDL_Surface *Surf, Sint16 X, Sint16 Y, Uint32 Color));
+\ void SPG_Arc(SDL_Surface* surface, Sint16 x, Sint16 y, sfloat radius, sfloat startAngle, sfloat endAngle, Uint32 color);
+\ void SPG_ArcBlend(SDL_Surface* surface, Sint16 x, Sint16 y, sfloat radius, sfloat startAngle, sfloat endAngle, Uint32 color, Uint8 alpha);
 DLLVoid dll_8	SPG_ArcFn
 DLLVoid dll_7	SPG_Arc
 DLLVoid dll_8	SPG_ArcBlend
 
-\ void SPG_ArcFilled(SDL_Surface* surface, Sint16 cx, Sint16 cy, float radius, float startAngle, float endAngle, Uint32 color);
-\ void SPG_ArcFilledBlend(SDL_Surface* surface, Sint16 cx, Sint16 cy, float radius, float startAngle, float endAngle, Uint32 color, Uint8 alpha);
+\ void SPG_ArcFilled(SDL_Surface* surface, Sint16 cx, Sint16 cy, sfloat radius, sfloat startAngle, sfloat endAngle, Uint32 color);
+\ void SPG_ArcFilledBlend(SDL_Surface* surface, Sint16 cx, Sint16 cy, sfloat radius, sfloat startAngle, sfloat endAngle, Uint32 color, Uint8 alpha);
 DLLVoid dll_7	SPG_ArcFilled
 DLLVoid dll_8	SPG_ArcFilledBlend
 
@@ -384,10 +384,10 @@ DLLVoid dll_4	SPG_PolygonFade
 DLLVoid dll_5	SPG_PolygonFadeBlend
 
 \ void SPG_CopyPoints(Uint16 n, SPG_Point* points, SPG_Point* buffer);
-\ void SPG_RotatePointsXY(Uint16 n, SPG_Point* points, float cx, float cy, float angle);
-\ void SPG_ScalePointsXY(Uint16 n, SPG_Point* points, float cx, float cy, float xscale, float yscale);
-\ void SPG_SkewPointsXY(Uint16 n, SPG_Point* points, float cx, float cy, float xskew, float yskew);
-\ void SPG_TranslatePoints(Uint16 n, SPG_Point* points, float x, float y);
+\ void SPG_RotatePointsXY(Uint16 n, SPG_Point* points, sfloat cx, sfloat cy, sfloat angle);
+\ void SPG_ScalePointsXY(Uint16 n, SPG_Point* points, sfloat cx, sfloat cy, sfloat xscale, sfloat yscale);
+\ void SPG_SkewPointsXY(Uint16 n, SPG_Point* points, sfloat cx, sfloat cy, sfloat xskew, sfloat yskew);
+\ void SPG_TranslatePoints(Uint16 n, SPG_Point* points, sfloat x, sfloat y);
 DLLVoid dll_3	SPG_CopyPoints
 DLLVoid dll_5	SPG_RotatePointsXY
 DLLVoid dll_6	SPG_ScalePointsXY

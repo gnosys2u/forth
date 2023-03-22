@@ -398,8 +398,8 @@ namespace ONumber
 	{
 		pOuter->AddBuiltinClass("Int", kBCIInt, kBCIObject, oIntMembers);
 		pOuter->AddBuiltinClass("Long", kBCILong, kBCIObject, oLongMembers);
-		pOuter->AddBuiltinClass("Float", kBCIFloat, kBCIObject, oFloatMembers);
-		pOuter->AddBuiltinClass("Double", kBCIDouble, kBCIObject, oDoubleMembers);
+		pOuter->AddBuiltinClass("SFloat", kBCIFloat, kBCIObject, oFloatMembers);
+		pOuter->AddBuiltinClass("Float", kBCIDouble, kBCIObject, oDoubleMembers);
     }
 
 } // namespace ONumber

@@ -3686,11 +3686,11 @@ int dll_ sqlite3_data_count      \ sqlite3_stmt *pStmt);
 \ <tr><td>  NULL    <td>  FLOAT    <td> Result is 0.0
 \ <tr><td>  NULL    <td>   TEXT    <td> Result is a NULL pointer
 \ <tr><td>  NULL    <td>   BLOB    <td> Result is a NULL pointer
-\ <tr><td> INTEGER  <td>  FLOAT    <td> Convert from integer to float
+\ <tr><td> INTEGER  <td>  FLOAT    <td> Convert from integer to sfloat
 \ <tr><td> INTEGER  <td>   TEXT    <td> ASCII rendering of the integer
 \ <tr><td> INTEGER  <td>   BLOB    <td> Same as INTEGER->TEXT
 \ <tr><td>  FLOAT   <td> INTEGER   <td> [CAST] to INTEGER
-\ <tr><td>  FLOAT   <td>   TEXT    <td> ASCII rendering of the float
+\ <tr><td>  FLOAT   <td>   TEXT    <td> ASCII rendering of the sfloat
 \ <tr><td>  FLOAT   <td>   BLOB    <td> [CAST] to BLOB
 \ <tr><td>  TEXT    <td> INTEGER   <td> [CAST] to INTEGER
 \ <tr><td>  TEXT    <td>  FLOAT    <td> [CAST] to REAL
@@ -3758,7 +3758,7 @@ int dll_ sqlite3_data_count      \ sqlite3_stmt *pStmt);
 const void *dll_ sqlite3_column_blob      \ sqlite3_stmt*, int iCol);
 int dll_ sqlite3_column_bytes      \ sqlite3_stmt*, int iCol);
 int dll_ sqlite3_column_bytes16      \ sqlite3_stmt*, int iCol);
-double dll_ sqlite3_column_double      \ sqlite3_stmt*, int iCol);
+float dll_ sqlite3_column_double      \ sqlite3_stmt*, int iCol);
 int dll_ sqlite3_column_int      \ sqlite3_stmt*, int iCol);
 sqlite3_int64 dll_ sqlite3_column_int64      \ sqlite3_stmt*, int iCol);
 const unsigned char *dll_ sqlite3_column_text      \ sqlite3_stmt*, int iCol);
@@ -4043,7 +4043,7 @@ SQLITE_DEPRECATED int dll_ sqlite3_memory_alarm(void(*)(void*,sqlite3_int64,int)
 const void *dll_ sqlite3_value_blob      \ sqlite3_value*);
 int dll_ sqlite3_value_bytes      \ sqlite3_value*);
 int dll_ sqlite3_value_bytes16      \ sqlite3_value*);
-double dll_ sqlite3_value_double      \ sqlite3_value*);
+float dll_ sqlite3_value_double      \ sqlite3_value*);
 int dll_ sqlite3_value_int      \ sqlite3_value*);
 sqlite3_int64 dll_ sqlite3_value_int64      \ sqlite3_value*);
 const unsigned char *dll_ sqlite3_value_text      \ sqlite3_value*);

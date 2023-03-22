@@ -3747,33 +3747,33 @@ namespace OMap
         pVocab->SetCustomObjectReader(customIntMapReader);
         pOuter->AddBuiltinClass("IntMapIter", kBCIIntMapIter, kBCIIter, oIntMapIterMembers);
 
-        pVocab = pOuter->AddBuiltinClass("FloatMap", kBCIFloatMap, kBCIIterable, oFloatMapMembers);
+        pVocab = pOuter->AddBuiltinClass("SFloatMap", kBCIFloatMap, kBCIIterable, oFloatMapMembers);
         pVocab->SetCustomObjectReader(customFloatMapReader);
-        pOuter->AddBuiltinClass("FloatMapIter", kBCIFloatMapIter, kBCIIter, oIntMapIterMembers);
+        pOuter->AddBuiltinClass("SFloatMapIter", kBCIFloatMapIter, kBCIIter, oIntMapIterMembers);
 
         gpLongMapClassVocab = pOuter->AddBuiltinClass("LongMap", kBCILongMap, kBCIIterable, oLongMapMembers);
         gpLongMapClassVocab->SetCustomObjectReader(customLongMapReader);
         pOuter->AddBuiltinClass("LongMapIter", kBCILongMapIter, kBCIIter, oLongMapIterMembers);
 
-        pVocab = pOuter->AddBuiltinClass("DoubleMap", kBCIDoubleMap, kBCIIterable, oDoubleMapMembers);
+        pVocab = pOuter->AddBuiltinClass("FloatMap", kBCIDoubleMap, kBCIIterable, oDoubleMapMembers);
         pVocab->SetCustomObjectReader(customDoubleMapReader);
-        pOuter->AddBuiltinClass("DoubleMapIter", kBCIDoubleMapIter, kBCIIter, oLongMapIterMembers);
+        pOuter->AddBuiltinClass("FloatMapIter", kBCIDoubleMapIter, kBCIIter, oLongMapIterMembers);
 
         pVocab = pOuter->AddBuiltinClass("StringIntMap", kBCIStringIntMap, kBCIIterable, oStringIntMapMembers);
         pVocab->SetCustomObjectReader(customStringIntMapReader);
         pOuter->AddBuiltinClass("StringIntMapIter", kBCIStringIntMapIter, kBCIIter, oStringIntMapIterMembers);
 
-        pVocab = pOuter->AddBuiltinClass("StringFloatMap", kBCIStringFloatMap, kBCIIterable, oStringFloatMapMembers);
+        pVocab = pOuter->AddBuiltinClass("StringSFloatMap", kBCIStringFloatMap, kBCIIterable, oStringFloatMapMembers);
         pVocab->SetCustomObjectReader(customStringFloatMapReader);
-        pOuter->AddBuiltinClass("StringFloatMapIter", kBCIStringFloatMapIter, kBCIIter, oStringIntMapIterMembers);
+        pOuter->AddBuiltinClass("StringSFloatMapIter", kBCIStringFloatMapIter, kBCIIter, oStringIntMapIterMembers);
 
         pVocab = pOuter->AddBuiltinClass("StringLongMap", kBCIStringLongMap, kBCIIterable, oStringLongMapMembers);
         pVocab->SetCustomObjectReader(customStringLongMapReader);
         pOuter->AddBuiltinClass("StringLongMapIter", kBCIStringLongMapIter, kBCIIter, oLongMapIterMembers);
 
-        pVocab = pOuter->AddBuiltinClass("StringDoubleMap", kBCIStringDoubleMap, kBCIIterable, oStringDoubleMapMembers);
+        pVocab = pOuter->AddBuiltinClass("StringFloatMap", kBCIStringDoubleMap, kBCIIterable, oStringDoubleMapMembers);
         pVocab->SetCustomObjectReader(customStringDoubleMapReader);
-        pOuter->AddBuiltinClass("StringDoubleMapIter", kBCIStringDoubleMapIter, kBCIIter, oLongMapIterMembers);
+        pOuter->AddBuiltinClass("StringFloatMapIter", kBCIStringDoubleMapIter, kBCIIter, oLongMapIterMembers);
 	}
 
 } // namespace OMap

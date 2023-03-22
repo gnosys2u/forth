@@ -144,7 +144,7 @@ section test showStruct
 struct: boo
   int a
   long b
-  float c
+  sfloat c
   10 string d
 ;struct
 

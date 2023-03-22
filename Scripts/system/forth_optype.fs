@@ -60,8 +60,8 @@ enum: _opType
   localUInt
   localLong
   localULong
-  localFloat
-  localDouble
+  localSFloat
+  localSFloat
   localString
   localOp
   localObject
@@ -74,8 +74,8 @@ enum: _opType
   localUIntArray
   localLongArray
   localULongArray
+  localSFloatArray
   localFloatArray
-  localDoubleArray
   localStringArray
   localOpArray
   localObjectArray
@@ -88,8 +88,8 @@ enum: _opType
   fieldUInt
   fieldLong
   fieldULong
+  fieldSFloat
   fieldFloat
-  fieldDouble
   fieldString
   fieldOp
   fieldObject
@@ -102,8 +102,8 @@ enum: _opType
   fieldUIntArray
   fieldLongArray
   fieldULongArray
+  fieldSFloatArray
   fieldFloatArray
-  fieldDoubleArray
   fieldStringArray
   fieldOpArray
   fieldObjectArray
@@ -116,8 +116,8 @@ enum: _opType
   memberUInt
   memberLong
   memberULong
+  memberSFloat
   memberFloat
-  memberDouble
   memberString
   memberOp
   memberObject
@@ -130,8 +130,8 @@ enum: _opType
   memberUIntArray
   memberLongArray
   memberULongArray
+  memberSFloatArray
   memberFloatArray
-  memberDoubleArray
   memberStringArray
   memberOpArray
   memberObjectArray

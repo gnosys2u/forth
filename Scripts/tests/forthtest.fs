@@ -86,7 +86,7 @@ test[ startTest 1 casetest   3 casetest   0 casetest   2 casetest   5 casetest  
 \ ==================================
 
 byte gvb   ubyte gvub   short gvs   ushort gvus   int gvi   uint gvui
-long gvl   ulong gvul   float gvf   double gvd
+long gvl   ulong gvul   sfloat gvf   float gvd
 
 : testGlobalVars1
   startTest
@@ -156,7 +156,7 @@ test[ testGlobalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 
 : testLocalVars4
   startTest
-  float lvf   double lvd
+  sfloat lvf   float lvd
   22.5Ef -> lvf lvf sg. -0.125Ef ->+ lvf lvf sg. 0.75Ef ->- lvf lvf sg.
   22.5E -> lvd lvd g. -0.125E ->+ lvd lvd g. 0.75E ->- lvd lvd g.
 ;
@@ -298,12 +298,12 @@ create dst
   0.0Ef i, 0.0Ef i, 0.0Ef i, 0.0Ef i, 17.0Ef i,
 
 : sfcheck4
-  dst 16+ -> ptrTo float pf
+  dst 16+ -> ptrTo sfloat pf
   false -> int itWorked
   if(pf sf@ 17.0Ef sf=)
     true -> itWorked
     do(4 0)
-      -> float fv
+      -> sfloat fv
       4 ->- pf
       if(pf sf@ fv sf<>)
         pf sf@ %sg %bl fv %sg %nl
@@ -332,12 +332,12 @@ create ddst
   0.0E l, 0.0E l, 0.0E l, 0.0E l, 17.0E l,
 
 : fcheck4
-  ddst 32+ -> ptrTo double pd
+  ddst 32+ -> ptrTo float pd
   false -> int itWorked
   if(pd f@ 17.0E f=)
     true -> itWorked
     do(4 0)
-      -> double dv
+      -> float dv
       8 ->- pd
       if(dv pd f@ f<>)
         pd l@ g. dv g.

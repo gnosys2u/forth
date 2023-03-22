@@ -10270,8 +10270,8 @@ baseDictionaryEntry baseDictionary[] =
     PRECOP_DEF(uintOp,                 "uint" ),
     PRECOP_DEF(longOp,                 "long" ),
     PRECOP_DEF(ulongOp,                "ulong" ),
-    PRECOP_DEF(floatOp,                "float" ),
-    PRECOP_DEF(doubleOp,               "double" ),
+    PRECOP_DEF(floatOp,                "sfloat" ),
+    PRECOP_DEF(doubleOp,               "float" ),
     PRECOP_DEF(stringOp,               "string" ),
     PRECOP_DEF(opOp,                   "op" ),
 #if defined(FORTH64)

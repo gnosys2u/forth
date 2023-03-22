@@ -270,7 +270,7 @@ DLLVoid dll_5   SDL_GetRGB                  \ Uint32 pixel, const SDL_PixelForma
 DLLVoid dll_6   SDL_GetRGBA                 \ Uint32 pixel, const SDL_PixelFormat *format, Uint8 *r, Uint8 *g, Uint8 *b, Uint8 *a
 
 \ Calculate a 256 entry gamma ramp for a gamma value.
-DLLVoid dll_2   SDL_CalculateGammaRamp        \ float gamma, Uint16 *ramp
+DLLVoid dll_2   SDL_CalculateGammaRamp        \ sfloat gamma, Uint16 *ramp
 
 
 \ ****************** SDL_rect.h
@@ -715,9 +715,9 @@ DLLVoid dll_2 SDL_SetWindowGrab     \ SDL_Window * window, SDL_bool grabbed
 dll_1  SDL_GetWindowSurface     \ SDL_Window * window
 
 \ Set the brightness (gamma correction) for a window.
-dll_2 SDL_SetWindowBrightness     \ SDL_Window * window, float brightness
+dll_2 SDL_SetWindowBrightness     \ SDL_Window * window, sfloat brightness
 
-\ Get the brightness (gamma correction) for a window. (returns float)
+\ Get the brightness (gamma correction) for a window. (returns sfloat)
 dll_1 SDL_GetWindowBrightness     \ SDL_Window * window
 
 \ Set the gamma ramp for a window.
@@ -1008,10 +1008,10 @@ dll_2           SDL_RenderSetClipRect       \ SDL_Renderer * renderer, const SDL
 DLLVoid dll_2   SDL_RenderGetClipRect       \ SDL_Renderer * renderer, SDL_Rect * rect
 
 \ Set the drawing scale for rendering on the current target.
-dll_3           SDL_RenderSetScale          \ SDL_Renderer * renderer, float scaleX, float scaleY
+dll_3           SDL_RenderSetScale          \ SDL_Renderer * renderer, sfloat scaleX, sfloat scaleY
 
 \ Get the drawing scale for the current target.
-DLLVoid dll_3   SDL_RenderGetScale          \ SDL_Renderer * renderer, float *scaleX, float *scaleY
+DLLVoid dll_3   SDL_RenderGetScale          \ SDL_Renderer * renderer, sfloat *scaleX, sfloat *scaleY
 
 \ Set the color used for drawing operations (Rect, Line and Clear).
 dll_5           SDL_SetRenderDrawColor      \ SDL_Renderer * renderer,  Uint8 r, Uint8 g, Uint8 b, Uint8 a
@@ -1072,7 +1072,7 @@ DLLVoid dll_1   SDL_DestroyTexture      \ SDL_Texture * texture
 DLLVoid dll_1  SDL_DestroyRenderer      \ SDL_Renderer * renderer
 
 \ Bind the texture to the current OpenGL/ES/ES2 context for use with
-dll_3           SDL_GL_BindTexture    \ SDL_Texture *texture, float *texw, float *texh
+dll_3           SDL_GL_BindTexture    \ SDL_Texture *texture, sfloat *texw, sfloat *texh
 
 \ Unbind a texture from the current OpenGL/ES/ES2 context.
 dll_1           SDL_GL_UnbindTexture    \ SDL_Texture *texture
@@ -1389,21 +1389,21 @@ struct: SDL_TouchFingerEvent
   int type          int timestamp
   long touchId \ The touch device id
   long fingerId
-  float x            \ Normalized in the range 0...1
-  float y            \ Normalized in the range 0...1
-  float dx           \ Normalized in the range 0...1
-  float dy           \ Normalized in the range 0...1
-  float pressure     \ Normalized in the range 0...1
+  sfloat x            \ Normalized in the range 0...1
+  sfloat y            \ Normalized in the range 0...1
+  sfloat dx           \ Normalized in the range 0...1
+  sfloat dy           \ Normalized in the range 0...1
+  sfloat pressure     \ Normalized in the range 0...1
 ;struct
 
 \ Multiple Finger Gesture Event (event.mgesture.*)
 struct: SDL_MultiGestureEvent
   int type          int timestamp
   long touchId \ The touch device index
-  float dTheta
-  float dDist
-  float x
-  float y
+  sfloat dTheta
+  sfloat dDist
+  sfloat x
+  sfloat y
   ushort numFingers
   ushort padding
 ;struct
@@ -1414,9 +1414,9 @@ struct: SDL_DollarGestureEvent
   long touchId \ The touch device id
   long gestureId
   uint numFingers
-  float error
-  float x            \ Normalized center of gesture
-  float y            \ Normalized center of gesture
+  sfloat error
+  sfloat x            \ Normalized center of gesture
+  sfloat y            \ Normalized center of gesture
 ;struct
 
 \ An event used to request a file open by the system (event.drop.*)
@@ -1629,12 +1629,12 @@ struct: SDL_AudioCVT
   int        needed      \ Set to 1 if conversion possible
   short      src_format    \ Source audio format
   short      dst_format    \ Target audio format
-  double      rate_incr    \ Rate conversion increment
+  float      rate_incr    \ Rate conversion increment
   ptrTo byte  buf        \ Buffer to hold entire audio data
   int        len        \ Length of original audio buffer
   int        len_cvt      \ Length of converted audio buffer
   int        len_mult      \ buffer must be len*len_mult big
-  double      len_ratio    \ Given len, final size is len*len_ratio
+  float      len_ratio    \ Given len, final size is len*len_ratio
   \ void (SDLCALL *filters[10])(struct: SDL_AudioCVT *cvt, Uint16 format);
   10 arrayOf ptrTo int    filters
   int        filter_index  \ Current audio conversion function

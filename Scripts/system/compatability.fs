@@ -236,7 +236,7 @@ alias d>f l2f
 ;
 
 : >float
-  float fval
+  sfloat fval
   _TempStringA blockToString
   _TempStringA "%f" fval& 1 sscanf
   if

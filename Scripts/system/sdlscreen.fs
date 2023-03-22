@@ -801,20 +801,20 @@ SDLScreen screenInstance
   loop
 ;
 
-3.14159d double pi!
+3.14159E float pi!
 
 : test2
-  pi -1.0d d* double angle!
-  pi 4.0d d* 200.0d d/ double dangle!
+  pi -1.0E f* float angle!
+  pi 4.0E f* 200.0E f/ float dangle!
   
-  100.0d double yscale!
+  100.0E float yscale!
   sc( -1 )
   do( 200 -200 )
     \ i %d
     \ dp( i i )
-    dsin( angle ) double y!
-    dp( i y y d* y d* yscale d* d2i )
-    dangle ->+ angle
+    fsin( angle ) float y!
+    dp( i y y f* y f* yscale f* d2i )
+    dangle angle!+
   loop
 ;
 

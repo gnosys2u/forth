@@ -92,14 +92,14 @@ class: NoteParam
     super.delete
   ;m
   
-  m: getInt     ref nval @      ;m
-  m: setInt     ref nval !      ;m
-  m: getFloat   ref nval @      ;m
-  m: setFloat   ref nval !      ;m
+  m: getInt     nval& i@      ;m
+  m: setInt     nval& i!      ;m
+  m: getSFloat   nval& @      ;m
+  m: setSFloat   nval& !      ;m
   m: getLong    nval            ;m
-  m: setLong    -> nval         ;m
-  m: getDouble  nval            ;m
-  m: setDouble  swap -> nval    ;m
+  m: setLong    nval!         ;m
+  m: getFloat   nval            ;m
+  m: setFloat   nval!    ;m
   m: getString  sval            ;m
   m: setString  sval.set        ;m
   

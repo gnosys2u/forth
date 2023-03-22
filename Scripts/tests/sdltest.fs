@@ -72,7 +72,14 @@ struct: Scene
   endif
 
   \ Open the font file with the requested point size
-  TTF_OpenFont(fontName ptsize) font!
+  mko String fullPath
+  findResource(fontName)   ptrTo byte containingDir!
+  if(containingDir)
+    fullPath.set(containingDir)
+    fullPath.append(fontName)
+  endif
+    
+  TTF_OpenFont(fullPath.get ptsize) font!
   if(font null =)
     failed("TTF_OpenFont")
     exit
@@ -170,6 +177,9 @@ struct: Scene
   SDL_DestroyTexture(scene.messageTexture)
   cleanup
 ;
+
+"use 'test' to test\n" %s
+
 
 previous
 
@@ -274,5 +284,6 @@ SDL_Rect dstPos
   
   endSDL
 ;
+
 previous
 

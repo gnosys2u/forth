@@ -15,8 +15,8 @@ enum: eBaseType
   kBTUInt	
   kBTLong
   kBTULong
-  kBTFloat				\ 8
-  kBTDouble
+  kBTSFloat				\ 8
+  kBTFloat
   kBTString
   kBTOp
   kBTObject				\ 12

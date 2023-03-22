@@ -81,18 +81,18 @@ autoforget data_tables
     long[] @
 ;
 
-\ ====================== floats ======================
+\ ====================== single-precision floats ======================
 
-: floatTable
+: sfloatTable
   builds
     buildIntTable
   does
-    float[] i@
+    sfloat[] i@
 ;
 
-\ ====================== doubles ======================
+\ ====================== double-precision floats ======================
 
-: buildDoubleTable
+: buildFloatTable
   here int pBase!
   dup 8* allot int tableSize!
   tableSize 1- 8* pBase + int pDst!
@@ -102,9 +102,9 @@ autoforget data_tables
   dstack
 ;
 
-: doubleTable
+: floatTable
   builds
-    buildDoubleTable
+    buildFloatTable
   does
     swap 8* + 2@
 ;
