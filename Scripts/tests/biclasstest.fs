@@ -60,14 +60,14 @@ test[ theAnswer.set($abcf7123)   theAnswer.getByte $23 =   theAnswer.getUByte $2
 test[ theAnswer.getShort $7123 =   theAnswer.getUShort $7123 = ]
 
 mko SFloat fluffy   fluffy.set(5.625Ef)
-mko SFloat froofy   froofy.set(i2f(44))
+mko SFloat froofy   froofy.set(i2sf(44))
 test[ fluffy.value 8.0Ef sf* 45.0Ef sf= ]
 test[ fluffy.get 1.0Ef sf+ 6.625Ef sf= ]
 test[ fluffy.set(fluffy.value 8.0Ef sf*)  fluffy.compare(froofy) 0> ]
 
 mko Float dribble   dribble.set(11.0625E)
-mko Float drabble  drabble.set(i2d(mostRandomNumber.get))
-test[ dribble.get 0.9375E f+ 12 i2d f= ]
+mko Float drabble  drabble.set(i2f(mostRandomNumber.get))
+test[ dribble.get 0.9375E f+ 12 i2f f= ]
 test[ dribble.set(dribble.value 5.9375E f+) drabble.compare(dribble) 0= ]
 
 mko Long howie    howie.set(1000000000L)

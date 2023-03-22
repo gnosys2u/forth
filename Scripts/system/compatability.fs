@@ -224,9 +224,7 @@ alias d>s drop
 precedence [defined]  precedence [undefined]
 
 alias fconstant constant
-alias s>f i2f
-alias f>d f2l
-alias d>f l2f
+alias s>f i2sf
 : fround
   dup f0>= if
     0.5 f+ floor

@@ -7,9 +7,11 @@
 addHelp abort			abort		terminate execution with fatal error
 addHelp drop			VAL drop	drop top element of param stack
 addHelp _doDoes			INTERNAL	compiled at start of "does" section of words created by a builds...does word
-addHelp lit							pushes longword which is compiled immediately after it
-addHelp flit						pushes sfloat which is compiled immediately after it
-addHelp dlit						pushes float which is compiled immediately after it
+addHelp lit							pushes cell which is compiled immediately after it
+addHelp ilit						pushes 32-bit integer which is compiled immediately after it
+addHelp llit						pushes 64-bit integer which is compiled immediately after it
+addHelp sflit						pushes sfloat which is compiled immediately after it
+addHelp flit						pushes float which is compiled immediately after it
 addHelp _doVariable		INTERNAL	compiled at start of words defined by "variable"
 addHelp _doConstant		INTERNAL	compiled at start of words defined by "constant"
 addHelp _doDConstant	INTERNAL	compiled at start of words defined by "dconstant"
@@ -18,8 +20,8 @@ addHelp done			INTERNAL	makes inner interpreter return - used by outer interpret
 addHelp _doByte			INTERNAL	compiled at start of byte global vars
 addHelp _doShort		INTERNAL	compiled at start of short global vars
 addHelp _doInt			INTERNAL	compiled at start of int global vars
-addHelp _doFloat		INTERNAL	compiled at start of sfloat global vars
-addHelp _doDouble		INTERNAL	compiled at start of float global vars
+addHelp _doSFloat		INTERNAL	compiled at start of sfloat global vars
+addHelp _doFloat		INTERNAL	compiled at start of float global vars
 addHelp _doString		INTERNAL	compiled at start of string global vars
 addHelp _doOp			INTERNAL	compiled at start of opcode global vars
 addHelp _doLong			INTERNAL	compiled at start of long global vars
@@ -34,8 +36,8 @@ addHelp _doVocab		INTERNAL	compiled at start of vocabularies
 addHelp _doByteArray    INTERNAL	compiled at start of byte global arrays
 addHelp _doShortArray	INTERNAL	compiled at start of short global arrays
 addHelp _doIntArray		INTERNAL	compiled at start of int global arrays
-addHelp _doFloatArray	INTERNAL	compiled at start of sfloat global arrays
-addHelp _doDoubleArray	INTERNAL	compiled at start of float global arrays
+addHelp _doSFloatArray	INTERNAL	compiled at start of sfloat global arrays
+addHelp _doFloatArray	INTERNAL	compiled at start of float global arrays
 addHelp _doStringArray	INTERNAL	compiled at start of string global arrays
 addHelp _doOpArray		INTERNAL	compiled at start of opcode global arrays
 addHelp _doLongArray	INTERNAL	compiled at start of 64-bit global arrays
@@ -173,12 +175,12 @@ addHelp dfrexp		DA    ... frac(DA) exponent(DA)
 addHelp dmodf		DA    ... frac(DA) whole(DA)
 addHelp dfmod		DA DB ... fmod(DA,DB)
 
-addHelp i2f			A ... sfloat(A)
-addHelp i2d			A ... float(A)
+addHelp i2sf		A ... sfloat(A)
+addHelp i2f			A ... float(A)
+addHelp sf2i		A ... int(A)
+addHelp sf2f		A ... float(A)
 addHelp f2i			A ... int(A)
-addHelp f2d			A ... float(A)
-addHelp d2i			A ... int(A)
-addHelp d2f			A ... sfloat(A)
+addHelp f2sf		A ... sfloat(A)
 
 addHelp or			A B ... or(A,B)
 addHelp and			A B ... and(A,B)
@@ -292,10 +294,10 @@ addHelp lmod	LA LB ... (LA mod LB
 addHelp l/mod	A B ... (LA/LB) (LA mod LB)	divide top two items, return quotient & remainder
 addHelp lnegate	A ... (-LA)	negate top item
 addHelp i2l		INTA ... LONGA		convert signed 32-bit int to signed 64-bit int
-addHelp l2f		LONGA ... FLOATA	convert signed 64-bit int to 32-bit sfloat
-addHelp l2d		LONGA ... DOUBLEA	convert signed 64-bit int to 64-bit sfloat
-addHelp f2l		FLOATA ... LONGA	convert 32-bit sfloat to signed 64-bit int
-addHelp d2l		DOUBLEA ... LONGA	convert 64-bit sfloat to signed 64-bit int
+addHelp l2sf	LONGA ... FLOATA	convert signed 64-bit int to 32-bit sfloat
+addHelp l2f		LONGA ... DOUBLEA	convert signed 64-bit int to 64-bit sfloat
+addHelp sf2l	FLOATA ... LONGA	convert 32-bit sfloat to signed 64-bit int
+addHelp f2l		DOUBLEA ... LONGA	convert 64-bit sfloat to signed 64-bit int
 
 addHelp l=		LA LB ... LA=LB
 addHelp l<>		LA LB ... LA<>LB

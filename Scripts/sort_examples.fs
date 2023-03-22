@@ -292,7 +292,7 @@ int _time
   begin
   while(not(sorted))
     \ Update the gap value for a next comb
-    gap i2f shrink sf/ f2i gap!
+    gap i2sf shrink sf/ sf2i gap!
     if(gap 1 >)
       sorted~
     else

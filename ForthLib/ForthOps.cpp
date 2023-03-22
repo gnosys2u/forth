@@ -9686,8 +9686,8 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
 #else
     NATIVE_COMPILED_DEF(    litBop,                   "uilit",			OP_UINT_VAL),
 #endif
-    NATIVE_COMPILED_DEF(    litBop,                  "flit",			OP_FLOAT_VAL ),
-    NATIVE_COMPILED_DEF(    dlitBop,                 "dlit",			OP_DOUBLE_VAL ),
+    NATIVE_COMPILED_DEF(    litBop,                  "sflit",			OP_FLOAT_VAL ),
+    NATIVE_COMPILED_DEF(    dlitBop,                 "flit",			OP_DOUBLE_VAL ),
     NATIVE_COMPILED_DEF(    dlitBop,                 "llit",			OP_LONG_VAL ),
     NATIVE_COMPILED_DEF(    doVariableBop,           "_doVariable",	    OP_DO_VAR ),
     NATIVE_COMPILED_DEF(    doIConstantBop,          "_doIConstant",	OP_DO_ICONSTANT ),
@@ -9705,8 +9705,8 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
 #endif
     NATIVE_COMPILED_DEF(    doLongBop,               "_doLong",			OP_DO_LONG ),
     NATIVE_COMPILED_DEF(    doLongBop,               "_doULong",		OP_DO_ULONG ),
-    NATIVE_COMPILED_DEF(    doFloatBop,              "_doFloat",		OP_DO_FLOAT ),
-    NATIVE_COMPILED_DEF(    doDoubleBop,             "_doDouble",		OP_DO_DOUBLE ),
+    NATIVE_COMPILED_DEF(    doFloatBop,              "_doSFloat",		OP_DO_FLOAT ),
+    NATIVE_COMPILED_DEF(    doDoubleBop,             "_doFloat",		OP_DO_DOUBLE ),
     NATIVE_COMPILED_DEF(    doStringBop,             "_doString",		OP_DO_STRING ),
     NATIVE_COMPILED_DEF(    doOpBop,                 "_doOp",			OP_DO_OP ),
     NATIVE_COMPILED_DEF(    doObjectBop,             "_doObject",		OP_DO_OBJECT ),
@@ -9722,8 +9722,8 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     NATIVE_COMPILED_DEF(    doIntArrayBop,           "_doUIntArray",	OP_DO_UINT_ARRAY ),
     NATIVE_COMPILED_DEF(    doLongArrayBop,          "_doLongArray",	OP_DO_LONG_ARRAY ),
     NATIVE_COMPILED_DEF(    doLongArrayBop,          "_doULongArray",	OP_DO_ULONG_ARRAY ),	// 36
-    NATIVE_COMPILED_DEF(    doFloatArrayBop,         "_doFloatArray",	OP_DO_FLOAT_ARRAY ),
-    NATIVE_COMPILED_DEF(    doDoubleArrayBop,        "_doDoubleArray",	OP_DO_DOUBLE_ARRAY ),
+    NATIVE_COMPILED_DEF(    doFloatArrayBop,         "_doSFloatArray",	OP_DO_FLOAT_ARRAY ),
+    NATIVE_COMPILED_DEF(    doDoubleArrayBop,        "_doFloatArray",	OP_DO_DOUBLE_ARRAY ),
     NATIVE_COMPILED_DEF(    doStringArrayBop,        "_doStringArray",	OP_DO_STRING_ARRAY ),
     NATIVE_COMPILED_DEF(    doOpArrayBop,            "_doOpArray",		OP_DO_OP_ARRAY ),		// 40
     NATIVE_COMPILED_DEF(    doObjectArrayBop,        "_doObjectArray",	OP_DO_OBJECT_ARRAY ),
@@ -9773,8 +9773,8 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     OP_COMPILED_DEF(unimplementedMethodOp,          "unimplementedMethod", OP_UNIMPLEMENTED),
     NATIVE_COMPILED_DEF(    executeMethodBop,       "_executeMethod",   OP_EXECUTE_METHOD),
     NATIVE_COMPILED_DEF(    thisBop,                "this",             OP_THIS),
-    OP_COMPILED_DEF(        doI128ConstantOp,      "_doI128Constant",	OP_DO_I128_CONSTANT),
-    OP_COMPILED_DEF(        i128LitOp,            "i128lit",			OP_I128_VAL),
+    OP_COMPILED_DEF(        doI128ConstantOp,       "_doI128Constant",	OP_DO_I128_CONSTANT),
+    OP_COMPILED_DEF(        i128LitOp,              "i128lit",			OP_I128_VAL),
 };
 
 
@@ -9876,17 +9876,17 @@ baseDictionaryEntry baseDictionary[] =
     ///////////////////////////////////////////
     //  integer/int32_t/float/double conversion
     ///////////////////////////////////////////
-    NATIVE_DEF(    i2fBop,                  "i2f" ), 
-    NATIVE_DEF(    i2dBop,                  "i2d" ),
-    NATIVE_DEF(    f2iBop,                  "f2i" ),
-    NATIVE_DEF(    f2dBop,                  "f2d" ),
-    NATIVE_DEF(    d2iBop,                  "d2i" ),
-    NATIVE_DEF(    d2fBop,                  "d2f" ),
+    NATIVE_DEF(    i2fBop,                  "i2sf" ), 
+    NATIVE_DEF(    i2dBop,                  "i2f" ),
+    NATIVE_DEF(    f2iBop,                  "sf2i" ),
+    NATIVE_DEF(    f2dBop,                  "sf2f" ),
+    NATIVE_DEF(    d2iBop,                  "f2i" ),
+    NATIVE_DEF(    d2fBop,                  "f2sf" ),
     OP_DEF(    i2lOp,                  "i2l" ), 
-    OP_DEF(    l2fOp,                  "l2f" ), 
-    OP_DEF(    l2dOp,                  "l2d" ), 
-    OP_DEF(    f2lOp,                  "f2l" ),
-    OP_DEF(    d2lOp,                  "d2l" ),
+    OP_DEF(    l2fOp,                  "l2sf" ), 
+    OP_DEF(    l2dOp,                  "l2f" ), 
+    OP_DEF(    f2lOp,                  "sf2l" ),
+    OP_DEF(    d2lOp,                  "f2l" ),
     
     ///////////////////////////////////////////
     //  bit-vector logic

@@ -421,6 +421,8 @@ mkTag stack Parameter stack manipulation|Ops which manipulate the parameter stac
 mkTag logic Logical|Ops which do logic operations
 mkTag math Arithmetic|Ops which do math
 
+mkTag cell cell-sized integer|Ops for cell-sized integers
+mkTag dcell double-cell-sized data|Ops for double cells
 mkTag int 32-bit integer|Ops for 32-bit integers
 mkTag sfloat Single-precision floating-point|Ops for 32-bit floating point numbers
 mkTag float Double-precision floating-point|Ops for 64-bit floating point numbers
@@ -506,26 +508,26 @@ addOp roll|N ...|rolls Nth item to top of params stack
 addOp sp|... PARAM_STACK_PTR|
 addOp s0|... EMPTY_PARAM_STACK_PTR|
 addOp fp|... LOCAL_VAR_FRAME_PTR|
-addOp 2dup|DA ... DA DA|
-addOp 2swap|DA DB ... DB DA|
-addOp 2drop|DA ...|
-addOp 2over|DA DB ... DA DB DA|
-addOp 2rot|DA DB DC ... DB DC DA|
+addOp 2dup|DA ... DA DA|dcell
+addOp 2swap|DA DB ... DB DA|dcell
+addOp 2drop|DA ...|dcell
+addOp 2over|DA DB ... DA DB DA|dcell
+addOp 2rot|DA DB DC ... DB DC DA|dcell
 addOp r[||push SP on rstack, used with ]r to count a variable number of arguments
 addOp ]r||remove old SP from rstack, push count of elements since r[ on TOS
 
 tags: internal
 addOp _doDoes||compiled at start of "does" section of words created by a builds...does word
 addOp _doVariable||compiled at start of words defined by "variable"
-addOp _doConstant||compiled at start of words defined by "constant"
-addOp _doDConstant||compiled at start of words defined by "dconstant"
+addOp _doIConstant||compiled at start of words defined by "iconstant"
+addOp _doLConstant||compiled at start of words defined by "lconstant"
 addOp _endBuilds||compiled at end of "builds" section
 addOp done||makes inner interpreter return - used by outer interpreter
 addOp _doByte||compiled at start of byte global vars
 addOp _doShort||compiled at start of short global vars
 addOp _doInt||compiled at start of int global vars
-addOp _doFloat||compiled at start of sfloat global vars
-addOp _doDouble||compiled at start of float global vars
+addOp _doSFloat||compiled at start of sfloat global vars
+addOp _doFloat||compiled at start of float global vars
 addOp _doString||compiled at start of string global vars
 addOp _doOp||compiled at start of opcode global vars
 addOp _doLong||compiled at start of long global vars
@@ -540,8 +542,8 @@ addOp _doVocab||compiled at start of vocabularies
 addOp _doByteArray||compiled at start of byte global arrays
 addOp _doShortArray||compiled at start of short global arrays
 addOp _doIntArray||compiled at start of int global arrays
-addOp _doFloatArray||compiled at start of sfloat global arrays
-addOp _doDoubleArray||compiled at start of float global arrays
+addOp _doSFloatArray||compiled at start of sfloat global arrays
+addOp _doFloatArray||compiled at start of float global arrays
 addOp _doStringArray||compiled at start of string global arrays
 addOp _doOpArray||compiled at start of opcode global arrays
 addOp _doLongArray||compiled at start of 64-bit global arrays
@@ -562,7 +564,7 @@ addOp _+loop||compiled at end of do +loop
 addOp _doNew|CLASS_TYPE_INDEX ... NEW_OBJECT|compiled by 'new', takes class type index, executes class 'new' operator|classdef
 addOp _allocObject|CLASS_VOCAB_PTR...NEW_OBJECT|default class 'new' operator, mallocs spaces for a new object instance and pushes new object|classdef
 
-tags: int math
+tags: cell math
 addOp +|A B ... (A+B)|add top two items
 addOp -|A B ... (A-B)|subtract top two items
 addOp *|A B ... (A*B)|mutliply top two items
@@ -577,7 +579,7 @@ addOp /mod|A B ... (A/B) (A mod B)|divide top two items, return quotient & remai
 addOp mod|A B ... (A mod B)|take modulus of top two items
 addOp negate|A ... (-A)|negate top item
 
-tags: int compare
+tags: cell compare
 addOp =|A B ... A=B|
 addOp <>|A B ... A<>B|
 addOp >|A B ... A>B|
@@ -699,19 +701,19 @@ addOp fOffsetBlock|SRC DST OFFSET NUM ...|add OFFSET to block of NUM doubles at 
 addOp fMixBlock|SRC DST SCALE NUM ...|multiply block of NUM doubles at SRC by SCALE and add results into DST
 
 tags: convert
-addOp i2f|A ... sfloat(A)|convert int to sfloat|int sfloat
-addOp i2d|A ... float(A)|convert int to float|int float
-addOp f2i|A ... int(A)|convert sfloat to int|int sfloat
-addOp f2d|A ... float(A)|convert sfloat to float|sfloat float
-addOp d2i|A ... int(A)|convert float to int|int float
-addOp d2f|A ... sfloat(A)|convert float to sfloat|float sfloat
+addOp i2sf|A ... sfloat(A)|convert int to sfloat|int sfloat
+addOp i2f|A ... float(A)|convert int to float|int float
+addOp sf2i|A ... int(A)|convert sfloat to int|int sfloat
+addOp sf2f|A ... float(A)|convert sfloat to float|sfloat float
+addOp f2i|A ... int(A)|convert float to int|int float
+addOp f2sf|A ... sfloat(A)|convert float to sfloat|float sfloat
 addOp i2l|INTA ... LONGA|convert signed 32-bit int to signed 64-bit int|int long
-addOp l2f|LONGA ... FLOATA|convert signed 64-bit int to 32-bit sfloat|long sfloat
-addOp l2d|LONGA ... DOUBLEA|convert signed 64-bit int to 64-bit sfloat|long float
-addOp f2l|FLOATA ... LONGA|convert 32-bit sfloat to signed 64-bit int|sfloat long
-addOp d2l|DOUBLEA ... LONGA|convert 64-bit sfloat to signed 64-bit int|float long
+addOp l2sf|LONGA ... FLOATA|convert signed 64-bit int to 32-bit sfloat|long sfloat
+addOp l2f|LONGA ... DOUBLEA|convert signed 64-bit int to 64-bit sfloat|long float
+addOp sf2l|FLOATA ... LONGA|convert 32-bit sfloat to signed 64-bit int|sfloat long
+addOp f2l|DOUBLEA ... LONGA|convert 64-bit sfloat to signed 64-bit int|float long
 
-tags: logic
+tags: logic cell
 addOp or|A B ... or(A,B)|
 addOp and|A B ... and(A,B)|
 addOp xor|A B ... xor(A,B)|
@@ -733,7 +735,7 @@ addOp r0|... EMPTY_RETURN_STACK_PTR|return pointer to bottom of return stack (to
 
 tags: memory
 addOp @|PTR ... A|fetches longword from address PTR
-addOp 2@|PTR ... DA|fetch double from address PTR
+addOp 2@|PTR ... DA|fetch double from address PTR|dcell
 addOp ref|ref VAR ... PTR|return address of VAR
 addOp !|A PTR ...|stores longword A at address PTR
 addOp c!|A PTR ...|stores byte A at address PTR
@@ -744,7 +746,7 @@ addOp w!|A PTR ...|stores word A at address PTR
 addOp w@|PTR ... A|fetches unsigned word from address PTR
 addOp sw@|PTR ... A|fetches signed word from address PTR
 addOp w2i|WA ... LA|sign extends word to long
-addOp 2!|DA PTR ...|store double at address PTR
+addOp 2!|DA PTR ...|store double at address PTR|dcell
 addOp move|SRC DST N ...|copy N bytes from SRC to DST
 addOp fill|DST N A ...|fill N bytes at DST with byte value A
 addOp varAction!|A varAction! ...|set varAction to A (use not recommended)
@@ -930,9 +932,11 @@ addOp DLLVoid||when used prior to dll_0...dll_15, newly defined word will return
 
 \ TODO: tag these
 tags:
-addOp lit|... IVAL|pushes longword which is compiled immediately after it
-addOp flit|... FVAL|pushes sfloat which is compiled immediately after it
-addOp dlit|... DVAL|pushes float which is compiled immediately after it
+addOp lit|... VAL|pushes cell which is compiled immediately after it
+addOp ilit|... IVAL|pushes 32-bit integer which is compiled immediately after it
+addOp lit|... IVAL|pushes 64-bit integer which is compiled immediately after it
+addOp sflit|... FVAL|pushes sfloat which is compiled immediately after it
+addOp flit|... DVAL|pushes float which is compiled immediately after it
 
 addOp ->|V -> VAR|store V in VAR
 addOp ->+|N ->+ VAR ...|add N to VAR, append for strings

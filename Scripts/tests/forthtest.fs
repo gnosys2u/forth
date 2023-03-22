@@ -282,7 +282,7 @@ test[ sffmod(-27.375Ef 4.0Ef) -3.375Ef sf= ffmod(27.375E 4.0E) 3.375E f= ]
 \ 2dup 2swap 2drop 2over 2rot r[ ]r
 \ b! b@ sb@ s! s@ ss@ ! @ 2! 2@ 
 \ move fill varAction! varAction@
-\ l+ l- l* l/ lmod l/mod lnegate i2l i2f i2d f2l f2i f2d d2l d2i d2f l2f l2d
+\ l+ l- l* l/ lmod l/mod lnegate i2l i2sf i2f sf2l sf2i sf2f f2l f2i f2sf l2sf l2f
 \ l= l<> l> l>= l< l<= l0= l0> l0>= l0< l0<= lwithin lmin lmax
 \ . %d %x %2d %2x %s %c type %bl %nl %f %2f format 2format
 \ printDecimalSigned printAllSigned printAllUnsigned octal decimal hex

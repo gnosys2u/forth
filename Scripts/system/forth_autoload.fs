@@ -549,7 +549,14 @@ addHelp $hash   STRING_ADDR $hash     return hash of string
 : iliteral ['] ilit i, i, ;
 alias fliteral iliteral
 : literal ['] lit i, , ;
-: dliteral ['] dlit i, 2, ;
+: dliteral
+#if FORTH64
+  ['] i128lit i, swap
+#else
+  ['] llit i,
+#endif
+  , ,
+;
 precedence literal   precedence fliteral   precedence dliteral
 precedence iliteral
 

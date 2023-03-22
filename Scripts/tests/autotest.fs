@@ -20,7 +20,7 @@ _testfile outToFile
 load forthtest.txt
 outToScreen
 _testfile fclose drop
-ms@ swap - i2f 1000.0 f/ "test completed in " %s %f " seconds\n" %s
+ms@ swap - i2sf 1000.0 f/ "test completed in " %s %f " seconds\n" %s
 "slow_test_output.txt" checktest
 
 "testing turbo mode... " %s
@@ -30,13 +30,13 @@ _testfile outToFile
 load forthtest.txt
 outToScreen
 _testfile fclose drop turbo
-ms@ swap - i2f 1000.0 f/ "test completed in " %s %f " seconds\n" %s
+ms@ swap - i2sf 1000.0 f/ "test completed in " %s %f " seconds\n" %s
 "turbo_test_output.txt" checktest
 
 loaddone
 
 ms@ dup %d %bl
 "slow_test_output.txt" "w" fopen -> _testfile _testfile outToFile load forthtest.txt outToScreen _testfile fclose drop
-ms@ dup %d %bl swap - i2f 1000.0 f/ "test completed in " %s %f " seconds\n" %s
+ms@ dup %d %bl swap - i2sf 1000.0 f/ "test completed in " %s %f " seconds\n" %s
 
 

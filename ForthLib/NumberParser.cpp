@@ -30,7 +30,8 @@ void NumberParser::ResetValues()
     mLongValue = 0L;
     mDoubleFloatValue = 0.0;
     mSingleFloatValue = 0.0f;
-    mDoubleCellValue.sdcell = 0;
+    mDoubleCellValue.cells[0] = 0;
+    mDoubleCellValue.cells[1] = 0;
     mBase = 10;
 
     mExponentPosition = -1;
