@@ -15,7 +15,7 @@ requires forth_internals
 \ ;	EDI		inner interp PC (constant)
 \ ;	EBP		core ptr (constant)
 
-\ scratch: rax rcx rdx r9
+\ scratch: rax rcx rbx rdx r8
 
 code _doDoesCode
   \ TODO!
@@ -356,14 +356,28 @@ code d+
   next,
 
 code d-
-  8 rpsp d] rax mov,
-  $18 rpsp d] rdx mov,
-  rdx rax sub,
-  rax $18 rpsp d] mov,
+  \ tos: bhi blo ahi alo
+  8 rpsp d] rax mov,    \ blo
+  $18 rpsp d] rdx mov,  \ alo
+  rax rdx sub,
+  rdx $18 rpsp d] mov,
   rpsp ] rax mov,
   $10 rpsp d] rdx mov,
-  rdx rax sbb,
-  rax $10 rpsp d] mov,
+  rax rdx sbb,
+  rdx $10 rpsp d] mov,
+  $10 # rpsp add,
+  next,
+
+code d<
+  \ tos: bhi blo ahi alo
+  8 rpsp d] rax mov,    \ blo
+  $18 rpsp d] rdx mov,  \ alo
+  rax rdx sub,
+  rdx $18 rpsp d] mov,
+  rpsp ] rax mov,
+  $10 rpsp d] rdx mov,
+  rax rdx sbb,
+  rdx $10 rpsp d] mov,
   $10 # rpsp add,
   next,
 

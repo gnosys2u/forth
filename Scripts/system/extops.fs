@@ -106,12 +106,5 @@ precedence doescode
   cell aa! 0 aa um/mod aa swap aa! um/mod aa
 ;
 
-: dabs
-  dup 0< if
-    dnegate
-  endif
-;
-
-
 loaddone
 

@@ -5,12 +5,15 @@ requires assembler
 requires forth_internals
 requires forth_optype
 requires extops
+requires double
 requires compatability
 requires numberio
 
-"Type 'kFFRegular to features' to exit ANSI Forth compatability mode\n" %s
+"Type 'regularMode' to exit ANSI Forth compatability mode\n" %s
 
-kFFAnsi to features
+: ansiMode kFFAnsi to features ;
+: regularMode kFFRegular to features ;
+ansiMode
 
 autoforget ansi
 

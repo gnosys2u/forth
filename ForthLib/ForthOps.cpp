@@ -3945,6 +3945,72 @@ FORTHOP( format64Op )
 	}
 }
 
+FORTHOP(representOp)
+{
+    char buffer[48];
+    char fmtString[16];
+    //cell precision = SPOP;
+    cell bufferLen = SPOP;
+    char* pDstBuffer = (char*)(SPOP);
+    double val = DPOP;
+
+    cell exponent = 0;
+    cell isValid = -1;
+    cell isNegative = 0;
+
+    if (val < 0.0)
+    {
+        val = -val;
+        isNegative = -1;
+    }
+    //SNPRINTF(fmtString, sizeof(fmtString) - 1, "%%.%de", precision);
+    SNPRINTF(fmtString, sizeof(fmtString) - 1, "%%.%de", bufferLen - 1);
+
+    buffer[0] = '\0';
+    SNPRINTF(buffer, sizeof(buffer) - 1, fmtString, val);
+    if (!isdigit(buffer[0]))
+    {
+        isValid = 0;
+        // this is something like '+infinity' or 'nan'
+        memcpy(pDstBuffer, &(buffer[0]), min(bufferLen, strlen(buffer)));
+    }
+    else
+    {
+        int ix = 0;
+        int outIx = 0;
+        while (buffer[ix] != '\0')
+        {
+            char c = buffer[ix];
+            if (isdigit(c))
+            {
+                if (outIx < bufferLen)
+                {
+                    pDstBuffer[outIx++] = c;
+                }
+            }
+            else if (tolower(c) == 'e')
+            {
+                // get the exponent
+                int64_t exp;
+                sscanf(&(buffer[ix + 1]), "%lld", &exp);
+                exponent = (cell)exp;
+                break;
+            }
+            else if (c != '.')
+            {
+                // unexpected character found
+                break;
+            }
+            ix++;
+        }
+    }
+
+    exponent++;
+    SPUSH(exponent);
+    SPUSH(isNegative);
+    SPUSH(isValid);
+}
+
 FORTHOP(scanIntOp)
 {
     int base = SPOP;
@@ -8991,8 +9057,97 @@ FORTHOP(doI128ConstantOp)
     SET_IP((forthop*)(RPOP));
 }
 
-#ifndef ASM_INNER_INTERPRETER
+FORTHOP(dc2fOp)
+{
+    doubleCell inVal;
+    double outVal;
+    DCPOP(inVal);
 
+#if defined(FORTH64) && defined(WINDOWS_BUILD)
+    // double-cell (128-bit int) to 64-bit float conversion
+    // turn into unsigned double + signFlag
+    // then use modf to split it into integral multiple of 2^64 (hi part)
+    // and fractional part of 2^64 (lo part)
+    // and finally reapply the sign if needed
+    bool isNegative = (inVal.cells[0] < 0);
+    uint64_t hi = inVal.ucells[0];
+    uint64_t lo = inVal.ucells[1];
+    if (isNegative)
+    {
+        hi = ~hi;
+        lo = (~lo) + 1;
+        if (lo == 0)
+        {
+            hi++;
+        }
+    }
+    double scale = 1.0;
+    while (hi > 0)
+    {
+        lo >>= 1;
+        if (hi & 1 != 0)
+        {
+            lo += 0x8000000000000000;
+        }
+        hi >>= 1;
+        scale *= 2.0;
+    }
+
+    outVal = ((double)lo) * scale;
+
+    if (isNegative)
+    {
+        outVal = -outVal;
+    }
+#else
+    // on all 32-bit builds, or non-Windows builds, compiler can do all the work for us
+    outVal = inVal.sdcell;
+#endif
+    DPUSH(outVal);
+}
+
+FORTHOP(f2dcOp)
+{
+    doubleCell outVal;
+    double inVal = DPOP;
+
+#if defined(FORTH64) && defined(WINDOWS_BUILD)
+    // 64-bit float to double-cell (128-bit int) conversion
+    // turn into unsigned int + signFlag
+    // then shift 128-bits right until only 64-bits are needed,
+    // keeping track of shifts in power-of-2 scale factor, which
+    // is applied after we do 64-bit-int to 64-bit-float conversion,
+    // and finally reapply the sign if needed
+    bool isNegative = (inVal < 0.0);
+    double hiWordValue = 18446744073709551616.0;    // 2^64
+    if (isNegative)
+    {
+        inVal = -inVal;
+    }
+    double hiPart;
+    double loPart = modf(inVal, &hiPart);
+    uint64_t lo = loPart;
+    uint64_t hi = hiPart;
+    if (isNegative)
+    {
+        hi = ~hi;
+        lo = (~lo) + 1;
+        if (lo == 0)
+        {
+            hi++;
+        }
+    }
+    outVal.ucells[1] = lo;
+    outVal.ucells[0] = hi;
+#else
+    // on all 32-bit builds, or non-Windows builds, compiler can do all the work for us
+    outVal.sdcell = inVal;
+#endif
+    DCPUSH(outVal);
+}
+
+
+#ifndef ASM_INNER_INTERPRETER
 
 
 FORTHOP( thisBop )
@@ -9887,7 +10042,9 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    l2dOp,                  "l2f" ), 
     OP_DEF(    f2lOp,                  "sf2l" ),
     OP_DEF(    d2lOp,                  "f2l" ),
-    
+    OP_DEF(    dc2fOp,                  "d>f" ),
+    OP_DEF(    f2dcOp,                  "f>d" ),
+
     ///////////////////////////////////////////
     //  bit-vector logic
     ///////////////////////////////////////////
@@ -10383,6 +10540,7 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    printDoubleGOp,         "%g" ),
     OP_DEF(    format32Op,             "format" ),
     OP_DEF(    format64Op,             "lformat" ),
+    OP_DEF(    representOp,            "represent" ),
     OP_DEF(    scanIntOp,              "scanInt" ),
     OP_DEF(    scanLongOp,             "scanLong" ),
     OP_DEF(    addTempStringOp,        "addTempString"),

@@ -13,6 +13,7 @@ makeObject System system
 : cell/ 8/ ;
 8 iconstant cellsize
 : p@ l@ ;
+1 63 llshift lconstant CELL_HIGHEST_BIT
 #else
 : cells 4* ;
 : cell+ 4+ ;
@@ -20,6 +21,7 @@ makeObject System system
 : cell/ 4/ ;
 4 iconstant cellsize
 : p@ i@ ;
+1 31 ilshift iconstant CELL_HIGHEST_BIT
 #endif
 
 struct: dcell
@@ -308,23 +310,17 @@ alias lit ilit
 
 \ values to be used with features variable
 enum: eFeatures
-  \ $0001  kFFParenIsComment            currently unused
-  \ $0002  kFFCCharacterLiterals        currently unused
-  $0004  kFFMultiCharacterLiterals
-  $0008  kFFCStringLiterals
-  \ $0010  kFFCHexLiterals              currently unused
-  \ $0020  kFFDoubleSlashComment        currently unused
-  $0040  kFFIgnoreCase
-  \ $0080  kFFDollarHexLiterals
-  $0100  kFFCFloatLiterals
-  $0200  kFFParenIsExpression
-  $0400  kFFAllowContinuations
-  $0800  kFFAllowVaropSuffix
+  $0001  kFFMultiCharacterLiterals
+  $0002  kFFCStringLiterals
+  $0004  kFFIgnoreCase
+  $0008  kFFParenIsExpression
+  $0010  kFFAllowContinuations
+  $0020  kFFAllowVaropSuffix
   
   \ kFFAnsi and kFFRegular are the most common feature combinations
   kFFIgnoreCase         kFFAnsi
   
-  kFFMultiCharacterLiterals kFFCStringLiterals + kFFCFloatLiterals +
+  kFFMultiCharacterLiterals kFFCStringLiterals + kFFParenIsExpression +
     kFFAllowContinuations + kFFAllowVaropSuffix +           kFFRegular
     
 ;enum
@@ -338,7 +334,6 @@ enum: eFeatures
   dup kFFMultiCharacterLiterals and if " kFFMultiCharacterLiterals" %s endif
   dup kFFCStringLiterals and if " kFFCStringLiterals" %s endif
   dup kFFIgnoreCase and if " kFFIgnoreCase" %s endif
-  dup kFFCFloatLiterals and if " kFFCFloatLiterals" %s endif
   dup kFFParenIsExpression and if " kFFParenIsExpression" %s endif
   dup kFFAllowContinuations and if " kFFAllowContinuations" %s endif
   kFFAllowVaropSuffix and if " kFFAllowVaropSuffix" %s endif
@@ -547,9 +542,11 @@ addHelp $hash   STRING_ADDR $hash     return hash of string
 ;
 
 : iliteral ['] ilit i, i, ;
-alias fliteral iliteral
+: lliteral ['] llit i, l, ;
+alias sfliteral iliteral
+alias fliteral lliteral
 : literal ['] lit i, , ;
-: dliteral
+: 2literal
 #if FORTH64
   ['] i128lit i, swap
 #else
@@ -557,8 +554,8 @@ alias fliteral iliteral
 #endif
   , ,
 ;
-precedence literal   precedence fliteral   precedence dliteral
-precedence iliteral
+precedence literal   precedence fliteral   precedence 2literal
+precedence iliteral  precedence sfliteral  precedence lliteral
 
 : chars ;
 : char blword c@ ;

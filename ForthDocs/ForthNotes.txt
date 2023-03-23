@@ -282,6 +282,13 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+March 23 2023
+
+I have done a first attempt at the ANSI 2012 floating-point and double-number
+optional wordlists.  There is a lot of testing left to be done, and some
+operators may have fallen through the cracks.  At the very least, the
+'environment?' query op still needs to be implemented.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 March 21 2023
 
 I added a feature to make it easy to get the offsets for structure members

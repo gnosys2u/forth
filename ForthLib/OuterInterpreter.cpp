@@ -134,8 +134,7 @@ OuterInterpreter::OuterInterpreter(Engine* pEngine)
     , mpVocabStack(nullptr)
     , mpOpcodeCompiler(nullptr)
     , mFeatures(kFFMultiCharacterLiterals | kFFCStringLiterals
-        | kFFCFloatLiterals | kFFParenIsExpression
-        | kFFAllowVaropSuffix)
+        | kFFParenIsExpression | kFFAllowContinuations | kFFAllowVaropSuffix)
     , mContinuationIx(0)
     , mContinueDestination(nullptr)
     , mContinueCount(0)

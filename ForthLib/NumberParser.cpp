@@ -147,8 +147,8 @@ NumberType NumberParser::ScanNumber(const char* pSrcString, int defaultBase)
                 if (srcIndex < 2)    // don't set negative flag if this is in exponent part
                 {
                     mIsNegative = true;
-                    mValidChars[mNumValidChars++] = '-';
                 }
+                mValidChars[mNumValidChars++] = '-';
             }
         }
         else if (mBase == 10 && (c == 'e' || c == 'E'))

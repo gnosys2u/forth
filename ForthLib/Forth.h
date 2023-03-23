@@ -388,20 +388,12 @@ typedef enum {
 } ePrintSignedMode;
 
 typedef enum {
-    //kFFParenIsComment           = 0x00000001,     currently unused
-    //kFFCCharacterLiterals       = 0x00000002,     currently unused
-    kFFMultiCharacterLiterals   = 0x00000004,
-    kFFCStringLiterals          = 0x00000008,
-    //kFFCHexLiterals             = 0x00000010,     currently unused
-    //kFFDoubleSlashComment       = 0x00000020,     currently unused
-    kFFIgnoreCase               = 0x00000040,
-    //kFFDollarHexLiterals        = 0x00000080,     currently unused
-    kFFCFloatLiterals           = 0x00000100,
-    kFFParenIsExpression        = 0x00000200,
-    kFFAllowContinuations       = 0x00000400,
-    kFFAllowVaropSuffix         = 0x00000800,
-    kFFAnsiFloatLiterals        = 0x00001000,
-    kFFAnsiDoubleWordLiterals   = 0x00002000        // period 
+    kFFMultiCharacterLiterals   = 0x00000001,
+    kFFCStringLiterals          = 0x00000002,
+    kFFIgnoreCase               = 0x00000004,
+    kFFParenIsExpression        = 0x00000008,
+    kFFAllowContinuations       = 0x00000010,
+    kFFAllowVaropSuffix         = 0x00000020,
 } ForthFeatureFlags;
 
 

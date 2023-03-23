@@ -437,12 +437,12 @@ code d+
 code d-
   4 edx d] eax mov,
   $c edx d] ebx mov,
-  ebx eax sub,
-  eax $c edx d] mov,
+  eax ebx sub,
+  ebx $c edx d] mov,
   edx ] eax mov,
   8 edx d] ebx mov,
-  ebx eax sbb,
-  eax 8 edx d] mov,
+  eax ebx sbb,
+  ebx 8 edx d] mov,
   8 # edx add,
   next,
 
