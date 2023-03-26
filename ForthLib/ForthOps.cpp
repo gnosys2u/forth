@@ -7462,22 +7462,26 @@ FORTHOP(doLoopNBop)
     RNEEDS(3);
     NEEDS(1);
 
-    cell *pRP = GET_RP;
     cell increment = SPOP;
-    cell newIndex = (*pRP) + increment;
-    bool done;
+    cell* pRP = GET_RP;
+    cell index = *pRP;
+    cell limit = pRP[1];
+    cell newIndex = index + increment;
+    bool done = false;
 
-    done = (increment > 0) ? (newIndex >= pRP[1]) : (newIndex < pRP[1]);
-    if ( done )
+    cell oldDiff = index - limit;
+    done = !(((oldDiff ^ (oldDiff + increment)) & (oldDiff ^ increment)) >= 0);
+
+    if (done)
     {
         // loop has ended, drop end, current indices, loopIP
-        SET_RP( pRP + 3 );
+        SET_RP(pRP + 3);
     }
     else
     {
         // loop again
         *pRP = newIndex;
-        SET_IP( (forthop* ) (pRP[2]) );
+        SET_IP((forthop*)(pRP[2]));
     }
 }
 
