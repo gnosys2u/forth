@@ -1,6 +1,5 @@
 
-requires extops
-requires compatability
+requires double
 
 autoforget numberio
 : numberio ;

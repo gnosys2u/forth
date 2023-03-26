@@ -6,6 +6,8 @@
 requires extops
 requires compatability
 
+features   kFFRegular features!
+
 autoforget double
 : double ;
 
@@ -15,20 +17,11 @@ autoforget double
   endif
 ;
 
-: dcmp d-
-  ?dup if
-    swap drop
-    0> if
-      1
-    else
-      -1
-    endif
-  else
-    if
-      1
-    else
-      0
-    endif
+: dcmp
+  cell bhi! cell blo!  cell ahi! cell alo!
+  ahi bhi cmp
+  dup 0= if
+    drop alo blo ucmp
   endif
 ;
 
@@ -92,5 +85,7 @@ autoforget double
 ;
 
 : 2variable  variable 0 , ;
+
+features!
 
 loaddone

@@ -229,6 +229,7 @@ precedence [defined]  precedence [undefined]
   if(ss.equals("CORE"))
   orif(ss.equals("BLOCK"))
   orif(ss.equals("FLOATING"))
+  orif(ss.equals("DOUBLE"))
     true true
   else
     false

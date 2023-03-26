@@ -8,6 +8,7 @@ requires extops
 requires double
 requires compatability
 requires numberio
+requires floating
 
 "Type 'regularMode' to exit ANSI Forth compatability mode\n" %s
 
