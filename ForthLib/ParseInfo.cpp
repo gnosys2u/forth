@@ -175,7 +175,7 @@ const char * ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLim
 	bool isLongConstant = false;
 
     // pSrcIn[0] is a single quote char
-	if ((pSrcIn[1] != 0) && (pSrcIn[2] != 0))      // there must be at least 2 more chars on line
+	if (pSrcIn[1] != 0)      // there must be at least 1 more char on line
 	{
 		const char *pSrc = pSrcIn + 1;
 		int iDst = 0;
@@ -186,10 +186,10 @@ const char * ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLim
 			char ch = *pSrc++;
 			if (ch == '\0')
 			{
-				break;
+                break;
 			}
-			else if (ch == ' ' || ch == '\t')
-			{
+            else if (ch == ' ' || ch == '\t')
+            {
                 // brokeOnWhitespace is needed to make the string "' '" be treated as using
                 //  the tick operator to get the execution token for the tick operator,
                 //  not just a literal space character
@@ -216,17 +216,16 @@ const char * ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLim
                 //  '''    - single quote character constant
                 //  ''<anythingButSingleQuote> - also single quote character constant (gforth does this)
                 // in a multi-character literal, single quote must be done with \'
-                cc[iDst++] = '\0';
                 isQuotedChar = true;
-                if (iDst == 1)
+                if (iDst == 0)
                 {
-                    cc[0] = '\'';
-                    cc[iDst++] = '\0';
+                    cc[iDst++] = '\'';
                     if (*pSrc == '\'')
                     {
                         pSrc++;
                     }
                 }
+                cc[iDst++] = '\0';
 
 				if (pSrc < pSrcLimit)
 				{
@@ -256,7 +255,7 @@ const char * ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLim
 			}
 		}
 
-		if (!brokeOnWhitespace && iDst == maxChars)
+		if (iDst == maxChars)
 		{
 			if (*pSrc == '\'')
 			{
@@ -266,7 +265,14 @@ const char * ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLim
 			}
 		}
 
-		if (isQuotedChar)
+        if (iDst == 1)
+        {
+            // make tokens with no trailing single quote like "'a" work
+            cc[iDst] = '\0';
+            isQuotedChar = true;
+        }
+        
+        if (isQuotedChar)
 		{
 			SetFlag(PARSE_FLAG_QUOTED_CHARACTER);
 			if (isLongConstant)
