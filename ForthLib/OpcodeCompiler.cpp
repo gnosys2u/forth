@@ -368,6 +368,10 @@ void OpcodeCompiler::PatchOpcode(forthOpType opType, forthop opVal, forthop* pOp
             break;
         }
     }
+    else if (opType == kOpBranch)
+    {
+        *pOpcode = COMPILED_OP(opType, opVal);
+    }
     else
     {
         // TODO: report error
