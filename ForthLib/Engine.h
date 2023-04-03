@@ -127,7 +127,7 @@ public:
     const char* GetOpTypeName(int32_t opType);
     void                    TraceOp(forthop* pOp, forthop op);
     void                    TraceStack(CoreState* pCore);
-    void                    DescribeOp(forthop* pOp, char* pBuffer, int buffSize, bool lookupUserDefs = false);
+    void                    DescribeOp(forthop* pOp, char* pBuffer, int buffSize, bool lookupUserDefs, int& numFollowing);
     void                    AddOpExecutionToProfile(forthop op);
     void                    DumpExecutionProfile();
     void                    ResetExecutionProfile();
@@ -163,6 +163,8 @@ public:
     inline OuterInterpreter* GetOuterInterpreter() { return mpOuter; }
 
     void AddOpNameForTracing(const char* pName);
+
+    void Interrupt();
 
 private:
     OuterInterpreter* mpOuter;

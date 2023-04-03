@@ -624,12 +624,13 @@ void Engine::TraceOp(forthop* pOp, forthop op)
 {
 #ifdef TRACE_INNER_INTERPRETER
     char buff[ 512 ];
+    int numFollowing;
 #if 0
     int rDepth = pCore->RT - pCore->RP;
     char* sixteenSpaces = "                ";     // 16 spaces
 	//if ( *pOp != gCompiledOps[OP_DONE] )
 	{
-		DescribeOp(pOp, buff, sizeof(buff), lookupUserTraces);
+		DescribeOp(pOp, buff, sizeof(buff), lookupUserTraces, numFollowing);
 		mpEngine->TraceOut("# 0x%08x #", pOp);
 		while (rDepth > 16)
 		{
@@ -648,7 +649,7 @@ void Engine::TraceOp(forthop* pOp, forthop op)
         opIn = op;
         pOp = &opIn;
     }
-    DescribeOp(pOp, buff, sizeof(buff), lookupUserTraces);
+    DescribeOp(pOp, buff, sizeof(buff), lookupUserTraces, numFollowing);
     TraceOut("# 0x%16p # %s # ", pOp, buff);
 #endif
 #endif
@@ -705,13 +706,16 @@ void Engine::TraceStack( CoreState* pCore )
     }
 }
 
-void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUserDefs )
+void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUserDefs, int& numFollowing)
 {
     forthop op = *pOp;
     forthOpType opType = FORTH_OP_TYPE( op );
     uint32_t opVal = FORTH_OP_VALUE( op );
     Vocabulary *pFoundVocab = nullptr;
     forthop *pEntry = nullptr;
+
+    // the most common case - this op isn't followed by any immediate data
+    numFollowing = 0;
 
 	const char* preamble = "%02x:%06x    ";
 	int preambleSize = (int)strlen( preamble );
@@ -721,7 +725,7 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
 	}
 
     SNPRINTF( pBuffer, buffSize, preamble, opType, opVal );
-    // TODO - this is broken!  preambleSize is size of formatting specifier, not size of formatted string!
+    preambleSize = strlen(pBuffer);
     pBuffer += preambleSize;
 	buffSize -= preambleSize;
     if ( opType >= (sizeof(opTypeNames) / sizeof(char *)) )
@@ -742,28 +746,34 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
             case kOpCCodeImmediate:
                 if ( (opVal < NUM_TRACEABLE_OPS) && (gOpNames[opVal] != nullptr) )
                 {
+                    forthop oppy = COMPILED_OP(opType, opVal);
                     // traceable built-in op
-					if ( opVal == gCompiledOps[OP_INT_VAL] )
+					if ( oppy == gCompiledOps[OP_INT_VAL] )
 					{
 						SNPRINTF( pBuffer, buffSize, "%s 0x%x", gOpNames[opVal], pOp[1] );
+                        numFollowing = 1;
 					}
-                    else if (opVal == gCompiledOps[OP_UINT_VAL])
+                    else if (oppy == gCompiledOps[OP_UINT_VAL])
                     {
                         // TODO - differentiate between signed and unsigned
                         SNPRINTF(pBuffer, buffSize, "%s U0x%x", gOpNames[opVal], pOp[1]);
+                        numFollowing = 1;
                     }
-                    else if (opVal == gCompiledOps[OP_FLOAT_VAL])
+                    else if (oppy == gCompiledOps[OP_FLOAT_VAL])
                     {
                         SNPRINTF(pBuffer, buffSize, "%s %f", gOpNames[opVal], *((float*)(&(pOp[1]))));
+                        numFollowing = 1;
                     }
-                    else if ( opVal == gCompiledOps[OP_DOUBLE_VAL] )
+                    else if ( oppy == gCompiledOps[OP_DOUBLE_VAL] )
 					{
 						SNPRINTF( pBuffer, buffSize, "%s %g", gOpNames[opVal], *((double *)(&(pOp[1]))) );
-					}
-					else if ( opVal == gCompiledOps[OP_LONG_VAL] )
+                        numFollowing = 2;
+                    }
+					else if ( oppy == gCompiledOps[OP_LONG_VAL] )
 					{
 						SNPRINTF( pBuffer, buffSize, "%s 0x%llx", gOpNames[opVal], *((int64_t *)(&(pOp[1]))) );
-					}
+                        numFollowing = 2;
+                    }
 					else
 					{
 						SNPRINTF( pBuffer, buffSize, "%s", gOpNames[opVal] );
@@ -794,6 +804,7 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
                 {
                     searchVocabsForOp = true;
                 }
+                numFollowing = 1;
                 break;
             }
 
@@ -814,6 +825,7 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
                 {
                     searchVocabsForOp = true;
                 }
+                numFollowing = 2;
                 break;
             }
 
@@ -838,6 +850,7 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
                 {
                     searchVocabsForOp = true;
                 }
+                numFollowing = 1;
                 break;
             }
 
@@ -852,6 +865,7 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
                 {
                     searchVocabsForOp = true;
                 }
+                numFollowing = 2;
                 break;
             }
 
@@ -906,8 +920,19 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
 
             case kOpConstantString:
                 SNPRINTF( pBuffer, buffSize, "\"%s\"", (char *)(pOp + 1) );
+                numFollowing = opVal;
                 break;
-            
+
+            case kOpPushBranch:
+                numFollowing = opVal + 1;
+                SNPRINTF(pBuffer, buffSize, "%s    %d following longs", opTypeName, numFollowing);
+                break;
+
+            case kOpRelativeDefBranch:
+                // don't set numFollowing, otherwise following ops will be displayed as data not code
+                SNPRINTF(pBuffer, buffSize, "%s    0x%16p", opTypeName, opVal + 1 + pOp);
+                break;
+
             case kOpConstant:
                 if ( opVal & 0x800000 )
                 {
@@ -1833,6 +1858,15 @@ void Engine::AddOpNameForTracing(const char* pName)
     {
         gOpNames[mpCore->numOps - 1] = pName;
     }
+}
+
+void Engine::Interrupt()
+{
+    // user pressed Ctrl-C
+    FiberState ff;
+    Fiber* mainFiber = mpMainThread->GetFiber(0);
+    mainFiber->GetCore()->state = OpResult::kInterrupted;
+    mainFiber->SetRunState(FiberState::kStopped);
 }
 
 //############################################################################
