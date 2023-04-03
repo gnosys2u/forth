@@ -263,8 +263,6 @@ alias c@ ub@
 alias c! b!
 alias c, b,
 
-: count dup 1+ swap c@ ;
-
 : 2, , , ;
 : 2constant create 2, does 2@ ;
 
@@ -531,6 +529,30 @@ int dumpWidth
 : fdump ['] _dump _fdump ;
 : fldump ['] _ldump _fdump ;
 
+\ USER_DEFINED_OPCODE COUNT ...     display COUNT ops of user definition (good with defs made by :noname or f:)
+: dumpOps
+  uint numToDump!
+  uint op!
+  128 string buff
+  op _opAddress
+  ptrTo uint codeAddress
+  
+  ?dup if
+    1 = if
+      codeAddress!
+      op& buff describe@ buff %s %nl %nl
+      numToDump 0 do
+        codeAddress i@ op!
+        codeAddress %x %bl %bl
+        4 codeAddress!+
+        op& buff describe@ buff %s %nl
+      loop
+    else
+      drop
+    endif
+  endif
+;
+addHelp dumpOps USER_DEFINED_OPCODE COUNT dumpOps     display COUNT ops of user definition (good with defs made by :noname or f:)
 addHelp addHelp	addHelp SYMBOL REST_OF_LINE		add help entry
 addHelp $,	STRING_ADDR $,		compiles string (can leave DP unaligned)
 addHelp help	help BLAH		show help for BLAH
@@ -571,8 +593,18 @@ precedence iliteral  precedence sfliteral  precedence lliteral
   allot( lenInts 4* )
 ;
 
-: cmove 0 do over i + c@ over i + c! loop 2drop ;
-: cmove> 0 swap 1- do over i + c@ over i + c! -1 +loop 2drop ;
+\ given ptr to char block and count, compile code that will push that
+: compileBlockLiteral
+  cell len!
+  ptrTo byte src!
+  len 3+ $FFFFFFFC and 2 rshift cell lenInts!
+  \ opType:makeOpcode( opType:litString lenInts ) i,		\ compile literal string opcode
+  or($0f000000 lenInts) i,		\ compile push branch opcode
+  cmove( src here len)
+  allot( lenInts 4* )
+  or($14000000 len) i,		    \ compile lit(len) opcode
+;
+
 : ."
   '"' $word
   if( state @ )
@@ -964,7 +996,6 @@ addHelp dlocals		display the local variables in current stack frame
 addHelp demo	 demo is used to both display and evaluate a line of text
 : demo source drop %s %nl ;
 precedence demo
-
 
 addHelp list     BLOCK_NUM ...     display specified block
 variable scr  0 scr !
