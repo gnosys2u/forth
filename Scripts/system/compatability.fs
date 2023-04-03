@@ -108,12 +108,28 @@ cell __sp
 : word $word dup strlen over 1- c! 1- ;
 : parse word count ;
 
+: c"
+  '"' word ptrTo byte src!
+  src ub@ 4+ $FFFFFFFC and 2 rshift cell lenInts!
+  or($15000000 lenInts) i,		\ compile literal string opcode
+  src here src ub@ 1+ move
+  allot( lenInts 4* )
+; precedence c"
+
 : sliteral
   257 string str
   blockToString( str )
   compileStringLiteral( str )
   postpone stringToBlock
 ; precedence sliteral
+
+: s\"
+  '\q' $wordEscaped dup 1- ub@
+  processEscapeChars
+  state @ if
+    compileBlockLiteral
+  endif
+; precedence s\"
 
 32 constant #locals
 true constant locals
@@ -139,8 +155,32 @@ true constant locals-ext
   $evaluate( varExpression )
 ; precedence (local)
 
-alias defer op
-alias is ->
+: defer@   >body i@   ;
+
+: defer!   >body i!   ;
+
+: defer ( "name" -- )
+  create ['] abort ,
+  does> i@ execute
+;
+
+: is
+  state @ if
+    postpone ['] postpone defer!
+  else
+    ' defer!
+  endif
+; precedence is
+
+: action-of
+  state @ if
+    postpone ['] postpone defer@
+  else
+    ' defer@
+  endif
+; precedence action-of
+
+alias compile, i,
 
 : off false swap ! ;
 : on true swap ! ;
@@ -184,12 +224,6 @@ alias include lf
   postpone ;
 ;
 
-: recurse
-  system.getDefinitionsVocab -> Vocabulary vocab
-  vocab.getNewestEntry @ i,
-  oclear vocab
-; precedence recurse
-
 alias at-xy setConsoleCursor
 : page clearConsole 0 0 setConsoleCursor ;
 \ addr count ... addr+count addr
@@ -210,7 +244,7 @@ alias at-xy setConsoleCursor
   ptrTo byte pStr!
   
   begin
-  while( and( numChars 0>   pStr numChars + 1- c@ '\s' <> ) )
+  while( and( numChars 0>   pStr numChars + 1- c@ bl <> ) )
     numChars--
   repeat
     
@@ -218,6 +252,8 @@ alias at-xy setConsoleCursor
 ;
 
 alias d>s drop
+
+: buffer: create allot ;
 
 : [defined] bl word find nip ;
 : [undefined] [defined] not ;
