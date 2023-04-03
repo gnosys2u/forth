@@ -18,17 +18,21 @@ public:
     void                    PushInputStream( InputStream *pStream );
     bool                    PopInputStream();
     void                    Reset( void );
-    const char              *GetLine( const char *pPrompt );
+    char*                   GetLine( const char *pPrompt );
+    // return null IFF adding another input line would overflow buffer
+    char*                   AddLine();
+    // return false IFF buffer has less than numChars available
+    bool                    Shorten(int numChars);
     inline InputStream* Top(void) { return mpHead; };
     //inline InputStream* Top(void) { return mStack.empty() ? nullptr : mStack.back(); };
 	// returns NULL if no filename can be found, else returns name & number of topmost input stream on stack which has info available
 	const char*             GetFilenameAndLineNumber(int& lineNumber);
 
-    const char*             GetBufferPointer( void );
+    const char*             GetReadPointer( void );
     const char*             GetBufferBasePointer( void );
     cell*                   GetReadOffsetPointer( void );
     cell                    GetBufferLength( void );
-    void                    SetBufferPointer( const char *pBuff );
+    void                    SetReadPointer( const char *pBuff );
     cell                    GetReadOffset( void );
     void                    SetReadOffset( cell offset );
     cell                    GetWriteOffset( void );

@@ -27,10 +27,10 @@ public:
     ServerInputStream( Pipe* pMsgPipe, bool isFile = false, int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
     virtual ~ServerInputStream();
 
-    virtual cell    GetSourceID();
+    virtual cell    GetSourceID() const;
 
     virtual char    *GetLine( const char *pPrompt );
-    virtual char    *AddContinuationLine();
+    virtual char    *AddLine();
 
     virtual bool    IsInteractive( void );
 
@@ -39,8 +39,7 @@ public:
     virtual cell*   GetInputState();
     virtual bool    SetInputState(cell* pState);
 
-    virtual bool	IsFile();
-    virtual const char* GetType(void);
+    virtual InputStreamType GetType(void) const;
 
 protected:
     Pipe*      mpMsgPipe;

@@ -19,10 +19,12 @@ public:
 	// returns true IFF expression was processed successfully
 	bool ProcessExpression(InputStream* pInputStream);
 
-	virtual cell    GetSourceID();
+	virtual cell    GetSourceID() const;
 	virtual char*   GetLine(const char *pPrompt);
+    virtual char*   AddLine();
     virtual bool    IsInteractive(void) { return false; };
-	virtual const char* GetType(void);
+	virtual InputStreamType GetType(void) const;
+    virtual const char* GetName(void) const;
 
 	virtual void    SeekToLineEnd();
 

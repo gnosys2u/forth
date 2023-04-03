@@ -9,6 +9,7 @@
 #include "Engine.h"
 #include "BlockFileManager.h"
 #include "ParseInfo.h"
+#include "ForthPortability.h"
 
 #if defined(LINUX) || defined(MACOSX)
 #include <readline/readline.h>
@@ -29,9 +30,9 @@ InputStream::InputStream( int bufferLen )
 , mWriteOffset(0)
 , mbDeleteWhenEmpty(true)
 {
-    mpBufferBase = (char *)__MALLOC(bufferLen);
+    mpBufferBase = (char *)__MALLOC(bufferLen + 1);
     mpBufferBase[0] = '\0';
-    mpBufferBase[bufferLen - 1] = '\0';
+    mpBufferBase[bufferLen] = '\0';
 }
 
 
@@ -43,7 +44,45 @@ InputStream::~InputStream()
     }
 }
 
-const char * InputStream::GetBufferPointer(void)
+// return false IFF buffer has less than numChars available
+bool InputStream::Shorten(int numChars)
+{
+    bool result = false;
+    
+    if (numChars > 0 && mWriteOffset >= numChars)
+    {
+        mWriteOffset -= numChars;
+        mpBufferBase[mWriteOffset] = '\0';
+        result = true;
+    }
+
+    return result;
+}
+
+// set mWriteOffset and trim off trailing newline if preset
+void InputStream::TrimLine()
+{
+    const char* pEnd = (const char*)memchr(mpBufferBase, '\0', mBufferLen);
+    if (pEnd == nullptr)
+    {
+        mWriteOffset = mBufferLen;
+    }
+    else
+    {
+        if (pEnd > mpBufferBase)
+        {
+            if (pEnd[-1] == '\n')
+            {
+                pEnd--;
+            }
+        }
+        mWriteOffset = pEnd - mpBufferBase;
+    }
+
+    mpBufferBase[mWriteOffset] = '\0';
+}
+
+const char * InputStream::GetReadPointer(void)
 {
     return mpBufferBase + mReadOffset;
 }
@@ -57,6 +96,10 @@ const char * InputStream::GetBufferBasePointer( void )
 
 const char * InputStream::GetReportedBufferBasePointer( void )
 {
+    // this is only used to make 'source' work when used with 'evaluate', in
+    // that case BufferInputStream overrides this method to return a pointer to
+    // the input buffer which was passed into its constructor.  For all other
+    // cases this method is just the same as GetBufferBasePointer
     return mpBufferBase;
 }
 
@@ -67,18 +110,22 @@ cell InputStream::GetBufferLength( void )
 }
 
 
-void InputStream::SetBufferPointer( const char *pBuff )
+void InputStream::SetReadPointer( const char *pBuff )
 {
 	int offset = pBuff - mpBufferBase;
-    if ( (offset < 0) || (offset >= mBufferLen) )
+    if (offset < 0)
     {
         // TODO: report error!
+    }
+    else if (offset > mBufferLen)
+    {
+        mReadOffset = mBufferLen;
     }
     else
     {
         mReadOffset = offset;
     }
-	//SPEW_SHELL("SetBufferPointer %s:%s  offset %d  {%s}\n", GetType(), GetName(), offset, pBuff);
+	//SPEW_SHELL("SetReadPointer %s  offset %d  {%s}\n", GetName(), offset, pBuff);
 }
 
 cell* InputStream::GetReadOffsetPointer( void )
@@ -98,13 +145,15 @@ InputStream::SetReadOffset( int offset )
 {
     if ( (offset < 0) || (offset >= mBufferLen) )
     {
-        // TODO: report error!
+        char buffer[128];
+        SNPRINTF(buffer, sizeof(buffer), "InputStream::SetReadOffset - %d is outside range 0:%d\n",
+            offset, mBufferLen);
+        Engine::GetInstance()->SetError(ForthError::kIllegalOperation, buffer);
     }
     else
     {
         mReadOffset = offset;
     }
-    mReadOffset = offset;
 }
 
 
@@ -129,19 +178,19 @@ InputStream::SetWriteOffset( int offset )
 }
 
 
-cell InputStream::GetLineNumber( void )
+cell InputStream::GetLineNumber( void ) const
 {
     return -1;
 }
 
-const char* InputStream::GetType( void )
+InputStreamType InputStream::GetType( void ) const
 {
-    return "Base";
+    return InputStreamType::kUnknown;
 }
 
-const char* InputStream::GetName( void )
+const char* InputStream::GetName( void ) const
 {
-    return "mysteriousStream";
+    return "InputStream base class";
 }
 
 void InputStream::SeekToLineEnd()
@@ -157,9 +206,10 @@ cell InputStream::GetBlockNumber()
 void InputStream::StuffBuffer( const char* pSrc )
 {
     int len = strlen( pSrc );
-    if ( len > (mBufferLen - 1) )
+    if (len > mBufferLen)
     {
-        len = mBufferLen - 1;
+        // buffer is actually mBufferLen+1 chars long
+        len = mBufferLen;
     }
 
     memcpy( mpBufferBase, pSrc, len );
@@ -230,10 +280,4 @@ InputStream::IsGenerated(void)
 	return false;
 }
 
-
-bool
-InputStream::IsFile(void)
-{
-    return false;
-}
 

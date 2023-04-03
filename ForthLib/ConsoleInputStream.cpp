@@ -51,23 +51,51 @@ ConsoleInputStream::GetLine( const char *pPrompt )
 #endif
 
     mReadOffset = 0;
-    const char* pEnd = (const char*) memchr( pBuffer, '\0', mBufferLen );
-    mWriteOffset = (pEnd == NULL) ? (mBufferLen - 1) : (pEnd - pBuffer);
+
+    TrimLine();
+
     mLineNumber++;
     return pBuffer;
 }
 
-const char* ConsoleInputStream::GetType( void )
+char* ConsoleInputStream::AddLine()
+{
+    char* pBuffer = nullptr;
+    cell bufferLen = mBufferLen - mWriteOffset;
+    char* bufferBase = mpBufferBase + mWriteOffset;
+    if (bufferLen <= 0)
+    {
+        return pBuffer;
+    }
+
+#if defined(LINUX) || defined(MACOSX)
+    do
+    {
+        pBuffer = readline("");
+    } while (pBuffer == nullptr);
+    add_history(pBuffer);
+    strncpy(bufferBase, pBuffer, bufferLen);
+#else
+    pBuffer = fgets(bufferBase, bufferLen - 1, stdin);
+#endif
+
+    TrimLine();
+
+    mLineNumber++;
+    return mpBufferBase;
+}
+
+InputStreamType ConsoleInputStream::GetType( void ) const
+{
+    return InputStreamType::kConsole;
+}
+
+const char* ConsoleInputStream::GetName( void ) const
 {
     return "Console";
 }
 
-const char* ConsoleInputStream::GetName( void )
-{
-    return "Console";
-}
-
-cell ConsoleInputStream::GetSourceID()
+cell ConsoleInputStream::GetSourceID() const
 {
     return 0;
 }

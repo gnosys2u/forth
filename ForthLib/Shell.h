@@ -143,13 +143,15 @@ public:
 	virtual int             Run(InputStream *pStream);
 	virtual int             RunOneStream(InputStream *pStream);
 	char *                  GetNextSimpleToken(void);
-    char *                  GetToken( char delim, bool bSkipLeadingWhiteSpace = true );
+    char *                  GetToken( int idelim, bool bSkipLeadingWhiteSpace = true );
+    // special kludge to meet ANSI 2012 spec for S\" op
+    char*                   GetToken2012(int idelim);
 
     inline Engine *    GetEngine( void ) { return mpEngine; };
     inline InputStack * GetInput( void ) { return mpInput; };
 	inline ForthShellStack * GetShellStack( void ) { return mpStack; };
-    inline bool             InputLineReadyToProcess() { return !mInContinuationLine; }
-    char*                   AddToInputLine(const char* pBuffer);
+    //inline bool             InputLineReadyToProcess() { return !mInContinuationLine; }
+    bool                    LineHasContinuation(const char* pBuffer);
     const char*             GetArg(int argNum) const;
     const char*             GetEnvironmentVar(const char* envVarName);
     const std::vector<std::string>& GetCommandLineArgs() { return mArgs; }
@@ -166,8 +168,8 @@ public:
 	void					StartDefinition(const char*pDefinedSymbol, const char* pFourCharCode);
 	bool					CheckDefinitionEnd( const char* pDisplayName, const char* pFourCharCode );
 
-    virtual OpResult    InterpretLine( const char *pSrcLine = NULL );
-    virtual OpResult    ProcessLine( const char *pSrcLine = NULL );
+    virtual OpResult    InterpretLine();
+    virtual OpResult    ProcessLine();
     virtual char            GetChar();
 
 	virtual FILE*			OpenInternalFile( const char* pFilename );
@@ -238,8 +240,6 @@ protected:
     int                     mFlags;
     char                    mErrorString[ 128 ];
     char                    mToken[MAX_TOKEN_BYTES + 1];
-    char                    mContinuationBuffer[DEFAULT_INPUT_BUFFER_LEN];
-    int                     mContinuationBytesStored;
     std::string             mTempDir;
     std::string             mSystemDir;
     std::string             mBlockfilePath;
@@ -274,6 +274,5 @@ protected:
 
     bool                    mWaitingForConsoleInput;
     bool                    mConsoleInputReady;
-    bool                    mInContinuationLine;
 };
 

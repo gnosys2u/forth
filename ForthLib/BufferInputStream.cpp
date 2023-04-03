@@ -24,18 +24,18 @@
 
 int BufferInputStream::sInstanceNumber = 0;    // used for checking consistency in restore-input
 
-BufferInputStream::BufferInputStream( const char *pSourceBuffer, int sourceBufferLen, bool isInteractive, int bufferLen )
-: InputStream(bufferLen)
+BufferInputStream::BufferInputStream( const char *pSourceBuffer, int sourceBufferLen, bool isInteractive )
+: InputStream(sourceBufferLen)
 , mIsInteractive(isInteractive)
 , mpSourceBuffer(pSourceBuffer)
 {
-	SPEW_SHELL("BufferInputStream %s:%s  {%s}\n", GetType(), GetName(), pSourceBuffer);
-	mpDataBufferBase = (char *)__MALLOC(sourceBufferLen + 1);
-	memcpy( mpDataBufferBase, pSourceBuffer, sourceBufferLen );
-    mpDataBufferBase[ sourceBufferLen ] = '\0';
-	mpDataBuffer = mpDataBufferBase;
-	mpDataBufferLimit = mpDataBuffer + sourceBufferLen;
-    mWriteOffset = sourceBufferLen;
+	SPEW_SHELL("BufferInputStream %s  {%s}\n", GetName(), pSourceBuffer);
+    if (pSourceBuffer != nullptr)
+    {
+        memcpy(mpBufferBase, pSourceBuffer, sourceBufferLen);
+        mpBufferBase[sourceBufferLen] = '\0';
+        mWriteOffset = sourceBufferLen;
+    }
     mInstanceNumber = sInstanceNumber++;
     for (int i = 0; i < kNumStateMembers; ++i)
     {
@@ -45,52 +45,57 @@ BufferInputStream::BufferInputStream( const char *pSourceBuffer, int sourceBuffe
 
 BufferInputStream::~BufferInputStream()
 {
-	__FREE(mpDataBufferBase);
 }
 
-cell BufferInputStream::GetSourceID()
+cell BufferInputStream::GetSourceID() const
 {
     return -1;
 }
 
-
-char * BufferInputStream::GetLine( const char *pPrompt )
+InputStreamType BufferInputStream::GetType( void ) const
 {
-    char *pBuffer = NULL;
-    char *pDst, c;
-
-	SPEW_SHELL("BufferInputStream::GetLine %s:%s  {%s}\n", GetType(), GetName(), mpDataBuffer);
-	if (mpDataBuffer < mpDataBufferLimit)
-    {
-		pDst = mpBufferBase;
-		while ( mpDataBuffer < mpDataBufferLimit )
-		{
-			c = *mpDataBuffer++;
-			if ( (c == '\0') || (c == '\n') || (c == '\r') )
-			{
-				break;
-			} 
-			else
-			{
-				*pDst++ = c;
-			}
-		}
-		*pDst = '\0';
-
-        mReadOffset = 0;
-        mWriteOffset = (pDst - mpBufferBase);
-		pBuffer = mpBufferBase;
-    }
-
-    return pBuffer;
+    return InputStreamType::kBuffer;
 }
 
+char* BufferInputStream::GetLine(const char* pPrompt)
+{
+    char* pBuffer = mpBufferBase + mReadOffset;
 
-const char* BufferInputStream::GetType( void )
+    SPEW_SHELL("BufferInputStream::GetLine %s  {%s}\n", GetName(), pBuffer);
+    if (mReadOffset >= mBufferLen)
+    {
+        return nullptr;
+    }
+    
+    int ix = 0;
+    while (ix < mBufferLen)
+    {
+        char c = mpBufferBase[ix++];
+        if (c == '\n')
+        {
+            // replace the newline with a null to terminate the string
+            mpBufferBase[ix - 1] = '\0';
+            break;
+        }
+        else if (c == '\0')
+        {
+            break;
+        }
+    }
+
+    return (mReadOffset == mBufferLen && pBuffer[0] == '\0') ? nullptr : pBuffer;
+}
+
+char* BufferInputStream::AddLine()
+{
+    // nothing is added to a buffer input stream after it is created
+    return nullptr;
+}
+
+const char* BufferInputStream::GetName(void) const
 {
     return "Buffer";
 }
-
 
 const char * BufferInputStream::GetReportedBufferBasePointer( void )
 {

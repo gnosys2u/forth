@@ -22,10 +22,11 @@ public:
     virtual ~ConsoleInputStream();
 
     virtual char    *GetLine( const char *pPrompt );
+    virtual char*   AddLine();
     virtual bool    IsInteractive(void) { return true; };
-	virtual const char* GetType( void );
-	virtual const char* GetName( void );
-    virtual cell      GetSourceID();
+    virtual InputStreamType GetType(void) const;
+    virtual const char* GetName( void ) const;
+    virtual cell      GetSourceID() const;
 
     virtual cell*   GetInputState();
     virtual bool    SetInputState(cell* pState);

@@ -22,11 +22,13 @@ public:
     BlockInputStream(BlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock);
     virtual ~BlockInputStream();
 
-    virtual cell    GetSourceID();
+    virtual cell    GetSourceID() const;
     virtual char    *GetLine( const char *pPrompt );
+    virtual char* AddLine();
     virtual bool    IsInteractive(void) { return false; };
-	virtual const char* GetType( void );
- 
+	virtual InputStreamType GetType( void ) const;
+    virtual const char* GetName(void) const;
+
     virtual void    SeekToLineEnd();
     virtual cell    GetBlockNumber();
 

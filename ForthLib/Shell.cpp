@@ -52,6 +52,9 @@
 #define RSTACK_LONGS 8192
 #endif
 
+#define CONTINUATION_MARKER "\\+"
+#define CONTINUATION_MARKER_LEN 2
+
 // split a string with delimiter
 void splitString(const std::string inString, std::vector<std::string>& tokens, char delim)
 {
@@ -218,8 +221,6 @@ Shell::Shell(int argc, const char ** argv, const char ** envp, Engine *pEngine, 
 , mpInternalFiles(NULL)
 , mInternalFileCount(0)
 , mExpressionInputStream(NULL)
-, mContinuationBytesStored(0)
-, mInContinuationLine(false)
 {
     startMemoryManager();
 
@@ -391,7 +392,7 @@ bool
 Shell::PopInputStream( void )
 {
     InputStream* curStream = mpInput->Top();
-    if (curStream->IsFile())
+    if (curStream->GetType() == InputStreamType::kFile)
     {
         FileInputStream* fileStream = dynamic_cast<FileInputStream*>(curStream);
         if (!fileStream->GetSavedWorkDir().empty())
@@ -421,15 +422,27 @@ Shell::RunOneStream(InputStream *pInStream)
 	{
 		// try to fetch a line from current stream
 		pBuffer = mpInput->GetLine(mpEngine->GetFastMode() ? "ok>" : "OK>");
-        pBuffer = AddToInputLine(pBuffer);
+        if (pBuffer != nullptr)
+        {
+            while (LineHasContinuation(pBuffer))
+            {
+                mpInput->Shorten(CONTINUATION_MARKER_LEN);
+                if (mpInput->AddLine() == nullptr)
+                {
+                    // TODO: report failure to add continuation line
+                    break;
+                }
+            }
+        }
+
         if (pBuffer == nullptr)
 		{
             bQuit = PopInputStream() || (mpInput->Top() == pOldInput);
 		}
 
-		if (!bQuit && !mInContinuationLine)
+		if (!bQuit)
 		{
-			result = ProcessLine(pBuffer);
+			result = ProcessLine();
 
 			switch (result)
 			{
@@ -499,22 +512,34 @@ Shell::Run( InputStream *pInStream )
         // no app autload, try using the normal autoload file
         autoloadFilename = "forth_autoload.fs";
     }
-    mpEngine->PushInputFile( autoloadFilename );
+    PushInputFile( autoloadFilename );
 
     const char* pPrompt = mpEngine->GetFastMode() ? "ok>" : "OK>";
     while ( !bQuit )
     {
         // try to fetch a line from current stream
         pBuffer = mpInput->GetLine(pPrompt);
-        pBuffer = AddToInputLine(pBuffer);
+        if (pBuffer != nullptr)
+        {
+            while (LineHasContinuation(pBuffer))
+            {
+                mpInput->Shorten(CONTINUATION_MARKER_LEN);
+                if (mpInput->AddLine() == nullptr)
+                {
+                    // TODO: report failure to add continuation line
+                    break;
+                }
+            }
+        }
+
         if (pBuffer == nullptr)
         {
             bQuit = PopInputStream();
         }
 
-        if ( !bQuit && !mInContinuationLine)
+        if (!bQuit)
         {
-            result = ProcessLine(pBuffer);
+            result = ProcessLine();
 
             switch( result )
             {
@@ -557,55 +582,27 @@ Shell::Run( InputStream *pInStream )
     return retVal;
 }
 
-#define CONTINUATION_MARKER "\\+"
-#define CONTINUATION_MARKER_LEN 2
-char* Shell::AddToInputLine(const char* pBuffer)
+bool Shell::LineHasContinuation(const char* pBuffer)
 {
-    char* pResult = nullptr;
+    bool result = false;
 
-    mInContinuationLine = false;
     if (pBuffer != nullptr)
     {
-        // add on continuation lines if necessary
         int lineLen = (int)strlen(pBuffer);
         int lenWithoutContinuation = lineLen - CONTINUATION_MARKER_LEN;
         if (lenWithoutContinuation >= 0)
         {
-            if (!strcmp(pBuffer + lenWithoutContinuation, CONTINUATION_MARKER))
-            {
-                // input line ends in continuation marker "\+"
-                lineLen = lenWithoutContinuation;
-                mInContinuationLine = true;
-            }
-        }
-        int newContinuationBytesStored = mContinuationBytesStored + lineLen;
-        if (newContinuationBytesStored < DEFAULT_INPUT_BUFFER_LEN)
-        {
-            memcpy(&mContinuationBuffer[mContinuationBytesStored], pBuffer, lineLen);
-            mContinuationBuffer[mContinuationBytesStored + lineLen] = '\0';
-            pResult = &mContinuationBuffer[0];
-            mContinuationBytesStored = (mInContinuationLine) ? newContinuationBytesStored : 0;
-        }
-        else
-        {
-            // TODO - string would overflow continuation buffer
+            result = !strcmp(pBuffer + lenWithoutContinuation, CONTINUATION_MARKER);
         }
     }
-
-    return pResult;
+    return result;
 }
 
+
 // ProcessLine is the layer between Run and InterpretLine that implements pound directives
-OpResult Shell::ProcessLine( const char *pSrcLine )
+OpResult Shell::ProcessLine()
 {
     OpResult result = OpResult::kOk;
-
-    mInContinuationLine = false;
-    const char* pLineBuff = mpInput->GetBufferBasePointer();
-    if ( pSrcLine != NULL )
-	{
-        mpInput->Top()->StuffBuffer( pSrcLine );
-	}
 
     if ( (mFlags & SHELL_FLAG_SKIP_SECTION) != 0 )
     {
@@ -699,23 +696,14 @@ static bool gbCatchExceptions = false;
 //
 // return true IFF the forth shell should exit
 //
-OpResult Shell::InterpretLine( const char *pSrcLine )
+OpResult Shell::InterpretLine()
 {
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     OpResult  result = OpResult::kOk;
     bool bLineEmpty;
     ParseInfo parseInfo( mTokenBuffer, sizeof(mTokenBuffer) >> 2 );
 
-    const char *pLineBuff;
-
-    // TODO: set exit code on exit due to error
-
-    pLineBuff = mpInput->GetBufferBasePointer();
-    if ( pSrcLine != NULL )
-	{
-		mpInput->Top()->StuffBuffer( pSrcLine );
-	}
-	SPEW_SHELL( "\n*** InterpretLine {%s}\n", pLineBuff );
+    SPEW_SHELL( "\n*** InterpretLine {%s}\n", mpInput->GetBufferBasePointer());
     bLineEmpty = false;
     mpEngine->SetError( ForthError::kNone );
     while ( !bLineEmpty && (result == OpResult::kOk) )
@@ -726,8 +714,8 @@ OpResult Shell::InterpretLine( const char *pSrcLine )
             result = OpResult::kError;
         }
         InputStream* pInput = mpInput->Top();
-        SPEW_SHELL("input %s:%s[%d] buffer 0x%x readoffset %d write %d\n", pInput->GetType(), pInput->GetName(),
-            pInput->GetLineNumber(), pInput->GetBufferPointer(), pInput->GetReadOffset(), pInput->GetWriteOffset() );
+        SPEW_SHELL("input %s[%d] buffer 0x%x readoffset %d write %d\n", pInput->GetName(),
+            pInput->GetLineNumber(), pInput->GetReadPointer(), pInput->GetReadOffset(), pInput->GetWriteOffset() );
 
         if (!bLineEmpty && (result == OpResult::kOk))
 		{
@@ -745,7 +733,6 @@ OpResult Shell::InterpretLine( const char *pSrcLine )
 				{
 					result = OpResult::kException;
 					mpEngine->SetError( ForthError::kIllegalOperation );
-                    mInContinuationLine = false;
 				}
 			}
 			else
@@ -836,7 +823,7 @@ Shell::ReportError( void )
     SPEW_SHELL( "%s", errorBuf1 );
 	ERROR_STRING_OUT( errorBuf1 );
     const char *pBase = mpInput->GetBufferBasePointer();
-    pLastInputToken = mpInput->GetBufferPointer();
+    pLastInputToken = mpInput->GetReadPointer();
     if ( (pBase != NULL) && (pLastInputToken != NULL) )
     {
 		char* pBuf = errorBuf1;
@@ -896,7 +883,7 @@ void Shell::ReportWarning(const char* pMessage)
     SPEW_SHELL("%s", errorBuf1);
     CONSOLE_STRING_OUT(errorBuf1);
     const char *pBase = mpInput->GetBufferBasePointer();
-    pLastInputToken = mpInput->GetBufferPointer();
+    pLastInputToken = mpInput->GetReadPointer();
     if ((pBase != NULL) && (pLastInputToken != NULL))
     {
         char* pBuf = errorBuf1;
@@ -937,7 +924,7 @@ Shell::ParseString( ParseInfo *pInfo )
     while ( !gotAToken )
     {
 
-        pSrc = mpInput->GetBufferPointer();
+        pSrc = mpInput->GetReadPointer();
         pDst = pInfo->GetToken();
         if ( (*pSrc == '\0') || (pSrc >= pSrcLimit) )
         {
@@ -1002,7 +989,7 @@ Shell::ParseString( ParseInfo *pInfo )
             } // while not done
         }
 
-        mpInput->SetBufferPointer( (char *) pEndSrc );
+        mpInput->SetReadPointer( (char *) pEndSrc );
     }   // while ! gotAToken
 
     return false;
@@ -1070,7 +1057,7 @@ Shell::ParseToken( ParseInfo *pInfo )
         bool advanceInputBuffer = true;
 
 		const char* pSrcLimit = mpInput->GetBufferBasePointer() + mpInput->GetWriteOffset();
-		pSrc = mpInput->GetBufferPointer();
+		pSrc = mpInput->GetReadPointer();
         pDst = pInfo->GetToken();
         if ( pSrc >= pSrcLimit )
         {
@@ -1126,7 +1113,7 @@ Shell::ParseToken( ParseInfo *pInfo )
                      *pDst++ = '\0';
                      // set token length byte
                      pInfo->SetToken();
-                     gotAToken = true;
+                     gotAToken = pInfo->GetTokenLength() != 0;
                      pEndSrc++;
                      break;
 
@@ -1145,7 +1132,7 @@ Shell::ParseToken( ParseInfo *pInfo )
 							 mExpressionInputStream = new ExpressionInputStream;
 						 }
 						 pInfo->SetAllFlags(0);
-						 mpInput->SetBufferPointer(pSrc);
+						 mpInput->SetReadPointer(pSrc);
 						 mExpressionInputStream->ProcessExpression(mpInput->Top());
                          // begin horrible nasty kludge for elseif
                          const char* endOfExpression = mExpressionInputStream->GetBufferBasePointer() + (mExpressionInputStream->GetWriteOffset() - 1);
@@ -1213,7 +1200,7 @@ Shell::ParseToken( ParseInfo *pInfo )
 
 		if (advanceInputBuffer)
 		{
-			mpInput->SetBufferPointer((char *)pEndSrc);
+			mpInput->SetReadPointer((char *)pEndSrc);
 		}
     }   // while ! gotAToken
 
@@ -1226,14 +1213,14 @@ Shell::GetNextSimpleToken( void )
 {
 	while (mpInput->IsEmpty() && mpInput->Top()->IsGenerated())
 	{
-		SPEW_SHELL("GetNextSimpleToken: %s:%s empty, popping\n", mpInput->Top()->GetType(), mpInput->Top()->GetName());
+		SPEW_SHELL("GetNextSimpleToken: %s empty, popping\n", mpInput->Top()->GetName());
 		if (mpInput->PopInputStream())
 		{
 			// no more input streams available
 			return NULL;
 		}
 	}
-    const char *pEndToken = mpInput->GetBufferPointer();
+    const char *pEndToken = mpInput->GetReadPointer();
     const char* pTokenLimit = mpInput->GetBufferBasePointer() + mpInput->GetWriteOffset();
     char c;
     bool bDone;
@@ -1261,7 +1248,7 @@ Shell::GetNextSimpleToken( void )
         }
     }
     *pDst++ = '\0';
-    mpInput->SetBufferPointer( pEndToken );
+    mpInput->SetReadPointer( pEndToken );
 
     //SPEW_SHELL( "GetNextSimpleToken: |%s|%s|\n", &mToken[0], pEndToken );
     return &mToken[0];
@@ -1269,18 +1256,18 @@ Shell::GetNextSimpleToken( void )
 
 
 char *
-Shell::GetToken( char delim, bool bSkipLeadingWhiteSpace )
+Shell::GetToken( int idelim, bool bSkipLeadingWhiteSpace )
 {
 	while (mpInput->IsEmpty() && mpInput->Top()->IsGenerated())
 	{
-		SPEW_SHELL("GetToken: %s %s empty, popping\n", mpInput->Top()->GetType(), mpInput->Top()->GetName());
+		SPEW_SHELL("GetToken: %s empty, popping\n", mpInput->Top()->GetName());
 		if (mpInput->PopInputStream())
 		{
 			// no more input streams available
 			return NULL;
 		}
 	}
-	const char *pEndToken = mpInput->GetBufferPointer();
+	const char *pEndToken = mpInput->GetReadPointer();
     const char* pTokenLimit = mpInput->GetBufferBasePointer() + mpInput->GetWriteOffset();
     char c;
     bool bDone;
@@ -1296,10 +1283,97 @@ Shell::GetToken( char delim, bool bSkipLeadingWhiteSpace )
     }
 
     bDone = false;
-    while ( !bDone && (pEndToken <= pTokenLimit) )
+    if (idelim == -1)
+    {
+        // -1 delimiter means continue until whitespace, end-of-line, or end of buffer
+        while (!bDone && (pEndToken <= pTokenLimit))
+        {
+            c = *pEndToken++;
+            if (c == ' ' || c == '\t' || c == '\n')
+            {
+                bDone = true;
+            }
+            else
+            {
+                *pDst++ = c;
+            }
+        }
+    }
+    else
+    {
+        char delim = (char)idelim;
+        while (!bDone && (pEndToken <= pTokenLimit))
+        {
+            c = *pEndToken++;
+            if (c == '\\')
+            {
+                // another 
+                *pDst++ = c;
+            }
+            else if (c == delim)
+            {
+                bDone = true;
+            }
+            else
+            {
+                *pDst++ = c;
+            }
+        }
+    }
+    *pDst++ = '\0';
+    mpInput->SetReadPointer( pEndToken );
+
+    //SPEW_SHELL( "GetToken: |%s|%s|\n", &mToken[0], pEndToken );
+    return &mToken[0];
+}
+
+char* Shell::GetToken2012(int idelim)
+{
+    const char* pEndToken = mpInput->GetReadPointer();
+    const char* pTokenLimit = mpInput->GetBufferBasePointer() + mpInput->GetWriteOffset();
+    char c;
+    bool bDone;
+    char* pDst = &mToken[0];
+
+    // this method is done solely to allow implementing the ANSI 2012 version of S\",
+    // using the usual GetToken or other parsing words would break because the spec
+    // includes an extra escape sequence for double quote (\"), which wouldn't work
+    // with GetToken.
+
+    // eat any leading white space
+    while ((*pEndToken == ' ') || (*pEndToken == '\t'))
+    {
+        pEndToken++;
+    }
+
+    bDone = false;
+    char delim = (char)idelim;
+    while (!bDone && (pEndToken <= pTokenLimit))
     {
         c = *pEndToken++;
-        if ( c == delim )
+        if (c == '\\')
+        {
+            // copy the backslash and following char (3 chars for \xNN hex escape sequence)
+            *pDst++ = c;
+            if (pEndToken <= pTokenLimit)
+            {
+                c = *pEndToken++;
+                *pDst++ = c;
+                if (c == 'x')
+                {
+                    // copy 2 chars after the x
+                    if (pEndToken <= pTokenLimit)
+                    {
+                        *pDst++ = *pEndToken++;
+                        if (pEndToken <= pTokenLimit)
+                        {
+                            *pDst++ = *pEndToken++;
+                        }
+                    }
+                }
+            }
+        }
+        else if (c == delim)
         {
             bDone = true;
         }
@@ -1309,7 +1383,7 @@ Shell::GetToken( char delim, bool bSkipLeadingWhiteSpace )
         }
     }
     *pDst++ = '\0';
-    mpInput->SetBufferPointer( pEndToken );
+    mpInput->SetReadPointer(pEndToken);
 
     //SPEW_SHELL( "GetToken: |%s|%s|\n", &mToken[0], pEndToken );
     return &mToken[0];

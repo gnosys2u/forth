@@ -445,7 +445,7 @@ ServerInputStream::~ServerInputStream()
 {
 }
 
-cell ServerInputStream::GetSourceID()
+cell ServerInputStream::GetSourceID() const
 {
     // this is wrong, but will compile
     return mIsFile ? 1 : 0;
@@ -501,7 +501,7 @@ char* ServerInputStream::GetLine( const char *pPrompt )
     return result;
 }
 
-char* ServerInputStream::AddContinuationLine()
+char* ServerInputStream::AddLine()
 {
     int msgType, msgLen;
     char* result = NULL;
@@ -579,17 +579,9 @@ ServerInputStream::SetInputState(cell* pState)
     return false;
 }
 
-bool
-ServerInputStream::IsFile()
+InputStreamType ServerInputStream::GetType(void) const
 {
-    // TBD!
-    return mIsFile;
-}
-
-const char*
-ServerInputStream::GetType(void)
-{
-    return "Server";
+    return InputStreamType::kServer;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -829,9 +821,9 @@ bool ServerShell::PushInputFile( const char *pFileName )
 bool
 ServerShell::PopInputStream( void )
 {
-    //printf("ServerShell::PopInputStream %s  gen:%d   file:%d\n", mpInput->Top()->GetType(),
+    //printf("ServerShell::PopInputStream %s  gen:%d   file:%d\n", mpInput->Top()->GetName(),
     //    mpInput->Top()->IsGenerated(), mpInput->Top()->IsFile());
-    if (mpInput->Top()->IsFile())
+    if (mpInput->Top()->GetType() == InputStreamType::kFile)
     {
         mpMsgPipe->StartMessage(kClientMsgPopStream);
         mpMsgPipe->SendMessage();

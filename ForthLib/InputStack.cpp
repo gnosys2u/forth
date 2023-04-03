@@ -42,11 +42,11 @@ void InputStack::PushInputStream( InputStream *pNewStream )
     mpHead = pNewStream;
     mpHead->mpNext = pOldStream;
 
-    //printf("InputStack::PushInputStream %s  gen:%d   file:%d\n", mpHead->GetType(),
+    //printf("InputStack::PushInputStream %s  gen:%d   file:%d\n", mpHead->GetName(),
     //    mpHead->IsGenerated(), mpHead->IsFile());
     *(Engine::GetInstance()->GetBlockFileManager()->GetBlockPtr()) = mpHead->GetBlockNumber();
 
-    SPEW_SHELL("PushInputStream %s:%s\n", pNewStream->GetType(), pNewStream->GetName());
+    SPEW_SHELL("PushInputStream %s\n", pNewStream->GetName());
 }
 
 
@@ -61,7 +61,7 @@ bool InputStack::PopInputStream( void )
         return true;
     }
 
-    //printf("InputStack::PopInputStream %s  gen:%d   file:%d\n", mpHead->GetType(),
+    //printf("InputStack::PopInputStream %s  gen:%d   file:%d\n", mpHead->GetName(),
     //    mpHead->IsGenerated(), mpHead->IsFile());
     pNext = mpHead->mpNext;
     if (mpHead->DeleteWhenEmpty())
@@ -72,13 +72,13 @@ bool InputStack::PopInputStream( void )
 
     *(Engine::GetInstance()->GetBlockFileManager()->GetBlockPtr()) = mpHead->GetBlockNumber();
 
-    SPEW_SHELL("PopInputStream %s\n", (mpHead == NULL) ? "NULL" : mpHead->GetType());
+    SPEW_SHELL("PopInputStream %s\n", (mpHead == NULL) ? "NULL" : mpHead->GetName());
 
     return false;
 }
 
 
-const char * InputStack::GetLine( const char *pPrompt )
+char * InputStack::GetLine( const char *pPrompt )
 {
     char *pBuffer, *pEndLine;
 
@@ -109,6 +109,43 @@ const char * InputStack::GetLine( const char *pPrompt )
     return pBuffer;
 }
 
+char* InputStack::AddLine()
+{
+    char* result = nullptr;
+    if (mpHead != nullptr)
+    {
+        result = mpHead->AddLine();
+        if (result != nullptr)
+        {
+            // get rid of the trailing linefeed (if any)
+            char* pEndLine = strchr(result, '\n');
+            if (pEndLine)
+            {
+                *pEndLine = '\0';
+            }
+#if defined(LINUX) || defined(MACOSX)
+            pEndLine = strchr(result, '\r');
+            if (pEndLine)
+            {
+                *pEndLine = '\0';
+            }
+#endif
+        }
+    }
+    return result;
+}
+
+// return false IFF buffer has less than numChars available
+bool InputStack::Shorten(int numChars)
+{
+    bool result = false;
+    if (mpHead != nullptr)
+    {
+        result = mpHead->Shorten(numChars);
+    }
+
+    return result;
+}
 
 const char* InputStack::GetFilenameAndLineNumber(int& lineNumber)
 {
@@ -128,9 +165,9 @@ const char* InputStack::GetFilenameAndLineNumber(int& lineNumber)
 	return NULL;
 }
 
-const char * InputStack::GetBufferPointer( void )
+const char * InputStack::GetReadPointer( void )
 {
-    return (mpHead == NULL) ? NULL : mpHead->GetBufferPointer();
+    return (mpHead == NULL) ? NULL : mpHead->GetReadPointer();
 }
 
 
@@ -152,11 +189,11 @@ cell InputStack::GetBufferLength( void )
 }
 
 
-void InputStack::SetBufferPointer( const char *pBuff )
+void InputStack::SetReadPointer( const char *pBuff )
 {
 	if (mpHead != NULL)
     {
-        mpHead->SetBufferPointer( pBuff );
+        mpHead->SetReadPointer( pBuff );
     }
 }
 

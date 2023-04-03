@@ -66,9 +66,9 @@ FORTHDLL_API Shell* CreateForthShell(int argc, const char** argv, const char** e
     return new Shell(argc, argv, envp, pEngine, pExtension, shellStackLongs);
 }
 
-FORTHDLL_API BufferInputStream* CreateForthBufferInputStream(const char* pDataBuffer, int dataBufferLen, int bufferLen, bool deleteWhenEmpty)
+FORTHDLL_API BufferInputStream* CreateForthBufferInputStream(const char* pDataBuffer, int dataBufferLen, bool deleteWhenEmpty)
 {
-    BufferInputStream* inStream = new BufferInputStream(pDataBuffer, dataBufferLen, bufferLen);
+    BufferInputStream* inStream = new BufferInputStream(pDataBuffer, dataBufferLen, false);
     inStream->SetDeleteWhenEmpty(deleteWhenEmpty);
     return inStream;
 }
@@ -105,5 +105,10 @@ FORTHDLL_API void DeleteForthFiber(Fiber* pFiber)
 FORTHDLL_API void DeleteForthInputStream(InputStream* pStream)
 {
     delete pStream;
+}
+
+FORTHDLL_API void InterruptForth()
+{
+    Engine::GetInstance()->Interrupt();
 }
 

@@ -12,14 +12,17 @@
 #define DEFAULT_INPUT_BUFFER_LEN MAX_STRING_SIZE
 #endif
 
-enum
+enum class InputStreamType:ucell
 {
-    kInputTypeUnknown,
-    kInputTypeBuffer,
-    kInputTypeConsole,
-    kInputTypeFile,
-    kInputTypeBlock
+    kUnknown,
+    kBuffer,
+    kConsole,
+    kFile,
+    kBlock,
+    kExpression,
+    kServer
 };
+
 
 class InputStack;
 class ParseInfo;
@@ -31,9 +34,13 @@ public:
     InputStream( int bufferLen );
     virtual ~InputStream();
 
-    virtual char    *GetLine( const char *pPrompt ) = 0;
+    virtual char*       GetLine( const char *pPrompt ) = 0;
+    // return nullptr if adding line would overflow buffer
+    virtual char*       AddLine() = 0;
+    // return false IFF buffer has less than numChars available
+    virtual bool        Shorten(int numChars);
 
-    virtual const char* GetBufferPointer( void );
+    virtual const char* GetReadPointer( void );
     virtual const char* GetBufferBasePointer( void );
     virtual const char* GetReportedBufferBasePointer( void );
     virtual cell*       GetReadOffsetPointer( void );
@@ -43,16 +50,15 @@ public:
     virtual void        SetWriteOffset( int offset );
 	virtual bool	    IsEmpty();
     virtual bool	    IsGenerated();
-    virtual bool	    IsFile();
 
     virtual cell        GetBufferLength( void );
-    virtual void        SetBufferPointer( const char *pBuff );
+    virtual void        SetReadPointer( const char *pBuff );
     virtual bool        IsInteractive( void ) = 0;
-    virtual cell        GetLineNumber( void );
-	virtual const char* GetType( void );
-	virtual const char* GetName( void );
+    virtual cell        GetLineNumber( void ) const;
+	virtual InputStreamType GetType( void ) const;
+	virtual const char* GetName( void ) const;
     
-    virtual cell        GetSourceID() = 0;		// for the 'source' ansi forth op
+    virtual cell        GetSourceID() const = 0;		// for the 'source' ansi forth op
     virtual void        SeekToLineEnd();
     virtual cell        GetBlockNumber();
 
@@ -70,6 +76,9 @@ public:
     friend class InputStack;
 
 protected:
+    // set mWriteOffset and trim off trailing newline if preset
+    virtual void        TrimLine();
+
     InputStream    *mpNext;
     cell                mReadOffset;
     cell                mWriteOffset;

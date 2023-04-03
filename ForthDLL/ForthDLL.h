@@ -33,7 +33,7 @@ FORTHDLL_API Shell* CreateForthShell(int argc, const char** argv, const char** e
     Engine* pEngine = NULL, Extension* pExtension = NULL, int shellStackLongs = 1024);
 
 FORTHDLL_API BufferInputStream* CreateForthBufferInputStream(
-    const char* pDataBuffer, int dataBufferLen, int bufferLen = DEFAULT_INPUT_BUFFER_LEN, bool deleteWhenEmpty = true);
+    const char* pDataBuffer, int dataBufferLen, bool deleteWhenEmpty = true);
 FORTHDLL_API ConsoleInputStream* CreateForthConsoleInputStream(
     int bufferLen = DEFAULT_INPUT_BUFFER_LEN, bool deleteWhenEmpty = true);
 FORTHDLL_API FileInputStream* CreateForthFileInputStream(
@@ -42,4 +42,6 @@ FORTHDLL_API FileInputStream* CreateForthFileInputStream(
 FORTHDLL_API void DeleteForthEngine(Engine* pEngine);
 FORTHDLL_API void DeleteForthShell(Shell* pShell);
 FORTHDLL_API void DeleteForthInputStream(InputStream* pStream);
+
+FORTHDLL_API void InterruptForth();
 

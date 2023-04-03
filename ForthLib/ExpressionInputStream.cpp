@@ -76,7 +76,7 @@ ExpressionInputStream::ProcessExpression(InputStream* pInputStream)
 
 	int nestingDepth = 0;
 	ResetStrings();
-	const char* pSrc = pInputStream->GetBufferPointer();
+	const char* pSrc = pInputStream->GetReadPointer();
 	const char* pNewSrc = pSrc;
     char c = 0;
 	char previousChar = '\0';
@@ -113,7 +113,7 @@ ExpressionInputStream::ProcessExpression(InputStream* pInputStream)
                 c = ParseInfo::BackslashChar(pSrc);
 			}
 #endif
-			pInputStream->SetBufferPointer(pSrc);
+			pInputStream->SetReadPointer(pSrc);
 			switch (c)
 			{
 				case ' ':
@@ -247,19 +247,29 @@ ExpressionInputStream::ProcessExpression(InputStream* pInputStream)
 	return result;
 }
 
-cell ExpressionInputStream::GetSourceID()
+cell ExpressionInputStream::GetSourceID() const
 {
 	return -1;
 }
 
 char* ExpressionInputStream::GetLine(const char *pPrompt)
 {
-	return NULL;
+	return nullptr;
 }
 
-const char* ExpressionInputStream::GetType(void)
+char* ExpressionInputStream::AddLine()
 {
-	return "Expression";
+    return nullptr;
+}
+
+InputStreamType ExpressionInputStream::GetType(void) const
+{
+	return InputStreamType::kExpression;
+}
+
+const char* ExpressionInputStream::GetName(void) const
+{
+    return "Expression";
 }
 
 void ExpressionInputStream::SeekToLineEnd()

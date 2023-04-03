@@ -34,7 +34,7 @@ FileInputStream::~FileInputStream()
     __FREE( mpName );
 }
 
-const char* FileInputStream::GetName( void )
+const char* FileInputStream::GetName( void ) const
 {
     return mpName;
 }
@@ -49,34 +49,43 @@ char * FileInputStream::GetLine( const char *pPrompt )
     pBuffer = fgets( mpBufferBase, mBufferLen, mpInFile );
 
     mReadOffset = 0;
-    //printf("%s\n", pBuffer);
-    mpBufferBase[ mBufferLen - 1 ] = '\0';
-    mWriteOffset = strlen( mpBufferBase );
-    if ( mWriteOffset > 0 )
-    {
-        // trim trailing linefeed if any
-        if ( mpBufferBase[ mWriteOffset - 1 ] == '\n' )
-        {
-            --mWriteOffset;
-            mpBufferBase[ mWriteOffset ] = '\0';
-        }
-    }
+
+    TrimLine();
+
     mLineNumber++;
     return pBuffer;
 }
 
-cell FileInputStream::GetLineNumber(void)
+char* FileInputStream::AddLine()
+{
+    char* pBuffer = nullptr;
+    cell bufferLen = mBufferLen - mWriteOffset;
+    char* bufferBase = mpBufferBase + mWriteOffset;
+    if (bufferLen <= 0)
+    {
+        return pBuffer;
+    }
+
+    pBuffer = fgets(bufferBase, bufferLen, mpInFile);
+
+    TrimLine();
+    mLineNumber++;
+
+    return mpBufferBase;
+}
+
+cell FileInputStream::GetLineNumber(void) const
 {
     return mLineNumber;
 }
 
 
-const char* FileInputStream::GetType( void )
+InputStreamType FileInputStream::GetType( void ) const
 {
-    return "File";
+    return InputStreamType::kFile;
 }
 
-cell FileInputStream::GetSourceID()
+cell FileInputStream::GetSourceID() const
 {
     return static_cast<int>(reinterpret_cast<intptr_t>(mpInFile));
 }
@@ -127,11 +136,6 @@ bool FileInputStream::SetInputState( cell* pState)
     }
     mLineNumber = pState[2];
     mReadOffset = pState[3];
-    return true;
-}
-
-bool FileInputStream::IsFile(void)
-{
     return true;
 }
 

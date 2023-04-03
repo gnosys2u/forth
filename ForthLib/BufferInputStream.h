@@ -5,7 +5,6 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-//#include "InputStream.h"
 #include "InputStream.h"
 
 // save-input items:
@@ -18,13 +17,15 @@
 class BufferInputStream : public InputStream
 {
 public:
-    BufferInputStream( const char *pDataBuffer, int dataBufferLen, bool isInteractive = true, int bufferLen = DEFAULT_INPUT_BUFFER_LEN );
+    BufferInputStream( const char *pDataBuffer, int dataBufferLen, bool isInteractive = false);
     virtual ~BufferInputStream();
 
-    virtual cell    GetSourceID();
-    virtual char    *GetLine( const char *pPrompt );
+    virtual cell    GetSourceID() const;
+    virtual char* GetLine(const char* pPrompt);
+    virtual char* AddLine();
     virtual bool    IsInteractive(void) { return mIsInteractive; };
-	virtual const char* GetType( void );
+	virtual InputStreamType GetType( void ) const;
+    virtual const char* GetName(void) const;
     virtual const char* GetReportedBufferBasePointer( void );
  
     virtual cell*   GetInputState();
@@ -40,9 +41,6 @@ protected:
 
     int             mInstanceNumber;    // used for checking consistency in restore-input
     const char      *mpSourceBuffer;
-    char			*mpDataBuffer;
-    char			*mpDataBufferBase;
-    char			*mpDataBufferLimit;
     cell            mState[kNumStateMembers];
 	bool			mIsInteractive;
 };

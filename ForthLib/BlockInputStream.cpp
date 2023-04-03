@@ -23,6 +23,7 @@ BlockInputStream::BlockInputStream(BlockFileManager* pManager, uint32_t firstBlo
 {
     mReadOffset = BYTES_PER_BLOCK;
     mWriteOffset = BYTES_PER_BLOCK;
+    mpBufferBase[BYTES_PER_BLOCK] = '\0';
     ReadBlock();
 }
 
@@ -30,7 +31,7 @@ BlockInputStream::~BlockInputStream()
 {
 }
 
-cell BlockInputStream::GetSourceID()
+cell BlockInputStream::GetSourceID() const
 {
     return -1;
 }
@@ -61,12 +62,24 @@ char * BlockInputStream::GetLine( const char *pPrompt )
     return pBuffer;
 }
 
+char* BlockInputStream::AddLine()
+{
+    // don't have continuation in blocks
+    return nullptr;
+}
 
-const char* BlockInputStream::GetType( void )
+
+
+InputStreamType BlockInputStream::GetType( void ) const
+{
+    return InputStreamType::kBlock;
+}
+
+
+const char* BlockInputStream::GetName(void) const
 {
     return "Block";
 }
-
 
 void BlockInputStream::SeekToLineEnd()
 {

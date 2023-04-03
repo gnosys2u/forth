@@ -6,9 +6,20 @@
 #include "..\ForthDLL\ForthDLL.h"
 
 
+static BOOL consoleControlEventHandler(DWORD eventType)
+{
+    BOOL result = FALSE;
+    if (eventType == CTRL_C_EVENT)
+    {
+        result = TRUE;
+    }
+
+    return result;
+}
+
 static bool InitSystem()
 {
-    // TODO!
+    SetConsoleCtrlHandler(consoleControlEventHandler, true);
     return true;
 }
 

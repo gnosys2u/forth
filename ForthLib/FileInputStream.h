@@ -23,15 +23,15 @@ public:
     virtual ~FileInputStream();
 
     virtual char    *GetLine( const char *pPrompt );
+    virtual char*   AddLine();
     virtual bool    IsInteractive(void) { return false; };
-    virtual cell    GetLineNumber( void );
-	virtual const char* GetType( void );
-	virtual const char* GetName( void );
-    virtual cell    GetSourceID();
+    virtual cell    GetLineNumber( void ) const;
+    virtual InputStreamType GetType(void) const;
+    virtual const char* GetName( void ) const;
+    virtual cell    GetSourceID() const;
 
     virtual cell*   GetInputState();
     virtual bool    SetInputState(cell* pState);
-    virtual bool	IsFile();
 
     // The saved work dir is the current directory before this input stream was started.
     // When a file stream becomes the current input the directory containing that file
