@@ -23,17 +23,18 @@ test[ checkResult( "aba" ) ]
 
 \ test special characters in strings and characters
 
-test[ '\0' 0= ] test[ '\a' 7 = ] test[ '\b' 8 = ] test[ '\t' 9 = ] test[ '\n' $0a = ] test[ '\v' $0b = ]
+test[ '\z' 0= ] test[ '\a' 7 = ] test[ '\b' 8 = ] test[ '\t' 9 = ] test[ '\n' $0a = ] test[ '\v' $0b = ]
 test[ '\f' $0c = ] test[ '\r' $0d = ] test[ '"' $22 = ] test[ ''' $27 = ] test[ '\\' $5c = ]
+test[ '\_' $20 = ] test[ '\q' $22 = ] test[ '\"' $22 = ]
 
 startTest
 '\a' %c '\b' %c '\t' %c '\n' %c '\v' %c '\f' %c '\r' %c '"' %c ''' %c  '\' %c outToScreen
 test[ checkResult( "\a\b\t\n\v\f\r\"'\\" ) ]
 
 \ verify that character constants work
-: testCharacterConstants startTest 'a' %c '\s' %c 'b' %c '\t' %c 'c' %c '\n' %c 'z' %c %nl ;
+: testCharacterConstants startTest 'a' %c '\_' %c 'b' %c '\t' %c 'c' %c '\n' %c 'z' %c %nl ;
 outToTestBuffer( testBuff2 )
-'a' %c '\s' %c 'b' %c '\t' %c 'c' %c '\n' %c 'z' %c %nl
+'a' %c '\_' %c 'b' %c '\t' %c 'c' %c '\n' %c 'z' %c %nl
 test[ testCharacterConstants checkResult( testBuff2.get ) ]
 
 \ ==================================
@@ -90,7 +91,7 @@ long gvl   ulong gvul   sfloat gvf   float gvd
 
 : testGlobalVars1
   startTest
-  0 -> gvi 7 0 do gvi %d %bl 5 ->+ gvi loop
+  0 -> gvi 7 0 do gvi . 5 ->+ gvi loop
 ;
 test[ testGlobalVars1 checkResult( "0 5 10 15 20 25 30 " ) ]
 
@@ -112,7 +113,7 @@ test[ testGlobalVars2 checkResult( "-5 7 4 251 7 4 -1100 100 -1000 64436 100 645
 : testLocalVars1
   int aa
   startTest
-  0 -> aa 7 0 do aa %d %bl 5 ->+ aa loop
+  0 -> aa 7 0 do aa . 5 ->+ aa loop
 ;
 test[ testLocalVars1 checkResult( "0 5 10 15 20 25 30 " ) ]
 
@@ -169,8 +170,8 @@ test[ testLocalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 20 buffer tb
 
 $DEADBEEF tb !
-test[ startTest tb b@ %d %bl tb s@ $ffff and %x checkResult( "-17 beef" ) ]
-test[ startTest tb s@ %d %bl tb b@ %d checkResult( "-16657 -17" ) ]
+test[ startTest tb b@ . tb s@ $ffff and %x checkResult( "-17 beef" ) ]
+test[ startTest tb s@ . tb b@ %d checkResult( "-16657 -17" ) ]
 
 \ ==================================
 
