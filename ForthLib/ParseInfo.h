@@ -31,7 +31,7 @@ public:
 	const char*		ParseSingleQuote(const char *pSrcIn, const char *pSrcLimit, Engine *pEngine, bool keepBackslashes = false);
 	void	        ParseDoubleQuote(const char *&pSrc, const char *pSrcLimit, bool keepBackslashes = false);
 	
-	static char		BackslashChar(const char*& pSrc);
+	static int		BackslashChar(const char*& pSrc);
 
     void            ChopVaropSuffix();
     void            UnchopVaropSuffix();

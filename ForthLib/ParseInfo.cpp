@@ -117,10 +117,10 @@ int hexValue(char c)
     return result;
 }
 
-char ParseInfo::BackslashChar(const char*& pSrc)
+int ParseInfo::BackslashChar(const char*& pSrc)
 {
     char c = *pSrc;
-    char cResult = c;
+    int cResult = c;
 
     if (c != '\0')
     {
@@ -132,13 +132,16 @@ char ParseInfo::BackslashChar(const char*& pSrc)
         case 'b':        cResult = '\b';        break;		// x08	backspace
         case 'e':        cResult = 0x1b;        break;		// x1b	escape
         case 'f':        cResult = '\f';        break;		// x0b	formfeed
+        case 'l':        cResult = '\n';        break;		// x0a	linefeed (AKA newline)
+        case 'm':        cResult = 0x0a0d;      break;		// 0x0d,x0a	carriage return + linefeed
         case 'n':        cResult = '\n';        break;		// x0a	newline
-        case 'q':        cResult = '\'';        break;		// x27	single quote
+        case 'q':        cResult = '\"';        break;		// x22	double quote
         case 'r':        cResult = '\r';        break;		// x0d	carriage return
-        case 's':        cResult = ' ';         break;		// x20	space
+        case 's':        cResult = '\'';        break;		// x27	single quote
+        case '_':        cResult = ' ';         break;		// x20	space (not ANSI, only needed in multi-character literals)
         case 't':        cResult = '\t';        break;		// x09	tab (horizontal)
         case 'v':        cResult = '\v';        break;		// x0b	vertical tab
-        case '0':        cResult = '\0';        break;		// x00	nul
+        case 'z':        cResult = '\0';        break;		// x00	nul
         case '\\':       cResult = '\\';        break;		// x5c	backslash
         case '\"':       cResult = '\"';        break;		// x22	double quote
 
@@ -207,8 +210,13 @@ const char * ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLim
 				{
 					break;
 				}
-                ch = BackslashChar(pSrc);
-                cc[iDst++] = ch;
+                int ich = BackslashChar(pSrc);
+                while (ich > 0xFF)
+                {
+                    cc[iDst++] = ich & 0xFF;
+                    ich >>= 8;
+                }
+                cc[iDst++] = ich;
 			}
             else if (ch == '\'')
             {
@@ -319,22 +327,27 @@ void ParseInfo::ParseDoubleQuote(const char *&pSrc, const char *pSrcLimit, bool 
 			if (keepBackslashes)
 			{
                 *pDst++ = *pSrc++;
-                ch = *pSrc++;
+                *pDst++ = *pSrc++;
             }
             else
             {
                 pSrc++;
-                ch = BackslashChar(pSrc);
+                int ich = BackslashChar(pSrc);
+                while (ich > 0xFF)
+                {
+                    *pDst++ = ich & 0xFF;
+                    ich >>= 8;
+                }
+                *pDst++ = ich;
             }
 			break;
 
 		default:
 			ch = *pSrc++;
-			break;
-
+            *pDst++ = ch;
+            break;
 		}
 
-        *pDst++ = ch;
 	}
 	*pDst = 0;
 	SetToken();

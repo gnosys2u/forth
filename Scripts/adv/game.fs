@@ -513,7 +513,7 @@ continue:
         tolower(p c@) q c!
         p++   q++
       repeat
-      '\0' q c!
+      '\z' q c!
       p++
       begin
       while(isspace(p c@))
@@ -521,7 +521,7 @@ continue:
       repeat
       inWord2.base q!
       if(p c@ 0=)
-        '\0' q c!
+        '\z' q c!
         exit
       endif
       begin
@@ -529,7 +529,7 @@ continue:
         tolower(p c@) q c!
         p++   q++
       repeat
-      '\0' q c!
+      '\z' q c!
       p++
       begin
       while(isspace(p c@))
@@ -545,7 +545,7 @@ continue:
 
   : shift_words
     strcpy(inWord1.base inWord2.base) 
-    '\0' inWord2.base c!
+    '\z' inWord2.base c!
   ;
 
 
@@ -3350,7 +3350,7 @@ long description of your location.")
     mko AdventureState advState
     root.set(blword)
     result.resize(64)
-    result.appendFormatted("\"%s\" \q state%s kState%s" root.get dup dup 3)
+    result.appendFormatted("\"%s\" \s state%s kState%s" root.get dup dup 3)
     d[ "Defining " %s root.get %s  %bl result.get %s %nl ]d
     result.get $evaluate
     advState.init
@@ -3359,7 +3359,7 @@ long description of your location.")
     root~
     result~
   ;
-    
+
   makeState LoopTop
   makeState Commence
   makeState InnerLoop

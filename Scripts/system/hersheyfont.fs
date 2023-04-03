@@ -124,7 +124,7 @@ class: HersheyFont
             ?do(numVerts 0)
               pSrc b@@++ -> byte cx
               pSrc b@@++ -> byte cy
-              if(and(cx '\s' = cy 'R' =))
+              if(and(cx bl = cy 'R' =))
                 true -> isMove
               else
                 \ offset original -64..63 range to 0..127 so we can use high bit of x to flag move mode

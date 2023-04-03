@@ -150,7 +150,7 @@ class: atcInputHandler extends iAtcInputHandler
 
       if( within(altitude 0 10) )
         commandString.appendChar( cmdChar )
-        displayString.appendChar( '\s' )
+        displayString.appendChar( bl )
         displayString.appendChar( cmdChar )
         displayString.append( "000" )
         kACSCommandReady commandState!
@@ -167,7 +167,7 @@ class: atcInputHandler extends iAtcInputHandler
     cmdChar '0' - int altitude!
     if( within(altitude 1 10) )
       commandString.appendChar( cmdChar )
-      displayString.appendChar( '\s' )
+      displayString.appendChar( bl )
       displayString.appendChar( cmdChar )
       displayString.append( "000" )
       kACSCommandReady commandState!
@@ -183,7 +183,7 @@ class: atcInputHandler extends iAtcInputHandler
     '0' cmdChar - int altitude!
     if( within(altitude -9 0) )
       commandString.appendChar( cmdChar )
-      displayString.appendChar( '\s' )
+      displayString.appendChar( bl )
       displayString.appendChar( cmdChar )
       displayString.append( "000" )
       kACSCommandReady commandState!
@@ -308,7 +308,7 @@ class: atcInputHandler extends iAtcInputHandler
       if( dup 0>= )
         commandInfo.amount!
         commandString.appendChar( cmdChar )
-        displayString.appendChar( '\s' )
+        displayString.appendChar( bl )
         displayString.append( c2dir$( cmdChar ) )
         false commandInfo.isRelative!
         kACSTurnReady commandState!
@@ -341,7 +341,7 @@ class: atcInputHandler extends iAtcInputHandler
       if( dup 0>= )
         commandInfo.amount!
         commandString.appendChar( cmdChar )
-        displayString.appendChar( '\s' )
+        displayString.appendChar( bl )
         displayString.append( c2dir$( cmdChar ) )
         kACSTurnReady commandState!
       else
@@ -389,7 +389,7 @@ class: atcInputHandler extends iAtcInputHandler
       targetNum commandInfo.targetNum!
       kATTAirport commandInfo.targetType!
       commandString.appendChar( cmdChar )
-      displayString.appendChar( '\s' )
+      displayString.appendChar( bl )
       displayString.appendChar( cmdChar )
     else
       unrecognizedCommandWarning("0123456789")
@@ -423,7 +423,7 @@ class: atcInputHandler extends iAtcInputHandler
       kACSCommandReady commandState!
       beaconNum commandInfo.beaconNum!
       commandString.appendChar( cmdChar )
-      displayString.appendChar( '\s' )
+      displayString.appendChar( bl )
       displayString.appendChar( cmdChar )
     else
       unrecognizedCommandWarning("ENTER")

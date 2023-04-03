@@ -73,7 +73,7 @@ enum: eMazeTileTypes
   ']' kMTTExit
   '.' kMTTUnused
   '?' kMTTDeadEnd
-  '\s' kMTTOpen
+  bl kMTTOpen
 ;enum
 
 : ?pick 0= if swap endif drop ;
@@ -510,7 +510,7 @@ class: MazeGen1
   
   m: draw
     ptrTo byte posRef
-    '\s' %c
+    bl %c
     do(width 2* 1- 0)
       '_' %c
     loop
@@ -519,10 +519,10 @@ class: MazeGen1
       '|' %c
       do(width 0)
         gridRef(i j) posRef!
-        if(posRef b@ south.wall and) '\s' else '_' endif %c
+        if(posRef b@ south.wall and) bl else '_' endif %c
         if(posRef b@ east.wall and)
           \ isn't this possibly looking one beyond end of maze?
-          if(posRef b@ posRef 1+ b@ or south.wall and) '\s' else '_' endif %c
+          if(posRef b@ posRef 1+ b@ or south.wall and) bl else '_' endif %c
         else
           '|' %c
         endif
