@@ -9,6 +9,7 @@
 #include "Engine.h"
 #include "OuterInterpreter.h"
 #include "ClassVocabulary.h"
+#include "BlockInputStream.h"
 
 // TODO:
 //
@@ -422,7 +423,7 @@ namespace OBlockFile
             BlockFileManager*  pManager = pBlockFile->pManager;
             if (lastBlock < pManager->GetNumBlocksInFile())
             {
-                GET_ENGINE->PushInputBlocks(pManager, firstBlock, lastBlock);
+                GET_ENGINE->GetShell()->RunOneStream(new BlockInputStream(pManager, firstBlock, lastBlock));
             }
             else
             {
