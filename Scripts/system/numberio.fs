@@ -30,6 +30,16 @@ ptrTo byte holdend								\ current nested end of hold buffer
   endif
 ;
 
+: holds ( addr u -- )
+  begin
+    dup
+  while
+    1- 2dup + c@ hold
+  repeat
+  2drop
+;
+
+
 \ clear the numeric output string
 : <# holdbuf-end dup -> holdptr -> holdend ;
 <#
