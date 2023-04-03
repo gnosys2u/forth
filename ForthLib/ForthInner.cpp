@@ -3766,7 +3766,7 @@ OPTYPE_ACTION( MethodWithTOSAction )
 OPTYPE_ACTION(MethodWithLocalObjectAction)
 {
     // object is a local variable
-    // bits 0..11 are method index, bits 12..23 are object offset in longs
+    // bits 0..11 are method index, bits 12..23 are frame offset in longs
     ForthObject obj = *((ForthObject*)(GET_FP - (opVal >> 12)));
     int methodIndex = opVal & 0xFFF;
     Engine* pEngine = GET_ENGINE;
@@ -3791,7 +3791,7 @@ OPTYPE_ACTION(MethodWithLocalObjectAction)
 OPTYPE_ACTION(MethodWithMemberObjectAction)
 {
     // object is a member of this object
-    // bits 0..11 are method index, bits 12..23 are frame offset in longs
+    // bits 0..11 are method index, bits 12..23 are object offset in longs
     ForthObject obj = *((ForthObject*)(((cell)(GET_TP)) + (opVal >> 12)));
     int methodIndex = opVal & 0xFFF;
     Engine* pEngine = GET_ENGINE;
