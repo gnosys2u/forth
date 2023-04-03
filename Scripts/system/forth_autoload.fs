@@ -212,7 +212,14 @@ alias 2! l!
 
 : see verbose describe ;
 
-: %nc swap 0 ?do dup %c loop drop ;     \ NUM CHAR ...      prints CHAR NUM times
+: %nc      \ NUM CHAR ...      prints CHAR NUM times
+  over 0> if
+    swap 0 do dup %c loop drop
+  else
+    drop drop
+  endif
+;
+
 : spaces bl %nc ;
 
 : autoload      \ autoload OPNAME SCRIPTFILE        load SCRIPTFILE if OPNAME undefined
