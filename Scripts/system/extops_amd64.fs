@@ -270,7 +270,7 @@ code 2>r
   rbx rrp ] mov,
   8 rpsp d] rbx mov,
   rbx 8 rrp d] mov,
-  8 # rpsp add,
+  $10 # rpsp add,
   next,
   
 code 2r>
