@@ -299,14 +299,15 @@ enum class VarOperation:ucell {
 // these are the results of running the inner interpreter
 enum class OpResult:ucell
 {
-    kOk,          // no need to exit
-    kDone,        // exit because of "done" opcode
-    kExitShell,   // exit because of a "bye" opcode
-    kError,       // exit because of error
-    kFatalError,  // exit because of fatal error
-    kException,   // exit because of uncaught exception
-    kShutdown,    // exit because of a "shutdown" opcode
-	kYield,		// exit because of a stopThread/yield/sleepThread opcode
+    kOk,            // no need to exit
+    kDone,          // exit because of "done" opcode
+    kExitShell,     // exit because of a "bye" opcode
+    kError,         // exit because of error
+    kFatalError,    // exit because of fatal error
+    kException,     // exit because of uncaught exception
+    kShutdown,      // exit because of a "shutdown" opcode
+    kYield,		    // exit because of a stopThread/yield/sleepThread opcode
+    kInterrupted,   // user hit ctrl-c
 };
 
 // run state of ForthFibers
