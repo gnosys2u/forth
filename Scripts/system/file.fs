@@ -3,7 +3,7 @@ autoforget File
 
 class: File extends Object
 
-  int fp
+  cell fp
   String path
   ByteArray buffer		\ line buffer for getLine
   byte readOnly
@@ -164,6 +164,22 @@ class: File extends Object
     val
   ;m
 
+  \ BUFFER_ADDR LEN ... TRUE/FALSE
+  m: getBlock
+    true bool result!
+    cell len!
+    ptrTo byte buffy!
+    if( fp )
+      fread( buffy 1 len fp )
+      if( len <> )
+        error( "getBlock - wrong count" ) result~
+      endif
+    else
+      error( "getBlock - not open" ) result~
+    endif
+    result
+  ;m
+
   \ BYTE_VALUE ...
   m: putByte
     if( fp )
@@ -253,6 +269,26 @@ class: File extends Object
       error( "putLine - not open" )
       drop
     endif
+  ;m
+
+  \ BUFFER_ADDR LEN ... TRUE/FALSE
+  m: putBlock
+    true bool result!
+    cell len!
+    ptrTo byte buffy!
+    if( fp )
+      if( readOnly )
+        error( "putBlock - readOnly" ) result~
+      else
+        fwrite( buffy 1 len fp )
+        if( len <> )
+          error( "putBlock - wrong count" ) result~
+        endif
+      endif
+    else
+      error( "putBlock - not open" ) result~
+    endif
+    result
   ;m
 
   \ ... CHAR_PTR
