@@ -121,12 +121,6 @@ alias falign dfalign
 
 alias ffield: dffield:
 
-: fexpm1 fexp 1.0e f- ;
-: sfexpm1 sfexp 1.0ef sf- ;
-
-: flnp1 1.0e f+ fln ;
-: sflnp1 1.0ef sf+ sfln ;
-
 : fsincos
   fdup fcos fswap fsin
 ;
@@ -135,68 +129,6 @@ alias ffield: dffield:
   dup sfcos swap sfsin
 ;
 
-: fsinh
-  \ fexp float e2x!    \ e^x
-  \ e2x e2x f* 1.0e f-  e2x 2.0e f* f/
-  fexpm1 fdup fdup 1.0e f+ f/ f* 2.0e f/
-;
-
-: sfsinh
-  \ sfexp float e2x!    \ e^x
-  \ e2x e2x sf* 1.0ef f-  e2x 2.0ef sf* sf/
-  sfexpm1 dup dup 1.0ef sf+ sf/ sf* 2.0ef sf/
-;
-
-\ TODO: find formulas for rest of hyperbolic functions using fexpm1/flnp1
-: fasinh
-  float x!
-  x x f* 1.0e f+ fsqrt x f+ fln
-;
-
-: sfasinh
-  float x!
-  x x sf* 1.0ef sf+ sfsqrt x sf+ sfln
-;
-
-: fcosh
-  fexp float e2x!    \ e^x
-  e2x e2x f* 1.0e f+  e2x 2.0e f* f/
-;
-
-: sfcosh
-  fexp float e2x!    \ e^x
-  e2x e2x f* 1.0ef f+  e2x 2.0ef f* f/
-;
-
-: facosh
-  float x!
-  x x f* 1.0e f- fsqrt x f+ fln
-;
-
-: sfacosh
-  float x!
-  x x sf* 1.0ef sf- sfsqrt x sf+ sfln
-;
-
-: ftanh
-  fexp float e2x!    \ e^x
-  e2x e2x f* fdup 1.0e f-  fswap 1.0e f+ f/
-;
-
-: sftanh
-  fexp float e2x!    \ e^x
-  e2x e2x sf* dup 1.0ef sf-  swap 1.0ef sf+ sf/
-;
-
-: fatanh
-  float x!
-  1.0e x f+ 1.0e x f- f/ fln 0.5e f*
-;
-
-: sfatanh
-  float x!
-  1.0e x sf+ 1.0ef x sf- sf/ sfln 0.5ef sf*
-;
 
 : falog
   10.0e fswap f**
