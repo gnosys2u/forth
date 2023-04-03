@@ -146,6 +146,7 @@ OuterInterpreter::OuterInterpreter(Engine* pEngine)
     , mCompileState(0)
     , mCompileFlags(0)
     , mpUsingVocab(nullptr)
+    , mNewestDefinedOp(0)
 {
     mpShell = mpEngine->GetShell();
     mpCore = mpEngine->GetMainFiber()->GetCore();
@@ -629,6 +630,7 @@ forthop* OuterInterpreter::StartOpDefinition(const char *pName, bool smudgeIt,
     {
         newestOp = AddOp(mpDictionary->pCurrent);
         newestOp = COMPILED_OP(opType, newestOp);
+        mNewestDefinedOp = newestOp;
     }
 
     forthop* pEntry = pDefinitionVocab->AddSymbol(pName, newestOp);
@@ -714,18 +716,62 @@ void OuterInterpreter::DescribeOp( const char* pSymName, forthop op, int32_t aux
         }
         else
         {
+            char chars[20];
+            chars[16] = '\0';
+            int numDataToDump = 0;
+            int dumpCounter;
+            int numDumped = 0;
             while ((curIP < endIP) && notDone)
             {
 #if defined(FORTH64)
                 SNPRINTF(buff, sizeof(buff), "  +%04x  %p  ", (int)(curIP - baseIP), curIP);
 #else
-                SNPRINTF(buff, sizeof(buff), "  +%04x  %08x  ", (curIP - baseIP), curIP);
 #endif
                 mpEngine->ConsoleOut(buff);
-                mpEngine->DescribeOp(curIP, buff, sizeof(buff), true);
-                mpEngine->ConsoleOut(buff);
-                SNPRINTF(buff, sizeof(buff), "\n");
-                mpEngine->ConsoleOut(buff);
+                if (numDataToDump != 0)
+                {
+                    char* tbuff = buff;
+                    size_t tlen = sizeof(buff);
+                    while (numDataToDump > 0)
+                    {
+                        unsigned char* pc = (unsigned char*)curIP;
+                        SNPRINTF(tbuff, tlen, "%02x %02x %02x %02x  ", pc[0], pc[1], pc[2], pc[3] );
+                        ((forthop*)chars)[numDumped & 3] = *curIP;
+                        tbuff += 13;
+                        tlen -= 13;
+                        numDumped++;
+                        numDataToDump--;
+                        dumpCounter += 4;
+                        curIP++;
+                        if (dumpCounter == 16)
+                        {
+                            dumpCounter = 0;
+                            break;
+                        }
+                    }
+                    mpEngine->ConsoleOut(buff);
+                    mpEngine->ConsoleOut("    ");
+                    for (int ii = (numDumped & 3); (ii & 3) != 0; ii++)
+                    {
+                        mpEngine->ConsoleOut("             ");
+                    }
+                    mpEngine->ConsoleOut("|");
+                    mpEngine->ConsoleOut(chars);
+                    mpEngine->ConsoleOut("|");
+
+                }
+                else
+                {
+                    mpEngine->DescribeOp(curIP, buff, sizeof(buff), true, numDataToDump);
+                    if (numDataToDump != 0)
+                    {
+                        dumpCounter = 0;
+                        numDumped = 0;
+                    }
+                    curIP++;
+                    mpEngine->ConsoleOut(buff);
+                }
+                mpEngine->ConsoleOut("\n");
                 if (((line & 31) == 0) && (mpShell != nullptr) && mpShell->GetInput()->Top()->IsInteractive())
                 {
                     mpEngine->ConsoleOut("Hit ENTER to continue, 'q' & ENTER to quit\n");
@@ -737,7 +783,7 @@ void OuterInterpreter::DescribeOp( const char* pSymName, forthop op, int32_t aux
                         notDone = false;
                     }
                 }
-                curIP = NextOp(curIP);
+                //curIP = NextOp(curIP);
                 line++;
             }
         }
@@ -763,6 +809,10 @@ void OuterInterpreter::DescribeSymbol( const char *pSymName )
     }
 }
 
+#if 0
+// I'm not convinced this is completely unnecessary, the changes to Engine::DescribeOp make it unused right now,
+// it would be good to have a single place that contains knowledge about optypes and ops which have immediately
+// following data
 forthop* OuterInterpreter::NextOp(forthop *pOp )
 {
     forthop op = *pOp++;
@@ -806,6 +856,7 @@ forthop* OuterInterpreter::NextOp(forthop *pOp )
     }
     return pOp;
 }
+#endif
 
 void OuterInterpreter::StartStructDefinition( void )
 {
@@ -2107,4 +2158,13 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
     return exitStatus;
 }
 
+forthop OuterInterpreter::GetNewestDefinedOp() const
+{
+    return mNewestDefinedOp;
+}
+
+void OuterInterpreter::SetNewestDefinedOp(forthop op)
+{
+    mNewestDefinedOp = op;
+}
 

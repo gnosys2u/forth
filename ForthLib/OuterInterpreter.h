@@ -183,7 +183,7 @@ public:
     forthop*        FindSymbol( const char *pSymName );
     void            DescribeSymbol( const char *pSymName );
     void            DescribeOp( const char *pSymName, forthop op, int32_t auxData );
-    forthop* NextOp(forthop* pOp);
+    //forthop* NextOp(forthop* pOp);
 
     void            StartStructDefinition( void );
     void            EndStructDefinition( void );
@@ -283,6 +283,9 @@ public:
 
     forthop*                FindUserDefinition(Vocabulary* pVocab, forthop*& pClosestIP, forthop* pIP, forthop*& pBase);
 
+    forthop                 GetNewestDefinedOp() const;
+    void                    SetNewestDefinedOp(forthop op);
+
 private:
 
     Engine* mpEngine;
@@ -354,5 +357,6 @@ protected:
     NumberParser    mNumberParser;
 
     ForthEnumInfo*  mpNewestEnum;
+    forthop         mNewestDefinedOp;
 };
 
