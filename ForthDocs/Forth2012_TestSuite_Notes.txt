@@ -1,0 +1,76 @@
+
+  Forth 2012/ANS Forth Test Suite notes
+=========================================
+Test suite is https://github.com/gerryjackson/forth2012-test-suite by Gerry Jackson
+
+
+
+April 3 2023 status:
+
++ core
+
++ coreplustest
+
++ utilities
+
++ errorreport
+
++ coreexttest
+It does display this bogus error:
+INCORRECT RESULT: T{ BUF:TEST DUP ALIGNED = -> TRUE }T
+  gives an error on 64-bit, but that is because our forth only requires 32-bit alignment for compiled ops and data
+
+----------------------------------- blocktest -----------------------------------
+
+INCORRECT RESULT:    2= -> TRUE }T
+    T{ 2RND-TEST-BLOCKS TL7                 \ run test procedure
+       SWAP DROP SWAP DROP                  \ u2 u1 rnd2 rnd1
+       2= -> TRUE }T
+
+INCORRECT RESULT: T{ SCR DUP ALIGNED = -> TRUE }T
+  only on 64-bit, probably the same alignment issue in coreexttest
+
+WRONG NUMBER OF RESULTS: T{ RND-TEST-BLOCK DUP TCSIRIR2 LOAD TCSIRIR2-EXPECTED S= -> 0 TRUE }T
+
+INCORRECT RESULT: T{ 2 RND-TEST-BLOCK-SEQ DUP TCSIRIR3 LOAD -> 1 2 3 -1 10 11 12 }T
+
+WRONG NUMBER OF RESULTS: T{ 2 RND-TEST-BLOCK-SEQ DUP TCSIRIR4 LOAD TCSIRIR4-EXPECTED S= -> 0 TRUE }T
+
+INCORRECT RESULT: T{ 2 RND-TEST-BLOCK-SEQ DUP TT1 DUP DUP 1+ THRU 1- = -> TRUE }T
+
+----------------------------------- doubletest -----------------------------------
+    
+INCORRECT RESULT: T{ : RDL1 3. ; RDL1 -> 3 0 }T
+    32-bit only
+    
+INCORRECT RESULT: T{ : RDL2 -4. ; RDL2 -> -4 -1 }T
+    32-bit only
+    
+INCORRECT RESULT: T{ : dnmp  #8327. $-2cbe. %011010111. ; dnmp -> 8327. -11454. 215. }T
+    32-bit only
+    
+INCORRECT RESULT: T{ MAX-2INT -1 M+ -> MAX-2INT -1. D+ }T
+
+INCORRECT RESULT: T{ LO-2INT  -1 M+ -> LO-2INT  -1. D+ }T
+
+INCORRECT RESULT: T{  5. -7 11 M*/ -> -3. ?FLOORED }T    \ FLOORED -4.
+
+INCORRECT RESULT: T{ -5.  7 11 M*/ -> -3. ?FLOORED }T    \ FLOORED -4.
+
+INCORRECT RESULT: T{ MAX-2INT -8 16 M*/ -> HI-2INT DNEGATE ?FLOORED }T  \ FLOORED SUBTRACT 1
+
+INCORRECT RESULT: T{ 0 1   1. DU< -> FALSE }T
+
+INCORRECT RESULT: T{ 0 -1 1 -2 DU< -> FALSE }T
+
+INCORRECT RESULT: T{ MIN-2INT MAX-2INT DU< -> FALSE }T
+
+----------------------------------- exceptiontest -----------------------------------
+
+WRONG NUMBER OF RESULTS: T{ C3 -> 1 2 99 }T            \ Restores stack to CATCH depth
+
+WRONG NUMBER OF RESULTS: T{ C4 -> 3 4 5 0 999 -111 }T   \ Test return stack unwinding
+
+WRONG NUMBER OF RESULTS: T{ C5 -> 5 }T
+
+and then the test crashes...

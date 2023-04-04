@@ -4801,8 +4801,9 @@ FORTHOP(restoreInputOp)
     Shell *pShell = GET_ENGINE->GetShell();
     cell* pSP = GET_SP;
     int32_t nItems = *pSP;
-    pShell->GetInput()->Top()->SetInputState(pSP);
+    cell result = pShell->GetInput()->Top()->SetInputState(pSP) ? 0 : -1;   // 0 means 'no problemo'
     SET_SP(pSP + (nItems + 1));
+    SPUSH(result);
 }
 
 FORTHOP(getEnvironmentVarOp)

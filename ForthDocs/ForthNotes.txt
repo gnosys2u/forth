@@ -282,6 +282,79 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+April 3 2023
+
+More progress in the ANSI 2012 wars.
+The core, coreplus and coreext tests are all working.  There is a bogus error in coreext
+which happens because the test requires 'alignment' to always be to the cell
+size, for 64-bit I don't always have 64-bit alignment because the size of forthop
+is 32-bit and forcing 64-bit alignment would just be wasteful in most cases.
+
+There are a few errors in the block tests, and a few more in the double tests.
+There is a crash in the exceptions test.  Floating point hasn't been tested at
+all yet.
+
+The x86 and amd64 assembly code have been updated for the 2012 test changes,
+I haven't touched the arm32 code at all, it needs at least '+loop' and 'within'
+to be updated.  The Mac and Linux builds haven't been tested at all either.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+March 28 2023
+
+I've made a lot of progress towards passing the ANSI 2012 compatability tests,
+but there is a still a lot of work to do.
+
+One annoying change I needed to make was allowing multiple 'else' clauses in
+a row, which creates a pair of execution chains which are selected by the condition
+passed into the initial 'if'.  I can't think of any reason this would be useful,
+and it isn't mentioned in the ANSI spec, the test just has a note saying that
+there was a discussion on comp.lang.forth where it was decided that it should
+be a legal ANSI forth construct.  Ugh.
+
+Another test I just couldn't get to work at all, it is an abomination, which
+has an if-begin-repeat monstrosity.  gforth also throws an error when given this,
+so I don't feel guilty about going around it.  If it did work and was part of the
+spec, I would be extremely annoyed, because it would mean among other things that
+you can't warn programmers when they are doing things obviously wrong with control
+structures.  If a programmer needs a control structure to do something bizarre,
+the spirit of forth is that they can write their own bizarro control structure
+ops.
+
+Another gotcha I will need to watch out for is that I found that ANSI has defined
+escape characters for some ops, and their choices didn't 100% match mine, but they
+were pretty close.  One thing is that I had defined \q to mean single quote and \s
+to mean space, they have \q being double quote.  I redefined \_ to be space and \s
+to be single quote.  All of the cases where I was using \s in my scripts were in
+single character constants that could be replaced with the 'bl' operator.
+
+I am currently in a hell of my own making, involving 'evaluate'.  There is a
+design flaw in my input system, or maybe in its interaction with the shell.
+
+The base InputStream class has a large input buffer (4k), but the BufferInputStream
+was creating another buffer for its contents, I changed it to just use the base
+class input buffer.  It turns out that for some reason, I get the input from
+the current stream, and then later on do a StuffBuffer on that same stream,
+which copies it into the base class input buffer.  For BufferInputStreams,
+this causes the contents to keep being refilled with the same junk in a soft infinite loop.
+
+The way input and the shell are integrated is a mess, mostly because it has
+evolved over many changes and many years, and never really had a clean design.
+One example problem: continuation lines are implemented by the shell copying
+text it gets from the input stack into a continuation buffer.  What happens if
+you have a loadfile command in the middle of a text line?  The input streams
+are nicely stacked, but the continuation buffer is not.  I would have expected
+that when the loadfile command finishes, anything which was on the input line
+after the loadfile command would be lost, since the continuation buffer has
+been stomped each time the loaded file generated a fresh line of text.
+
+First steps:
+1) move continuation handling into InputStream.  The shell can detect when a
+  line ends in '\+' and call InputStream to append another line onto its
+  buffer.
+2) get rid of InputStream::StuffBuffer - I don't know why I needed it in the
+  first place.  If something needs to pass a string to be evaluated into the
+  shell it must go into a BufferInputStream to do so, no input from raw string
+  buffers.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 March 23 2023
 
 I have done a first attempt at the ANSI 2012 floating-point and double-number
@@ -2870,7 +2943,7 @@ Fixing this would require fixing every case statement in every script.
 June 10 2017
 
 I added continuations last night, it came together in just a few hours.  The
-best thing about it is that it has almost interaction with the other control
+best thing about it is that it has almost no interaction with the other control
 flow code - it doesn't use the shell stack at all.
 
 I added elseif today, the way to do it without using parenthesized expressions is:
