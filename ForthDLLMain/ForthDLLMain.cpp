@@ -5,8 +5,11 @@
 #include "windows.h"
 #include "..\ForthDLL\ForthDLL.h"
 
+//
+// typedef for ctrl-c handler routines
+//
 
-static BOOL consoleControlEventHandler(DWORD eventType)
+static BOOL __stdcall consoleControlEventHandler(DWORD eventType)
 {
     BOOL result = FALSE;
     if (eventType == CTRL_C_EVENT)

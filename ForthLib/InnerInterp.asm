@@ -5115,7 +5115,7 @@ entry doCheckDoBop
 	mov	ecx, [rpsp+4]	; ecx is end index
 	add	rpsp, 8
 	cmp	eax,ecx
-	jge	doCheckDoBop1
+	je	doCheckDoBop1
 	
 	mov	ebx, [rcore + FCore.RPtr]
 	sub	ebx, 12
@@ -5150,26 +5150,36 @@ doLoopBop1:
 ;========================================
 
 entry doLoopNBop
-	mov	ebx, [rcore + FCore.RPtr]	; rcore is RP
-	mov	eax, [rpsp]		; pop N into eax
+    ; index: rrp
+    ; limit: rrp + 4
+    ; top of loop IP: rrp + 8
+    ;   oldDiff = index - limit;
+    ;   done = (((oldDiff ^ (oldDiff + increment)) & (oldDiff ^ increment)) < 0);
+    mov [rcore + FCore.IPtr], rip
+    mov	rip, [rcore + FCore.RPtr]	; rip is RP
+	mov	eax, [rpsp]		; eax = increment
 	add	rpsp, 4
-	or	eax, eax
-	jl	doLoopNBop1		; branch if increment negative
-	add	eax, [ebx]		; eax is new i
-	cmp	eax, [ebx+4]
-	jge	doLoopBop1		; jump if done
-	mov	[ebx], eax		; update i
-	mov	rip, [ebx+8]		; branch to top of loop
+    mov ebx, [rip]      ; ebx = index
+    mov ecx, eax
+    add ecx, ebx        ; ecx = new index
+    mov [rip], ecx      ; update saved index
+    sub ebx, [rip + 4]  ; ebx = oldDiff (oldIndex - limit)
+    mov ecx, eax
+    add ecx, ebx        ; ecx = oldDiff + increment
+    xor ecx, ebx        ; ecx = oldDiff ^ (oldDiff + increment)
+	xor	eax, ebx        ; eax = oldDiff ^ increment
+    and eax, ecx        ; eax = ((oldDiff ^ (oldDiff + increment)) & (oldDiff ^ increment)
+	jl	doLoopNBop1		; branch if done
+	mov	rip, [rip + 8]	; branch to top of loop
 	jmp	rnext
 
 doLoopNBop1:
-	add	eax, [ebx]
-	cmp	eax, [ebx+4]
-	jl	doLoopBop1		; jump if done
-	mov	[ebx], eax		; ipdate i
-	mov	rip, [ebx+8]		; branch to top of loop
+	add	rip, 12
+	mov	[rcore + FCore.RPtr], rip
+    mov	rip, [rcore + FCore.IPtr]
 	jmp	rnext
-	
+
+
 ;========================================
 
 entry iBop
@@ -5593,19 +5603,22 @@ ultBop2:
 
 entry withinBop
 	; tos: hiLimit loLimit value
+    ; result: (value - loLimit) < (hiLimit - loLimit) ? -1L : 0;
+    push rip
 	xor	eax, eax
-	mov	ebx, [rpsp+8]	; ebx = value
-withinBop1:
-	cmp	[rpsp], ebx
-	jle	withinFail
-	cmp	[rpsp+4], ebx
-	jg	withinFail
+	mov	ebx, [rpsp + 16]	; ebx = value
+    mov ecx, [rpsp + 8]
+    sub ebx, ecx            ; ebx = value - loLimit
+    mov rip, [rpsp]
+    sub rip, ecx            ; rip = hiLimit - loLimit
+    cmp ebx, rip
+    jae withinFail
 	dec	eax
 withinFail:
+    pop rip
 	add rpsp, 8
 	mov	[rpsp], eax		
 	jmp	rnext
-	
 ;========================================
 
 entry clampBop
@@ -7399,6 +7412,17 @@ entry	setTraceBop
 	mov	[rcore + FCore.SPtr], rpsp
 	mov	[rcore + FCore.IPtr], rip
 	jmp interpFunc
+
+;========================================
+entry   countBop
+	mov	eax, [rpsp]
+	xor ebx, ebx
+    mov bl, BYTE[eax]
+    add eax, 1
+	mov	[rpsp], eax
+    sub rpsp, 4
+	mov	[rpsp], ebx
+    jmp rnext
 
 %ifdef PRINTF_SUBS_IN_ASM
 

@@ -5137,7 +5137,7 @@ entry doCheckDoBop
 	mov	rcx, [rpsp + 8]	; rcx is end index
 	add	rpsp, 16
 	cmp	rax, rcx
-	jge	doCheckDoBop1
+	je	doCheckDoBop1
 	
 	sub	rrp, 24
 	; @RP-2 holds top-of-loop-IP
@@ -5184,25 +5184,27 @@ doLoopBop1:
 ;========================================
 
 entry doLoopNBop
-	mov	rax, [rpsp]		; pop N into rax
+    ; index: rrp
+    ; limit: rrp + 8
+    ; top of loop IP: rrp + 16
+    ;   oldDiff = index - limit;
+    ;   done = (((oldDiff ^ (oldDiff + increment)) & (oldDiff ^ increment)) < 0);
+	mov	rax, [rpsp]		; rax = increment
 	add	rpsp, 8
-	or	rax, rax
-	jl	doLoopNBop1		; branch if increment negative
-	add	rax, [rrp]		; rax is new i
-	cmp	rax, [rrp + 8]
-	jge	doLoopBop1		; jump if done
-	mov	[rrp], rax		; update i
+    mov rbx, [rrp]      ; rbx = index
+    mov rcx, rax
+    add rcx, rbx        ; rcx = new index
+    mov [rrp], rcx      ; update saved index
+    sub rbx, [rrp + 8]  ; rbx = oldDiff
+    mov rcx, rax
+    add rcx, rbx        ; rcx = oldDiff + increment
+    xor rcx, rbx        ; rcx = oldDiff ^ (oldDiff + increment)
+	xor	rax, rbx        ; rax = oldDiff ^ increment
+    and rax, rcx        ; rax = ((oldDiff ^ (oldDiff + increment)) & (oldDiff ^ increment)
+	jl	doLoopBop1		; branch if done
 	mov	rip, [rrp + 16]		; branch to top of loop
 	jmp	rnext
 
-doLoopNBop1:
-	add	rax, [rrp]
-	cmp	rax, [rrp + 8]
-	jl	doLoopBop1		; jump if done
-	mov	[rrp], rax		; update i
-	mov	rip, [rrp + 16]		; branch to top of loop
-	jmp	rnext
-	
 ;========================================
 
 entry doNextBop
@@ -5619,13 +5621,15 @@ ultBop2:
 
 entry withinBop
 	; tos: hiLimit loLimit value
+    ; result: (value - loLimit) < (hiLimit - loLimit) ? -1L : 0;
 	xor	rax, rax
 	mov	rbx, [rpsp + 16]	; rbx = value
-withinBop1:
-	cmp	[rpsp], rbx
-	jle	withinFail
-	cmp	[rpsp + 8], rbx
-	jg	withinFail
+    mov rcx, [rpsp + 8]
+    sub rbx, rcx            ; rbx = value - loLimit
+    mov rdx, [rpsp]
+    sub rdx, rcx            ; rdx = hiLimit - loLimit
+    cmp rbx, rdx
+    jae withinFail
 	dec	rax
 withinFail:
 	add rpsp, 16
@@ -7335,6 +7339,17 @@ entry	setTraceBop
 	mov	[rcore + FCore.SPtr], rpsp
 	mov	[rcore + FCore.IPtr], rip
 	jmp interpFuncReenter
+
+;========================================
+entry   countBop
+	mov	rax, [rpsp]
+	xor rbx, rbx
+    mov bl, BYTE[rax]
+    add rax, 1
+	mov	[rpsp], rax
+    sub rpsp, 8
+	mov	[rpsp], rbx
+    jmp rnext
 
 %ifdef PRINTF_SUBS_IN_ASM
 
