@@ -33,8 +33,8 @@ autoforget double
 : d>= dcmp 0>= ;
 : d0< swap drop 0< ;
   
-: du<
-  rot swap
+: du<           \ alo ahi blo bhi
+  rot swap      \ alo blo ahi bhi
   u< if
     2drop true
   else
@@ -56,7 +56,7 @@ autoforget double
   swap 2/
 ;
 
-: m+ 0 d+ ;
+: m+ s>d d+ ;
 
 : m*/
   >r s>d >r abs -rot s>d r> xor r> swap

@@ -90,9 +90,9 @@ SECTION .text
 
 ; register usage in a forthOp:
 ;
-;	EAX		free
-;	EBX		free
-;	ECX		free
+;	RAX		free
+;	RBX		free
+;	RCX		free
 ;	ESI		IP
 ;	RDI		inner interp PC (constant)
 ;	R9		ops table (volatile on external calls)
@@ -678,7 +678,7 @@ entry cCodeU32Type
     jmp cCodeType
 
 entry cCodeS32Type
-    movsx	rax, WORD[rip]
+    movsx	rax, DWORD[rip]
     add rip, 4
     sub rpsp, 8
     mov [rpsp], rax
@@ -3797,11 +3797,39 @@ entry times8Bop
 
 ;========================================
 	
-entry divideBop
-	; idiv takes 128-bit numerator in rdx:rax
+; take numerator and denominator on TOS, return quotient in rax, remainder in rbx
+flooredDivMod:
+    ; TOS: denominator numerator
+    xor r8, r8                        ; r8 will be sign mismatch flag
 	mov	rax, [rpsp+8]	; get numerator
+    or rax, rax
+    jge .fdm1
+    inc r8             ; numerator is negative
+.fdm1:
+    mov rcx, [rpsp]
+    or rcx, rcx
+    jge .fdm2
+    inc r8             ; denominator is negative
+.fdm2:
 	cqo					; convert into 128-bit in rdx:rax
-	idiv	QWORD[rpsp]		; rax is quotient, rdx is remainder
+	; idiv takes 64-bit numerator in rdx:rax
+    ; returns quotient in rax, remainder in rdx
+	idiv	rcx		; rax is quotient, rdx is remainder
+    or rdx, rdx
+    jz .fdm9         ; no remainder, no floored cleanup needed
+    test r8, 1
+    jz .fdm9
+    ; there is a remainder and num/denom signs don't match, adjust quot/rem
+    dec rax
+    add rdx, [rpsp]
+.fdm9:
+    mov rbx, rdx
+    ret
+
+;========================================
+
+entry divideBop
+    call flooredDivMod
 	add	rpsp, 8
 	mov	[rpsp], rax
 	jmp	rnext
@@ -3833,10 +3861,7 @@ entry divide8Bop
 ;========================================
 	
 entry divmodBop
-	; idiv takes 128-bit numerator in rdx:rax
-	mov	rax, [rpsp+8]	; get numerator
-	cqo					; convert into 128-bit in rdx:rax
-	idiv	QWORD[rpsp]		; rax is quotient, rdx is remainder
+    call flooredDivMod
 	mov	[rpsp+8], rdx
 	mov	[rpsp], rax
 	jmp	rnext
@@ -3844,10 +3869,7 @@ entry divmodBop
 ;========================================
 	
 entry modBop
-	; idiv takes 128-bit numerator in rdx:rax
-	mov	rax, [rpsp+8]	; get numerator
-	cqo					; convert into 128-bit in rdx:rax
-	idiv	QWORD[rpsp]		; rax is quotient, rdx is remainder
+    call flooredDivMod
 	add	rpsp, 8
 	mov	[rpsp], rdx
 	jmp	rnext
@@ -5629,9 +5651,9 @@ entry withinBop
     mov rdx, [rpsp]
     sub rdx, rcx            ; rdx = hiLimit - loLimit
     cmp rbx, rdx
-    jae withinFail
+    jae .within1
 	dec	rax
-withinFail:
+.within1:
 	add rpsp, 16
 	mov	[rpsp], rax		
 	jmp	rnext

@@ -6910,7 +6910,12 @@ FORTHOP( divideBop )
     NEEDS(2);
     cell b = SPOP;
     cell a = SPOP;
-    SPUSH( a / b );
+    cell quotient;
+    cell remainder;
+
+    flooredDivMod(a, b, quotient, remainder);
+
+    SPUSH(quotient);
 }
 
 FORTHOP( divide2Bop )
@@ -6934,11 +6939,10 @@ FORTHOP( divide8Bop )
     SPUSH( a >> 3 );
 }
 
-FORTHOP( divmodBop )
+void flooredDivMod(cell a, cell b, cell& quotient, cell& remainder)
 {
-    NEEDS(2);
-    cell b = SPOP;
-    cell a = SPOP;
+    // all this hoo-hah is to force floored division, C/C++ unpredictably uses symmetric or floored
+    // depending on the hardware and compiler revision
 #if defined(FORTH64)
     lldiv_t v;
     v = lldiv(a, b);
@@ -6965,8 +6969,30 @@ FORTHOP( divmodBop )
 
 #endif
 #endif
-    SPUSH( v.rem );
-    SPUSH( v.quot );
+    // if there was a remainder and signs don't match, floored division
+    //  has a quotient one less than that for symmetrical division
+    if (v.rem && ((a < 0) != (b < 0)))
+    {
+        v.quot--;
+        v.rem += b;
+    }
+
+    quotient = v.quot;
+    remainder = v.rem;
+}
+
+FORTHOP( divmodBop )
+{
+    NEEDS(2);
+    cell b = SPOP;
+    cell a = SPOP;
+    cell quotient;
+    cell remainder;
+
+    flooredDivMod(a, b, quotient, remainder);
+
+    SPUSH(remainder);
+    SPUSH(quotient);
 }
 
 FORTHOP( mtimesBop )
@@ -7039,7 +7065,12 @@ FORTHOP( modBop )
     NEEDS(2);
     cell b = SPOP;
     cell a = SPOP;
-    SPUSH( a % b );
+    cell quotient;
+    cell remainder;
+
+    flooredDivMod(a, b, quotient, remainder);
+
+    SPUSH(remainder);
 }
 
 FORTHOP( negateBop )

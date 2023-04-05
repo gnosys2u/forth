@@ -1324,12 +1324,15 @@ void OuterInterpreter::ProcessDoubleCellConstant(const doubleCell& value)
 
 #if defined(FORTH64)
         CompileBuiltinOpcode(OP_I128_VAL);
-#else
-        CompileBuiltinOpcode(OP_LONG_VAL);
-#endif
         ucell* pDP = (ucell*)(mpDictionary->pCurrent);
         *pDP++ = value.ucells[1];
         *pDP++ = value.ucells[0];
+#else
+        CompileBuiltinOpcode(OP_LONG_VAL);
+        ucell* pDP = (ucell*)(mpDictionary->pCurrent);
+        *pDP++ = value.ucells[0];
+        *pDP++ = value.ucells[1];
+#endif
         mpDictionary->pCurrent = (forthop*)pDP;
     }
     else

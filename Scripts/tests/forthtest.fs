@@ -222,7 +222,7 @@ test[ -6324127 0<> 0 0<> not 5748 0<> ] test[ -500 0> not 0 0> not 345879 0> ] t
 \ + - * / or and xor not 
 test[ 1 5 + 6 = ] test[ 1 -4 + -3 = ] test[ $80000000 -1 + $7fffffff = ] test[ 1 5 - -4 = ]
 test[ 1 -4 - 5 = ] test[ $80000000 -1 - $80000001 = ] test[ 3 7 * 21 = ] test[ $101 $11 * $1111 = ]
-test[ -5 -7 * 35 = ] test[ 22 7 / 3 = ] test[ 99 11 / 9 = ] test[ -100 7 / -14 = ] test[ -65535 256 / -255 = ]
+test[ -5 -7 * 35 = ] test[ 22 7 / 3 = ] test[ 99 11 / 9 = ] test[ -100 7 / -15 = ] test[ -65535 256 / -256 = ]
 test[ true false or ] test[ 33 7 or 39 = ] test[ $f0f $0f0 or $fff = ] test[ $1234 $350461 or $351675 = ]
 test[ true false and not ] test[ 33 7 and 1 = ] test[ $f0f $0f0 and 0= ] test[ true false xor   33 7 xor 38 = ]
 test[ $f0f $0f0 xor $fff = ] test[ $505 $141 xor $444 = ]

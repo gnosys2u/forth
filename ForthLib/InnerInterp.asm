@@ -3575,17 +3575,44 @@ entry times8Bop
 	jmp	rnext
 
 ;========================================
-	
+
+; take numerator and denominator on TOS, return quotient in eax, remainder in ebx
+flooredDivMod:
+    ; TOS: denominator numerator
+	mov [rcore + FCore.IPtr], rip       ; free up rip
+    xor rip, rip                        ; rip will be sign mismatch flag
+    mov ebx, rpsp                       ; need rpsp/edx for idiv, use ebx for param stack ptr
+	mov	eax, [ebx+4]	; get numerator
+    or eax, eax
+    jge .fdm1
+    inc rip             ; numerator is negative
+.fdm1:
+    mov ecx, [ebx]
+    or ecx, ecx
+    jge .fdm2
+    inc rip             ; denominator is negative
+.fdm2:
+    cdq					; convert into 64-bit in edx:eax
+	; idiv takes 64-bit numerator in edx:eax
+    ; returns quotient in eax, remainder in edx
+	idiv	ecx		; eax is quotient, edx is remainder
+    or edx, edx
+    jz .fdm9         ; no remainder, no floored cleanup needed
+    test rip, 1
+    jz .fdm9
+    ; there is a remainder and num/denom signs don't match, adjust quot/rem
+    dec eax
+    add edx, [ebx]
+.fdm9:
+	mov	rip, [rcore + FCore.IPtr]
+    xchg ebx, edx
+    ret
+
 entry divideBop
-	; idiv takes 64-bit numerator in rpsp:eax
-	mov	ebx, rpsp
-	mov	eax, [rpsp+4]	; get numerator
-	cdq					; convert into 64-bit in rpsp:eax
-	idiv	DWORD[ebx]		; eax is quotient, rpsp is remainder
-	add	ebx, 4
-	mov	[ebx], eax
-	mov	rpsp, ebx
-	jmp	rnext
+    call flooredDivMod
+    add rpsp, 4
+    mov [rpsp], eax
+    jmp rnext
 
 ;========================================
 
@@ -3614,28 +3641,18 @@ entry divide8Bop
 ;========================================
 	
 entry divmodBop
-	; idiv takes 64-bit numerator in rpsp:eax
-	mov	ebx, rpsp
-	mov	eax, [rpsp+4]	; get numerator
-	cdq					; convert into 64-bit in rpsp:eax
-	idiv	DWORD[ebx]		; eax is quotient, rpsp is remainder
-	mov	[ebx+4], rpsp
-	mov	[ebx], eax
-	mov	rpsp, ebx
+    call flooredDivMod
+	mov	[rpsp+4], ebx
+    mov [rpsp], eax
 	jmp	rnext
 	
 ;========================================
 	
 entry modBop
-	; idiv takes 64-bit numerator in rpsp:eax
-	mov	ebx, rpsp
-	mov	eax, [rpsp+4]	; get numerator
-	cdq					; convert into 64-bit in rpsp:eax
-	idiv	DWORD[ebx]		; eax is quotient, rpsp is remainder
-	add	ebx, 4
-	mov	[ebx], rpsp
-	mov	rpsp, ebx
-	jmp	rnext
+    call flooredDivMod
+    add rpsp, 4
+    mov [rpsp], ebx
+    jmp rnext
 	
 ;========================================
 	
@@ -5604,21 +5621,24 @@ ultBop2:
 entry withinBop
 	; tos: hiLimit loLimit value
     ; result: (value - loLimit) < (hiLimit - loLimit) ? -1L : 0;
-    push rip
 	xor	eax, eax
-	mov	ebx, [rpsp + 16]	; ebx = value
-    mov ecx, [rpsp + 8]
+	mov	[rcore + FCore.IPtr], rip
+    mov rip, edx            ; free up edx (AKA rpsp)
+	mov	ebx, [rip + 8]	    ; ebx = value
+    mov ecx, [rip + 4]      ; ecx = loLimit
     sub ebx, ecx            ; ebx = value - loLimit
-    mov rip, [rpsp]
-    sub rip, ecx            ; rip = hiLimit - loLimit
-    cmp ebx, rip
-    jae withinFail
+    mov edx, [rip]          ; edx = hiLimit
+    sub edx, ecx            ; edx = hiLimit - loLimit
+    cmp ebx, edx
+    jae within1
 	dec	eax
-withinFail:
-    pop rip
+within1:
+    mov rpsp, rip
+	mov	rip, [rcore + FCore.IPtr]
 	add rpsp, 8
 	mov	[rpsp], eax		
 	jmp	rnext
+
 ;========================================
 
 entry clampBop
