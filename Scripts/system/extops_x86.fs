@@ -327,26 +327,67 @@ code 2r@
   next,
   
 code */
+  esi push,
   edx ebx mov,
   4 ebx d] eax mov,
   8 ebx d] ecx mov,
   ecx eax imul,      \ result hiword in edx, loword in eax
-  ebx ] idiv,
+  esi esi xor,
+  edx edx or,
+  0<, if,
+    esi inc,
+  endif,
+  ebx ] ecx mov,
+  ecx idiv,
+  ecx ecx or,
+  0<, if,
+    esi inc,
+  endif,
+  \ if there is a remainder, check if num/denom signs unequal
+  edx edx or,
+  nz, if,
+    1 # esi test,
+    nz, if,
+      eax dec,
+    endif,
+  endif,
   8 # ebx add,
   eax ebx ] mov,
   ebx edx mov,
+  esi pop,
   next,
   
 code */mod
+  esi push,
   edx ebx mov,
   4 ebx d] eax mov,
   8 ebx d] ecx mov,
   ecx eax imul,      \ result hiword in edx, loword in eax
-  ebx ] idiv,
+  esi esi xor,
+  edx edx or,
+  0<, if,
+    esi inc,
+  endif,
+  ebx ] ecx mov,
+  ecx ecx or,
+  0<, if,
+    esi inc,
+  endif,
+  ecx idiv,
+  \ if there is a remainder, check if num/denom signs unequal
+  edx edx or,
+  nz, if,
+    1 # esi test,
+    nz, if,
+      eax dec,
+      ecx edx add,
+    endif,
+  endif,
   4 # ebx add,
   eax ebx ] mov,
   edx 4 ebx d] mov,
   ebx edx mov,
+  esi pop,
   next,
   
 code um/mod
@@ -377,6 +418,41 @@ code sm/rem
   ebx edx mov,
   next,
   
+code fm/mod
+  \ edx: 32-bit signed denominator
+  \ edx+4: 64-bit signed numerator
+  \ idiv takes 64-bit numerator in edx:eax
+  esi push,
+  edx ebx mov,
+  8 ebx d] eax mov,   \ numerator low part
+  4 ebx d] edx mov,   \ numerator high part
+  esi esi xor,
+  edx edx or,
+  0<, if,
+    esi inc,
+  endif,
+  ebx ] ecx mov,
+  ecx ecx or,
+  0<, if,
+    esi inc,
+  endif,
+  ecx idiv,
+  \ if there is a remainder, check if num/denom signs unequal
+  edx edx or,
+  nz, if,
+    1 # esi test,
+    nz, if,
+      eax dec,
+      ecx edx add,
+    endif,
+  endif,
+  4 # ebx add,
+  eax ebx ] mov,
+  edx 4 ebx d] mov,
+  ebx edx mov,
+  esi pop,
+  next,
+
 code compareMemory
   \ edx: numBytes
   \ edx+4: block2

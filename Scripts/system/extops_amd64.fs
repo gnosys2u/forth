@@ -293,8 +293,27 @@ code 2r@
 code */
   8 rpsp d] rax mov,
   $10 rpsp d] rcx mov,
-  rcx rax imul,      \ result hiword in rdx, loword in rax
-  rpsp ] idiv,
+  rcx rax imul,         \ result hiword in rdx, loword in rax
+  rpsp ] rbx mov,       \ rbx is denominator
+  \ test hiword of numerator and denominator for sign mismatch, result is lobit of r8
+  r8 r8 xor,
+  rax rax or,
+  0<, if,
+    r8 inc,
+  endif,
+  rbx rbx or,
+  0<, if,
+    r8 inc,
+  endif,
+  rbx idiv,
+  \ if there is a remainder, then check sign mismatch
+  rdx rdx or,
+  nz, if,
+    1 # r8 test,
+    nz, if,
+      rax dec,
+    endif,
+  endif,
   $10 # rpsp add,
   rax rpsp ] mov,
   next,
@@ -302,8 +321,28 @@ code */
 code */mod
   8 rpsp d] rax mov,
   $10 rpsp d] rcx mov,
-  rcx rax imul,      \ result hiword in edx, loword in rax
-  rpsp ] idiv,
+  rcx rax imul,         \ result hiword in rdx, loword in rax
+  rpsp ] rbx mov,       \ rbx is denominator
+  \ test hiword of numerator and denominator for sign mismatch, result is lobit of r8
+  r8 r8 xor,
+  rax rax or,
+  0<, if,
+    r8 inc,
+  endif,
+  rbx rbx or,
+  0<, if,
+    r8 inc,
+  endif,
+  rbx idiv,
+  \ if there is a remainder, then check sign mismatch
+  rdx rdx or,
+  nz, if,
+    1 # r8 test,
+    nz, if,
+      rax dec,
+      rbx rdx add,
+    endif,
+  endif,
   8 # rpsp add,
   rax rpsp ] mov,
   rdx 8 rpsp d] mov,
@@ -316,7 +355,7 @@ code um/mod
   $10 rpsp d] rax mov,   \ numerator low part
   8 # rpsp add,
   rpsp ] rdx mov,   \ numerator high part
-  rcx div,            \ rax is quotient, edx is remainder
+  rcx div,            \ rax is quotient, rdx is remainder
   rdx 8 rpsp d] mov,
   rax rpsp ] mov,
   next,
@@ -324,10 +363,43 @@ code um/mod
 code sm/rem
   \ rpsp: 64-bit signed denominator
   \ rpsp+8: 128-bit signed numerator
-  \ idiv takes 128-bit numerator in edx:rax
+  \ idiv takes 128-bit numerator in rdx:rax
   $10 rpsp d] rax mov,   \ numerator low part
   8 rpsp d] rdx mov,   \ numerator high part
+  \ cpu idiv instruction does symmetric division, no fixup needed
   rpsp ] idiv,
+  8 # rpsp add,
+  rdx 8 rpsp d] mov,
+  rax rpsp ] mov,
+  next,
+  
+code fm/mod
+  \ rpsp: 64-bit signed denominator
+  \ rpsp+8: 128-bit signed numerator
+  \ idiv takes 128-bit numerator in rdx:rax
+  $10 rpsp d] rax mov,  \ numerator low part
+  8 rpsp d] rdx mov,    \ numerator high part
+  rpsp ] rbx mov,       \ rbx is denominator
+  \ test hiword of numerator and denominator for sign mismatch, result is lobit of r8
+  r8 r8 xor,
+  rdx rdx or,
+  0<, if,
+    r8 inc,
+  endif,
+  rbx rbx or,
+  0<, if,
+    r8 inc,
+  endif,
+  rbx idiv,
+  \ if there is a remainder, then check sign mismatch
+  rdx rdx or,
+  nz, if,
+    1 # r8 test,
+    nz, if,
+      rax dec,
+      rbx rdx add,
+    endif,
+  endif,
   8 # rpsp add,
   rdx 8 rpsp d] mov,
   rax rpsp ] mov,

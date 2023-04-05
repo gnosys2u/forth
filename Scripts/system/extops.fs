@@ -52,7 +52,6 @@ precedence doescode
   quotient--
   remainder quotient
 ;
-#endif
 
 : fm/mod ( d n -- rem quot )
   dup >r
@@ -64,6 +63,8 @@ precedence doescode
     rdrop
   then
 ;
+
+#endif
 
 \ ud1 c-addr1 u1 -- ud2 c-addr2 u2 
 : >number

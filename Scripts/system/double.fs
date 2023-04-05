@@ -33,10 +33,10 @@ autoforget double
 : d>= dcmp 0>= ;
 : d0< swap drop 0< ;
   
-: du<           \ alo ahi blo bhi
-  rot swap      \ alo blo ahi bhi
-  u< if
-    2drop true
+: du<
+  rot swap      \ alo blo ahi bhi :TOS
+  ucmp ?dup if
+    >r  2drop r> 0<
   else
     u<
   endif

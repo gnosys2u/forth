@@ -285,6 +285,20 @@ FORTHOP( smRemOp )
 	SPUSH(remainder);
 	SPUSH(quotient);
 }
+
+FORTHOP(fmModOp)
+{
+    TODO! do the floored division stuff
+    stackInt64 a;
+    int denom = SPOP;
+    //LPOP(a);
+    a.s32[1] = SPOP;
+    a.s32[0] = SPOP;
+    int quotient = a.s64 / denom;
+    int remainder = a.s64 % denom;
+    SPUSH(remainder);
+    SPUSH(quotient);
+}
 #endif
 
 #if !defined(FORTH64)
@@ -10535,6 +10549,7 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    timesDivModOp,          "*/mod" ),
     OP_DEF(    umDivModOp,             "um/mod" ),
     OP_DEF(    smRemOp,                "sm/rem" ),
+    OP_DEF(    fmModOp,                "fm/mod" ),
 #endif   
     
     ///////////////////////////////////////////
