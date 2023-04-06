@@ -131,8 +131,7 @@ NumberType NumberParser::ScanNumber(const char* pSrcString, int defaultBase)
             if (isLastChar)
             {
                 // last char is minus, so this NNN-, which is a negative offset op
-                mIsNegative = true;
-                mIsNegative = ~mIsNegative;
+                mIsNegative = !mIsNegative;
                 mIsOffset = true;
             }
             else

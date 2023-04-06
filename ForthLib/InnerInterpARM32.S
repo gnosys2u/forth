@@ -206,7 +206,7 @@ filePutString	=		48
 	.global nullBop, dnullBop, llshiftBop, lrshiftBop, lrotateBop, ireverseBop, countLeadingZerosBop, countTrailingZerosBop
 	.global equalsBop, notEqualsBop, greaterThanBop, greaterEqualsBop, lessThanBop, lessEqualsBop
 	.global equals0Bop, notEquals0Bop, greaterThan0Bop, greaterEquals0Bop, lessThan0Bop, lessEquals0Bop
-	.global rpushBop, rpopBop, rdropBop, rpBop, r0Bop, dupBop, checkDupBop, swapBop, overBop
+	.global rpushBop, rpopBop, rdropBop, rpBop, r0Bop, dupBop, checkDupBop, swapBop, overBop, countBop
 	.global rotBop, tuckBop, pickBop, spBop, s0Bop, fpBop, ddupBop, dswapBop, ddropBop, doverBop, drotBop
 	.global istoreBop, bstoreBop, ubfetchBop, bfetchBop, c2iBop, sstoreBop, sfetchBop, usfetchBop, w2iBop, dstoreBop
 	.global lstoreBop, lfetchBop, lstoreNextBop, lfetchNextBop, odropBop, plusStoreCellBop, plusStoreAtomicCellBop
@@ -3311,30 +3311,25 @@ doLoopBop:
 
 
 doLoopNBop:
-	ldmia	rrp, {r0, r1}	@ r0 = current loop index, r1 = end index
+	ldmia	rrp, {r0, r1}	@ r0 = oldIndex, r1 = limit
 	ldmia	rsp!, {r2}		@ r2 = increment
+	mov r3, r0				@ r3 = oldIndex
 	add	r0, r2				@ add increment to current index
 	str	r0,[rrp]
-	cmp	r2, #0
-	blt	.doLoopNBop1		@ branch if increment is negative
+	sub r3, r1				@ r3 = oldDiff (oldIndex - limit)
+	add r1, r3, r2			@ r1 = oldDiff + increment
+	eor r0, r3, r2			@ r0 = oldDiff ^ increment
+	eor r1, r3				@ r1 = oldDiff ^ (oldDiff + increment)
+	ands r0, r1				@ r0 = done = (((oldDiff ^ (oldDiff + increment)) & (oldDiff ^ increment)) < 0);
 
-	@ r2 is positive increment
-	cmp	r0, r1
-	bge	.doLoopNBop2		@ branch if done
+	blt	.doLoopNBop1		@ branch if done
 	ldr	rip, [rrp, #8]		@ go back to top of loop
 	bx	lr
 
 .doLoopNBop1:
-	@ r2 is negative increment
-	cmp	r0, r1
-	blt	.doLoopNBop2		@ branch if done
-	ldr	rip, [rrp, #8]		@ go back to top of loop
-	bx	lr
-	
-.doLoopNBop2:
 	add	rrp, #12				@ deallocate start index, end index, start loop IP
 	bx	lr
-	
+
 @@@@@@@@@@@@@@@@@  _checkDo  @@@@@@@@@@@@@@@@@
 	
 @
@@ -3345,14 +3340,14 @@ doLoopNBop:
 doCheckDoBop:
 	ldmia	rsp!, {r0, r1}	@ r0 = start index, r1 = end index
 	cmp	r0, r1
-	bge	dcdo1
+	beq	.dcdo1
 	
 	@ rstack[2] holds top-of-loop IP
 	add	rip, #4				@ skip over loop exit branch right after this op
 	stmdb	rrp!, {rip}		@ rpush start-of-loop IP
 	stmdb	rrp!, {r1}		@ rpush end index
 	stmdb	rrp!, {r0}		@ rpush start index
-dcdo1:
+.dcdo1:
 	bx	lr
 	
 @@@@@@@@@@@@@@@@@  d@  @@@@@@@@@@@@@@@@@
@@ -3508,16 +3503,36 @@ times8Bop:
 	
 @@@@@@@@@@@@@@@@@  /  @@@@@@@@@@@@@@@@@
 
-	.global	__aeabi_idiv
 divideBop:
-	push	{r12, lr}
-	ldmia	rsp!, {r1}
-	ldr	r0, [rsp]
-	bl	__aeabi_idiv
-	str	r0, [rsp]
-	pop	{r12, lr}
+	push	{lr}
+	ldr	r2, [rsp]				@ r2 = denominator
+	ldr	r1, [rsp, #4]			@ r1 = numerator
+	@ check for sign mismatch in num/denom
+	eor r3, r3
+	orrs r1, r1
+	addmi r3, #1
+	orrs r2, r2
+	addmi r3, #1
+	push	{r3}
+	sub	sp, #12					@ ? scratch space for div routine ?
+	mov	r0, sp
+	bl	div
+	ldr	r1, [sp, #4]			@ r1 = remainder
+	ldr	r2, [sp]				@ r2 = quotient
+	add	sp, #12
+	pop	{r3}
+	orrs r1, r1
+	beq .divide1
+	@ remainder is nonzero, adjust result if signs mismatched
+	ands r3, #1
+	beq .divide1
+	sub r2, #1
+.divide1:
+	add rsp, #4
+	str	r2, [rsp]
+	pop	{lr}
 	bx	lr
-	
+
 @@@@@@@@@@@@@@@@@  /2  @@@@@@@@@@@@@@@@@
 
 divide2Bop:
@@ -3548,27 +3563,65 @@ divmodBop:
 	push	{lr}
 	ldr	r2, [rsp]				@ r2 = denominator
 	ldr	r1, [rsp, #4]			@ r1 = numerator
+	@ check for sign mismatch in num/denom
+	eor r3, r3
+	orrs r1, r1
+	addmi r3, #1
+	orrs r2, r2
+	addmi r3, #1
+	push	{r3}
 	sub	sp, #12					@ ? scratch space for div routine ?
 	mov	r0, sp
 	bl	div
-	ldr	r1, [sp, #4]
-	str	r1, [rsp, #4]
-	ldr	r2, [sp]
-	str	r2, [rsp]
+	ldr	r1, [sp, #4]			@ r1 = remainder
+	ldr	r2, [sp]				@ r2 = quotient
 	add	sp, #12
+	pop	{r3}
+	orrs r1, r1
+	beq .divmod1
+	@ remainder is nonzero, adjust result if signs mismatched
+	ands r3, #1
+	beq .divmod1
+	sub r2, #1
+	ldr r3, [rsp]
+	add r1, r3
+.divmod1:
+	str	r1, [rsp, #4]
+	str	r2, [rsp]
 	pop	{lr}
 	bx	lr
 	
 @@@@@@@@@@@@@@@@@  mod  @@@@@@@@@@@@@@@@@
 
 modBop:
-	.global	__aeabi_idivmod
-	push	{r12, lr}
-	ldmia	rsp!, {r1}
-	ldr	r0, [rsp]
-	bl	__aeabi_idivmod
+	push	{lr}
+	ldr	r2, [rsp]				@ r2 = denominator
+	ldr	r1, [rsp, #4]			@ r1 = numerator
+	@ check for sign mismatch in num/denom
+	eor r3, r3
+	orrs r1, r1
+	addmi r3, #1
+	orrs r2, r2
+	addmi r3, #1
+	push	{r3}
+	sub	sp, #12					@ ? scratch space for div routine ?
+	mov	r0, sp
+	bl	div
+	ldr	r1, [sp, #4]			@ r1 = remainder
+	ldr	r2, [sp]				@ r2 = quotient
+	add	sp, #12
+	pop	{r3}
+	orrs r1, r1
+	beq .mod1
+	@ remainder is nonzero, adjust result if signs mismatched
+	ands r3, #1
+	beq .mod1
+	ldr r3, [rsp]
+	add r1, r3
+.mod1:
+	add rsp, #4
 	str	r1, [rsp]
-	pop	{r12, lr}
+	pop	{lr}
 	bx	lr
 	
 @@@@@@@@@@@@@@@@@  negate  @@@@@@@@@@@@@@@@@
@@ -5047,8 +5100,8 @@ uicmpBop:
 	ldmia	rsp!, {r0, r1}
 	eor	r2, r2
 	cmp	r1, r0
-	subhi	r2, #1
-	addcc	r2, #1
+	subcc	r2, #1
+	addhi	r2, #1
 	stmdb	rsp!, {r2}
 	bx	lr
 
@@ -5661,12 +5714,11 @@ maxBop:
 
 withinBop:
 	eor	r3,r3
-	ldmia	rsp!, {r0, r1, r2}		@ r2=test value, r1=lower bound, r0=upperBound
-	cmp	r2, r1
-	blt	.within1
+	ldmia	rsp!, {r0, r1, r2}		@ r2=value, r1=lowLimit, r0=hiLimit
+	sub r2, r1						@ r2 = value - lowLimit
+	sub r0, r1						@ r0 = hiLimit - lowLimit
 	cmp	r2, r0
-	sublt	r3, #1
-.within1:
+	sublo	r3, #1					@ true IFF (value - lowLimit) < (hiLimit - loLimit) (unsigned comparison!)
 	stmdb	rsp!, {r3}
 	bx	lr
 
@@ -6174,6 +6226,16 @@ setTraceBop:
 	add	r0, rcore, #ipsave
 	stmia	r0!, {rip-rfp}			@ save IP, SP, RP, FP to core
 	b	InnerInterpreterReentry
+
+@@@@@@@@@@@@@@@@@  countBop  @@@@@@@@@@@@@@@@@
+
+countBop:
+	ldmia	rsp!, {r1}
+	eor r0, r0
+	ldrb	r0, [r1]
+	add	r1, #1
+	stmdb	rsp!, {r0, r1}
+	bx	lr
 
 @#############################################@
 @                                             @

@@ -723,10 +723,7 @@ void OuterInterpreter::DescribeOp( const char* pSymName, forthop op, int32_t aux
             int numDumped = 0;
             while ((curIP < endIP) && notDone)
             {
-#if defined(FORTH64)
                 SNPRINTF(buff, sizeof(buff), "  +%04x  %p  ", (int)(curIP - baseIP), curIP);
-#else
-#endif
                 mpEngine->ConsoleOut(buff);
                 if (numDataToDump != 0)
                 {

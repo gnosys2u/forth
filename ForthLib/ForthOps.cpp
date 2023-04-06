@@ -244,8 +244,14 @@ FORTHOP( timesDivOp )
 	int a = SPOP;
 	int b = SPOP;
 	int64_t product = (int64_t) a * (int64_t) b;
-	int result = product / denom;
-	SPUSH(result);
+	int quotient = product / denom;
+	int remainder = product % denom;
+    if (remainder != 0 && ((product < 0) != (denom < 0)))
+    {
+        quotient--;
+    }
+
+	SPUSH(quotient);
 }
 
 FORTHOP( timesDivModOp )
@@ -256,6 +262,13 @@ FORTHOP( timesDivModOp )
 	int64_t product = (int64_t) a * (int64_t) b;
 	int quotient = product / denom;
 	int remainder = product % denom;
+    if (remainder != 0 && ((product < 0) != (denom < 0)))
+    {
+        quotient--;
+        remainder += denom;
+    }
+
+
 	SPUSH(remainder);
 	SPUSH(quotient);
 }
@@ -288,14 +301,17 @@ FORTHOP( smRemOp )
 
 FORTHOP(fmModOp)
 {
-    TODO! do the floored division stuff
     stackInt64 a;
     int denom = SPOP;
-    //LPOP(a);
     a.s32[1] = SPOP;
     a.s32[0] = SPOP;
     int quotient = a.s64 / denom;
     int remainder = a.s64 % denom;
+    if (remainder != 0 && ((a.s64 < 0) != (denom < 0)))
+    {
+        quotient--;
+        remainder += denom;
+    }
     SPUSH(remainder);
     SPUSH(quotient);
 }
@@ -4049,8 +4065,7 @@ FORTHOP(representOp)
 {
     char buffer[48];
     char fmtString[16];
-    //cell precision = SPOP;
-    cell bufferLen = SPOP;
+    size_t bufferLen = (size_t)(SPOP);
     char* pDstBuffer = (char*)(SPOP);
     double val = DPOP;
 
@@ -4063,7 +4078,7 @@ FORTHOP(representOp)
         val = -val;
         isNegative = -1;
     }
-    //SNPRINTF(fmtString, sizeof(fmtString) - 1, "%%.%de", precision);
+
     SNPRINTF(fmtString, sizeof(fmtString) - 1, "%%.%de", bufferLen - 1);
 
     buffer[0] = '\0';
@@ -4072,7 +4087,7 @@ FORTHOP(representOp)
     {
         isValid = 0;
         // this is something like '+infinity' or 'nan'
-        memcpy(pDstBuffer, &(buffer[0]), min(bufferLen, strlen(buffer)));
+        memcpy(pDstBuffer, &(buffer[0]), std::min(bufferLen, strlen(buffer)));
     }
     else
     {

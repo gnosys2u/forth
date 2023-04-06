@@ -11,7 +11,7 @@
 #include <string.h>
  
 #include "Shell.h"
-#include "Input.h"
+#include "ConsoleInputStream.h"
 
 static int loggerFD = -1;
 

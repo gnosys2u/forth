@@ -70,6 +70,8 @@ SRCS = \
 	DLLVocabulary.cpp \
 	NativeType.cpp \
 	TypesManager.cpp \
+	NumberParser.cpp \
+	UsingVocabulary.cpp \
 	VocabularyStack.cpp
 	
 	
