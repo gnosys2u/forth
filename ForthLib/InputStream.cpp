@@ -29,16 +29,25 @@ InputStream::InputStream( int bufferLen )
 , mReadOffset(0)
 , mWriteOffset(0)
 , mbDeleteWhenEmpty(true)
+, mbBaseOwnsBuffer(bufferLen != 0)
 {
-    mpBufferBase = (char *)__MALLOC(bufferLen + 1);
-    mpBufferBase[0] = '\0';
-    mpBufferBase[bufferLen] = '\0';
+    if (mbBaseOwnsBuffer)
+    {
+        mpBufferBase = (char*)__MALLOC(bufferLen + 1);
+        mpBufferBase[0] = '\0';
+        mpBufferBase[bufferLen] = '\0';
+    }
+    else
+    {
+        // derived class will supply buffer and manage its lifetime
+        mpBufferBase = nullptr;
+    }
 }
 
 
 InputStream::~InputStream()
 {
-    if ( mpBufferBase != NULL )
+    if (mbBaseOwnsBuffer && mpBufferBase != nullptr)
     {
         __FREE( mpBufferBase );
     }

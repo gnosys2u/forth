@@ -85,5 +85,6 @@ protected:
     char                *mpBufferBase;
     cell                mBufferLen;
     bool                mbDeleteWhenEmpty;
+    bool                mbBaseOwnsBuffer;
 };
 
