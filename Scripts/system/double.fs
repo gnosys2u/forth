@@ -76,10 +76,8 @@ autoforget double
   create , ,
   does
     getVarop if
-    s" store\n" type ds
       2! 0 setVarop
     else
-    s" fetch\n" type ds
       2@
     endif
 ;
