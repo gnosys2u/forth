@@ -354,8 +354,6 @@ void Engine::Initialize(
 {
     mpShell = pShell;
 
-    mBlockFileManager = new BlockFileManager(mpShell->GetBlockfilePath());
-
     size_t dictionarySize = totalLongs * sizeof(forthop);
 #ifdef WIN32
 	void* dictionaryAddress = nullptr;
@@ -378,6 +376,8 @@ void Engine::Initialize(
     mpCore->numOps = 0;
     mpCore->maxOps = MAX_BUILTIN_OPS;
 	mpCore->ops = (forthop **) __MALLOC(sizeof(forthop *) * mpCore->maxOps);
+
+    mBlockFileManager = new BlockFileManager(mpShell->GetBlockfilePath());
 
     mpOuter = new OuterInterpreter(this);
     mpOuter->Initialize();
