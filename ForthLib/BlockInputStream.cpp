@@ -16,14 +16,14 @@
 // 
 
 BlockInputStream::BlockInputStream(BlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock)
-:   InputStream( BYTES_PER_BLOCK + 1 )
+:   InputStream(0)
 ,   mpManager(pManager)
 ,   mCurrentBlock( firstBlock )
 ,   mLastBlock( lastBlock )
 {
-    mReadOffset = BYTES_PER_BLOCK;
-    mWriteOffset = BYTES_PER_BLOCK;
-    mpBufferBase[BYTES_PER_BLOCK] = '\0';
+    mBufferLen = mpManager->GetBytesPerBlock();
+    mReadOffset = mBufferLen;
+    mWriteOffset = mBufferLen;
     ReadBlock();
 }
 
@@ -41,7 +41,7 @@ char * BlockInputStream::GetLine( const char *pPrompt )
 {
     // TODO!
     char* pBuffer = NULL;
-    if ( mReadOffset < BYTES_PER_BLOCK )
+    if ( mReadOffset < mBufferLen )
     {
         pBuffer = mpBufferBase + mReadOffset;
     }
@@ -53,7 +53,7 @@ char * BlockInputStream::GetLine( const char *pPrompt )
             {
                 pBuffer = mpBufferBase;
                 mReadOffset = 0;
-                mWriteOffset = BYTES_PER_BLOCK;
+                mWriteOffset = mBufferLen;
             }
             mCurrentBlock++;
         }
@@ -85,9 +85,9 @@ void BlockInputStream::SeekToLineEnd()
 {
     // TODO! this 
     mReadOffset = (mReadOffset + 64) & 0xFFFFFFC0;
-    if ( mReadOffset > BYTES_PER_BLOCK )
+    if ( mReadOffset > mBufferLen )
     {
-        mReadOffset = BYTES_PER_BLOCK;
+        mReadOffset = mBufferLen;
     }
 }
 
@@ -140,23 +140,18 @@ bool BlockInputStream::ReadBlock()
 {
     bool success = true;
     Engine* pEngine = Engine::GetInstance();
-    FILE * pInFile = mpManager->OpenBlockFile(false);
-    if ( pInFile == NULL )
+
+    mpBufferBase = mpManager->GetBlock(mCurrentBlock, true);
+    if (mpBufferBase != nullptr)
     {
-        pEngine->SetError( ForthError::kIO, "BlockInputStream - failed to open block file" );
-        success = false;
+        *(mpManager->GetBlockPtr()) = mCurrentBlock;
     }
     else
     {
-        fseek( pInFile, BYTES_PER_BLOCK * mCurrentBlock, SEEK_SET );
-        int numRead = fread( mpBufferBase, BYTES_PER_BLOCK, 1, pInFile );
-        if ( numRead != 1 )
-        {
-            pEngine->SetError( ForthError::kIO, "BlockInputStream - failed to read block file" );
-            success = false;
-        }
-        fclose( pInFile );
+        pEngine->SetError(ForthError::kIO, "BlockInputStream - failed to open block file");
+        success = false;
     }
+
     return success;
 }
 

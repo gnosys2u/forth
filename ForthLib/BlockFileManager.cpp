@@ -42,7 +42,9 @@ BlockFileManager::BlockFileManager( const char* pBlockFilename , ucell numBuffer
 :   mNumBuffers( numBuffers )
 ,   mBytesPerBlock(bytesPerBlock)
 ,   mCurrentBuffer( INVALID_BLOCK_NUMBER )
+,   mBlockNumber(INVALID_BLOCK_NUMBER)
 ,   mNumBlocksInFile( 0 )
+,   mBytesBetweenBlocks(bytesPerBlock + BLOCK_MARGIN)
 {
     if ( pBlockFilename == NULL )
     {
@@ -55,7 +57,7 @@ BlockFileManager::BlockFileManager( const char* pBlockFilename , ucell numBuffer
 	mAssignedBlocks = (ucell *)__MALLOC(sizeof(ucell) * numBuffers);
 	mUpdatedBlocks = (bool *)__MALLOC(sizeof(bool) * numBuffers);
 
-	mpBlocks = (char *)__MALLOC(mBytesPerBlock * numBuffers);
+	mpBlocks = (char *)__MALLOC(mBytesBetweenBlocks * numBuffers);
 
     EmptyBuffers();
 }
@@ -115,7 +117,9 @@ char* BlockFileManager::GetBlock( ucell blockNum, bool readContents )
 {
     mCurrentBuffer = AssignBuffer( blockNum, readContents );
     UpdateLRU();
-    return &(mpBlocks[mBytesPerBlock * mCurrentBuffer]);
+    char* pBufferBase = BufferBase(mCurrentBuffer);
+    pBufferBase[mBytesPerBlock] = '\0';
+    return pBufferBase;
 }
 
 void BlockFileManager::UpdateCurrentBuffer()
@@ -125,7 +129,7 @@ void BlockFileManager::UpdateCurrentBuffer()
         ReportError( ForthError::kBadParameter, "UpdateCurrentBuffer - no current buffer" );
         return;
     }
-
+    SPEW_IO( "BlockFileManager::UpdateCurrentBuffer setting update flag of buffer %d (block %d)\n", mCurrentBuffer, mAssignedBlocks[mCurrentBuffer]);
     mUpdatedBlocks[ mCurrentBuffer ] = true;
 }
 
@@ -150,9 +154,10 @@ bool BlockFileManager::SaveBuffer( ucell bufferNum )
         return false;
     }
 
-    SPEW_IO( "BlockFileManager::AssignBuffer writing block %d from buffer %d\n", mAssignedBlocks[bufferNum], bufferNum );
+    SPEW_IO("BlockFileManager::SaveBuffer writing block %d from buffer %d\n", mAssignedBlocks[bufferNum], bufferNum );
+    char* pBufferBase = BufferBase(bufferNum);
     fseek( pBlockFile, (long)(mBytesPerBlock * mAssignedBlocks[bufferNum]), SEEK_SET );
-    size_t numWritten = fwrite( &(mpBlocks[mBytesPerBlock * bufferNum]), mBytesPerBlock, 1, pBlockFile );
+    size_t numWritten = fwrite(pBufferBase, mBytesPerBlock, 1, pBlockFile );
     if ( numWritten != 1 )
     {
         ReportError( ForthError::kIO, "SaveBuffer - failed to write block file" );
@@ -175,7 +180,7 @@ ucell BlockFileManager::AssignBuffer( ucell blockNum, bool readContents )
         {
             return i;
         }
-        else if ( bufferBlockNum == INVALID_BLOCK_NUMBER )
+        else if (bufferBlockNum == INVALID_BLOCK_NUMBER)
         {
             availableBuffer = i;
         }
@@ -186,6 +191,7 @@ ucell BlockFileManager::AssignBuffer( ucell blockNum, bool readContents )
     {
         // there are no unassigned buffers, assign the least recently used one
         availableBuffer = mLRUBuffers[ mNumBuffers - 1 ];
+        SPEW_IO( "BlockFileManager::AssignBuffer assign LRU buffer %d to block %d\n", availableBuffer, blockNum);
     }
     else
     {
@@ -208,9 +214,10 @@ ucell BlockFileManager::AssignBuffer( ucell blockNum, bool readContents )
         }
         else
         {
-            SPEW_IO( "BlockFileManager::AssignBuffer reading block %d into buffer %d\n", blockNum, availableBuffer );
+            SPEW_IO("BlockFileManager::AssignBuffer reading block %d into buffer %d\n", blockNum, availableBuffer );
             fseek( pInFile, mBytesPerBlock * blockNum, SEEK_SET );
-            size_t numRead = fread( &(mpBlocks[mBytesPerBlock * availableBuffer]), mBytesPerBlock, 1, pInFile );
+            char* pBufferBase = BufferBase(availableBuffer);
+            size_t numRead = fread(pBufferBase, mBytesPerBlock, 1, pInFile);
             if ( numRead != 1 )
             {
                 ReportError( ForthError::kIO, "AssignBuffer - failed to read block file" );
@@ -277,7 +284,7 @@ void BlockFileManager::SaveBuffers( bool unassignAfterSaving )
 void
 BlockFileManager::EmptyBuffers()
 {
-    SPEW_IO( "BlockFileManager::EmptyBuffers\n" );
+    SPEW_IO( "BlockFileManager::EmptyBuffers - unassigning all buffers\n" );
     for ( ucell i = 0; i < mNumBuffers; ++i )
     {
         mLRUBuffers[i] = i;

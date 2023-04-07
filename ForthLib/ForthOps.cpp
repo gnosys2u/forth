@@ -6,6 +6,7 @@
 
 #include "pch.h"
 #include <math.h>
+#include <algorithm>
 
 #ifdef ARM9
 #include <nds.h>
@@ -3438,10 +3439,13 @@ FORTHOP( strEvaluateOp )
     if ( pStr != NULL )
     {
         int len = strlen( pStr );
-        Engine *pEngine = GET_ENGINE;
-		Shell* pShell = pEngine->GetShell();
-		BufferInputStream* pInputStream = new BufferInputStream(pStr, len);
-		pShell->RunOneStream(pInputStream);
+        if (len > 0)
+        {
+            Engine* pEngine = GET_ENGINE;
+            Shell* pShell = pEngine->GetShell();
+            BufferInputStream* pInputStream = new BufferInputStream(pStr, len);
+            pShell->RunOneStream(pInputStream);
+        }
     }
 }
 
@@ -4087,7 +4091,11 @@ FORTHOP(representOp)
     {
         isValid = 0;
         // this is something like '+infinity' or 'nan'
+#if defined(WINDOWS_BUILD)
+        memcpy(pDstBuffer, &(buffer[0]), min(bufferLen, strlen(buffer)));
+#else
         memcpy(pDstBuffer, &(buffer[0]), std::min(bufferLen, strlen(buffer)));
+#endif
     }
     else
     {
@@ -6934,40 +6942,6 @@ FORTHOP( times8Bop )
     SPUSH( a << 3 );
 }
 
-FORTHOP( divideBop )
-{
-    NEEDS(2);
-    cell b = SPOP;
-    cell a = SPOP;
-    cell quotient;
-    cell remainder;
-
-    flooredDivMod(a, b, quotient, remainder);
-
-    SPUSH(quotient);
-}
-
-FORTHOP( divide2Bop )
-{
-    NEEDS(1);
-    cell a = SPOP;
-    SPUSH( a >> 1 );
-}
-
-FORTHOP( divide4Bop )
-{
-    NEEDS(1);
-    cell a = SPOP;
-    SPUSH( a >> 2 );
-}
-
-FORTHOP( divide8Bop )
-{
-    NEEDS(1);
-    cell a = SPOP;
-    SPUSH( a >> 3 );
-}
-
 void flooredDivMod(cell a, cell b, cell& quotient, cell& remainder)
 {
     // all this hoo-hah is to force floored division, C/C++ unpredictably uses symmetric or floored
@@ -7008,6 +6982,40 @@ void flooredDivMod(cell a, cell b, cell& quotient, cell& remainder)
 
     quotient = v.quot;
     remainder = v.rem;
+}
+
+FORTHOP( divideBop )
+{
+    NEEDS(2);
+    cell b = SPOP;
+    cell a = SPOP;
+    cell quotient;
+    cell remainder;
+
+    flooredDivMod(a, b, quotient, remainder);
+
+    SPUSH(quotient);
+}
+
+FORTHOP( divide2Bop )
+{
+    NEEDS(1);
+    cell a = SPOP;
+    SPUSH( a >> 1 );
+}
+
+FORTHOP( divide4Bop )
+{
+    NEEDS(1);
+    cell a = SPOP;
+    SPUSH( a >> 2 );
+}
+
+FORTHOP( divide8Bop )
+{
+    NEEDS(1);
+    cell a = SPOP;
+    SPUSH( a >> 3 );
 }
 
 FORTHOP( divmodBop )

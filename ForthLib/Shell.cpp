@@ -1065,7 +1065,7 @@ Shell::ParseToken( ParseInfo *pInfo )
             return true;
         }
 
-        *pDst = 0;
+        *pDst = '\0';
 
         // eat any leading white space
         while ( (*pSrc == ' ') || (*pSrc == '\t') )

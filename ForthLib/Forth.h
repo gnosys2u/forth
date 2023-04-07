@@ -677,6 +677,7 @@ typedef struct
 #define TRACE_STRUCTS
 #define TRACE_ENGINE
 //#define TRACE_COMPILATION
+#define TRACE_IO
 #endif
 
 enum
