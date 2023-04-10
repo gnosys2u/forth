@@ -3734,12 +3734,6 @@ entry yieldBop
 
 ;========================================
 
-entry abortBop
-	mov	rax, kForthErrorAbort
-	jmp	interpFuncFatalErrorExit
-
-;========================================
-
 entry noopBop
 	jmp	rnext
 

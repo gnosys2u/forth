@@ -282,6 +282,43 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+April 10 2023
+
+I've made major progress towards ANSI 2012 compliance.
+Currently I'm working on the exceptions word set.  I changed code that set a
+system error to instead an exception, and changed the error numbers to be the
+ANSI defined codes where possible.  After that it wasn't hard to implement
+the ANSI throw/catch ops.
+
+The ANSI tests uncovered a problem with my design - I wasn't fixing the input
+stream when an exception happened.
+
+My first attempt was to record the input stack depth when an exception handler
+frame was entered, and in the catch handler I popped all input streams which
+were above the recorded depth.  This failed miserably, because 'evaluate' of
+a string works by calling Shell::ProcessLine, putting it on the processor stack,
+and pushes the string to evaluate as a BufferInputStream.  My changes dealt with
+the pushed input stream, but ignored the processor stack nesting of calls, which
+failed the tests.
+
+My second attempt was to add InputStream::SetForcedEmpty, and invoke that on any
+streams which were added to the stream stack before an exception happened, which
+makes that stream appear to be exhausted.  This got me closer to test acceptance,
+but still fails.  The problem is that there are still multiple levels of stuff
+on the processor stack:
+  evaluateOp
+   Shell::ProcessLine
+    ...
+     Engine::FullyExecuteOp
+      ...
+       InnerInterpreter
+        ...
+         evaluateOp
+          and it repeats...
+
+I need to get all nested evaluate instances (and loadfile, loadblock etc.) to
+exit before I start executing the exception handler code.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 April 3 2023
 
 More progress in the ANSI 2012 wars.

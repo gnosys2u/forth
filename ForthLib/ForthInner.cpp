@@ -36,7 +36,7 @@ void NativeActionOuter( CoreState *pCore, forthop opVal )
 VAR_ACTION(BadVarOperation)
 {
     Engine* pEngine = GET_ENGINE;
-    pEngine->SetError(ForthError::kBadVarOperation);
+    pEngine->SetError(ForthError::badVarOperation);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -343,7 +343,7 @@ void _doByteVarop( CoreState* pCore, signed char* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( ForthError::kBadVarOperation );
+            pEngine->SetError( ForthError::badVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -461,7 +461,7 @@ static void _doUByteVarop( CoreState* pCore, unsigned char* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( ForthError::kBadVarOperation );
+            pEngine->SetError( ForthError::badVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -755,7 +755,7 @@ static void _doShortVarop( CoreState* pCore, short* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( ForthError::kBadVarOperation );
+            pEngine->SetError( ForthError::badVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -1041,7 +1041,7 @@ static void _doUShortVarop( CoreState* pCore, unsigned short* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( ForthError::kBadVarOperation );
+            pEngine->SetError( ForthError::badVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -1335,7 +1335,7 @@ void _doIntVarop( CoreState* pCore, int* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( ForthError::kBadVarOperation );
+            pEngine->SetError( ForthError::badVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -1633,7 +1633,7 @@ static void _doUIntVarop(CoreState* pCore, uint32_t* pVar)
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError(ForthError::kBadVarOperation);
+            pEngine->SetError(ForthError::badVarOperation);
         }
         CLEAR_VAR_OPERATION;
     }
@@ -1881,7 +1881,7 @@ static void _doFloatVarop( CoreState* pCore, float* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( ForthError::kBadVarOperation );
+            pEngine->SetError( ForthError::badVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -2167,7 +2167,7 @@ static void _doDoubleVarop( CoreState* pCore, double* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( ForthError::kBadVarOperation );
+            pEngine->SetError( ForthError::badVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -2464,7 +2464,7 @@ static void _doStringVarop( CoreState* pCore, char* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( ForthError::kBadVarOperation );
+            pEngine->SetError( ForthError::badVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -2759,7 +2759,7 @@ static void _doObjectVarop( CoreState* pCore, ForthObject* pVar )
                 if (oldObj->refCount.fetch_sub(1) == 0)
                 {
                     oldObj->refCount++;
-                    pEngine->SetError(ForthError::kBadReferenceCount);
+                    pEngine->SetError(ForthError::badReferenceCount);
                 }
 #else
                 if (oldObj->refCount > 0)
@@ -2768,7 +2768,7 @@ static void _doObjectVarop( CoreState* pCore, ForthObject* pVar )
                 }
                 else
                 {
-                    pEngine->SetError(ForthError::kBadReferenceCount);
+                    pEngine->SetError(ForthError::badReferenceCount);
                 }
 #endif
 			}
@@ -3081,7 +3081,7 @@ void longVarAction( CoreState* pCore, int64_t* pVar )
         else
         {
             // report GET_VAR_OPERATION out of range
-            pEngine->SetError( ForthError::kBadVarOperation );
+            pEngine->SetError( ForthError::badVarOperation );
         }
         CLEAR_VAR_OPERATION;
     }
@@ -3381,7 +3381,7 @@ OPTYPE_ACTION( CCodeAction )
     }
     else
     {
-        SET_ERROR( ForthError::kBadOpcode );
+        SET_ERROR( ForthError::badOpcode );
     }
 }
 
@@ -3396,7 +3396,7 @@ OPTYPE_ACTION( UserDefAction )
     }
     else
     {
-        SET_ERROR( ForthError::kBadOpcode );
+        SET_ERROR( ForthError::badOpcode );
     }
 }
 
@@ -3412,7 +3412,7 @@ OPTYPE_ACTION( RelativeDefAction )
     }
     else
     {
-        SET_ERROR( ForthError::kBadOpcode );
+        SET_ERROR( ForthError::badOpcode );
     }
 }
 
@@ -3427,7 +3427,7 @@ OPTYPE_ACTION(RelativeDataAction)
     }
     else
     {
-        SET_ERROR(ForthError::kBadOpcode);
+        SET_ERROR(ForthError::badOpcode);
     }
 }
 
@@ -3630,7 +3630,7 @@ OPTYPE_ACTION( DLLEntryPointAction )
     }
     else
     {
-        SET_ERROR( ForthError::kBadOpcode );
+        SET_ERROR( ForthError::badOpcode );
     }
 #endif
 }
@@ -3714,7 +3714,7 @@ OPTYPE_ACTION(MethodWithSuperAction)
     if (opVal == kMethodDelete)
     {
         // super.delete is illegal - system does this for you
-        SET_ERROR(ForthError::kIllegalMethod);
+        SET_ERROR(ForthError::illegalMethod);
         return;
     }
 
@@ -3750,7 +3750,7 @@ OPTYPE_ACTION( MethodWithTOSAction )
     POP_OBJECT(obj);
     if (obj == nullptr || obj->pMethods == nullptr)
     {
-        SET_ERROR(ForthError::kBadObject);
+        SET_ERROR(ForthError::badObject);
         return;
     }
 
@@ -3775,7 +3775,7 @@ OPTYPE_ACTION(MethodWithLocalObjectAction)
 
     if (obj == nullptr || obj->pMethods == nullptr)
     {
-        SET_ERROR(ForthError::kBadObject);
+        SET_ERROR(ForthError::badObject);
         return;
     }
 
@@ -3800,7 +3800,7 @@ OPTYPE_ACTION(MethodWithMemberObjectAction)
 
     if (obj == nullptr || obj->pMethods == nullptr)
     {
-        SET_ERROR(ForthError::kBadObject);
+        SET_ERROR(ForthError::badObject);
         return;
     }
 
@@ -3992,7 +3992,7 @@ OPTYPE_ACTION(NativeU32Action)
     }
     else
     {
-        SET_ERROR(ForthError::kBadOpcode);
+        SET_ERROR(ForthError::badOpcode);
     }
 }
 
@@ -4008,7 +4008,7 @@ OPTYPE_ACTION(NativeS32Action)
     }
     else
     {
-        SET_ERROR(ForthError::kBadOpcode);
+        SET_ERROR(ForthError::badOpcode);
     }
 }
 
@@ -4028,7 +4028,7 @@ OPTYPE_ACTION(Native64Action)
     }
     else
     {
-        SET_ERROR(ForthError::kBadOpcode);
+        SET_ERROR(ForthError::badOpcode);
     }
 }
 
@@ -4047,7 +4047,7 @@ OPTYPE_ACTION(UserDefU32Action)
     }
     else
     {
-        SET_ERROR(ForthError::kBadOpcode);
+        SET_ERROR(ForthError::badOpcode);
     }
 }
 
@@ -4066,7 +4066,7 @@ OPTYPE_ACTION(UserDefS32Action)
     }
     else
     {
-        SET_ERROR(ForthError::kBadOpcode);
+        SET_ERROR(ForthError::badOpcode);
     }
 }
 
@@ -4089,7 +4089,7 @@ OPTYPE_ACTION(UserDef64Action)
     }
     else
     {
-        SET_ERROR(ForthError::kBadOpcode);
+        SET_ERROR(ForthError::badOpcode);
     }
 }
 
@@ -4106,7 +4106,7 @@ OPTYPE_ACTION(CCodeU32Action)
     }
     else
     {
-        SET_ERROR(ForthError::kBadOpcode);
+        SET_ERROR(ForthError::badOpcode);
     }
 }
 
@@ -4123,7 +4123,7 @@ OPTYPE_ACTION(CCodeS32Action)
     }
     else
     {
-        SET_ERROR(ForthError::kBadOpcode);
+        SET_ERROR(ForthError::badOpcode);
     }
 }
 
@@ -4144,18 +4144,18 @@ OPTYPE_ACTION(CCode64Action)
     }
     else
     {
-        SET_ERROR(ForthError::kBadOpcode);
+        SET_ERROR(ForthError::badOpcode);
     }
 }
 
 OPTYPE_ACTION( IllegalOptypeAction )
 {
-    SET_ERROR( ForthError::kBadOpcodeType );
+    SET_ERROR( ForthError::badOpcodeType );
 }
 
 OPTYPE_ACTION( ReservedOptypeAction )
 {
-    SET_ERROR( ForthError::kBadOpcodeType );
+    SET_ERROR( ForthError::badOpcodeType );
 }
 
 #if 0
@@ -4180,7 +4180,7 @@ OPTYPE_ACTION( MethodAction )
         }
         else
         {
-            SET_ERROR( ForthError::kBadOpcode );
+            SET_ERROR( ForthError::badOpcode );
         }
     }
     if ( pObj != NULL )
@@ -4200,12 +4200,12 @@ OPTYPE_ACTION( MethodAction )
         else
         {
             // bad class magic number, or bad method number
-            SET_ERROR( ForthError::kBadOpcode );
+            SET_ERROR( ForthError::badOpcode );
         }
     }
     else
     {
-        SET_ERROR( ForthError::kBadOpcode );
+        SET_ERROR( ForthError::badOpcode );
     }
 }
 #endif
@@ -4213,7 +4213,7 @@ OPTYPE_ACTION( MethodAction )
 // NOTE: there is no opcode assigned to this op
 FORTHOP( BadOpcodeOp )
 {
-    SET_ERROR( ForthError::kBadOpcode );
+    SET_ERROR( ForthError::badOpcode );
 }
 
 optypeActionRoutine builtinOptypeAction[] =

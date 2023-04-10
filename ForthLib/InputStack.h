@@ -17,6 +17,9 @@ public:
 
     void                    PushInputStream( InputStream *pStream );
     bool                    PopInputStream();
+    ucell                   GetDepth();
+    void                    FlushToDepth(ucell depth);
+
     void                    Reset( void );
     char*                   GetLine( const char *pPrompt );
     // return null IFF adding another input line would overflow buffer

@@ -331,11 +331,11 @@ addHelp of				CASEVAL ...					begin one case branch
 addHelp endof										end case branch
 addHelp endcase			TESTVAL ...					end all cases - drops TESTVAL
 
-addHelp try                                         start of code section protected by exception handler
-addHelp except                                      start of exception handler code
-addHelp finally                                     defines code run after exception handler
-addHelp endtry                                      end of exception handler
-addHelp raise           EXCEPTION_NUM ...           raise an exception
+addHelp try[                                        start of code section protected by exception handler
+addHelp ]catch[                                     start of exception handler code
+addHelp ]finally[                                   defines code run after exception handler
+addHelp ]try                                        end of exception handler
+addHelp throw           EXCEPTION_NUM ...           raise an exception
 
 addHelp builds										starts a builds...does definition
 addHelp does										starts the runtime part of a builds...does definition

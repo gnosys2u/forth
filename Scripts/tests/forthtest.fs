@@ -367,34 +367,34 @@ int caughtVal   int exNumIn   int finallyVal
 
 : mod7catcher
   int exNum
-  try
-    raise(exNumIn)
-  except
-    -> exNum
+  try[
+    throw(exNumIn)
+  ]catch[
+    exNum!
     if(mod(exNum 7) 0=)
-      7 -> caughtVal
+      7 caughtVal!
     else
-      raise(exNum)
+      throw(exNum)
     endif
-  finally
-    finallyVal 1 or -> finallyVal
-  endtry
+  ]finally[
+    finallyVal 1 or finallyVal!
+  ]try
 ;
 
 : mod3catcher
   int exNum
-  try
+  try[
     mod7catcher
-  except
-    -> exNum
+  ]catch[
+    exNum!
     if(mod(exNum 3) 0=)
-      3 -> caughtVal
+      3 caughtVal!
     else
-      raise(exNum)
+      throw(exNum)
     endif
-  finally
-    finallyVal 2 or -> finallyVal
-  endtry
+  ]finally[
+    finallyVal 2 or finallyVal!
+   ]try
 ;
 
 : bystander2
@@ -406,20 +406,20 @@ int caughtVal   int exNumIn   int finallyVal
 ;
 
 : mod11catcher
-  -> exNumIn
-  -1 -> caughtVal
-  0 -> finallyVal
+  exNumIn!
+  -1 caughtVal!
+  finallyVal~
   int exNum
-  try
+  try[
     bystander1
-  except
-    -> exNum
+  ]catch[
+    exNum!
     if(mod(exNum 11) 0=)
-      11 -> caughtVal
+      11 caughtVal!
     else
-      raise(exNum)
+      throw(exNum)
     endif
-  endtry
+   ]try
 ;
 
 test[ mod11catcher(42) 17 = caughtVal 7 = finallyVal 3 = ]

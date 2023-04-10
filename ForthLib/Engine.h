@@ -90,7 +90,7 @@ public:
     void            SetCompileState(cell v);
     cell            IsCompiling(void);
 
-    void                    GetErrorString(char* pBuffer, int bufferSize);
+    void                    GetErrorString(ForthError err, char* pBuffer, int bufferSize);
     OpResult            CheckStacks(void);
     void                    SetError(ForthError e, const char* pString = NULL);
     void                    AddErrorText(const char* pString);
@@ -135,7 +135,7 @@ public:
     void					DumpCrashState();
     void					DisplayUserDefCrash(forthop* pRVal, char* buff, int buffSize);
 
-    void                    RaiseException(CoreState* pCore, cell exceptionNum);
+    void                    RaiseException(CoreState* pCore, ForthError exceptionNum);
 
     // create a thread which will be managed by the engine - the engine destructor will delete all threads
     //  which were created with CreateThread 
@@ -208,6 +208,8 @@ private:
 #endif
 
     Extension* mpExtension;
+
+    std::map<ForthError, const char*> mErrorMap;
 
     static Engine* mpInstance;
     bool            mFastMode;

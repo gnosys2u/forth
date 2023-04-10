@@ -586,7 +586,7 @@ namespace OList
 	FORTHOP(oListIterNew)
 	{
 		Engine *pEngine = Engine::GetInstance();
-		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a ListIter object");
+		pEngine->SetError(ForthError::illegalOperation, " cannot explicitly create a ListIter object");
 	}
 
 	FORTHOP(oListIterDeleteMethod)

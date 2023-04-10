@@ -59,6 +59,11 @@ InputStreamType BufferInputStream::GetType( void ) const
 
 char* BufferInputStream::GetLine(const char* pPrompt)
 {
+    if (mbForcedEmpty)
+    {
+        return nullptr;
+    }
+
     char* pBuffer = mpBufferBase + mReadOffset;
 
     SPEW_SHELL("BufferInputStream::GetLine %s  {%s}\n", GetName(), pBuffer);

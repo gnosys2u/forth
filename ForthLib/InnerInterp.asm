@@ -3513,12 +3513,6 @@ entry yieldBop
 
 ;========================================
 
-entry abortBop
-	mov	eax, kForthErrorAbort
-	jmp	interpLoopFatalErrorExit
-
-;========================================
-
 entry noopBop
 	jmp	rnext
 

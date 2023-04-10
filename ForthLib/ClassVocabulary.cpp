@@ -129,13 +129,13 @@ void ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
             }
             else
             {
-                mpEngine->SetError(ForthError::kUnknownSymbol, "class define instance: bad contained class");
+                mpEngine->SetError(ForthError::undefinedWord, "class define instance: bad contained class");
                 return;
             }
         }
         else
         {
-            mpEngine->SetError(ForthError::kUnknownSymbol, "class define instance: contained class not found");
+            mpEngine->SetError(ForthError::undefinedWord, "class define instance: contained class not found");
             return;
         }
     }
@@ -354,19 +354,19 @@ void ClassVocabulary::Implements( const char* pName )
             else
             {
                 // report error - target of "implements" is same class!
-                mpEngine->SetError(ForthError::kBadSyntax, "interface is base class");
+                mpEngine->SetError(ForthError::invalidType, "interface is base class");
             }
 		}
 		else
 		{
 			// report that vocab is struct, not class
-            mpEngine->SetError(ForthError::kBadSyntax, "interface is struct, not class");
+            mpEngine->SetError(ForthError::invalidType, "interface is struct, not class");
         }
 	
 	}
 	else
 	{
-        mpEngine->SetError(ForthError::kBadSyntax, "interface unknown");
+        mpEngine->SetError(ForthError::undefinedWord, "interface unknown");
     }
 }
 
@@ -695,7 +695,7 @@ ForthInterface::SetMethod( int index, forthop method )
     }
     else
     {
-        Engine::GetInstance()->SetError(ForthError::kBadArrayIndex, "attempt to set interface method with out-of-bounds index");
+        Engine::GetInstance()->SetError(ForthError::badArrayIndex, "attempt to set interface method with out-of-bounds index");
     }
 }
 

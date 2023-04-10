@@ -33,6 +33,11 @@ ConsoleInputStream::~ConsoleInputStream()
 char *
 ConsoleInputStream::GetLine( const char *pPrompt )
 {
+    if (mbForcedEmpty)
+    {
+        return nullptr;
+    }
+
     char *pBuffer;
 
     if (pPrompt)

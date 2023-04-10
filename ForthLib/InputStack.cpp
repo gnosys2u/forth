@@ -77,6 +77,31 @@ bool InputStack::PopInputStream( void )
     return false;
 }
 
+ucell InputStack::GetDepth()
+{
+    ucell depth = 0;
+    InputStream* pStream = mpHead;
+    while (pStream != nullptr)
+    {
+        depth++;
+        pStream = pStream->mpNext;
+    }
+
+    return depth;
+}
+
+void InputStack::FlushToDepth(ucell flushDepth)
+{
+    ucell currentDepth = GetDepth();
+    InputStream* pStream = mpHead;
+    while (pStream != nullptr && currentDepth > flushDepth)
+    {
+        pStream->SetForcedEmpty();
+        currentDepth--;
+        pStream = pStream->mpNext;
+    }
+
+}
 
 char * InputStack::GetLine( const char *pPrompt )
 {

@@ -892,7 +892,7 @@ int32_t OuterInterpreter::AddLocalVar( const char        *pVarName,
     {
         if (mpShell->GetShellStack()->PeekTag() != kShellTagDefine)
         {
-            mpEngine->SetError(ForthError::kBadSyntax, "First local variable definition inside control structure");
+            mpEngine->SetError(ForthError::badSyntax, "First local variable definition inside control structure");
         }
         else
         {
@@ -1188,7 +1188,7 @@ void OuterInterpreter::UncompileLastOpcode( void )
     else
     {
         SPEW_ENGINE( "OuterInterpreter::UncompileLastOpcode called with no previous opcode\n" );
-        mpEngine->SetError( ForthError::kMissingSize, "UncompileLastOpcode called with no previous opcode" );
+        mpEngine->SetError( ForthError::missingSize, "UncompileLastOpcode called with no previous opcode" );
     }
 }
 
@@ -1522,7 +1522,7 @@ forthop* OuterInterpreter::PopContinuationAddress()
     }
     else
     {
-        mpEngine->SetError(ForthError::kBadSyntax, "not enough continuations");
+        mpEngine->SetError(ForthError::badSyntax, "not enough continuations");
     }
     return result;
 }
@@ -1596,7 +1596,7 @@ void OuterInterpreter::EndLoopContinuations(int controlFlowType)  // actually ta
                     }
                     else
                     {
-                        mpEngine->SetError(ForthError::kBadSyntax, "break not allowed in do loop, use leave");
+                        mpEngine->SetError(ForthError::badSyntax, "break not allowed in do loop, use leave");
                         break;
                     }
                 }
@@ -1611,13 +1611,13 @@ void OuterInterpreter::EndLoopContinuations(int controlFlowType)  // actually ta
                         }
                         else
                         {
-                            mpEngine->SetError(ForthError::kBadSyntax, "end loop with unresolved continues");
+                            mpEngine->SetError(ForthError::badSyntax, "end loop with unresolved continues");
                             break;
                         }
                     }
                     else
                     {
-                        mpEngine->SetError(ForthError::kBadSyntax, "continue not allowed in case statement");
+                        mpEngine->SetError(ForthError::badSyntax, "continue not allowed in case statement");
                         break;
                     }
                 }
@@ -1625,7 +1625,7 @@ void OuterInterpreter::EndLoopContinuations(int controlFlowType)  // actually ta
             else
             {
                 // report error - end loop with continuation stack empty
-                mpEngine->SetError(ForthError::kBadSyntax, "end loop with continuation stack empty");
+                mpEngine->SetError(ForthError::badSyntax, "end loop with continuation stack empty");
                 break;
             }
         }
@@ -2151,7 +2151,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
 
     }
     SPEW_ENGINE("Unknown symbol %s\n", pToken);
-    mpCore->error = ForthError::kUnknownSymbol;
+    mpCore->error = ForthError::undefinedWord;
     exitStatus = OpResult::kError;
 
     // TODO: return exit-shell flag

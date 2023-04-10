@@ -332,7 +332,7 @@ bool StructCodeGenerator::HandleFirst()
 			{
 				// ERROR! must return object or struct
 				sprintf( mErrorMsg, "Method %s return value is not an object or struct", mpToken );
-				pEngine->SetError( ForthError::kStruct, mErrorMsg );
+				pEngine->SetError( ForthError::structError, mErrorMsg );
 				return false;
 			}
 
@@ -344,7 +344,7 @@ bool StructCodeGenerator::HandleFirst()
                 ForthTypeInfo* pStruct = mpTypeManager->GetTypeInfo(typeIndex);
 				if ( pStruct == NULL )
 				{
-					pEngine->SetError( ForthError::kStruct, "Method return type not found by type manager" );
+					pEngine->SetError( ForthError::structError, "Method return type not found by type manager" );
 					return false;
 				}
 			}
@@ -609,7 +609,7 @@ bool StructCodeGenerator::HandleMiddle()
         {
             // ERROR! method must return object or struct
             sprintf( mErrorMsg, "Method %s return value is not an object or struct", mpToken );
-            pEngine->SetError( ForthError::kStruct, mErrorMsg );
+            pEngine->SetError( ForthError::structError, mErrorMsg );
             return false;
         }
     }
@@ -622,7 +622,7 @@ bool StructCodeGenerator::HandleMiddle()
         {
             // ERROR! a native field must be a final accessor
             sprintf( mErrorMsg, "Native %s used for non-final accessor", mpToken );
-            pEngine->SetError( ForthError::kStruct, mErrorMsg );
+            pEngine->SetError( ForthError::structError, mErrorMsg );
             return false;
         }
         // struct: do nothing (offset already added in)

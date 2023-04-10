@@ -30,6 +30,7 @@ InputStream::InputStream( int bufferLen )
 , mWriteOffset(0)
 , mbDeleteWhenEmpty(true)
 , mbBaseOwnsBuffer(bufferLen != 0)
+, mbForcedEmpty(false)
 {
     if (mbBaseOwnsBuffer)
     {
@@ -157,7 +158,7 @@ InputStream::SetReadOffset( int offset )
         char buffer[128];
         SNPRINTF(buffer, sizeof(buffer), "InputStream::SetReadOffset - %d is outside range 0:%d\n",
             offset, mBufferLen);
-        Engine::GetInstance()->SetError(ForthError::kIllegalOperation, buffer);
+        Engine::GetInstance()->SetError(ForthError::illegalOperation, buffer);
     }
     else
     {
@@ -279,7 +280,7 @@ InputStream::SetDeleteWhenEmpty(bool deleteIt)
 bool
 InputStream::IsEmpty()
 {
-	return mReadOffset >= mWriteOffset;
+	return mbForcedEmpty || (mReadOffset >= mWriteOffset);
 }
 
 
@@ -289,4 +290,13 @@ InputStream::IsGenerated(void)
 	return false;
 }
 
+void InputStream::SetForcedEmpty()
+{
+    // This is used to unwind input streams when an exception occurs.
+    // Streams that were added after the exception frame was entered are forced to appear as empty.
+    // We need to do this because 'evaluate' both pushes an input stream on the input stack and
+    // also stays on the processor stack until evaluate finishes
+    mbForcedEmpty = true;
+    mReadOffset = mWriteOffset;
+}
 

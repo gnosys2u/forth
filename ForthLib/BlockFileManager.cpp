@@ -126,7 +126,7 @@ void BlockFileManager::UpdateCurrentBuffer()
 {
     if ( mCurrentBuffer > mNumBuffers )
     {
-        ReportError( ForthError::kBadParameter, "UpdateCurrentBuffer - no current buffer" );
+        ReportError( ForthError::invalidParameter, "UpdateCurrentBuffer - no current buffer" );
         return;
     }
     SPEW_IO( "BlockFileManager::UpdateCurrentBuffer setting update flag of buffer %d (block %d)\n", mCurrentBuffer, mAssignedBlocks[mCurrentBuffer]);
@@ -138,19 +138,19 @@ bool BlockFileManager::SaveBuffer( ucell bufferNum )
     FILE* pBlockFile = OpenBlockFile( true );
     if ( pBlockFile == NULL )
     {
-        ReportError( ForthError::kIO, "SaveBuffer - failed to open block file" );
+        ReportError( ForthError::openFile, "SaveBuffer - failed to open block file" );
         return false;
     }
 
     if ( bufferNum > mNumBuffers )
     {
-        ReportError( ForthError::kBadParameter, "SaveBuffer - invalid buffer number" );
+        ReportError( ForthError::invalidParameter, "SaveBuffer - invalid buffer number" );
         return false;
     }
     
     if ( mAssignedBlocks[bufferNum] == INVALID_BLOCK_NUMBER )
     {
-        ReportError( ForthError::kBadParameter, "SaveBuffer - buffer wasn't assigned to a block" );
+        ReportError( ForthError::invalidParameter, "SaveBuffer - buffer wasn't assigned to a block" );
         return false;
     }
 
@@ -160,7 +160,7 @@ bool BlockFileManager::SaveBuffer( ucell bufferNum )
     size_t numWritten = fwrite(pBufferBase, mBytesPerBlock, 1, pBlockFile );
     if ( numWritten != 1 )
     {
-        ReportError( ForthError::kIO, "SaveBuffer - failed to write block file" );
+        ReportError( ForthError::writeFile, "SaveBuffer - failed to write block file" );
         return false;
     }
     fclose( pBlockFile );
@@ -210,7 +210,7 @@ ucell BlockFileManager::AssignBuffer( ucell blockNum, bool readContents )
         FILE* pInFile = OpenBlockFile( false );
         if ( pInFile == NULL )
         {
-            ReportError( ForthError::kIO, "AssignBuffer - failed to open block file" );
+            ReportError( ForthError::openFile, "AssignBuffer - failed to open block file" );
         }
         else
         {
@@ -220,7 +220,7 @@ ucell BlockFileManager::AssignBuffer( ucell blockNum, bool readContents )
             size_t numRead = fread(pBufferBase, mBytesPerBlock, 1, pInFile);
             if ( numRead != 1 )
             {
-                ReportError( ForthError::kIO, "AssignBuffer - failed to read block file" );
+                ReportError( ForthError::readFile, "AssignBuffer - failed to read block file" );
             }
             fclose( pInFile );
         }
@@ -423,7 +423,7 @@ namespace OBlockFile
         Engine* pEngine = GET_ENGINE;
         if (lastBlock < firstBlock)
         {
-            pEngine->SetError(ForthError::kIO, "thru - last block less than first block");
+            pEngine->SetError(ForthError::invalidBlockNumber, "thru - last block less than first block");
         }
         else
         {
@@ -434,7 +434,7 @@ namespace OBlockFile
             }
             else
             {
-                pEngine->SetError(ForthError::kIO, "thru - last block beyond end of block file");
+                pEngine->SetError(ForthError::invalidBlockNumber, "thru - last block beyond end of block file");
             }
         }
         METHOD_RETURN;

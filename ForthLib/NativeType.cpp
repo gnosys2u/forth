@@ -121,7 +121,7 @@ void NativeType::DefineInstance( Engine *pEngine, void *pInitialVal, int32_t fla
             // the symbol just before "string" should have been an integer constant
             if ( !pOuter->GetLastConstant( len ) )
             {
-                SET_ERROR( ForthError::kMissingSize );
+                SET_ERROR( ForthError::missingSize );
             }
         }
         else

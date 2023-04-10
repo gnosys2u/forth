@@ -61,7 +61,7 @@ void* DLLVocabulary::LoadDLL( void )
     mhDLL = LoadLibrary(dllPath.c_str());
     if (mhDLL == 0)
     {
-        pEngine->SetError(ForthError::kFileOpen, "failed to open DLL ");
+        pEngine->SetError(ForthError::openFile, "failed to open DLL ");
         pEngine->AddErrorText(pDLLSrc);
     }
     delete[] pDLLPath;
@@ -70,7 +70,7 @@ void* DLLVocabulary::LoadDLL( void )
     mLibHandle = dlopen(pDLLSrc, RTLD_LAZY);
     if (mLibHandle == nullptr)
     {
-        pEngine->SetError(ForthError::kFileOpen, "failed to open DLL ");
+        pEngine->SetError(ForthError::openFile, "failed to open DLL ");
         pEngine->AddErrorText(pDLLSrc);
     }
     delete[] pDLLPath;
@@ -111,7 +111,7 @@ forthop * DLLVocabulary::AddEntry( const char *pFuncName, const char* pEntryName
     }
     else
     {
-        mpEngine->SetError( ForthError::kUnknownSymbol, " unknown entry point" );
+        mpEngine->SetError( ForthError::undefinedWord, " unknown entry point" );
     }
 	// void and 64-bit flags only apply to one vocabulary entry
 	mDLLFlags &= ~(DLL_ENTRY_FLAG_RETURN_VOID | DLL_ENTRY_FLAG_RETURN_64BIT);

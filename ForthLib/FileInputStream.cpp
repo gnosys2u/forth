@@ -42,6 +42,11 @@ const char* FileInputStream::GetName( void ) const
 
 char * FileInputStream::GetLine( const char *pPrompt )
 {
+    if (mbForcedEmpty)
+    {
+        return nullptr;
+    }
+
     char *pBuffer;
 
     mLineStartOffset = ftell( mpInFile );

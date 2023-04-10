@@ -63,7 +63,7 @@ typedef enum
    kShellTagOrIf     = 0x00004000,
    kShellTagElif     = 0x00008000,
    kShellTagTry      = 0x00010000,
-   kShellTagExcept   = 0x00020000,
+   kShellTagCatcher  = 0x00020000,
    kShellTagFinally  = 0x00040000,
    kShellLastTag = kShellTagFinally  // update this when you add a new tag
    // if you add tags, remember to update TagStrings in Shell.cpp

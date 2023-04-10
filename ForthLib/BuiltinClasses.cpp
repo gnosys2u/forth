@@ -86,12 +86,12 @@ void unrefObject(ForthObject& fobj)
 		if (oldCount == 0)
 		{
 			fobj->refCount++;
-			pEngine->SetError(ForthError::kBadReferenceCount, " unref with refcount already zero");
+			pEngine->SetError(ForthError::badReferenceCount, " unref with refcount already zero");
 		}
 #else
 		if (fobj->refCount == 0)
 		{
-			pEngine->SetError(ForthError::kBadReferenceCount, " unref with refcount already zero");
+			pEngine->SetError(ForthError::badReferenceCount, " unref with refcount already zero");
 		}
 		else
 		{
@@ -261,7 +261,7 @@ namespace
     //
     FORTHOP(oContainedTypeNew)
     {
-        GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a ContainedType object");
+        GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create a ContainedType object");
     }
 
     baseMethodEntry containedTypeMembers[] =
@@ -327,7 +327,7 @@ namespace
 	FORTHOP(classDeleteMethod)
 	{
 		Engine *pEngine = Engine::GetInstance();
-		pEngine->SetError(ForthError::kIllegalOperation, " cannot delete a class object");
+		pEngine->SetError(ForthError::illegalOperation, " cannot delete a class object");
 		METHOD_RETURN;
 	}
 
@@ -362,7 +362,7 @@ namespace
     //
     FORTHOP(oInterfaceNew)
     {
-        GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create an Interface object");
+        GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create an Interface object");
     }
 
     FORTHOP(oInterfaceDeleteMethod)

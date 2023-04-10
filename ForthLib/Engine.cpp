@@ -26,6 +26,7 @@
 #include "ParseInfo.h"
 #include "OuterInterpreter.h"
 #include "ClassVocabulary.h"
+#include "InputStack.h"
 
 extern "C"
 {
@@ -180,41 +181,118 @@ static const char *opTypeNames[] =
 
 ///////////////////////////////////////////////////////////////////////
 //
-// pErrorStrings must be kept in sync with ForthError enum in forth.h
+// errors must be kept in sync with ForthError enum in forth.h
 //
-static const char *pErrorStrings[] =
-{
-    "No Error",
-    "Bad Opcode",
-    "Bad OpcodeType",
-    "Bad Parameter",
-    "Bad Variable Operation",
-    "Parameter Stack Underflow",
-    "Parameter Stack Overflow",
-    "Return Stack Underflow",
-    "Return Stack Overflow",
-    "Unknown Symbol",
-    "File Open Failed",
-    "Aborted",
-    "Can't Forget Builtin Op",
-    "Bad Method Number",
-    "Exception",
-    "Missing Preceeding Size Constant",
-    "Error In Struct Definition",
-    "Error In User-Defined Op",
-    "Syntax error",
-    "Bad Preprocessor Directive",
-	"Unimplemented Method",
-	"Illegal Method",
-    "Shell Stack Underflow",
-    "Shell Stack Overflow",
-	"Bad Reference Count",
-	"IO error",
-	"Bad Object",
-    "StringOverflow",
-	"Bad Array Index",
-    "Illegal Operation",
-    "System Exception"
+struct errorEntry {
+    ForthError code;
+    const char* text;
+};
+
+static const struct errorEntry errors[] = {
+    // ANSI defined errors
+    { ForthError::none, "none" },
+    { ForthError::abort, "abort" },
+    { ForthError::abortQuote, "abort\"" },
+    { ForthError::stackOverflow, "parameter stack overflow" },
+    { ForthError::stackUnderflow, "parameter stack underflow" },
+    { ForthError::returnStackOverflow, "return stack overflow" },
+    { ForthError::returnStackUnderflow, "return stack underflow" },
+    { ForthError::doLoopNestTooDeep, "do loop nested too deep" },
+    { ForthError::dictionaryOverflow, "dictionary overflow" },
+    { ForthError::invalidMemoryAddress, "invalid memory address" },
+    { ForthError::divideByZero, "divide by zero" },
+    { ForthError::resultOutOfRange, "result out of range" },
+    { ForthError::argumentTypeMismatch, "argument type mismatch" },
+    { ForthError::undefinedWord, "undefined word" },
+    { ForthError::interpretingCompileOnlyWord, "interpreting compile-only word" },
+    { ForthError::invalidForget, "invalid forget" },
+    { ForthError::zeroLengthName, "zero length name" },
+    { ForthError::picturedOutputStringOverflow, "picturedOutputStringOverflow" },
+    { ForthError::parsedStringOverflow, "parsedStringOverflow" },
+    { ForthError::definitionNameTooLong, "definitionNameTooLong" },
+    { ForthError::writeToAReadOnlyLocation, "writeToAReadOnlyLocation" },
+    { ForthError::unsupportedOperation, "unsupported operation" },
+    { ForthError::controlStructureMismatch, "control structure mismatch" },
+    { ForthError::addressAlignmentException, "address alignment exception" },
+    { ForthError::invalidNumericArgument, "invalid numeric argument" },
+    { ForthError::returnStackImbalance, "return stack imbalance" },
+    { ForthError::loopParametersUnavailable, "loop parameters unavailable" },
+    { ForthError::invalidRecursion, "invalid recursion" },
+    { ForthError::userInterrupt, "user interrupt" },
+    { ForthError::compilerNesting, "compiler nesting" },
+    { ForthError::obsolescentFeature, "obsolescent feature" },
+    { ForthError::invalidToBody, "invalidToBody" },
+    { ForthError::invalidNameArgument, "invalidNameArgument" },
+    { ForthError::blockReadException, "blockReadException" },
+    { ForthError::blockWriteException, "blockWriteException" },
+    { ForthError::invalidBlockNumber, "invalidBlockNumber" },
+    { ForthError::invalidFilePosition, "invalidFilePosition" },
+    { ForthError::fileIOException, "fileIOException" },
+    { ForthError::nonExistentFile, "nonExistentFile" },
+    { ForthError::unexpectedEndOfFile, "unexpectedEndOfFile" },
+    { ForthError::invalidBaseForFloatingPointConversion, "invalidBaseForFloatingPointConversion" },
+    { ForthError::lossOfPrecision, "lossOfPrecision" },
+    { ForthError::fpDivideByZero, "fpDivideByZero" },
+    { ForthError::fpResultOutOfRange, "fpResultOutOfRange" },
+    { ForthError::fpStackOverflow, "fpStackOverflow" },
+    { ForthError::fpStackUnderflow, "fpStackUnderflow" },
+    { ForthError::fpInvalidArgument, "fpInvalidArgument" },
+    { ForthError::compilationWordListDeleted, "compilationWordListDeleted" },
+    { ForthError::invalidPostpone, "invalidPostpone" },
+    { ForthError::searchOrderOverflow, "searchOrderOverflow" },
+    { ForthError::searchOrderUnderflow, "searchOrderUnderflow" },
+    { ForthError::compilationWordListChanged, "compilationWordListChanged" },
+    { ForthError::controlFlowStackOverflow, "controlFlowStackOverflow" },
+    { ForthError::exceptionStackOverflow, "exceptionStackOverflow" },
+    { ForthError::fpUnderflow, "fpUnderflow" },
+    { ForthError::fpUnidentifiedFault, "fpUnidentifiedFault" },
+    { ForthError::quit, "quit" },
+    { ForthError::sendingOrReceivingCharacter, "sending or receiving character" },
+    { ForthError::preprocessorError, "[if], [else] or [then] exception" },
+    { ForthError::allocate, "allocate" },
+    { ForthError::free, "free" },
+    { ForthError::resize, "resize" },
+    { ForthError::closeFile, "closeFile" },
+    { ForthError::createFile, "createFile" },
+    { ForthError::deleteFile, "deleteFile" },
+    { ForthError::filePosition, "filePosition" },
+    { ForthError::fileSize, "fileSize" },
+    { ForthError::fileStatus, "fileStatus" },
+    { ForthError::flushFile, "flushFile" },
+    { ForthError::openFile, "openFile" },
+    { ForthError::readFile, "readFile" },
+    { ForthError::readLine, "readLine" },
+    { ForthError::renameFile, "renameFile" },
+    { ForthError::repositionFile, "repositionFile" },
+    { ForthError::resizeFile, "resizeFile" },
+    { ForthError::writeFile, "writeFile" },
+    { ForthError::writeLine, "writeLine" },
+    { ForthError::malformedXChar, "malformed XChar" },
+    { ForthError::substitute, "substitute" },
+    { ForthError::replaces, "replaces" },
+    // our defined errors
+    { ForthError::invalidParameter, "invalid parameter" },
+    { ForthError::illegalOperation, "illegal operation" },
+    { ForthError::badReferenceCount, "bad reference count" },
+    { ForthError::invalidType, "invalid type" },
+    { ForthError::badArrayIndex, "bad array index" },
+    { ForthError::badVarOperation, "bad variable operation" },
+    { ForthError::exceptionInFinally, "exception in ]finally[ section" },
+    { ForthError::badSyntax, "bad syntax" },
+    { ForthError::unimplementedMethod, "unimplemented method" },
+    { ForthError::badOpcode, "bad opcode" },
+    { ForthError::badOpcodeType, "bad opcode type" },
+    { ForthError::missingSize, "missing size" },
+    { ForthError::genericUserError, "genericUserError" },
+    { ForthError::badBlockNumber, "bad block number" },
+    { ForthError::unknownType, "unknown type" },
+    { ForthError::brokenObject, "broken object" },
+    { ForthError::shellStackUnderflow, "shell stack underflow" },
+    { ForthError::shellStackOverflow, "shell stack overflow" },
+    { ForthError::structError, "struct error" },
+    { ForthError::illegalMethod, "illegal method" },
+    { ForthError::stringOverflow, "string overflow" },
+    { ForthError::badObject, "bad object" },
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -256,6 +334,10 @@ Engine::Engine()
 #else
     ftime( &mStartTime );
 #endif
+    for (struct errorEntry err : errors)
+    {
+        mErrorMap[err.code] = err.text;
+    }
 
 	mDictionary.pBase = nullptr;
 
@@ -650,7 +732,7 @@ void Engine::TraceOp(forthop* pOp, forthop op)
         pOp = &opIn;
     }
     DescribeOp(pOp, buff, sizeof(buff), lookupUserTraces, numFollowing);
-    TraceOut("# 0x%16p # %s # ", pOp, buff);
+    TraceOut("# %p # %s # ", pOp, buff);
 #endif
 #endif
 }
@@ -930,7 +1012,7 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
 
             case kOpRelativeDefBranch:
                 // don't set numFollowing, otherwise following ops will be displayed as data not code
-                SNPRINTF(pBuffer, buffSize, "%s    0x%16p", opTypeName, opVal + 1 + pOp);
+                SNPRINTF(pBuffer, buffSize, "%s    %p", opTypeName, opVal + 1 + pOp);
                 break;
 
             case kOpConstant:
@@ -959,7 +1041,7 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
                 {
                     opVal |= 0xFF000000;
                 }
-                SNPRINTF( pBuffer, buffSize, "%s    0x%16p", opTypeName, opVal + 1 + pOp );
+                SNPRINTF( pBuffer, buffSize, "%s    %p", opTypeName, opVal + 1 + pOp );
                 break;
 
             case kOpOZBCombo:  case kOpONZBCombo:
@@ -971,7 +1053,7 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
                 {
                     branchOffset |= 0xFFFFF000;
                 }
-                SNPRINTF(pBuffer, buffSize, "%s   %s   %s 0x%16p", opTypeName,
+                SNPRINTF(pBuffer, buffSize, "%s   %s   %s %p", opTypeName,
                     gOpNames[embeddedOp], pBranchType, branchOffset + 1 + pOp);
                 break;
             }
@@ -1295,7 +1377,7 @@ OpResult Engine::FullyExecuteOp(CoreState* pCore, forthop opCode)
 	OpResult exitStatus = ExecuteOps(pCore, &(opScratch[0]));
 	if (exitStatus == OpResult::kYield)
 	{
-		SetError(ForthError::kIllegalOperation, " yield not allowed in FullyExecuteOp");
+		SetError(ForthError::illegalOperation, " yield not allowed in FullyExecuteOp");
 	}
 
 	return exitStatus;
@@ -1353,7 +1435,7 @@ OpResult Engine::FullyExecuteMethod(CoreState* pCore, ForthObject& obj, int meth
 
 	if (exitStatus == OpResult::kYield)
 	{
-		SetError(ForthError::kIllegalOperation, " yield not allowed in FullyExecuteMethod");
+		SetError(ForthError::illegalOperation, " yield not allowed in FullyExecuteMethod");
 	}
 	return exitStatus;
 }
@@ -1405,7 +1487,7 @@ OpResult Engine::DeleteObject(CoreState* pCore, ForthObject& obj)
 
             if (exitStatus == OpResult::kYield)
             {
-                SetError(ForthError::kIllegalOperation, " yield not allowed in delete!");
+                SetError(ForthError::illegalOperation, " yield not allowed in delete!");
             }
         }
         else
@@ -1473,7 +1555,7 @@ void Engine::SetError( ForthError e, const char *pString )
 	    strcat( mpErrorString, pString );
     }
 
-    if ( e == ForthError::kNone )
+    if ( e == ForthError::none )
     {
         // previous error state is being cleared
         mpErrorString[0] = '\0';
@@ -1481,6 +1563,7 @@ void Engine::SetError( ForthError e, const char *pString )
     else
     {
         mpCore->state = OpResult::kError;
+        RaiseException(mpCore, e);
     }
 }
 
@@ -1494,18 +1577,18 @@ void Engine::SetFatalError( ForthError e, const char *pString )
     }
 }
 
-void Engine::GetErrorString( char *pBuffer, int bufferSize )
+void Engine::GetErrorString(ForthError errorNum, char *pBuffer, int bufferSize )
 {
-    int errorNum = (int) mpCore->error;
-    if ( errorNum < (sizeof(pErrorStrings) / sizeof(char *)) )
+    std::map<ForthError, const char*>::const_iterator iter = mErrorMap.find(mpCore->error);
+    if (iter != mErrorMap.end())
     {
         if ( mpErrorString[0] != '\0' )
         {
-            sprintf( pBuffer, "%s: %s", pErrorStrings[errorNum], mpErrorString );
+            sprintf( pBuffer, "%s: %s", iter->second, mpErrorString );
         }
         else
         {
-            strcpy( pBuffer, pErrorStrings[errorNum] );
+            strcpy( pBuffer, iter->second );
         }
     }
     else
@@ -1524,12 +1607,12 @@ OpResult Engine::CheckStacks( void )
     depth = mpCore->ST - mpCore->SP;
     if ( depth < 0 )
     {
-        SetError( ForthError::kParamStackUnderflow );
+        SetError( ForthError::stackUnderflow );
         result = OpResult::kError;
     }
     else if ( depth >= (int32_t) mpCore->SLen )
     {
-        SetError( ForthError::kParamStackOverflow );
+        SetError( ForthError::stackOverflow );
         result = OpResult::kError;
     }
     
@@ -1537,12 +1620,12 @@ OpResult Engine::CheckStacks( void )
     depth = mpCore->RT - mpCore->RP;
     if ( depth < 0 )
     {
-        SetError( ForthError::kReturnStackUnderflow );
+        SetError( ForthError::returnStackUnderflow );
         result = OpResult::kError;
     }
     else if ( depth >= (int32_t) mpCore->RLen )
     {
-        SetError( ForthError::kReturnStackOverflow );
+        SetError( ForthError::returnStackOverflow );
         result = OpResult::kError;
     }
 
@@ -1796,58 +1879,76 @@ ClassVocabulary* Engine::AddBuiltinClass(const char* pClassName, eBuiltinClassIn
     return mpOuter->AddBuiltinClass(pClassName, classIndex, parentClassIndex, pEntries);
 }
 
-void Engine::RaiseException(CoreState *pCore, cell newExceptionNum)
+void Engine::RaiseException(CoreState *pCore, ForthError newExceptionNum)
 {
-    char errorMsg[64];
-    ForthExceptionFrame *pExceptionFrame = pCore->pExceptionFrame;
-    forthop* pHandlerOffsets = pExceptionFrame->pHandlerOffsets;
+    char errorMsg[256];
+
+    if (newExceptionNum == ForthError::none)
+    {
+        // throw(0) is used to clear the previous handled exception
+        pCore->error = newExceptionNum;
+        pCore->state = OpResult::kOk;
+        if (pCore->pExceptionFrame != nullptr)
+        {
+            pCore->pExceptionFrame->exceptionNumber = newExceptionNum;
+        }
+        return;
+    }
+
+    char exceptionDescription[128];
+    GetErrorString(newExceptionNum, exceptionDescription, sizeof(exceptionDescription));
+
+    ForthExceptionFrame* pExceptionFrame = pCore->pExceptionFrame;
     if (pExceptionFrame != nullptr)
     {
-        // exception frame:
-        //  0   old exception frame ptr
-        //  1   saved pstack ptr
-        //  2   ptr to catchIPOffset,finallyIPOffset
-        //  3   saved frame ptr
-        //  4   exception number
-        //  5   exception state
-        if (newExceptionNum)
+        forthop* pHandlerOffsets = pExceptionFrame->pHandlerOffsets;
+        ForthError oldExceptionNum = pExceptionFrame->exceptionNumber;
+        pExceptionFrame->exceptionNumber = newExceptionNum;
+        if (oldExceptionNum != ForthError::none)
         {
-            cell oldExceptionNum = pExceptionFrame->exceptionNumber;
-            pExceptionFrame->exceptionNumber = newExceptionNum;
-            if (oldExceptionNum)
+            // we are already processing an exception
+            if (pExceptionFrame->exceptionState == ExceptionState::kFinally)
             {
-                if (pExceptionFrame->exceptionState == ExceptionState::kFinally)
-                {
-                    // exception inside a finally section, avoid infinite loop
-                    // ? should this be a reraise to surrounding handler instead
-                    snprintf(errorMsg, sizeof(errorMsg), "Reraised exception of type %d in finally section", (int)newExceptionNum);
-                    SetError(ForthError::kException, errorMsg);
-                }
-                else
-                {
-                    // re-raise inside an exception handler - transfer control to finally body
-                    SET_SP(pExceptionFrame->pSavedSP);
-                    SET_IP(pHandlerOffsets + pHandlerOffsets[1]);
-                }
+                // exception raised inside a finally section, avoid infinite loop
+                // ? should this be a reraise to surrounding handler instead
+                snprintf(errorMsg, sizeof(errorMsg), "Reraised exception of type {%s} (%d) in ]finally section",
+                    exceptionDescription, (int)newExceptionNum);
+                SPEW_ENGINE("\nEngine::RaiseException reraised exception of type {%s} (%d) in ]finally section\n",
+                    exceptionDescription, (int) newExceptionNum);
+                // TODO! I think this will be an infinite loop after all...
+                SetError(ForthError::exceptionInFinally, errorMsg);
             }
             else
             {
-                // raise in try body
+                // re-raise inside an exception handler - transfer control to finally body
+                SPEW_ENGINE("\nEngine::RaiseException reraised exception of type {%s} (%d) in ]catch[ section\n",
+                    exceptionDescription, (int)newExceptionNum);
                 SET_SP(pExceptionFrame->pSavedSP);
-                SPUSH(newExceptionNum);
-                SET_IP(pHandlerOffsets + pHandlerOffsets[0]);
-                pExceptionFrame->exceptionState = ExceptionState::kExcept;
+                SET_IP(pHandlerOffsets + pHandlerOffsets[1]);
             }
         }
+        else
+        {
+            // raise in try body
+            forthop* tryHandlerIP = pHandlerOffsets + pHandlerOffsets[0];
+            SPEW_ENGINE("\nEngine::RaiseException {%s} (%d) in try[ section\n",
+                exceptionDescription, (int)newExceptionNum);
+            SET_SP(pExceptionFrame->pSavedSP);
+            SPUSH((cell)newExceptionNum);
+            SET_IP(tryHandlerIP);
+            mpShell->GetInput()->FlushToDepth(pExceptionFrame->inputStackDepth);
+            pExceptionFrame->exceptionState = ExceptionState::kExcept;
+        }
+
         pExceptionFrame->exceptionNumber = newExceptionNum;
     }
     else
     {
-        if (newExceptionNum)
-        {
-            snprintf(errorMsg, sizeof(errorMsg), "Unhandled exception of type %d", (int)newExceptionNum);
-            SetError(ForthError::kException, errorMsg);
-        }
+        pCore->error = newExceptionNum;
+        SPEW_ENGINE("\nEngine::RaiseException {%s} (%d) uncaught exception\n",
+            exceptionDescription, (int)newExceptionNum);
+        snprintf(mpErrorString, ERROR_STRING_MAX, "Uncaught exception of type %d", (int)newExceptionNum);
+        pCore->state = OpResult::kUncaughtException;
     }
 }
 

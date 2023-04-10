@@ -456,7 +456,7 @@ namespace OMap
 	FORTHOP(oMapIterNew)
 	{
 		Engine *pEngine = Engine::GetInstance();
-		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a MapIter object");
+		pEngine->SetError(ForthError::illegalOperation, " cannot explicitly create a MapIter object");
 	}
 
 	FORTHOP(oMapIterDeleteMethod)
@@ -1007,7 +1007,7 @@ namespace OMap
 	FORTHOP(oIntMapIterNew)
 	{
 		Engine *pEngine = Engine::GetInstance();
-		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create an IntMapIter object");
+		pEngine->SetError(ForthError::illegalOperation, " cannot explicitly create an IntMapIter object");
 	}
 
 	FORTHOP(oIntMapIterDeleteMethod)
@@ -1877,7 +1877,7 @@ namespace OMap
 	FORTHOP(oLongMapIterNew)
 	{
 		Engine *pEngine = Engine::GetInstance();
-		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a LongMapIter object");
+		pEngine->SetError(ForthError::illegalOperation, " cannot explicitly create a LongMapIter object");
 	}
 
 	FORTHOP(oLongMapIterDeleteMethod)
@@ -2431,7 +2431,7 @@ namespace OMap
 	FORTHOP(oDoubleMapIterNew)
 	{
 		Engine *pEngine = Engine::GetInstance();
-		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a DoubleMapIter object");
+		pEngine->SetError(ForthError::illegalOperation, " cannot explicitly create a DoubleMapIter object");
 	}
 
 	FORTHOP(oDoubleMapIterDeleteMethod)
@@ -2908,7 +2908,7 @@ namespace OMap
 	FORTHOP(oStringIntMapIterNew)
 	{
 		Engine *pEngine = Engine::GetInstance();
-		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a StringIntMapIter object");
+		pEngine->SetError(ForthError::illegalOperation, " cannot explicitly create a StringIntMapIter object");
 	}
 
 	FORTHOP(oStringIntMapIterDeleteMethod)
@@ -3483,7 +3483,7 @@ namespace OMap
 	FORTHOP(oStringLongMapIterNew)
 	{
 		Engine *pEngine = Engine::GetInstance();
-		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a StringLongMapIter object");
+		pEngine->SetError(ForthError::illegalOperation, " cannot explicitly create a StringLongMapIter object");
 	}
 
 	FORTHOP(oStringLongMapIterDeleteMethod)

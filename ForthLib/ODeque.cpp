@@ -190,7 +190,7 @@ namespace ODeque
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty ODeque");
+            GET_ENGINE->SetError(ForthError::illegalOperation, " pop of empty ODeque");
         }
         METHOD_RETURN;
     }
@@ -208,7 +208,7 @@ namespace ODeque
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty ODeque");
+            GET_ENGINE->SetError(ForthError::illegalOperation, " pop of empty ODeque");
         }
         METHOD_RETURN;
     }

@@ -812,11 +812,11 @@ addOp lmin|LA LB ... min(LA,LB)|
 addOp lmax|LA LB ... max(LA,LB)|
 
 tags: except
-addOp try||start of code section protected by exception handler
-addOp except||start of exception handler code
-addOp finally||defines code run after exception handler
-addOp endtry||end of exception handler
-addOp raise|EXCEPTION_NUM ...|raise an exception
+addOp try[||start of code section protected by exception handler
+addOp ]catch[||start of exception handler code
+addOp ]finally[||defines code run after exception handler
+addOp ]try||end of exception handler
+addOp throw|EXCEPTION_NUM ...|raise an exception
 
 tags: defining
 addOp builds||starts a builds...does definition

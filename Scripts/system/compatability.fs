@@ -72,10 +72,13 @@ precedence .(
 
 : [char]  opType:makeOpcode( opType:litInt blword c@ ) i, ; precedence [char]
 
+\ stringAddr flag           if flag isn't zero, display the string and abort
 : _abortQuote
+  \ TOS: cstringAddr flag
   swap
   if
-    error
+    addErrorText
+    -2 throw
   else
     drop
   endif
@@ -187,26 +190,15 @@ alias compile, i,
 
 : s>d dup 0< ;
 
-int _handler
-
-: catch  \ ... xt -- ... 0
-  _handler  >r
-  sp >r
-  rp _handler!
-  execute 0
-  r> drop
-  r> _handler!
-;
-
-: throw  \ error -- error
-  dup 0= if
-    drop exit
-  endif
-  _handler rp!
-  \ RTOS: oldSP oldHandlerRP
-  r> swap >r sp!
-  \ RTOS: errorCode oldHandlerRP
-  r> r> _handler!
+: catch
+  cell exceptionNum
+  op thingToDo!
+  try[
+    thingToDo
+  ]catch[
+    exceptionNum!
+  ]try
+  exceptionNum
 ;
 
 : /string

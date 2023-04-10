@@ -454,6 +454,11 @@ cell ServerInputStream::GetSourceID() const
 
 char* ServerInputStream::GetLine( const char *pPrompt )
 {
+    if (mbForcedEmpty)
+    {
+        return nullptr;
+    }
+
     int msgType, msgLen;
     char* result = NULL;
 

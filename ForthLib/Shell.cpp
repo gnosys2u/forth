@@ -458,7 +458,7 @@ Shell::RunOneStream(InputStream *pInStream)
 				break;
 
 			case OpResult::kError:
-			case OpResult::kException:
+			case OpResult::kUncaughtException:
 				// an error has occured, empty input stream stack
 				// TODO
 				bQuit = true;
@@ -555,9 +555,36 @@ Shell::Run( InputStream *pInStream )
                 break;
 
             case OpResult::kError:
-            case OpResult::kException:
+            case OpResult::kUncaughtException:
                 // an error has occured, empty input stream stack
-                // TODO
+                if (result != OpResult::kOk)
+                {
+                    OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
+
+                    // in case console out was redirected, point it back to the user-visible console
+                    mpEngine->ResetConsoleOut();
+
+                    bool exitingShell = (result == OpResult::kExitShell) || (result == OpResult::kShutdown);
+                    if (!exitingShell)
+                    {
+                        ReportError();
+                        if (mpEngine->GetError() == ForthError::undefinedWord)
+                        {
+                            ForthConsoleCharOut(mpEngine->GetCoreState(), '\n');
+                            pOuter->ShowSearchInfo();
+                        }
+                        mpEngine->DumpCrashState();
+                    }
+
+                    ErrorReset();
+                    if (!mpInput->Top()->IsInteractive() && !exitingShell)
+                    {
+                        // if the initial input stream was a file, any error
+                        //   must be treated as a fatal error
+                        result = OpResult::kFatalError;
+                    }
+                }
+
                 if ( !bInteractiveMode )
                 {
                     bQuit = true;
@@ -637,7 +664,7 @@ OpResult Shell::ProcessLine()
 					if (marker != kShellTagPoundIf)
 					{
 						// error - unexpected else
-						mpEngine->SetError(ForthError::kBadPreprocessorDirective, "unexpected #endif");
+						mpEngine->SetError(ForthError::preprocessorError, "unexpected #endif");
 					}
 					mFlags &= ~SHELL_FLAG_SKIP_SECTION;
                 }
@@ -648,7 +675,7 @@ OpResult Shell::ProcessLine()
 
             }
         }
-        if (mpEngine->GetError() != ForthError::kNone)
+        if (mpEngine->GetError() != ForthError::none)
         {
             result = OpResult::kError;
         }
@@ -683,7 +710,7 @@ OpResult Shell::ProcessLine()
                 }
                 else
                 {
-                    mpEngine->SetError( ForthError::kBadPreprocessorDirective, "#if expression left empty stack" );
+                    mpEngine->SetError( ForthError::preprocessorError, "#if expression left empty stack" );
                 }
                 mFlags &= ~SHELL_FLAG_START_IF;
             }
@@ -705,11 +732,11 @@ OpResult Shell::InterpretLine()
 
     SPEW_SHELL( "\n*** InterpretLine {%s}\n", mpInput->GetBufferBasePointer());
     bLineEmpty = false;
-    mpEngine->SetError( ForthError::kNone );
+    mpEngine->SetError( ForthError::none );
     while ( !bLineEmpty && (result == OpResult::kOk) )
 	{
         bLineEmpty = ParseToken( &parseInfo );
-        if (mpEngine->GetError() != ForthError::kNone)
+        if (mpEngine->GetError() != ForthError::none)
         {
             result = OpResult::kError;
         }
@@ -731,8 +758,9 @@ OpResult Shell::InterpretLine()
 				}
 				catch(...)
 				{
-					result = OpResult::kException;
-					mpEngine->SetError( ForthError::kIllegalOperation );
+                    // TODO - this isn't an uncaught exception
+					result = OpResult::kUncaughtException;
+					mpEngine->SetError( ForthError::illegalOperation );
 				}
 			}
 			else
@@ -747,31 +775,6 @@ OpResult Shell::InterpretLine()
             if ( result == OpResult::kOk )
 			{
                 result = mpEngine->CheckStacks();
-            }
-        }
-
-        if (result != OpResult::kOk)
-        {
-            // in case console out was redirected, point it back to the user-visible console
-            mpEngine->ResetConsoleOut();
-
-            bool exitingShell = (result == OpResult::kExitShell) || (result == OpResult::kShutdown);
-            if (!exitingShell)
-            {
-                ReportError();
-                if (mpEngine->GetError() == ForthError::kUnknownSymbol)
-                {
-                    ForthConsoleCharOut(mpEngine->GetCoreState(), '\n');
-                    pOuter->ShowSearchInfo();
-                }
-                mpEngine->DumpCrashState();
-            }
-            ErrorReset();
-            if (!mpInput->Top()->IsInteractive() && !exitingShell)
-            {
-                // if the initial input stream was a file, any error
-                //   must be treated as a fatal error
-                result = OpResult::kFatalError;
             }
         }
     }
@@ -796,7 +799,8 @@ Shell::ReportError( void )
     char errorBuf2[512];
     const char *pLastInputToken;
 
-    mpEngine->GetErrorString( errorBuf1, sizeof(errorBuf1) );
+    ForthError err = mpEngine->GetError();
+    mpEngine->GetErrorString( err, errorBuf1, sizeof(errorBuf1) );
     OuterInterpreter* pOuter = mpEngine->GetOuterInterpreter();
     pLastInputToken = pOuter->GetLastInputToken();
 	CoreState* pCore = mpEngine->GetCoreState();
@@ -1046,7 +1050,7 @@ Shell::ParseToken( ParseInfo *pInfo )
                 GetTagString(tag, pTagString);
                 sprintf(mErrorString,  "top of shell stack is <%s>, was expecting <string>", pTagString);
                 free(pTagString);
-                mpEngine->SetError( ForthError::kBadSyntax, mErrorString );
+                mpEngine->SetError( ForthError::badSyntax, mErrorString );
             }
         }
         return false;
@@ -1760,7 +1764,7 @@ Shell::CheckSyntaxError(const char *pString, eShellTag tag, int32_t desiredTags)
         free(pExpected);
         free(pActual);
 		mpStack->PushTag(tag);
-		mpEngine->SetError(ForthError::kBadSyntax, mErrorString);
+		mpEngine->SetError(ForthError::badSyntax, mErrorString);
 		return false;
 	}
 	return true;
@@ -1803,7 +1807,7 @@ Shell::CheckDefinitionEnd(const char* pDisplayName, const char* pFourCharCode)
 		mpStack->PushString(definedSymbol);
 		mpStack->Push(defineType);
 		mpStack->Push(defineTag);
-		mpEngine->SetError(ForthError::kBadSyntax, mErrorString);
+		mpEngine->SetError(ForthError::badSyntax, mErrorString);
 	}
 	return false;
 }
@@ -1976,7 +1980,7 @@ void Shell::PoundElse()
     else
     {
         // error - unexpected else
-        mpEngine->SetError( ForthError::kBadPreprocessorDirective, "unexpected #else" );
+        mpEngine->SetError( ForthError::preprocessorError, "unexpected #else" );
     }
 }
 
@@ -1987,7 +1991,7 @@ void Shell::PoundEndif()
     if ( marker != kShellTagPoundIf )
     {
         // error - unexpected endif
-        mpEngine->SetError( ForthError::kBadPreprocessorDirective, "unexpected #endif" );
+        mpEngine->SetError( ForthError::preprocessorError, "unexpected #endif" );
     }
 }
 
@@ -2149,7 +2153,7 @@ ForthShellStack::PushTag(eShellTag tag)
     }
     else
     {
-        Engine::GetInstance()->SetError(ForthError::kShellStackOverflow);
+        Engine::GetInstance()->SetError(ForthError::shellStackOverflow);
     }
 }
 
@@ -2163,7 +2167,7 @@ ForthShellStack::Push(cell val)
     }
     else
     {
-        Engine::GetInstance()->SetError(ForthError::kShellStackOverflow);
+        Engine::GetInstance()->SetError(ForthError::shellStackOverflow);
     }
 }
 
@@ -2177,7 +2181,7 @@ ForthShellStack::PushAddress(forthop* addr)
     }
     else
     {
-        Engine::GetInstance()->SetError(ForthError::kShellStackOverflow);
+        Engine::GetInstance()->SetError(ForthError::shellStackOverflow);
     }
 }
 
@@ -2208,7 +2212,7 @@ forthop* ForthShellStack::PopAddress( void )
 {
     if (mSSP == mSST)
     {
-        Engine::GetInstance()->SetError( ForthError::kShellStackUnderflow );
+        Engine::GetInstance()->SetError( ForthError::shellStackUnderflow );
         return (forthop*)kShellTagNothing;
     }
     forthop* pOp = *mSSP++;
@@ -2234,7 +2238,7 @@ cell ForthShellStack::Pop(void)
 {
     if (mSSP == mSST)
     {
-        Engine::GetInstance()->SetError(ForthError::kShellStackUnderflow);
+        Engine::GetInstance()->SetError(ForthError::shellStackUnderflow);
         return kShellTagNothing;
     }
     cell val = (cell)*mSSP++;
@@ -2303,7 +2307,7 @@ ForthShellStack::PushString( const char *pString )
 	}
 	else
 	{
-        Engine::GetInstance()->SetError( ForthError::kShellStackOverflow );
+        Engine::GetInstance()->SetError( ForthError::shellStackOverflow );
 	}
 }
 
@@ -2315,7 +2319,7 @@ ForthShellStack::PopString(char *pString, int maxLen)
     {
         *pString = '\0';
         SPEW_SHELL( "Failed to pop string\n" );
-        Engine::GetInstance()->SetError( ForthError::kShellStackUnderflow );
+        Engine::GetInstance()->SetError( ForthError::shellStackUnderflow );
         return false;
     }
     mSSP++;

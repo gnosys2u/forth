@@ -58,7 +58,7 @@ namespace OStream
             }
             else
             {
-                Engine::GetInstance()->SetError(ForthError::kIO, " input stream has no char input routines");
+                Engine::GetInstance()->SetError(ForthError::brokenObject, " input stream has no char input routines");
             }
         }
 
@@ -91,7 +91,7 @@ namespace OStream
             }
             else
             {
-                Engine::GetInstance()->SetError(ForthError::kIO, " input stream has no bytes input routines");
+                Engine::GetInstance()->SetError(ForthError::brokenObject, " input stream has no bytes input routines");
             }
         }
 
@@ -181,7 +181,7 @@ namespace OStream
             }
             else
             {
-                Engine::GetInstance()->SetError(ForthError::kIO, " input stream has no string input routines");
+                Engine::GetInstance()->SetError(ForthError::brokenObject, " input stream has no string input routines");
             }
         }
 
@@ -258,7 +258,7 @@ namespace OStream
             }
             else
             {
-                Engine::GetInstance()->SetError(ForthError::kIO, " input stream has no string input routines");
+                Engine::GetInstance()->SetError(ForthError::brokenObject, " input stream has no string input routines");
             }
         }
         return numWritten;
@@ -1091,7 +1091,7 @@ namespace OStream
 		}
 		else
 		{
-			Engine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
+			Engine::GetInstance()->SetError(ForthError::brokenObject, " output stream has no output routines");
 		}
 	}
 
@@ -1101,7 +1101,7 @@ namespace OStream
 
 		if (pOutStream->pOutFuncs == NULL)
 		{
-			Engine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
+			Engine::GetInstance()->SetError(ForthError::brokenObject, " output stream has no output routines");
 		}
 		else
 		{
@@ -1136,7 +1136,7 @@ namespace OStream
 		}
 		else
 		{
-			Engine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
+			Engine::GetInstance()->SetError(ForthError::brokenObject, " output stream has no output routines");
 		}
 	}
 
@@ -1186,7 +1186,7 @@ namespace OStream
 			}
 			else
 			{
-				Engine::GetInstance()->SetError(ForthError::kIO, " output stream has no output routines");
+				Engine::GetInstance()->SetError(ForthError::brokenObject, " output stream has no output routines");
 			}
 		}
 	}
@@ -2015,7 +2015,7 @@ void ForthConsoleCharOut(CoreState* pCore, char ch)
         }
         else
         {
-            pEngine->SetError(ForthError::kException, " ForthConsoleCharOut outstream is null");
+            pEngine->SetError(ForthError::brokenObject, " ForthConsoleCharOut outstream is null");
         }
 	}
 }
@@ -2038,7 +2038,7 @@ void ForthConsoleBytesOut(CoreState* pCore, const char* pBuffer, int numChars)
         }
         else
         {
-            pEngine->SetError(ForthError::kException, " ForthConsoleBytesOut outstream is null");
+            pEngine->SetError(ForthError::brokenObject, " ForthConsoleBytesOut outstream is null");
         }
 	}
 }
@@ -2060,7 +2060,7 @@ void ForthConsoleStringOut(CoreState* pCore, const char* pBuffer)
         }
         else
         {
-            pEngine->SetError(ForthError::kException, " ForthConsoleStringOut outstream is null");
+            pEngine->SetError(ForthError::brokenObject, " ForthConsoleStringOut outstream is null");
         }
 	}
 }
@@ -2082,7 +2082,7 @@ void ForthErrorStringOut(CoreState* pCore, const char* pBuffer)
         }
         else
         {
-            pEngine->SetError(ForthError::kException, " ForthErrorStringOut outstream is null");
+            pEngine->SetError(ForthError::brokenObject, " ForthErrorStringOut outstream is null");
         }
     }
 }

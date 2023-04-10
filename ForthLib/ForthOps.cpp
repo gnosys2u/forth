@@ -142,20 +142,20 @@ FORTHOP( byeOp )
 // badOp is used to detect executing uninitialized op variables
 FORTHOP( badOpOp )
 {
-    SET_ERROR( ForthError::kBadOpcode );
+    SET_ERROR( ForthError::badOpcode );
 }
 
 // unimplementedMethodOp is used to detect executing unimplemented methods
 FORTHOP( unimplementedMethodOp )
 {
-    SET_ERROR( ForthError::kUnimplementedMethod );
+    SET_ERROR( ForthError::unimplementedMethod );
     METHOD_RETURN;
 }
 
 // unimplementedMethodOp is used to detect executing unimplemented methods
 FORTHOP( illegalMethodOp )
 {
-    SET_ERROR( ForthError::kUnimplementedMethod );
+    SET_ERROR( ForthError::unimplementedMethod );
 }
 
 FORTHOP( argvOp )
@@ -181,8 +181,16 @@ FORTHOP( ldivideOp )
 #if defined(FORTH64)
     cell b = SPOP;
     cell a = SPOP;
-    cell quotient = a / b;
-    SPUSH(quotient);
+
+    if (b == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+    }
+    else
+    {
+        cell quotient = a / b;
+        SPUSH(quotient);
+    }
 #else
     NEEDS(4);
     stackInt64 a;
@@ -190,8 +198,16 @@ FORTHOP( ldivideOp )
     stackInt64 quotient;
     LPOP(b);
     LPOP(a);
-    quotient.s64 = a.s64 / b.s64;
-    LPUSH(quotient);
+
+    if (b.s64 == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+    }
+    else
+    {
+        quotient.s64 = a.s64 / b.s64;
+        LPUSH(quotient);
+    }
 #endif
 }
 
@@ -202,6 +218,15 @@ FORTHOP( lmodOp )
     cell a = SPOP;
     cell remainder = a % b;
     SPUSH(remainder);
+
+    if (b == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+    }
+    else
+    {
+        DPUSH(fmod(a, b));
+    }
 #else
     NEEDS(4);
     stackInt64 a;
@@ -209,8 +234,16 @@ FORTHOP( lmodOp )
     stackInt64 remainder;
     LPOP( b );
     LPOP( a );
-    remainder.s64 = a.s64 % b.s64;
-    LPUSH( remainder );
+
+    if (b.s64 == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+    }
+    else
+    {
+        remainder.s64 = a.s64 % b.s64;
+        LPUSH(remainder);
+    }
 #endif
 }
 
@@ -223,6 +256,15 @@ FORTHOP( ldivmodOp )
     SPUSH(remainder);
     cell quotient = a / b;
     SPUSH(quotient);
+
+    if (b == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+    }
+    else
+    {
+        DPUSH(fmod(a, b));
+    }
 #else
     NEEDS(4);
     stackInt64 a;
@@ -231,10 +273,18 @@ FORTHOP( ldivmodOp )
     stackInt64 remainder;
     LPOP(b);
     LPOP(a);
-    remainder.s64 = a.s64 % b.s64;
-    LPUSH(remainder);
-    quotient.s64 = a.s64 / b.s64;
-    LPUSH(quotient);
+
+    if (b.s64 == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+    }
+    else
+    {
+        remainder.s64 = a.s64 % b.s64;
+        LPUSH(remainder);
+        quotient.s64 = a.s64 / b.s64;
+        LPUSH(quotient);
+    }
 #endif
 }
 
@@ -244,15 +294,23 @@ FORTHOP( timesDivOp )
 	int denom = SPOP;
 	int a = SPOP;
 	int b = SPOP;
-	int64_t product = (int64_t) a * (int64_t) b;
-	int quotient = product / denom;
-	int remainder = product % denom;
-    if (remainder != 0 && ((product < 0) != (denom < 0)))
-    {
-        quotient--;
-    }
 
-	SPUSH(quotient);
+    if (b == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+    }
+    else
+    {
+        int64_t product = (int64_t)a * (int64_t)b;
+        int quotient = product / denom;
+        int remainder = product % denom;
+        if (remainder != 0 && ((product < 0) != (denom < 0)))
+        {
+            quotient--;
+        }
+
+        SPUSH(quotient);
+    }
 }
 
 FORTHOP( timesDivModOp )
@@ -260,18 +318,25 @@ FORTHOP( timesDivModOp )
 	int denom = SPOP;
 	int a = SPOP;
 	int b = SPOP;
-	int64_t product = (int64_t) a * (int64_t) b;
-	int quotient = product / denom;
-	int remainder = product % denom;
-    if (remainder != 0 && ((product < 0) != (denom < 0)))
+
+    if (b == 0)
     {
-        quotient--;
-        remainder += denom;
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
     }
+    else
+    {
+        int64_t product = (int64_t)a * (int64_t)b;
+        int quotient = product / denom;
+        int remainder = product % denom;
+        if (remainder != 0 && ((product < 0) != (denom < 0)))
+        {
+            quotient--;
+            remainder += denom;
+        }
 
-
-	SPUSH(remainder);
-	SPUSH(quotient);
+        SPUSH(remainder);
+        SPUSH(quotient);
+    }
 }
 
 FORTHOP( umDivModOp )
@@ -281,10 +346,18 @@ FORTHOP( umDivModOp )
     //LPOP(a);
     a.s32[1] = SPOP;
     a.s32[0] = SPOP;
-	uint32_t quotient = a.u64 / denom;
-	uint32_t remainder = a.u64 % denom;
-	SPUSH(remainder);
-	SPUSH(quotient);
+
+    if (denom == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+    }
+    else
+    {
+        uint32_t quotient = a.u64 / denom;
+        uint32_t remainder = a.u64 % denom;
+        SPUSH(remainder);
+        SPUSH(quotient);
+    }
 }
 
 FORTHOP( smRemOp )
@@ -294,10 +367,18 @@ FORTHOP( smRemOp )
     //LPOP(a);
     a.s32[1] = SPOP;
     a.s32[0] = SPOP;
-	int quotient = a.s64 / denom;
-	int remainder = a.s64 % denom;
-	SPUSH(remainder);
-	SPUSH(quotient);
+
+    if (denom == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+    }
+    else
+    {
+        int quotient = a.s64 / denom;
+        int remainder = a.s64 % denom;
+        SPUSH(remainder);
+        SPUSH(quotient);
+    }
 }
 
 FORTHOP(fmModOp)
@@ -306,15 +387,23 @@ FORTHOP(fmModOp)
     int denom = SPOP;
     a.s32[1] = SPOP;
     a.s32[0] = SPOP;
-    int quotient = a.s64 / denom;
-    int remainder = a.s64 % denom;
-    if (remainder != 0 && ((a.s64 < 0) != (denom < 0)))
+
+    if (denom == 0)
     {
-        quotient--;
-        remainder += denom;
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
     }
-    SPUSH(remainder);
-    SPUSH(quotient);
+    else
+    {
+        int quotient = a.s64 / denom;
+        int remainder = a.s64 % denom;
+        if (remainder != 0 && ((a.s64 < 0) != (denom < 0)))
+        {
+            quotient--;
+            remainder += denom;
+        }
+        SPUSH(remainder);
+        SPUSH(quotient);
+    }
 }
 #endif
 
@@ -1393,6 +1482,10 @@ FORTHOP(initStructArrayOp)
 //
 FORTHOP(doTryOp)
 {
+    Engine* pEngine = GET_ENGINE;
+    Shell* pShell = pEngine->GetShell();
+    InputStack* pInputStack = pShell->GetInput();
+
     cell *pNewRP = (cell *)((cell)(GET_RP) - sizeof(ForthExceptionFrame));
     ForthExceptionFrame *pFrame = (ForthExceptionFrame *)pNewRP;
     SET_RP(pNewRP);
@@ -1401,8 +1494,9 @@ FORTHOP(doTryOp)
     pFrame->pSavedSP = GET_SP;
     pFrame->pSavedFP = GET_FP;
     pFrame->pHandlerOffsets = IP;
-    pFrame->exceptionNumber = 0;
+    pFrame->exceptionNumber = ForthError::none;
     pFrame->exceptionState = ExceptionState::kTry;
+    pFrame->inputStackDepth = pInputStack->GetDepth();
 
     SET_IP(IP + 2);     // skip immediately following handlerIPs
     pCore->pExceptionFrame = pFrame;
@@ -1423,7 +1517,7 @@ FORTHOP(tryOp)
     pOuter->ClearPeephole();
 }
 
-FORTHOP(exceptOp)
+FORTHOP(catcherOp)
 {
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
@@ -1431,7 +1525,7 @@ FORTHOP(exceptOp)
     ForthShellStack *pShellStack = pShell->GetShellStack();
 
     eShellTag tryTag = pShellStack->PopTag();
-    if (!pShell->CheckSyntaxError("except", tryTag, kShellTagTry))
+    if (!pShell->CheckSyntaxError("]catch[", tryTag, kShellTagTry))
     {
         return;
     }
@@ -1439,7 +1533,7 @@ FORTHOP(exceptOp)
     pOuter->CompileInt(0);        // this will be a branch to the finally section
     *pHandlerOffsets = GET_DP - pHandlerOffsets;
     pShellStack->PushAddress(pHandlerOffsets);
-    pShellStack->PushTag(kShellTagExcept);
+    pShellStack->PushTag(kShellTagCatcher);
     pOuter->ClearPeephole();
 }
 
@@ -1451,7 +1545,7 @@ FORTHOP(doFinallyOp)
     }
     else
     {
-        GET_ENGINE->SetError(ForthError::kIllegalOperation, "_doFinally executed when there is no exception frame");
+        GET_ENGINE->SetError(ForthError::illegalOperation, "_doFinally executed when there is no exception frame");
     }
 }
 
@@ -1463,13 +1557,13 @@ FORTHOP(finallyOp)
     ForthShellStack *pShellStack = pShell->GetShellStack();
 
     eShellTag exceptTag = pShellStack->PopTag();
-    if (!pShell->CheckSyntaxError("finally", exceptTag, kShellTagExcept))
+    if (!pShell->CheckSyntaxError("]finally[", exceptTag, kShellTagCatcher))
     {
         return;
     }
     // compile raise(0) to clear the exception
     pOuter->CompileInt(COMPILED_OP(kOpConstant, 0));
-    pOuter->CompileBuiltinOpcode(OP_RAISE);
+    pOuter->CompileBuiltinOpcode(OP_THROW);
     forthop* pHandlerOffsets = pShellStack->PopAddress();
     forthop* dp = GET_DP;
     pHandlerOffsets[1] = dp - pHandlerOffsets;
@@ -1489,16 +1583,16 @@ FORTHOP(endtryOp)
     ForthShellStack *pShellStack = pShell->GetShellStack();
 
     eShellTag tag = pShellStack->PopTag();
-    if (!pShell->CheckSyntaxError("endtry", tag, (kShellTagExcept | kShellTagFinally)))
+    if (!pShell->CheckSyntaxError("endtry", tag, (kShellTagCatcher | kShellTagFinally)))
     {
         return;
     }
 
-    if (tag == kShellTagExcept)
+    if (tag == kShellTagCatcher)
     {
         // compile raise(0) to clear the exception
         pOuter->CompileInt(COMPILED_OP(kOpConstant, 0));
-        pOuter->CompileBuiltinOpcode(OP_RAISE);
+        pOuter->CompileBuiltinOpcode(OP_THROW);
         // set finallyIP to here
         forthop* pHandlerOffsets = pShellStack->PopAddress();
         forthop* dp = GET_DP;
@@ -1519,27 +1613,39 @@ FORTHOP(doEndtryOp)
     {
         // unwind current exception frame
         SET_FP(pCore->pExceptionFrame->pSavedFP);
-        cell oldExceptionNum = pCore->pExceptionFrame->exceptionNumber;
+        ForthError oldExceptionNum = pCore->pExceptionFrame->exceptionNumber;
         cell *pNewRP = (cell *)((cell)(GET_RP) + sizeof(ForthExceptionFrame));
         SET_RP(pNewRP);
         pCore->pExceptionFrame = pCore->pExceptionFrame->pNextFrame;
-        if (oldExceptionNum != 0)
+        if (oldExceptionNum != ForthError::none)
         {
             pEngine->RaiseException(pCore, oldExceptionNum);
         }
     }
     else
     {
-        pEngine->SetError(ForthError::kIllegalOperation, "endtry executed when there is no exception frame");
+        pEngine->SetError(ForthError::illegalOperation, "endtry executed when there is no exception frame");
     }
 }
 
-FORTHOP(raiseOp)
+FORTHOP(throwOp)
 {
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
 
-    cell exceptionNum = SPOP;
+    ForthError exceptionNum = (ForthError)(SPOP);
+    pEngine->RaiseException(pCore, exceptionNum);
+}
+
+FORTHOP(throwStrOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+
+    ForthError exceptionNum = (ForthError)(SPOP);
+    const char* pMessage = (const char*)(SPOP);
+
+    pEngine->AddErrorText(pMessage);
     pEngine->RaiseException(pCore, exceptionNum);
 }
 
@@ -1668,7 +1774,7 @@ FORTHOP( semiOp )
 	pEngine->GetShell()->CheckDefinitionEnd(":", "coln");
     if (pOuter->HasPendingContinuations())
     {
-        pEngine->SetError(ForthError::kBadSyntax, "There are unresolved continue/break branches at end of definition");
+        pEngine->SetError(ForthError::badSyntax, "There are unresolved continue/break branches at end of definition");
     }
 }
 
@@ -1818,7 +1924,7 @@ FORTHOP(recurseOp)
     }
     else
     {
-        pEngine->SetError(ForthError::kIllegalOperation, "recurse in interpret mode");
+        pEngine->SetError(ForthError::illegalOperation, "recurse in interpret mode");
     }
 }
 
@@ -2201,7 +2307,7 @@ FORTHOP( arrayOfOp )
         }
         else
         {
-            SET_ERROR( ForthError::kMissingSize );
+            SET_ERROR( ForthError::missingSize );
         }
     }
     else
@@ -2293,12 +2399,12 @@ FORTHOP(defineNewOp)
 		}
 		else
 		{
-			pEngine->SetError(ForthError::kBadSyntax, "__newOp being defined not found in 'new:'");
+			pEngine->SetError(ForthError::badSyntax, "__newOp being defined not found in 'new:'");
 		}
 	}
 	else
 	{
-		pEngine->SetError(ForthError::kBadSyntax, "Defining class not found in 'new:'");
+		pEngine->SetError(ForthError::badSyntax, "Defining class not found in 'new:'");
 	}
 }
 
@@ -2328,7 +2434,7 @@ FORTHOP( methodOp )
     ClassVocabulary* pVocab = pManager->GetNewestClass();
     if (pVocab == nullptr)
     {
-        pEngine->SetError(ForthError::kBadSyntax, "Defining class not found in 'method:'");
+        pEngine->SetError(ForthError::badSyntax, "Defining class not found in 'method:'");
         return;
     }
 
@@ -2340,7 +2446,7 @@ FORTHOP( methodOp )
         if (methodIndex < 0)
         {
             pEngine->AddErrorText(pMethodName);
-            pEngine->SetError(ForthError::kBadSyntax, "unknown method name in interface implementation");
+            pEngine->SetError(ForthError::badSyntax, "unknown method name in interface implementation");
             return;
         }
 
@@ -2360,7 +2466,7 @@ FORTHOP( methodOp )
         }
         else
         {
-            pEngine->SetError(ForthError::kBadParameter, "current interface not found while implementing interface");
+            pEngine->SetError(ForthError::invalidParameter, "current interface not found while implementing interface");
         }
     }
     else
@@ -2377,7 +2483,7 @@ FORTHOP( methodOp )
         }
 		else
 		{
-			pEngine->SetError(ForthError::kBadSyntax, "method op being defined not found in 'method:'");
+			pEngine->SetError(ForthError::badSyntax, "method op being defined not found in 'method:'");
 		}
     }
 
@@ -2443,14 +2549,14 @@ FORTHOP( returnsOp )
             else
             {
                 pEngine->AddErrorText( pToken );
-                pEngine->SetError( ForthError::kUnknownSymbol, " is not a known return type" );
+                pEngine->SetError( ForthError::undefinedWord, " is not a known return type" );
             }
         }
     }
     else
     {
         // report error - "returns" outside of method
-        pEngine->SetError( ForthError::kBadSyntax, "returns can only be used inside a method" );
+        pEngine->SetError( ForthError::badSyntax, "returns can only be used inside a method" );
     }
 }
 
@@ -2476,7 +2582,7 @@ FORTHOP( implementsOp )
     {
         if (pOuter->CheckFlag(kEngineFlagInInterfaceImplementation))
         {
-            pEngine->SetError(ForthError::kBadSyntax, "implements: already implementing an interface");
+            pEngine->SetError(ForthError::badSyntax, "implements: already implementing an interface");
         }
         else
         {
@@ -2486,7 +2592,7 @@ FORTHOP( implementsOp )
     }
     else
     {
-        pEngine->SetError( ForthError::kBadSyntax, "implements: outside of class definition" );
+        pEngine->SetError( ForthError::badSyntax, "implements: outside of class definition" );
     }
 }
 
@@ -2504,7 +2610,7 @@ FORTHOP( endImplementsOp )
     }
     else
     {
-        pEngine->SetError( ForthError::kBadSyntax, ";implements outside of interface definition" );
+        pEngine->SetError( ForthError::badSyntax, ";implements outside of interface definition" );
     }
 }
 
@@ -2526,13 +2632,13 @@ FORTHOP(classIdOfOp)      // has precedence
         else
         {
             pEngine->AddErrorText(pClassName);
-            pEngine->SetError(ForthError::kBadSyntax, " is a struct, not a class");
+            pEngine->SetError(ForthError::badSyntax, " is a struct, not a class");
         }
     }
     else
     {
         pEngine->AddErrorText(pClassName);
-        pEngine->SetError(ForthError::kUnknownSymbol, " is not a known class");
+        pEngine->SetError(ForthError::undefinedWord, " is not a known class");
     }
 }
 
@@ -2604,7 +2710,7 @@ FORTHOP( extendsOp )
 				}
 				else
 				{
-					pEngine->SetError( ForthError::kBadSyntax, "extend class from struct is illegal" );
+					pEngine->SetError( ForthError::badSyntax, "extend class from struct is illegal" );
 				}
 			}
 			else
@@ -2613,7 +2719,7 @@ FORTHOP( extendsOp )
 				{
 					if ( pParentVocab->IsClass() )
 					{
-						pEngine->SetError( ForthError::kBadSyntax, "extend struct from class is illegal" );
+						pEngine->SetError( ForthError::badSyntax, "extend struct from class is illegal" );
 					}
 					else
 					{
@@ -2622,19 +2728,19 @@ FORTHOP( extendsOp )
 				}
 				else
 				{
-					pEngine->SetError( ForthError::kBadSyntax, "extends must be used in a class or struct definition" );
+					pEngine->SetError( ForthError::badSyntax, "extends must be used in a class or struct definition" );
 				}
 			}
         }
         else
         {
-            pEngine->SetError( ForthError::kUnknownSymbol, pSym );
+            pEngine->SetError( ForthError::undefinedWord, pSym );
             pEngine->AddErrorText( " is not a structure" );
         }
     }
     else
     {
-        pEngine->SetError( ForthError::kUnknownSymbol, pSym );
+        pEngine->SetError( ForthError::undefinedWord, pSym );
     }
 }
 
@@ -2663,13 +2769,13 @@ FORTHOP( strSizeOfOp )
             if ( size <= 0 )
             {
                 pEngine->AddErrorText( pSym );
-                pEngine->SetError( ForthError::kUnknownSymbol, " is not a structure or base type" );
+                pEngine->SetError( ForthError::undefinedWord, " is not a structure or base type" );
             }
         }
     }
     else
     {
-        pEngine->SetError( ForthError::kUnknownSymbol, pSym );
+        pEngine->SetError( ForthError::undefinedWord, pSym );
     }
 	SPUSH(size);
 }
@@ -2685,7 +2791,7 @@ FORTHOP( strOffsetOfOp )
     char *pField = strchr( pType, '.' );
     if ( pField == NULL )
     {
-        pEngine->SetError( ForthError::kBadSyntax, "argument must contain a period" );
+        pEngine->SetError( ForthError::badSyntax, "argument must contain a period" );
     }
 	else
 	{
@@ -2709,18 +2815,18 @@ FORTHOP( strOffsetOfOp )
 				{
 					pEngine->AddErrorText(pField);
 					pEngine->AddErrorText(" is not a field in ");
-					pEngine->SetError(ForthError::kUnknownSymbol, pType);
+					pEngine->SetError(ForthError::undefinedWord, pType);
 				}
 			}
 			else
 			{
 				pEngine->AddErrorText(pType);
-				pEngine->SetError(ForthError::kUnknownSymbol, " is not a structure");
+				pEngine->SetError(ForthError::undefinedWord, " is not a structure");
 			}
 		}
 		else
 		{
-			pEngine->SetError(ForthError::kUnknownSymbol, pType);
+			pEngine->SetError(ForthError::undefinedWord, pType);
 		}
 		pField[-1] = oldChar;
 	}
@@ -2811,12 +2917,12 @@ void __newOp(CoreState* pCore, const char* pClassName)
         else
         {
             pEngine->AddErrorText(pClassName);
-            pEngine->SetError( ForthError::kUnknownSymbol, " is not a class" );
+            pEngine->SetError( ForthError::undefinedWord, " is not a class" );
         }
     }
     else
     {
-        pEngine->SetError(ForthError::kUnknownSymbol, pClassName);
+        pEngine->SetError(ForthError::undefinedWord, pClassName);
     }
 }
 
@@ -2859,12 +2965,12 @@ FORTHOP(strNewOp)
 		else
 		{
             pEngine->AddErrorText(pClassName);
-			pEngine->SetError(ForthError::kUnknownSymbol, " is not a class");
+			pEngine->SetError(ForthError::undefinedWord, " is not a class");
 		}
 	}
 	else
 	{
-        pEngine->SetError(ForthError::kUnknownSymbol, pClassName);
+        pEngine->SetError(ForthError::undefinedWord, pClassName);
 	}
 }
 
@@ -2910,12 +3016,12 @@ FORTHOP(makeObjectOp)
         else
         {
             pEngine->AddErrorText(pClassName);
-            pEngine->SetError(ForthError::kUnknownSymbol, " is not a class");
+            pEngine->SetError(ForthError::undefinedWord, " is not a class");
         }
     }
     else
     {
-        pEngine->SetError(ForthError::kUnknownSymbol, pClassName);
+        pEngine->SetError(ForthError::undefinedWord, pClassName);
     }
 
 }
@@ -2965,7 +3071,7 @@ FORTHOP( allocObjectOp )
     {
         Engine *pEngine = GET_ENGINE;
         pEngine->AddErrorText( pClassVocab->GetName() );
-        pEngine->SetError( ForthError::kBadParameter, " failure in new - has no methods" );
+        pEngine->SetError( ForthError::invalidParameter, " failure in new - has no methods" );
     }
 }
 
@@ -2980,33 +3086,33 @@ FORTHOP( initMemberStringOp )
 
     if ( !pOuter->CheckFlag( kEngineFlagIsMethod ) || (pVocab == NULL) )
     {
-        pEngine->SetError( ForthError::kBadSyntax, "initMemberString can only be used inside a method" );
+        pEngine->SetError( ForthError::badSyntax, "initMemberString can only be used inside a method" );
         return;
     }
     pEntry = pVocab->FindSymbol( pString );
     if ( !pEntry )
     {
         pEngine->AddErrorText( pString );
-        pEngine->SetError( ForthError::kUnknownSymbol, " is not a field in this class" );
+        pEngine->SetError( ForthError::undefinedWord, " is not a field in this class" );
         return;
     }
 
     int32_t typeCode = pEntry[1];
     if ( !CODE_IS_SIMPLE(typeCode) || !CODE_IS_NATIVE(typeCode) || (CODE_TO_BASE_TYPE(typeCode) != BaseType::kString) )
     {
-        pEngine->SetError( ForthError::kBadSyntax, "initMemberString can only be used on a simple string" );
+        pEngine->SetError( ForthError::badSyntax, "initMemberString can only be used on a simple string" );
         return;
     }
 	// pEntry[2] is the total string struct length in bytes, subtract 9 for maxLen, curLen and terminating null
     int32_t len = pEntry[2] - 9;
 	if ( len > 4095 )
     {
-        pEngine->SetError( ForthError::kBadParameter, "initMemberString can not be used on string with size > 4095" );
+        pEngine->SetError( ForthError::invalidParameter, "initMemberString can not be used on string with size > 4095" );
         return;
     }
 	if ( pEntry[0] > 4095 )
     {
-        pEngine->SetError( ForthError::kBadParameter, "initMemberString can not be used on string with member offset > 4095" );
+        pEngine->SetError( ForthError::invalidParameter, "initMemberString can not be used on string with member offset > 4095" );
         return;
     }
 
@@ -3028,7 +3134,7 @@ FORTHOP(readObjectsOp)
     if (!itWorked)
     {
         Engine *pEngine = GET_ENGINE;
-        pEngine->SetError(ForthError::kBadSyntax, reader.GetError().c_str());
+        pEngine->SetError(ForthError::badSyntax, reader.GetError().c_str());
     }
 }
 
@@ -3038,7 +3144,7 @@ FORTHOP(enumOp)
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     //if ( pOuter->CheckFlag( kEngineFlagInStructDefinition ) )
     //{
-    //    pEngine->SetError( ForthError::kBadSyntax, "enum definition not allowed inside struct definition" );
+    //    pEngine->SetError( ForthError::badSyntax, "enum definition not allowed inside struct definition" );
     //    return;
     //}
     pOuter->StartEnumDefinition();
@@ -3089,7 +3195,7 @@ FORTHOP( endenumOp )
     }
     else
     {
-        pEngine->SetError(ForthError::kBadSyntax, "Missing enum info pointer at end of enum definition");
+        pEngine->SetError(ForthError::badSyntax, "Missing enum info pointer at end of enum definition");
     }
 }
 
@@ -3258,7 +3364,7 @@ FORTHOP( doEnumOp )
             //	break;
 
         default:
-            pEngine->SetError(ForthError::kBadParameter, "enum size must be 1, 2 or 4");
+            pEngine->SetError(ForthError::invalidParameter, "enum size must be 1, 2 or 4");
         }
     }
     CLEAR_VAR_OPERATION;
@@ -3428,8 +3534,14 @@ FORTHOP( evaluateOp )
         Engine *pEngine = GET_ENGINE;
         pEngine->PushInputBuffer( pStr, len );
 		Shell* pShell = pEngine->GetShell();
-		pShell->ProcessLine();
-		pEngine->PopInputStream();
+        pShell->ProcessLine();
+        pEngine->PopInputStream();
+
+        ForthError err = pEngine->GetError();
+        if (err != ForthError::none)
+        {
+            pEngine->RaiseException(pCore, err);
+        }
     }
 }
 
@@ -3477,7 +3589,7 @@ FORTHOP( strTickOp )
     }
     else
     {
-        SET_ERROR( ForthError::kUnknownSymbol );
+        SET_ERROR( ForthError::undefinedWord );
         pEngine->AddErrorText( pToken );
     }
 }
@@ -3522,7 +3634,7 @@ FORTHOP( postponeOp )
     }
     else
     {
-        SET_ERROR( ForthError::kUnknownSymbol );
+        SET_ERROR( ForthError::undefinedWord );
     }
 }
 
@@ -3542,7 +3654,7 @@ FORTHOP( bracketTickOp )
     }
     else
     {
-        SET_ERROR( ForthError::kUnknownSymbol );
+        SET_ERROR( ForthError::undefinedWord );
     }
 }
 
@@ -3567,7 +3679,7 @@ FORTHOP( bodyOp )
         }
         else
         {
-            SET_ERROR( ForthError::kBadOpcode );
+            SET_ERROR( ForthError::badOpcode );
         }
         break;
 
@@ -3581,12 +3693,12 @@ FORTHOP( bodyOp )
         }
         else
         {
-            SET_ERROR(ForthError::kBadOpcode);
+            SET_ERROR(ForthError::badOpcode);
         }
         break;
     }
     default:
-        SET_ERROR( ForthError::kBadOpcodeType );
+        SET_ERROR( ForthError::badOpcodeType );
         break;
     }
 }
@@ -3990,7 +4102,7 @@ FORTHOP(format32Op)
 
 	if ( len < 2 ) 
 	{
-        pEngine->SetError( ForthError::kBadParameter, " failure in format - format string too short" );
+        pEngine->SetError( ForthError::invalidParameter, " failure in format - format string too short" );
 	}
 	else
 	{
@@ -4031,7 +4143,7 @@ FORTHOP( format64Op )
 
 	if ( len < 2 ) 
 	{
-        pEngine->SetError( ForthError::kBadParameter, " failure in 2format - format string too short" );
+        pEngine->SetError( ForthError::invalidParameter, " failure in 2format - format string too short" );
 	}
 	else
 	{
@@ -5120,7 +5232,7 @@ FORTHOP( addDLLEntryOp )
     if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );
-        pEngine->SetError( ForthError::kBadParameter, " is not a DLL vocabulary - addDllEntry" );
+        pEngine->SetError( ForthError::invalidParameter, " is not a DLL vocabulary - addDllEntry" );
     }
     uint32_t numArgs = SPOP;
 	pVocab->AddEntry(pProcName, pProcName, numArgs);
@@ -5138,7 +5250,7 @@ FORTHOP(addDLLEntryExOp)
 	if (pVocab->GetType() != VocabularyType::kDLL)
 	{
 		pEngine->AddErrorText(pVocab->GetName());
-		pEngine->SetError(ForthError::kBadParameter, " is not a DLL vocabulary - addDllEntry");
+		pEngine->SetError(ForthError::invalidParameter, " is not a DLL vocabulary - addDllEntry");
 	}
 	uint32_t numArgs = SPOP;
 	pVocab->AddEntry(pProcName, pEntryName, numArgs);
@@ -5154,7 +5266,7 @@ FORTHOP(DLLVoidOp)
     if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );
-        pEngine->SetError( ForthError::kBadParameter, " is not a DLL vocabulary - DLLVoidOp" );
+        pEngine->SetError( ForthError::invalidParameter, " is not a DLL vocabulary - DLLVoidOp" );
     }
 	else
 	{
@@ -5172,7 +5284,7 @@ FORTHOP( DLLLongOp )
     if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );
-        pEngine->SetError( ForthError::kBadParameter, " is not a DLL vocabulary - DLLLongOp" );
+        pEngine->SetError( ForthError::invalidParameter, " is not a DLL vocabulary - DLLLongOp" );
     }
 	else
 	{
@@ -5190,7 +5302,7 @@ FORTHOP( DLLStdCallOp )
     if (pVocab->GetType() != VocabularyType::kDLL)
     {
         pEngine->AddErrorText( pVocab->GetName() );
-        pEngine->SetError( ForthError::kBadParameter, " is not a DLL vocabulary - DLLStdCallOp" );
+        pEngine->SetError( ForthError::invalidParameter, " is not a DLL vocabulary - DLLStdCallOp" );
     }
 	else
 	{
@@ -5404,7 +5516,7 @@ FORTHOP( featuresOp )
         break;
 
     default:
-        pEngine->SetError( ForthError::kBadVarOperation, "features: unkown var operation" );
+        pEngine->SetError( ForthError::badVarOperation, "features: unkown var operation" );
         break;
     }
     CLEAR_VAR_OPERATION;
@@ -5467,8 +5579,9 @@ FORTHOP( turboOp )
 
 FORTHOP( errorOp )
 {
+    // report an error from user code with an optional description string
     Engine *pEngine = GET_ENGINE;
-    pEngine->SetError( ForthError::kUserDefined, (char *) (SPOP) );
+    pEngine->SetError( ForthError::genericUserError, (char *) (SPOP) );
 }
 
 FORTHOP( addErrorTextOp )
@@ -5499,7 +5612,7 @@ FORTHOP( strftimeOp )
     strftime(buffer, bufferSize, fmt, timeinfo);
 	if (errno)
 	{
-		GET_ENGINE->SetError(ForthError::kBadParameter);
+		GET_ENGINE->SetError(ForthError::invalidParameter);
 	}
 }
 
@@ -5966,7 +6079,7 @@ FORTHOP( qsortOp )
         break;
 
     default:
-		GET_ENGINE->SetError(ForthError::kBadParameter, " failure in qsort - unknown sort element type");
+		GET_ENGINE->SetError(ForthError::invalidParameter, " failure in qsort - unknown sort element type");
 		__FREE(qs.temp);
 		return;
 		break;
@@ -6359,7 +6472,7 @@ FORTHOP( thruOp )
     Engine* pEngine = GET_ENGINE;
     if ( lastBlock < firstBlock )
     {
-        pEngine->SetError( ForthError::kIO, "thru - last block less than first block" );
+        pEngine->SetError( ForthError::badBlockNumber, "thru - last block less than first block" );
     }
     else
     {
@@ -6370,7 +6483,7 @@ FORTHOP( thruOp )
         }
         else
         {
-            pEngine->SetError( ForthError::kIO, "thru - last block beyond end of block file" );
+            pEngine->SetError( ForthError::badBlockNumber, "thru - last block beyond end of block file" );
         }
     }
 }
@@ -6743,7 +6856,7 @@ FORTHOP( shutdownOp )
 
 FORTHOP( abortOp )
 {
-    SET_FATAL_ERROR( ForthError::kAbort );
+    GET_ENGINE->RaiseException(pCore, ForthError::abort);
 }
 
 FORTHOP(bkptOp)
@@ -6878,13 +6991,6 @@ FORTHOP( doneBop )
     SET_STATE( OpResult::kDone );
 }
 
-// abort is a user command which causes the entire forth engine to exit,
-//   and indicates that a fatal error has occured
-FORTHOP( abortBop )
-{
-    SET_FATAL_ERROR( ForthError::kAbort );
-}
-
 FORTHOP( doVariableBop )
 {
     // IP points to data field
@@ -6984,7 +7090,7 @@ void flooredDivMod(cell a, cell b, cell& quotient, cell& remainder)
     remainder = v.rem;
 }
 
-FORTHOP( divideBop )
+FORTHOP(divideBop)
 {
     NEEDS(2);
     cell b = SPOP;
@@ -6992,8 +7098,15 @@ FORTHOP( divideBop )
     cell quotient;
     cell remainder;
 
-    flooredDivMod(a, b, quotient, remainder);
-
+    if (b == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+        quotient = 0;
+    }
+    else
+    {
+        flooredDivMod(a, b, quotient, remainder);
+    }
     SPUSH(quotient);
 }
 
@@ -7026,8 +7139,16 @@ FORTHOP( divmodBop )
     cell quotient;
     cell remainder;
 
-    flooredDivMod(a, b, quotient, remainder);
-
+    if (b == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+        quotient = 0;
+        remainder = 0;
+    }
+    else
+    {
+        flooredDivMod(a, b, quotient, remainder);
+    }
     SPUSH(remainder);
     SPUSH(quotient);
 }
@@ -7076,10 +7197,17 @@ FORTHOP( ummodBop )
     uint32_t b = SPOP;
     stackInt64 a;
     LPOP( a );
-    uint32_t quotient = a.64 / b;
-    uint32_t remainder = a.64 % b;
-    SPUSH( remainder );
-    SPUSH( quotient );
+    if (b == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+    }
+    else
+    {
+        uint32_t quotient = a.64 / b;
+        uint32_t remainder = a.64 % b;
+        SPUSH(remainder);
+        SPUSH(quotient);
+    }
 }
 
 FORTHOP( smdivremBop )
@@ -7090,10 +7218,17 @@ FORTHOP( smdivremBop )
     stackInt64 a;
     LPOP( a );
 
-    v = lldiv(a.s64, b);
+    if (b == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+    }
+    else
+    {
+        v = lldiv(a.s64, b);
 
-    SPUSH( (cell) v.rem );
-    SPUSH( (cell) v.quot );
+        SPUSH((cell)v.rem);
+        SPUSH((cell)v.quot);
+    }
 }
 #endif
 
@@ -7105,7 +7240,15 @@ FORTHOP( modBop )
     cell quotient;
     cell remainder;
 
-    flooredDivMod(a, b, quotient, remainder);
+    if (b == 0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+        remainder = 0;
+    }
+    else
+    {
+        flooredDivMod(a, b, quotient, remainder);
+    }
 
     SPUSH(remainder);
 }
@@ -7146,7 +7289,15 @@ FORTHOP(fdivideBop)
     NEEDS(2);
     float b = FPOP;
     float a = FPOP;
-    FPUSH(a / b);
+
+    if (b == 0.0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::fpDivideByZero);
+    }
+    else
+    {
+        FPUSH(a / b);
+    }
 }
 
 
@@ -7179,7 +7330,15 @@ FORTHOP( ddivideBop )
     NEEDS(4);
     double b = DPOP;
     double a = DPOP;
-    DPUSH( a / b );
+
+    if (b == 0.0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::fpDivideByZero);
+    }
+    else
+    {
+        DPUSH(a / b);
+    }
 }
 
 
@@ -7247,7 +7406,15 @@ FORTHOP(dfmodBop)
     NEEDS(4);
     double b = DPOP;
     double a = DPOP;
-    DPUSH(fmod(a, b));
+
+    if (b == 0.0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::fpDivideByZero);
+    }
+    else
+    {
+        DPUSH(fmod(a, b));
+    }
 }
 
 #endif
@@ -7327,7 +7494,15 @@ FORTHOP(ffmodBop)
     NEEDS(2);
     float b = FPOP;
     float a = FPOP;
-    FPUSH(fmodf(a, b));
+
+    if (b == 0.0)
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::fpDivideByZero);
+    }
+    else
+    {
+        FPUSH(fmodf(a, b));
+    }
 }
 
 #endif
@@ -7455,11 +7630,11 @@ FORTHOP(doExitBop)
     // rstack: oldIP
     if ( GET_RDEPTH < 1 )
     {
-        SET_ERROR( ForthError::kReturnStackUnderflow );
+        SET_ERROR( ForthError::returnStackUnderflow );
     }
     else if (GET_SDEPTH < 0)
     {
-        SET_ERROR(ForthError::kParamStackUnderflow);
+        SET_ERROR(ForthError::stackUnderflow);
     }
     else
     {
@@ -7481,11 +7656,11 @@ FORTHOP(doExitLBop)
     SET_FP( (cell *) (RPOP) );
     if ( GET_RDEPTH < 1 )
     {
-        SET_ERROR( ForthError::kReturnStackUnderflow );
+        SET_ERROR( ForthError::returnStackUnderflow );
     }
     else if (GET_SDEPTH < 0)
     {
-        SET_ERROR(ForthError::kParamStackUnderflow);
+        SET_ERROR(ForthError::stackUnderflow);
     }
     else
     {
@@ -7504,11 +7679,11 @@ FORTHOP(doExitMBop)
     // rstack: oldIP oldTP
     if ( GET_RDEPTH < 2 )
     {
-        SET_ERROR( ForthError::kReturnStackUnderflow );
+        SET_ERROR( ForthError::returnStackUnderflow );
     }
     else if (GET_SDEPTH < 0)
     {
-        SET_ERROR(ForthError::kParamStackUnderflow);
+        SET_ERROR(ForthError::stackUnderflow);
     }
     else
     {
@@ -7532,11 +7707,11 @@ FORTHOP(doExitMLBop)
     SET_FP( (cell *) (RPOP) );
     if ( GET_RDEPTH < 2 )
     {
-        SET_ERROR( ForthError::kReturnStackUnderflow );
+        SET_ERROR( ForthError::returnStackUnderflow );
     }
     else if (GET_SDEPTH < 0)
     {
-        SET_ERROR(ForthError::kParamStackUnderflow);
+        SET_ERROR(ForthError::stackUnderflow);
     }
     else
     {
@@ -9169,7 +9344,7 @@ FORTHOP( strFixupBop )
     if (len > pSrcLongs[-2])
     {
         // characters have been written past string storage end
-        SET_ERROR( ForthError::kStringOverflow );
+        SET_ERROR( ForthError::stringOverflow );
     }
     else
     {
@@ -9398,7 +9573,7 @@ FORTHOP(executeMethodBop)
     forthop methodOpcode = (forthop)(SPOP);
     if (obj == nullptr || obj->pMethods == nullptr)
     {
-        SET_ERROR(ForthError::kBadObject);
+        SET_ERROR(ForthError::badObject);
         return;
     }
 
@@ -9888,7 +10063,7 @@ extern GFORTHOP( doObjectArrayBop );
 
 #define OPREF extern GFORTHOP
 
-OPREF( abortBop );          OPREF( dropBop );           OPREF( doDoesBop );
+OPREF( dropBop );           OPREF( doDoesBop );
 OPREF( litBop );            OPREF( dlitBop );           OPREF( ulitBop );
 OPREF(doVariableBop);       OPREF( doIConstantBop );    OPREF( doneBop );
 OPREF(doLConstantBop);
@@ -10020,7 +10195,6 @@ OPREF(yieldBop);            OPREF(countBop);
 
 baseDictionaryCompiledEntry baseCompiledDictionary[] =
 {
-	//NATIVE_COMPILED_DEF(    abortBop,                "abort",			OP_ABORT ),
 	OP_COMPILED_DEF(    abortOp,                     "abort",			OP_ABORT ),
     NATIVE_COMPILED_DEF(    dropBop,                 "drop",			OP_DROP ),
     NATIVE_COMPILED_DEF(    doDoesBop,               "_doDoes",			OP_DO_DOES ),
@@ -10110,7 +10284,7 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     OP_COMPILED_DEF(        doTryOp,                "_doTry",           OP_DO_TRY ),
     OP_COMPILED_DEF(        doFinallyOp,            "_doFinally",       OP_DO_FINALLY ),
     OP_COMPILED_DEF(        doEndtryOp,             "_doEndtry",        OP_DO_ENDTRY ),
-    OP_COMPILED_DEF(        raiseOp,                "raise",            OP_RAISE),
+    OP_COMPILED_DEF(        throwOp,                "throw",            OP_THROW),
     NATIVE_COMPILED_DEF(    rdropBop,               "rdrop",            OP_RDROP),
     NATIVE_COMPILED_DEF(    noopBop,                "noop",             OP_NOOP),
     NATIVE_COMPILED_DEF(    devolveBop,             "_devo",            OP_DEVOLVE),
@@ -10929,10 +11103,11 @@ baseDictionaryEntry baseDictionary[] =
     ///////////////////////////////////////////
     //  exception handling
     ///////////////////////////////////////////
-    PRECOP_DEF( tryOp,                  "try"),
-    PRECOP_DEF( exceptOp,               "except"),
-    PRECOP_DEF( finallyOp,              "finally"),
-    PRECOP_DEF( endtryOp,               "endtry"),
+    PRECOP_DEF( tryOp,                  "try["),
+    PRECOP_DEF( catcherOp,              "]catch["),
+    PRECOP_DEF( finallyOp,              "]finally["),
+    PRECOP_DEF( endtryOp,               "]try"),
+    OP_DEF( throwStrOp,                 "throw$"),
 
     ///////////////////////////////////////////
     //  low level file IO ops

@@ -33,7 +33,7 @@ static void ReportBadArrayIndex(const char* pWhere, ucell ix, size_t arraySize)
 #elif defined(LINUX) || defined(MACOSX)
     snprintf(buff, sizeof(buff), " in %s index:%d size:%d", pWhere, ix, arraySize);
 #endif
-	Engine::GetInstance()->SetError(ForthError::kBadArrayIndex, buff);
+	Engine::GetInstance()->SetError(ForthError::badArrayIndex, buff);
 }
 
 namespace OArray
@@ -414,7 +414,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty OArray");
+            GET_ENGINE->SetError(ForthError::illegalOperation, " pop of empty OArray");
         }
         METHOD_RETURN;
     }
@@ -710,7 +710,7 @@ namespace OArray
 
 	FORTHOP(oArrayIterNew)
 	{
-		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create an ArrayIter object");
+		GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create an ArrayIter object");
 	}
 
 	FORTHOP(oArrayIterDeleteMethod)
@@ -1447,7 +1447,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty OBag");
+            GET_ENGINE->SetError(ForthError::illegalOperation, " pop of empty OBag");
         }
         METHOD_RETURN;
     }
@@ -1685,7 +1685,7 @@ namespace OArray
 
     FORTHOP(oBagIterNew)
     {
-        GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a BagIter object");
+        GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create a BagIter object");
     }
 
     FORTHOP(oBagIterDeleteMethod)
@@ -2311,7 +2311,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty oByteArray");
+            GET_ENGINE->SetError(ForthError::illegalOperation, " pop of empty oByteArray");
         }
         METHOD_RETURN;
     }
@@ -2457,7 +2457,7 @@ namespace OArray
 
 	FORTHOP(oByteArrayIterNew)
 	{
-		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a ByteArrayIter object");
+		GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create a ByteArrayIter object");
 	}
 
 	FORTHOP(oByteArrayIterDeleteMethod)
@@ -3030,7 +3030,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty OShortArray");
+            GET_ENGINE->SetError(ForthError::illegalOperation, " pop of empty OShortArray");
         }
         METHOD_RETURN;
     }
@@ -3167,7 +3167,7 @@ namespace OArray
 	FORTHOP(oShortArrayIterNew)
 	{
 		Engine *pEngine = GET_ENGINE;
-		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a ShortArrayIter object");
+		pEngine->SetError(ForthError::illegalOperation, " cannot explicitly create a ShortArrayIter object");
 	}
 
 	FORTHOP(oShortArrayIterDeleteMethod)
@@ -3737,7 +3737,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty oIntArray");
+            GET_ENGINE->SetError(ForthError::illegalOperation, " pop of empty oIntArray");
         }
         METHOD_RETURN;
     }
@@ -3873,7 +3873,7 @@ namespace OArray
 
 	FORTHOP(oIntArrayIterNew)
 	{
-		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create an IntArrayIter object");
+		GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create an IntArrayIter object");
 	}
 
 	FORTHOP(oIntArrayIterDeleteMethod)
@@ -4561,7 +4561,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty oLongArray");
+            GET_ENGINE->SetError(ForthError::illegalOperation, " pop of empty oLongArray");
         }
         METHOD_RETURN;
     }
@@ -4699,7 +4699,7 @@ namespace OArray
 
 	FORTHOP(oLongArrayIterNew)
 	{
-		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a LongArrayIter object");
+		GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create a LongArrayIter object");
 	}
 
 	FORTHOP(oLongArrayIterDeleteMethod)
@@ -5176,7 +5176,7 @@ namespace OArray
 		}
 		else
 		{
-			GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty oDoubleArray");
+			GET_ENGINE->SetError(ForthError::illegalOperation, " pop of empty oDoubleArray");
 		}
 		METHOD_RETURN;
 	}
@@ -5401,7 +5401,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:show unknown struct type");
+            GET_ENGINE->SetError(ForthError::unknownType, "StructArray:show unknown struct type");
         }
         METHOD_RETURN;
     }
@@ -5461,7 +5461,7 @@ namespace OArray
             }
             else
             {
-                GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:get null destination pointer");
+                GET_ENGINE->SetError(ForthError::invalidParameter, "StructArray:get null destination pointer");
             }
         }
         else
@@ -5486,7 +5486,7 @@ namespace OArray
             }
             else
             {
-                GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:set null source pointer");
+                GET_ENGINE->SetError(ForthError::invalidParameter, "StructArray:set null source pointer");
             }
         }
         else
@@ -5579,7 +5579,7 @@ namespace OArray
             }
             else
             {
-                GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:insert null source pointer");
+                GET_ENGINE->SetError(ForthError::illegalOperation, "StructArray:insert null source pointer");
             }
         }
         else
@@ -5617,7 +5617,7 @@ namespace OArray
             }
             else
             {
-                GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:remove null destination pointer");
+                GET_ENGINE->SetError(ForthError::invalidParameter, "StructArray:remove null destination pointer");
             }
         }
         else
@@ -5642,7 +5642,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:push null source pointer");
+            GET_ENGINE->SetError(ForthError::illegalOperation, "StructArray:push null source pointer");
         }
         METHOD_RETURN;
     }
@@ -5664,7 +5664,7 @@ namespace OArray
             }
             else
             {
-                GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray:pop null destination pointer");
+                GET_ENGINE->SetError(ForthError::invalidParameter, "StructArray:pop null destination pointer");
             }
             // TODO: why push anything here?  if needed, why not push pDst?
             char val = a.back();
@@ -5673,7 +5673,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, " pop of empty StructArray");
+            GET_ENGINE->SetError(ForthError::illegalOperation, " pop of empty StructArray");
         }
         METHOD_RETURN;
     }
@@ -5697,7 +5697,7 @@ namespace OArray
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, "StructArray.setType unknown struct type");
+            GET_ENGINE->SetError(ForthError::unknownType, "StructArray.setType unknown struct type");
         }
         METHOD_RETURN;
     }
@@ -5743,7 +5743,7 @@ namespace OArray
 
     FORTHOP(oStructArrayIterNew)
     {
-        GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a StructArrayIter object");
+        GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create a StructArrayIter object");
     }
 
     FORTHOP(oStructArrayIterDeleteMethod)
@@ -6112,7 +6112,7 @@ namespace OArray
 
 	FORTHOP(oPairIterNew)
 	{
-		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a PairIter object");
+		GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create a PairIter object");
 	}
 
 	FORTHOP(oPairIterDeleteMethod)
@@ -6472,7 +6472,7 @@ namespace OArray
 
 	FORTHOP(oTripleIterNew)
 	{
-		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a TripleIter object");
+		GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create a TripleIter object");
 	}
 
 	FORTHOP(oTripleIterDeleteMethod)

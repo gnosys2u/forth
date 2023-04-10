@@ -380,7 +380,7 @@ namespace OString
         if (newLen < 0)
         {
             Engine *pEngine = Engine::GetInstance();
-            pEngine->SetError(ForthError::kBadParameter, " String.keepLeft negative length");
+            pEngine->SetError(ForthError::invalidParameter, " String.keepLeft negative length");
             newLen = 0;
         }
         else if (newLen > str->curLen)
@@ -401,7 +401,7 @@ namespace OString
         if (newLen < 0)
         {
             Engine *pEngine = Engine::GetInstance();
-            pEngine->SetError(ForthError::kBadParameter, " String.keepRight negative length");
+            pEngine->SetError(ForthError::invalidParameter, " String.keepRight negative length");
             newLen = 0;
         }
         else if (newLen < str->curLen)
@@ -427,11 +427,11 @@ namespace OString
         Engine *pEngine = Engine::GetInstance();
         if (firstChar < 0)
         {
-            pEngine->SetError(ForthError::kBadParameter, " String.keepMiddle negative first character");
+            pEngine->SetError(ForthError::invalidParameter, " String.keepMiddle negative first character");
         }
         else if (newLen < 0)
         {
-            pEngine->SetError(ForthError::kBadParameter, " String.keepMiddle negative length");
+            pEngine->SetError(ForthError::invalidParameter, " String.keepMiddle negative length");
         }
         else
         {
@@ -473,7 +473,7 @@ namespace OString
         if (newLen < 0)
         {
             Engine *pEngine = Engine::GetInstance();
-            pEngine->SetError(ForthError::kBadParameter, " String.leftBytes negative length");
+            pEngine->SetError(ForthError::invalidParameter, " String.leftBytes negative length");
             newLen = 0;
         }
         else if (newLen > str->curLen)
@@ -494,7 +494,7 @@ namespace OString
         if (newLen < 0)
         {
             Engine *pEngine = Engine::GetInstance();
-            pEngine->SetError(ForthError::kBadParameter, " String.rightBytes negative length");
+            pEngine->SetError(ForthError::invalidParameter, " String.rightBytes negative length");
             newLen = 0;
         }
         else if (newLen >= str->curLen)
@@ -521,12 +521,12 @@ namespace OString
         if (firstChar < 0)
         {
             newLen = 0;
-            pEngine->SetError(ForthError::kBadParameter, " String.middleBytes negative first character");
+            pEngine->SetError(ForthError::invalidParameter, " String.middleBytes negative first character");
         }
         else if (newLen < 0)
         {
             newLen = 0;
-            pEngine->SetError(ForthError::kBadParameter, " String.middleBytes negative length");
+            pEngine->SetError(ForthError::invalidParameter, " String.middleBytes negative length");
         }
         else
         {
@@ -1282,7 +1282,7 @@ namespace OString
 	FORTHOP(oStringMapIterNew)
 	{
 		Engine *pEngine = Engine::GetInstance();
-		pEngine->SetError(ForthError::kIllegalOperation, " cannot explicitly create a oStringMapIter object");
+		pEngine->SetError(ForthError::illegalOperation, " cannot explicitly create a oStringMapIter object");
 	}
 
 	FORTHOP(oStringMapIterDeleteMethod)
@@ -1471,7 +1471,7 @@ namespace OString
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, "stringCharOut destination string null");
+            GET_ENGINE->SetError(ForthError::invalidParameter, "stringCharOut destination string null");
         }
 	}
 
@@ -1484,7 +1484,7 @@ namespace OString
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, "stringBlockOut destination string null");
+            GET_ENGINE->SetError(ForthError::invalidParameter, "stringBlockOut destination string null");
         }
 	}
 
@@ -1498,7 +1498,7 @@ namespace OString
         }
         else
         {
-            GET_ENGINE->SetError(ForthError::kBadParameter, "stringStringOut destination string null");
+            GET_ENGINE->SetError(ForthError::invalidParameter, "stringStringOut destination string null");
         }
 	}
 
@@ -1516,7 +1516,7 @@ namespace OString
             }
             else
             {
-                Engine::GetInstance()->SetError(ForthError::kBadParameter, "customStringReader destination string null");
+                Engine::GetInstance()->SetError(ForthError::invalidParameter, "customStringReader destination string null");
                 return false;
             }
         }
@@ -1540,7 +1540,7 @@ namespace OString
             oStringMapStruct *dstMap = (oStringMapStruct *)(reader->getCustomReaderContext().pData);
             if (dstMap == nullptr)
             {
-                Engine::GetInstance()->SetError(ForthError::kBadParameter, "customStringMapReader destination map null");
+                Engine::GetInstance()->SetError(ForthError::invalidParameter, "customStringMapReader destination map null");
                 return false;
             }
             reader->getRequiredChar('{');

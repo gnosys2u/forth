@@ -39,8 +39,13 @@ cell BlockInputStream::GetSourceID() const
 
 char * BlockInputStream::GetLine( const char *pPrompt )
 {
-    // TODO!
-    char* pBuffer = NULL;
+    if (mbForcedEmpty)
+    {
+        return nullptr;
+    }
+
+    char* pBuffer = nullptr;
+
     if ( mReadOffset < mBufferLen )
     {
         pBuffer = mpBufferBase + mReadOffset;
@@ -148,7 +153,7 @@ bool BlockInputStream::ReadBlock()
     }
     else
     {
-        pEngine->SetError(ForthError::kIO, "BlockInputStream - failed to open block file");
+        pEngine->SetError(ForthError::openFile, "BlockInputStream - failed to open block file");
         success = false;
     }
 

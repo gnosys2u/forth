@@ -101,7 +101,7 @@ CoreState::CoreState(int paramStackSize, int returnStackSize)
 
     varMode = VarOperation::kVarDefaultOp;
     state = OpResult::kDone;
-    error = ForthError::kNone;
+    error = ForthError::none;
 
     base = DEFAULT_BASE;
     signedPrintMode = kPrintSignedDecimal;
@@ -257,7 +257,7 @@ Fiber::Reset( void )
     mCore.FP = nullptr;
     mCore.TP = nullptr;
 
-    mCore.error = ForthError::kNone;
+    mCore.error = ForthError::none;
     mCore.state = OpResult::kDone;
     mCore.varMode = VarOperation::kVarDefaultOp;
     mCore.base = 10;
@@ -956,7 +956,7 @@ namespace OThread
 
 	FORTHOP(oThreadNew)
 	{
-		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a Thread object");
+		GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create a Thread object");
 	}
 
 	FORTHOP(oThreadDeleteMethod)
@@ -1127,7 +1127,7 @@ namespace OThread
 
 	FORTHOP(oFiberNew)
 	{
-		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a Fiber object");
+		GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create a Fiber object");
 	}
 
 	FORTHOP(oFiberDeleteMethod)
@@ -1393,7 +1393,7 @@ namespace OLock
 
 	FORTHOP(oAsyncLockNew)
 	{
-		GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create an AsyncLock object");
+		GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create an AsyncLock object");
 	}
 
 	FORTHOP(oAsyncLockDeleteMethod)
@@ -1512,7 +1512,7 @@ namespace OLock
 	FORTHOP(oLockDeleteMethod)
 	{
 		GET_THIS(oLockStruct, pLockStruct);
-		GET_ENGINE->SetError(ForthError::kIllegalOperation, " OLock.delete called with threads blocked on lock");
+		GET_ENGINE->SetError(ForthError::illegalOperation, " OLock.delete called with threads blocked on lock");
 
 #ifdef WIN32
         DeleteCriticalSection(pLockStruct->pLock);
@@ -1538,7 +1538,7 @@ namespace OLock
 		{
 			if (pLockStruct->lockDepth != 0)
 			{
-				GET_ENGINE->SetError(ForthError::kIllegalOperation, " OLock.grab called with no lock holder and lock depth not 0");
+				GET_ENGINE->SetError(ForthError::illegalOperation, " OLock.grab called with no lock holder and lock depth not 0");
 			}
 			else
 			{
@@ -1583,7 +1583,7 @@ namespace OLock
 		{
 			if (pLockStruct->lockDepth != 0)
 			{
-				GET_ENGINE->SetError(ForthError::kIllegalOperation, " OLock.tryGrab called with no lock holder and lock depth not 0");
+				GET_ENGINE->SetError(ForthError::illegalOperation, " OLock.tryGrab called with no lock holder and lock depth not 0");
 			}
 			else
 			{
@@ -1621,19 +1621,19 @@ namespace OLock
 
 		if (pLockStruct->pLockHolder == nullptr)
 		{
-			GET_ENGINE->SetError(ForthError::kIllegalOperation, " OLock.ungrab called on ungrabbed lock");
+			GET_ENGINE->SetError(ForthError::illegalOperation, " OLock.ungrab called on ungrabbed lock");
 		}
 		else
 		{
 			if (pLockStruct->pLockHolder != (Fiber*)(pCore->pFiber))
 			{
-				GET_ENGINE->SetError(ForthError::kIllegalOperation, " OLock.ungrab called by thread which does not have lock");
+				GET_ENGINE->SetError(ForthError::illegalOperation, " OLock.ungrab called by thread which does not have lock");
 			}
 			else
 			{
 				if (pLockStruct->lockDepth <= 0)
 				{
-					GET_ENGINE->SetError(ForthError::kIllegalOperation, " OLock.ungrab called with lock depth <= 0");
+					GET_ENGINE->SetError(ForthError::illegalOperation, " OLock.ungrab called with lock depth <= 0");
 				}
 				else
 				{
@@ -1733,7 +1733,7 @@ namespace OLock
     FORTHOP(oSemaphoreDeleteMethod)
     {
         GET_THIS(oSemaphoreStruct, pSemaphoreStruct);
-        //GET_ENGINE->SetError(ForthError::kIllegalOperation, " OSemaphore.delete called with threads blocked on lock");
+        //GET_ENGINE->SetError(ForthError::illegalOperation, " OSemaphore.delete called with threads blocked on lock");
 
 #ifdef WIN32
         DeleteCriticalSection(pSemaphoreStruct->pLock);
@@ -1876,7 +1876,7 @@ namespace OLock
 
     FORTHOP(oAsyncSemaphoreNew)
     {
-        GET_ENGINE->SetError(ForthError::kIllegalOperation, " cannot explicitly create a Semaphore object");
+        GET_ENGINE->SetError(ForthError::illegalOperation, " cannot explicitly create a Semaphore object");
     }
 
     FORTHOP(oAsyncSemaphoreDeleteMethod)

@@ -72,6 +72,7 @@ public:
 
 	virtual bool	    DeleteWhenEmpty();
     virtual void        SetDeleteWhenEmpty(bool deleteIt);
+    void                SetForcedEmpty();
 
     friend class InputStack;
 
@@ -86,5 +87,6 @@ protected:
     cell                mBufferLen;
     bool                mbDeleteWhenEmpty;
     bool                mbBaseOwnsBuffer;
+    bool                mbForcedEmpty;
 };
 
