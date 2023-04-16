@@ -22,6 +22,7 @@ public:
 
     void                    Reset( void );
     char*                   GetLine( const char *pPrompt );
+    char*                   Refill();
     // return null IFF adding another input line would overflow buffer
     char*                   AddLine();
     // return false IFF buffer has less than numChars available

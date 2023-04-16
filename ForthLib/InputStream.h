@@ -35,6 +35,7 @@ public:
     virtual ~InputStream();
 
     virtual char*       GetLine( const char *pPrompt ) = 0;
+    virtual char*       Refill();
     // return nullptr if adding line would overflow buffer
     virtual char*       AddLine() = 0;
     // return false IFF buffer has less than numChars available
@@ -72,13 +73,12 @@ public:
 
 	virtual bool	    DeleteWhenEmpty();
     virtual void        SetDeleteWhenEmpty(bool deleteIt);
+    // set mWriteOffset and trim off trailing newline if preset
+    virtual void        TrimLine();
     void                SetForcedEmpty();
-
     friend class InputStack;
 
 protected:
-    // set mWriteOffset and trim off trailing newline if preset
-    virtual void        TrimLine();
 
     InputStream    *mpNext;
     cell                mReadOffset;

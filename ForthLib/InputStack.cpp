@@ -113,23 +113,22 @@ char * InputStack::GetLine( const char *pPrompt )
     }
 
     pBuffer = mpHead->GetLine( pPrompt );
+    mpHead->TrimLine();
 
-    if ( pBuffer != NULL )
+    return pBuffer;
+}
+
+char* InputStack::Refill()
+{
+    char* pBuffer, * pEndLine;
+
+    if (mpHead == NULL)
     {
-        // get rid of the trailing linefeed (if any)
-        pEndLine = strchr( pBuffer, '\n' );
-        if ( pEndLine )
-        {
-            *pEndLine = '\0';
-        }
-#if defined(LINUX) || defined(MACOSX)
-        pEndLine = strchr( pBuffer, '\r' );
-        if ( pEndLine )
-        {
-            *pEndLine = '\0';
-        }
- #endif
+        return NULL;
     }
+
+    pBuffer = mpHead->Refill();
+    mpHead->TrimLine();
 
     return pBuffer;
 }

@@ -12,13 +12,6 @@ kFFRegular to features
 autoforget FLOATING
 : FLOATING ;
 
-: float+ 8+ ;
-: floats 8 * ;
-alias dfloats floats
-alias dfloat+ float+
-: sfloat+ 4+ ;
-: sfloats 4 * ;
-
 : fnegate -1.0E f* ;
 : sfnegate -1.0Ef sf* ;
 
@@ -88,38 +81,6 @@ alias fconstant lconstant
 : f. %g %bl ;
 
 : fdepth depth ;
-
-: dfaligned     \ addr ... doubleFloatAlignedAddr
-  7 + 7 not and
-;
-
-: sfaligned     \ addr ... singleFloatAlignedAddr
-  3 + 3 not and
-;
-
-alias faligned dfaligned
-
-: dfalign       \ ...       force DP to be double-float aligned
-  here dfaligned dp !
-;
-
-: sfalign       \ ...       force DP to be single-float aligned
-  here sfaligned dp !
-;
-
-alias falign dfalign
-
-: dffield:
-  create dfaligned dup , 8+
-  does> @ +
-;
-
-: sffield:
-  create sfaligned dup , 4+
-  does> @ +
-;
-
-alias ffield: dffield:
 
 : fsincos
   fdup fcos fswap fsin

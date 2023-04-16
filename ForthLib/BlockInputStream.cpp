@@ -18,7 +18,7 @@
 BlockInputStream::BlockInputStream(BlockFileManager* pManager, uint32_t firstBlock, uint32_t lastBlock)
 :   InputStream(0)
 ,   mpManager(pManager)
-,   mCurrentBlock( firstBlock )
+,   mNextBlock( firstBlock )
 ,   mLastBlock( lastBlock )
 {
     mBufferLen = mpManager->GetBytesPerBlock();
@@ -52,7 +52,7 @@ char * BlockInputStream::GetLine( const char *pPrompt )
     }
     else
     {
-        if ( mCurrentBlock <= mLastBlock )
+        if ( mNextBlock <= mLastBlock )
         {
             if ( ReadBlock() )
             {
@@ -60,11 +60,45 @@ char * BlockInputStream::GetLine( const char *pPrompt )
                 mReadOffset = 0;
                 mWriteOffset = mBufferLen;
             }
-            mCurrentBlock++;
+            mNextBlock++;
         }
     }
         
     return pBuffer;
+}
+
+char* BlockInputStream::Refill()
+{
+    if (mbForcedEmpty)
+    {
+        return nullptr;
+    }
+
+    char* pBuffer = nullptr;
+
+    if (mNextBlock > mLastBlock)
+    {
+        // this case happens when a REFILL happens inside a single block loaded by LOAD,
+        // in that case mLastBlock == mNextBlock after the start of the LOAD.
+        // just force the last block to match the current block
+        mLastBlock = mNextBlock;
+    }
+
+    if (ReadBlock())
+    {
+        pBuffer = mpBufferBase;
+        mReadOffset = 0;
+        mWriteOffset = mBufferLen;
+        mNextBlock++;
+    }
+
+    return pBuffer;
+}
+
+void BlockInputStream::TrimLine()
+{
+    mWriteOffset = mBufferLen;
+
 }
 
 char* BlockInputStream::AddLine()
@@ -108,7 +142,7 @@ cell* BlockInputStream::GetInputState()
     cell* pState = &(mState[0]);
     pState[0] = 3;
     pState[1] = (cell)this;
-    pState[2] = mCurrentBlock;
+    pState[2] = mNextBlock - 1;
     pState[3] = mReadOffset;
     
     return pState;
@@ -117,7 +151,7 @@ cell* BlockInputStream::GetInputState()
 bool
 BlockInputStream::SetInputState(cell* pState)
 {
-    if ( pState[0] != 4 )
+    if ( pState[0] != 3 )
     {
         // TODO: report restore-input error - wrong number of parameters
         return false;
@@ -127,10 +161,23 @@ BlockInputStream::SetInputState(cell* pState)
         // TODO: report restore-input error - input object mismatch
         return false;
     }
-    if ( pState[2] != mCurrentBlock )
+    if (pState[2] != (mNextBlock - 1))
     {
-        // TODO: report restore-input error - wrong block
-        return false;
+        uint32_t savedCurrentBlock = mNextBlock;
+        mNextBlock = (uint32_t)(pState[2]);
+        if (ReadBlock())
+        {
+            mReadOffset = 0;
+            mWriteOffset = mBufferLen;
+            mNextBlock++;
+        }
+        else
+        {
+            mNextBlock = savedCurrentBlock;
+            Engine::GetInstance()->SetError(ForthError::blockReadException, "BlockInputStream - failure in restore-input");
+            return false;
+        }
+
     }
     mReadOffset = pState[3];
     return true;
@@ -138,7 +185,7 @@ BlockInputStream::SetInputState(cell* pState)
 
 cell BlockInputStream::GetBlockNumber()
 {
-    return mCurrentBlock;
+    return mNextBlock;
 }
 
 bool BlockInputStream::ReadBlock()
@@ -146,10 +193,10 @@ bool BlockInputStream::ReadBlock()
     bool success = true;
     Engine* pEngine = Engine::GetInstance();
 
-    mpBufferBase = mpManager->GetBlock(mCurrentBlock, true);
+    mpBufferBase = mpManager->GetBlock(mNextBlock, true);
     if (mpBufferBase != nullptr)
     {
-        *(mpManager->GetBlockPtr()) = mCurrentBlock;
+        *(mpManager->GetBlockPtr()) = mNextBlock;
     }
     else
     {

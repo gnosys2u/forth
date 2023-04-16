@@ -300,3 +300,7 @@ void InputStream::SetForcedEmpty()
     mReadOffset = mWriteOffset;
 }
 
+char* InputStream::Refill()
+{
+    return GetLine("refill");
+}

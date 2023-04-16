@@ -7,6 +7,7 @@
 #include "pch.h"
 #include <math.h>
 #include <algorithm>
+#include <filesystem>
 
 #ifdef ARM9
 #include <nds.h>
@@ -1693,8 +1694,20 @@ FORTHOP( doesOp )
     if ( pEngine->IsCompiling() )
     {
         // compile dodoes opcode & dummy word
-        pOuter->CompileBuiltinOpcode( OP_END_BUILDS );
+        LocalVocabulary* localVocabulary = pOuter->GetLocalVocabulary();
+        if (localVocabulary->GetNumEntries() == 0)
+        {
+            pOuter->CompileBuiltinOpcode(OP_END_BUILDS);
+        }
+        else
+        {
+            pOuter->CompileBuiltinOpcode(OP_END_BUILDS_LOCAL);
+            // fill in local frame size in AllocLocals opcode
+            pOuter->EndOpDefinition(!pOuter->CheckFlag(kEngineFlagNoNameDefinition));
+            localVocabulary->ClearFrame();
+        }
         pOuter->CompileInt( 0 );
+
         // create a nameless vocabulary entry for does-body opcode
         newUserOp = pOuter->AddOp( GET_DP );
         newUserOp = COMPILED_OP( kOpUserDef, newUserOp );
@@ -1733,6 +1746,42 @@ FORTHOP( endBuildsOp )
     *gpSavedDP = *GET_IP;
     // we are done defining, bail out
     SET_IP( (forthop* ) (RPOP) );
+    pOuter->ClearPeephole();
+}
+
+FORTHOP(endBuildsLocalOp)
+{
+    // finish current symbol definition (of op defined by builds)
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    pOuter->GetDefinitionVocabulary()->UnSmudgeNewestSymbol();
+
+    // fetch opcode at pIP, compile it into dummy word remembered by builds
+    *gpSavedDP = *GET_IP;
+
+    // we are done defining, bail out
+    // rstack: local_var_storage oldFP oldIP
+    // FP points to oldFP
+    SET_RP(GET_FP);
+    SET_FP((cell*)(RPOP));
+    if (GET_RDEPTH < 1)
+    {
+        SET_ERROR(ForthError::returnStackUnderflow);
+    }
+    else if (GET_SDEPTH < 0)
+    {
+        SET_ERROR(ForthError::stackUnderflow);
+    }
+    else
+    {
+        forthop* newIP = (forthop*)RPOP;
+        SET_IP(newIP);
+        if (newIP == nullptr)
+        {
+            SET_STATE(OpResult::kDone);
+        }
+    }
+
     pOuter->ClearPeephole();
 }
 
@@ -3471,6 +3520,21 @@ FORTHOP(strLoadQOp)
     }
 }
 
+FORTHOP(includeFileOp)
+{
+    FILE* pInFile = ((FILE *)(SPOP));
+
+    if (pInFile != NULL)
+    {
+        Engine* pEngine = GET_ENGINE;
+        Shell* pShell = pEngine->GetShell();
+        FileInputStream* pInputStream = new FileInputStream(pInFile, "include-fileThingy");
+        pShell->RunOneStream(pInputStream);
+    }
+}
+
+
+
 FORTHOP(strRunFileOp)
 {
 	char *pFileName = ((char *)(SPOP));
@@ -4869,6 +4933,18 @@ FORTHOP( strerrorOp)
     SPUSH( reinterpret_cast<cell>(strerror(errVal)) );
 }
 
+FORTHOP(ferrorOp)
+{
+    FILE* pFile = (FILE*)SPOP;
+    SPUSH(ferror(pFile));
+}
+
+FORTHOP(clearerrOp)
+{
+    FILE* pFile = (FILE*)SPOP;
+    clearerr(pFile);
+}
+
 FORTHOP( shellRunOp )
 {
     NEEDS(1);
@@ -4900,13 +4976,42 @@ FORTHOP( rmdirOp )
     SPUSH( result );
 }
 
-FORTHOP( renameOp )
+FORTHOP( renameFileOp )
 {
     NEEDS(2);
 	const char* pDstPath = (const char*) SPOP;
 	const char* pSrcPath = (const char*) SPOP;
     int result = pCore->pFileFuncs->renameFile( pSrcPath, pDstPath );
     SPUSH( result );
+}
+
+FORTHOP(resizeFileOp)
+{
+    FILE* pFile = (FILE*)(SPOP);
+    stackInt64 pos;
+    LPOP(pos);
+    if (pFile != nullptr)
+    {
+#if defined(WINDOWS_BUILD)
+        errno_t err = _chsize_s(_fileno(pFile), pos.s64);
+        if (err == 0)
+        {
+            SPUSH(-1);
+            return;
+        }
+#else
+        // TODO!  find a 64-bit resize-file op for linux/osx/rpi
+        off_t newSize = pos.u64;
+        int err = ftruncate(_fileno(pFile, newSize);
+        if (err == 0)
+        {
+            SPUSH(-1);
+            return;
+        }
+#endif
+    }
+
+    GET_ENGINE->RaiseException(pCore, ForthError::resizeFile);
 }
 
 FORTHOP(statOp)
@@ -5546,6 +5651,13 @@ FORTHOP( fillInBufferOp )
     InputStack* pInput = GET_ENGINE->GetShell()->GetInput();
     char* pBuffer = (char *) (SPOP);
     SPUSH( (cell) (pInput->GetLine(pBuffer)) );
+}
+
+FORTHOP(refillOp)
+{
+    InputStack* pInput = GET_ENGINE->GetShell()->GetInput();
+    cell result = (pInput->Refill() != nullptr) ? -1 : 0;
+    SPUSH(result);
 }
 
 FORTHOP( keyOp )
@@ -10277,6 +10389,7 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     OP_COMPILED_DEF(		doNewOp,                "_doNew",			OP_DO_NEW ),
     OP_COMPILED_DEF(		allocObjectOp,          "_allocObject",		OP_ALLOC_OBJECT ),
     OP_COMPILED_DEF(		endBuildsOp,            "_endBuilds",		OP_END_BUILDS ),
+    OP_COMPILED_DEF(		endBuildsLocalOp,       "_endBuildsLocal",	OP_END_BUILDS_LOCAL ),
     OP_COMPILED_DEF(		compileOp,              "compile",		    OP_COMPILE ),
 	OP_COMPILED_DEF(		initStructArrayOp,      "initStructArray",	OP_INIT_STRUCT_ARRAY ),
 	NATIVE_COMPILED_DEF(    dupBop,					"dup",				OP_DUP ),
@@ -10704,7 +10817,8 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    chdirOp,                "chdir" ),
     OP_DEF(    mkdirOp,                "mkdir" ),
     OP_DEF(    rmdirOp,                "rmdir" ),
-    OP_DEF(    renameOp,               "rename" ),
+    OP_DEF(    renameFileOp,           "renameFile" ),
+    OP_DEF(    resizeFileOp,           "resizeFile" ),
     OP_DEF(    statOp,                 "stat" ),
     OP_DEF(    fstatOp,                "fstat" ),
     OP_DEF(    sourceIdOp,             "source-id" ),
@@ -10717,6 +10831,9 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    fflushOp,               "fflush" ),
     OP_DEF(    errnoOp,			       "errno" ),
     OP_DEF(    strerrorOp,             "strerror" ),
+    OP_DEF(    ferrorOp,			   "ferror" ),
+    OP_DEF(    clearerrOp,			   "clearerr" ),
+
     OP_DEF(    findResourceOp,         "findResource"),
 
     OP_DEF(    getEnvironmentPairOp,   "getEnvironmentPair" ),
@@ -10860,6 +10977,7 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    strRunFileOp,           "$runFile" ),
     OP_DEF(    strLoadOp,              "$load" ),
     OP_DEF(    strLoadQOp,             "$load?" ),
+    OP_DEF(    includeFileOp,          "include-file" ),
     OP_DEF(    loadDoneOp,             "loaddone" ),
     OP_DEF(    requiresOp,             "requires" ),
     OP_DEF(    evaluateOp,             "evaluate" ),
@@ -10988,6 +11106,7 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    sourceOp,               "source" ),
     OP_DEF(    getInOffsetPointerOp,   ">in" ),
     OP_DEF(    fillInBufferOp,         "fillInputBuffer" ),
+    OP_DEF(    refillOp,               "refill"),
     OP_DEF(    keyOp,                  "key" ),
     OP_DEF(    keyHitOp,               "key?" ),
 

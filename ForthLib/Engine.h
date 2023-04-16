@@ -136,6 +136,7 @@ public:
     void					DisplayUserDefCrash(forthop* pRVal, char* buff, int buffSize);
 
     void                    RaiseException(CoreState* pCore, ForthError exceptionNum);
+    void                    ContinueException(CoreState* pCore);
 
     // create a thread which will be managed by the engine - the engine destructor will delete all threads
     //  which were created with CreateThread 

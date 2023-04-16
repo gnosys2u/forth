@@ -23,8 +23,10 @@ public:
     virtual ~BlockInputStream();
 
     virtual cell    GetSourceID() const;
-    virtual char    *GetLine( const char *pPrompt );
-    virtual char* AddLine();
+    virtual char*   GetLine( const char *pPrompt );
+    virtual char*   Refill();
+    virtual void    TrimLine();
+    virtual char*   AddLine();
     virtual bool    IsInteractive(void) { return false; };
 	virtual InputStreamType GetType( void ) const;
     virtual const char* GetName(void) const;
@@ -41,11 +43,10 @@ public:
 protected:
     bool            ReadBlock();
 
-    BlockFileManager* mpManager;
-    uint32_t    mCurrentBlock;
-    uint32_t    mLastBlock;
-    char			*mpDataBuffer;
-    cell            mState[8];
+    BlockFileManager*   mpManager;
+    uint32_t            mNextBlock;
+    uint32_t            mLastBlock;
+    cell                mState[8];
 };
 
 

@@ -429,6 +429,7 @@ enum class ForthError:cell
     illegalMethod = -275,
     stringOverflow = -276,
     badObject = -277,
+    missingExceptionHandler = -278
 };
 
 enum class ExceptionState:ucell
@@ -683,6 +684,7 @@ enum {
     OP_THIS,
     OP_DO_I128_CONSTANT,
     OP_I128_VAL,
+    OP_END_BUILDS_LOCAL,
 
 	NUM_COMPILED_OPS,
 

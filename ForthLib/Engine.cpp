@@ -293,6 +293,7 @@ static const struct errorEntry errors[] = {
     { ForthError::illegalMethod, "illegal method" },
     { ForthError::stringOverflow, "string overflow" },
     { ForthError::badObject, "bad object" },
+    { ForthError::missingExceptionHandler, "missing exception handler"},
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -1375,7 +1376,26 @@ OpResult Engine::FullyExecuteOp(CoreState* pCore, forthop opCode)
 	opScratch[0] = opCode;
 	opScratch[1] = gCompiledOps[OP_DONE];
 	OpResult exitStatus = ExecuteOps(pCore, &(opScratch[0]));
-	if (exitStatus == OpResult::kYield)
+    if (exitStatus == OpResult::kPendingException)
+    {
+        if (pCore->pExceptionFrame != nullptr)
+        {
+            if (mpShell->GetInput()->GetDepth() == pCore->pExceptionFrame->inputStackDepth)
+            {
+                // we have gotten back to the processor stack level (and input stack level)
+                //   that the current exception handler was instantiated at
+                ContinueException(pCore);
+                exitStatus = ExecuteOps(pCore, pCore->IP);
+            }
+        }
+        else
+        {
+            SPEW_ENGINE("Engine::FullyExecuteOp - pending exeption with no exception frame!");
+            pCore->state = OpResult::kError;
+            pCore->error = ForthError::missingExceptionHandler;
+        }
+    }
+	else if (exitStatus == OpResult::kYield)
 	{
 		SetError(ForthError::illegalOperation, " yield not allowed in FullyExecuteOp");
 	}
@@ -1433,10 +1453,29 @@ OpResult Engine::FullyExecuteMethod(CoreState* pCore, ForthObject& obj, int meth
 	opScratch[1] = gCompiledOps[OP_DONE];
 	OpResult exitStatus = ExecuteOps(pCore, &(opScratch[0]));
 
-	if (exitStatus == OpResult::kYield)
-	{
-		SetError(ForthError::illegalOperation, " yield not allowed in FullyExecuteMethod");
-	}
+    if (exitStatus == OpResult::kPendingException)
+    {
+        if (pCore->pExceptionFrame != nullptr)
+        {
+            if (mpShell->GetInput()->GetDepth() == pCore->pExceptionFrame->inputStackDepth)
+            {
+                // we have gotten back to the processor stack level (and input stack level)
+                //   that the current exception handler was instantiated at
+                ContinueException(pCore);
+                exitStatus = ExecuteOps(pCore, pCore->IP);
+            }
+        }
+        else
+        {
+            SPEW_ENGINE("Engine::FullyExecuteMethod - pending exeption with no exception frame!");
+            pCore->state = OpResult::kError;
+            pCore->error = ForthError::missingExceptionHandler;
+        }
+    }
+    else if (exitStatus == OpResult::kYield)
+    {
+        SetError(ForthError::illegalOperation, " yield not allowed in FullyExecuteMethod");
+    }
 	return exitStatus;
 }
 
@@ -1883,6 +1922,12 @@ void Engine::RaiseException(CoreState *pCore, ForthError newExceptionNum)
 {
     char errorMsg[256];
 
+    if (pCore->state == OpResult::kPendingException)
+    {
+        SPEW_ENGINE("\nWARNING: Engine::RaiseException ignored, there is already a pending exception\n");
+        return;
+    }
+
     if (newExceptionNum == ForthError::none)
     {
         // throw(0) is used to clear the previous handled exception
@@ -1930,17 +1975,25 @@ void Engine::RaiseException(CoreState *pCore, ForthError newExceptionNum)
         else
         {
             // raise in try body
-            forthop* tryHandlerIP = pHandlerOffsets + pHandlerOffsets[0];
-            SPEW_ENGINE("\nEngine::RaiseException {%s} (%d) in try[ section\n",
-                exceptionDescription, (int)newExceptionNum);
-            SET_SP(pExceptionFrame->pSavedSP);
-            SPUSH((cell)newExceptionNum);
-            SET_IP(tryHandlerIP);
-            mpShell->GetInput()->FlushToDepth(pExceptionFrame->inputStackDepth);
-            pExceptionFrame->exceptionState = ExceptionState::kExcept;
+            ucell currentInputDepth = mpShell->GetInput()->GetDepth();
+            if (currentInputDepth == pExceptionFrame->inputStackDepth)
+            {
+                forthop* tryHandlerIP = pHandlerOffsets + pHandlerOffsets[0];
+                SPEW_ENGINE("\nEngine::RaiseException {%s} (%d) in try[ section\n",
+                    exceptionDescription, (int)newExceptionNum);
+                SET_SP(pExceptionFrame->pSavedSP);
+                SPUSH((cell)newExceptionNum);
+                SET_IP(tryHandlerIP);
+                mpShell->GetInput()->FlushToDepth(pExceptionFrame->inputStackDepth);
+                pExceptionFrame->exceptionState = ExceptionState::kExcept;
+            }
+            else
+            {
+                // need to delay handling exception until nested input streams have been popped
+                pCore->state = OpResult::kPendingException;
+                mpShell->GetInput()->FlushToDepth(pExceptionFrame->inputStackDepth);
+            }
         }
-
-        pExceptionFrame->exceptionNumber = newExceptionNum;
     }
     else
     {
@@ -1952,6 +2005,32 @@ void Engine::RaiseException(CoreState *pCore, ForthError newExceptionNum)
     }
 }
 
+void Engine::ContinueException(CoreState* pCore)
+{
+    ForthExceptionFrame* pExceptionFrame = pCore->pExceptionFrame;
+    ForthError exceptionNum = pCore->error;
+
+    if (pExceptionFrame != nullptr)
+    {
+        char exceptionDescription[128];
+        GetErrorString(exceptionNum, exceptionDescription, sizeof(exceptionDescription));
+        forthop* pHandlerOffsets = pExceptionFrame->pHandlerOffsets;
+        forthop* tryHandlerIP = pHandlerOffsets + pHandlerOffsets[0];
+        SPEW_ENGINE("\Engine::ContinueException {%s} (%d) in try[ section\n",
+            exceptionDescription, (int)exceptionNum);
+        SET_SP(pExceptionFrame->pSavedSP);
+        SPUSH((cell)exceptionNum);
+        SET_IP(tryHandlerIP);
+        pExceptionFrame->exceptionState = ExceptionState::kExcept;
+        pCore->state = OpResult::kOk;
+    }
+    else
+    {
+        SPEW_ENGINE("\nEngine::ContinueException - no exception frame!\n");
+        snprintf(mpErrorString, ERROR_STRING_MAX, "Uncaught exception of type %d", (int)exceptionNum);
+        pCore->state = OpResult::kUncaughtException;
+    }
+}
 
 void Engine::AddOpNameForTracing(const char* pName)
 {

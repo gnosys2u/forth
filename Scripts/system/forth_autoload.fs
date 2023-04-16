@@ -926,7 +926,7 @@ addHelp mv	mv OLDNAME NEWNAME		rename a file
 : mv
   blword _TempStringA!
   blword _TempStringB!
-  rename( _TempStringA _TempStringB )
+  renameFile( _TempStringA _TempStringB )
   if( 0<> )
     addErrorText( "mv: failure renaming file " )
     error( _TempStringA )

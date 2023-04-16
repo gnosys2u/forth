@@ -282,13 +282,40 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+April 15 2023
+
+Even more ANSI 2012 compliance work.
+
+The blocks word set tests all pass.  I had to change how 'refill' worked because
+for blocks it has to load the next block.
+
+I added a bunch of file word set ops, most of the tests there pass, but not all.
+
+The locals word set tests passes except for one error.  I had to change create/does,
+previously I didn't allow the use of locals in the 'create' part, the standard
+requires that I do, it wasn't a hard fix.  There is also a chunk of the locals
+test that is skipped since I haven't implemented the search order word set yet.
+
+One thing I was thinking about - could I change how locals frames are done so
+that the saved frame pointer was just below the saved IP, instead of being on
+the far side of the frame?  If I did that, I might be able to use a single op
+for exiting with and without locals.  That wouldn't handle the case for exiting
+methods though, unless maybe - have methods always have a locals frame, and have
+the saved this pointer be an unnamed variable in that frame.
+-> but then the 'exit' op would still not know if it needed to restore 'this'...
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 April 10 2023
 
 I've made major progress towards ANSI 2012 compliance.
 Currently I'm working on the exceptions word set.  I changed code that set a
-system error to instead an exception, and changed the error numbers to be the
+system error to instead throw an exception, and changed the error numbers to be the
 ANSI defined codes where possible.  After that it wasn't hard to implement
-the ANSI throw/catch ops.
+the ANSI catch op.
+
+I also changed the syntax for my exception handling from
+    try ... except ... finally ... endtry
+to
+    try[ ... ]catch[ ... ]finally[ ... ]try
 
 The ANSI tests uncovered a problem with my design - I wasn't fixing the input
 stream when an exception happened.
@@ -318,6 +345,25 @@ on the processor stack:
 
 I need to get all nested evaluate instances (and loadfile, loadblock etc.) to
 exit before I start executing the exception handler code.
+
+Ok, I got the unnesting to work, but I'm still a little unusure if it is really
+solid.  I added a new OpResult state, kPendingException, and if an exception is
+raised when the input stack depth doesn't match the depth that is recorded in
+the top exception frame, RaiseException just sets pCore->state to kPendingException.
+The state not being kOk causes surrounding routines (ProcesLine/InterpretLine....)
+to exit, until Engine::FullyExecuteOp is reached, it checks if the input depth
+matches the exception frame input depth, if so it calls Engine::ContinueException
+which sets pCore->IP to the exception frame IP and starts exception processing
+just like Engine::RaiseException used to do.  I have a gut feeling that this isn't
+really the end of this problem for a few reasons:
+
+o I added a new OpResult state, this could break existing code
+? do I need to do anything in file/block loading ops, I did change evaluateOp to
+  call Engine::RaiseException if pCore->error isn't none, if I need to do it for
+  evaluateOp, shouldn't I do it for other ops which push input streams?
+? can something clear/change pCore->error before we get to Engine::ContinueException?
+? I also added continued exception handling to Engine::FullyExecuteMethod, are there
+  other places where code can be executed that also need this change?
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 April 3 2023
 
