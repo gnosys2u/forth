@@ -813,9 +813,9 @@ bool StructCodeGenerator::HandleLast()
         if (mUsesSuper)
         {
 #ifdef ASM_INNER_INTERPRETER
-            * mpDst++ = COMPILED_OP(kOpNativeU32, OP_THIS);
+            * mpDst++ = COMPILED_OP(kOpNativeU32, gCompiledOps[OP_THIS]);
 #else
-            *mpDst++ = COMPILED_OP(kOpCCodeU32, OP_THIS);
+            *mpDst++ = COMPILED_OP(kOpCCodeU32, gCompiledOps[OP_THIS]);
 #endif
             if (mpStructVocab->IsClass())
             {
