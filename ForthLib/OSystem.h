@@ -19,7 +19,7 @@ namespace OSystem
         ForthObject     namedObjects;
         ForthObject     args;
         ForthObject     env;
-        ForthObject     shellStack;
+        ForthObject     controlStack;
     };
 
     void AddClasses(OuterInterpreter* pOuter);

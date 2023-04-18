@@ -915,7 +915,7 @@ int32_t OuterInterpreter::AddLocalVar( const char        *pVarName,
     pEntry[1] = typeCode;
     if (frameCells == 0)
     {
-        if (mpShell->GetShellStack()->PeekTag() != kShellTagDefine)
+        if (mpShell->GetControlStack()->PeekTag() != kCSTagDefine)
         {
             mpEngine->SetError(ForthError::badSyntax, "First local variable definition inside control structure");
         }
@@ -1598,7 +1598,7 @@ void OuterInterpreter::StartLoopContinuations()
     mContinueCount = 0;
 }
 
-void OuterInterpreter::EndLoopContinuations(int controlFlowType)  // actually takes a eShellTag
+void OuterInterpreter::EndLoopContinuations(ucell controlFlowType)  // actually takes a ControlStackTag
 {
     // fixup pending continue branches for current loop
     if (mContinueCount > 0)
@@ -1614,7 +1614,7 @@ void OuterInterpreter::EndLoopContinuations(int controlFlowType)  // actually ta
                 if (((cell)target & 1) != 0)
                 {
                     // this is actually a break
-                    if (controlFlowType != kShellTagDo)
+                    if ((ControlStackTag)controlFlowType != kCSTagDo)
                     {
                         forthop *pBreak = (forthop *)((cell)target & ~1);
                         *pBreak = (forthop)COMPILED_OP(opType, (int32_t)(pDP - pBreak) - 1);
@@ -1627,7 +1627,7 @@ void OuterInterpreter::EndLoopContinuations(int controlFlowType)  // actually ta
                 }
                 else
                 {
-                    if (controlFlowType != kShellTagCase)
+                    if ((ControlStackTag)controlFlowType != kCSTagCase)
                     {
                         if (mContinueDestination != nullptr)
                         {

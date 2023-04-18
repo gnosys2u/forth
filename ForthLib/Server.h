@@ -51,7 +51,7 @@ protected:
 class ServerShell : public Shell
 {
 public:
-    ServerShell( bool doAutoload = true, Engine *pEngine = NULL, Extension *pExtension = NULL, int shellStackLongs = 1024 );
+    ServerShell( bool doAutoload = true, Engine *pEngine = NULL, Extension *pExtension = NULL, int controlStackLongs = 1024 );
     virtual ~ServerShell();
 
     virtual int             Run( InputStream *pInputStream );

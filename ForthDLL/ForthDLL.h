@@ -30,7 +30,7 @@ FORTHDLL_API int fnForthDLL(void);
 
 FORTHDLL_API Engine* CreateForthEngine();
 FORTHDLL_API Shell* CreateForthShell(int argc, const char** argv, const char** envp,
-    Engine* pEngine = NULL, Extension* pExtension = NULL, int shellStackLongs = 1024);
+    Engine* pEngine = NULL, Extension* pExtension = NULL, int controlStackLongs = 1024);
 
 FORTHDLL_API BufferInputStream* CreateForthBufferInputStream(
     const char* pDataBuffer, int dataBufferLen, bool deleteWhenEmpty = true);

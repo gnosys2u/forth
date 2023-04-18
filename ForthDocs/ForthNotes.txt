@@ -313,14 +313,15 @@ catcher     addr tag
 finally     tag
 :           name 4charCode tag
 :noname     name 4charCode tag
-f:          op addr flag name 4charCode tag           flag is interpret/compile
-    this is the problem case - stick op/addr/flag on parameter stack?
-    that would mean cs-pick and cs-roll wouldn't work with functions, but is that a problem?
 interface:  name 4charCode tag
 struct:     name 4charCode tag
 class:      name 4charCode tag
 enum:       name 4charCode tag
-
+f:          op addr flag name 4charCode tag           flag is interpret/compile
+    this is the problem case - stick op/addr/flag on parameter stack?
+    that would mean cs-pick and cs-roll wouldn't work with functions, but is that a problem?
+    o use 2 different tags for interpret/compile case
+            op addr name tag
 ? what about continuations - will they be messed up if the shell stack is changed?
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 April 15 2023

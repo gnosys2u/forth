@@ -44,30 +44,30 @@ class BlockFileManager;
 
 #define MAX_TOKEN_BYTES     1024
 
-typedef enum
+enum ControlStackTag
 {
-   kShellTagNothing  = 0x00000001,
-   kShellTagDo       = 0x00000002,
-   kShellTagBegin    = 0x00000004,
-   kShellTagWhile    = 0x00000008,
-   kShellTagCase     = 0x00000010,
-   kShellTagIf       = 0x00000020,
-   kShellTagElse     = 0x00000040,
-   kShellTagParen    = 0x00000080,
-   kShellTagString   = 0x00000100,
-   kShellTagDefine   = 0x00000200,
-   kShellTagPoundIf  = 0x00000400,
-   kShellTagOf       = 0x00000800,
-   kShellTagOfIf     = 0x00001000,
-   kShellTagAndIf    = 0x00002000,
-   kShellTagOrIf     = 0x00004000,
-   kShellTagElif     = 0x00008000,
-   kShellTagTry      = 0x00010000,
-   kShellTagCatcher  = 0x00020000,
-   kShellTagFinally  = 0x00040000,
-   kShellLastTag = kShellTagFinally  // update this when you add a new tag
+    kCSTagNothing  = 0x00000001,
+    kCSTagDo       = 0x00000002,
+    kCSTagBegin    = 0x00000004,
+    kCSTagWhile    = 0x00000008,
+    kCSTagCase     = 0x00000010,
+    kCSTagIf       = 0x00000020,
+    kCSTagElse     = 0x00000040,
+    kCSTagParen    = 0x00000080,
+    kCSTagString   = 0x00000100,
+    kCSTagDefine   = 0x00000200,
+    kCSTagPoundIf  = 0x00000400,
+    kCSTagOf       = 0x00000800,
+    kCSTagOfIf     = 0x00001000,
+    kCSTagAndIf    = 0x00002000,
+    kCSTagOrIf     = 0x00004000,
+    kCSTagElif     = 0x00008000,
+    kCSTagTry      = 0x00010000,
+    kCSTagCatcher  = 0x00020000,
+    kCSTagFinally  = 0x00040000,
+    kCSTagLastTag = kCSTagFinally  // update this when you add a new tag
    // if you add tags, remember to update TagStrings in Shell.cpp
-} eShellTag;
+};
 
 // NUM_FORTH_ENV_VARS is the number of environment variables which forth uses:
 //  FORTH_ROOT
@@ -78,11 +78,11 @@ typedef enum
 
 typedef std::map<std::string, std::string> EnvironmentMap;
 
-class ForthShellStack
+class ControlStack
 {
 public:
-   ForthShellStack( int stackEntries = 1024 );
-   virtual ~ForthShellStack();
+   ControlStack( int stackEntries = 1024 );
+   virtual ~ControlStack();
 
 
    inline forthop**    GetSP(void)           { return mSSP; };
@@ -91,15 +91,15 @@ public:
    inline cell         GetDepth(void)        { return mSST - mSSP; };
    inline void         EmptyStack(void)      { mSSP = mSST; };
    // push tag telling what control structure we are compiling (if/else/for/...)
-   void         PushTag(eShellTag tag);
+   void         PushTag(ControlStackTag tag);
    void         PushAddress(forthop* val);
-   void         Push(cell val);
-   eShellTag    PopTag(void);
+   void         Push(ucell val);
+   ControlStackTag PopTag(void);
    forthop*     PopAddress(void);
-   cell         Pop(void);
-   eShellTag    PeekTag(int index = 0);
+   ucell         Pop(void);
+   ControlStackTag    PeekTag(int index = 0);
    forthop*     PeekAddress(int index = 0);
-   cell         Peek(int index = 0);
+   cell        Peek(int index = 0);
 
    // push a string, this should be followed by a PushTag of a tag which uses this string (such as paren)
    void                PushString(const char *pString);
@@ -131,7 +131,7 @@ public:
 
     // if the creator of a Shell passes in non-NULL engine and/or thread params,
     //   that creator is responsible for deleting the engine and/or thread
-    Shell(int argc, const char ** argv, const char ** envp, Engine *pEngine = NULL, Extension *pExtension = NULL, int shellStackLongs = 1024);
+    Shell(int argc, const char ** argv, const char ** envp, Engine *pEngine = NULL, Extension *pExtension = NULL, int controlStackLongs = 1024);
     virtual ~Shell();
 
     // returns true IFF file opened successfully
@@ -149,7 +149,7 @@ public:
 
     inline Engine *    GetEngine( void ) { return mpEngine; };
     inline InputStack * GetInput( void ) { return mpInput; };
-	inline ForthShellStack * GetShellStack( void ) { return mpStack; };
+	inline ControlStack * GetControlStack( void ) { return mpStack; };
     //inline bool             InputLineReadyToProcess() { return !mInContinuationLine; }
     bool                    LineHasContinuation(const char* pBuffer);
     const char*             GetArg(int argNum) const;
@@ -164,7 +164,7 @@ public:
     const std::vector<std::string>& GetDllPaths() { return mDllPaths; }
     const std::vector<std::string>& GetResourcePaths() { return mResourcePaths; }
 
-    bool                    CheckSyntaxError(const char *pString, eShellTag tag, int32_t desiredTag);
+    bool                    CheckSyntaxError(const char *pString, ControlStackTag tag, ucell desiredTag);
 	void					StartDefinition(const char*pDefinedSymbol, const char* pFourCharCode);
 	bool					CheckDefinitionEnd( const char* pDisplayName, const char* pFourCharCode );
 
@@ -228,7 +228,7 @@ protected:
 
     InputStack *       mpInput;
     Engine *           mpEngine;
-    ForthShellStack *       mpStack;
+    ControlStack *       mpStack;
     ForthFileInterface      mFileInterface;
 	ExpressionInputStream* mExpressionInputStream;
 

@@ -28,7 +28,7 @@
 
 namespace OSystem
 {
-    static ClassVocabulary *gpShellStackVocab = nullptr;
+    static ClassVocabulary *gpControlStackVocab = nullptr;
 
 	//////////////////////////////////////////////////////////////////////
 	///
@@ -48,10 +48,10 @@ namespace OSystem
         obj = reinterpret_cast<ForthObject>(&gSystemSingleton);
         obj->pMethods = pClassVocab->GetMethods();
 
-        ALLOCATE_OBJECT(oObjectStruct, pShellStack, gpShellStackVocab);
-        gSystemSingleton.shellStack = pShellStack;
-        pShellStack->pMethods = gpShellStackVocab->GetMethods();
-        pShellStack->refCount = 2000000000;
+        ALLOCATE_OBJECT(oObjectStruct, pControlStack, gpControlStackVocab);
+        gSystemSingleton.controlStack = pControlStack;
+        pControlStack->pMethods = gpControlStackVocab->GetMethods();
+        pControlStack->refCount = 2000000000;
 
         PUSH_OBJECT(obj);
 	}
@@ -391,7 +391,7 @@ namespace OSystem
         MEMBER_VAR("namedObjects", OBJECT_TYPE_TO_CODE(0, kBCIStringMap)),
         MEMBER_VAR("args", OBJECT_TYPE_TO_CODE(0, kBCIArray)),
         MEMBER_VAR("env", OBJECT_TYPE_TO_CODE(0, kBCIStringMap)),
-        MEMBER_VAR("shellStack", OBJECT_TYPE_TO_CODE(0, kBCIShellStack)),
+        MEMBER_VAR("controlStack", OBJECT_TYPE_TO_CODE(0, kBCIControlStack)),
 
 		// following must be last in table
 		END_MEMBERS
@@ -400,10 +400,10 @@ namespace OSystem
 
     //////////////////////////////////////////////////////////////////////
     ///
-    //                 OShellStack
+    //                 OControlStack
     //
 
-    FORTHOP(oShellStackDeleteMethod)
+    FORTHOP(oControlStackDeleteMethod)
     {
         GET_THIS(oObjectStruct, obj);
         obj->refCount = 2000000000;
@@ -411,79 +411,79 @@ namespace OSystem
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackSizeMethod)
+    FORTHOP(oControlStackSizeMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         SPUSH(stack->GetSize());
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackDepthMethod)
+    FORTHOP(oControlStackDepthMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         SPUSH(stack->GetDepth());
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackPushMethod)
+    FORTHOP(oControlStackPushMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         cell v = SPOP;
         stack->Push(v);
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackPushTagMethod)
+    FORTHOP(oControlStackPushTagMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         cell v = SPOP;
-        stack->PushTag((eShellTag) v);
+        stack->PushTag((ControlStackTag) v);
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackPushAddressMethod)
+    FORTHOP(oControlStackPushAddressMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         cell v = SPOP;
         stack->PushAddress((forthop *)v);
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackPushStringMethod)
+    FORTHOP(oControlStackPushStringMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         cell v = SPOP;
         stack->PushString((const char *)v);
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackPopMethod)
+    FORTHOP(oControlStackPopMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         cell v = stack->Pop();
         SPUSH(v);
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackPopTagMethod)
+    FORTHOP(oControlStackPopTagMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         cell v = (cell) stack->PopTag();
         SPUSH(v);
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackPopAddressMethod)
+    FORTHOP(oControlStackPopAddressMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         cell v = (cell)stack->PopAddress();
         SPUSH(v);
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackPopStringMethod)
+    FORTHOP(oControlStackPopStringMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         int maxLen = (int)SPOP;
         char* pDstString = (char *)SPOP;
         bool isString = stack->PopString(pDstString, maxLen);
@@ -491,58 +491,58 @@ namespace OSystem
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackPeekMethod)
+    FORTHOP(oControlStackPeekMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         int i = (int) SPOP;
         cell v = stack->Peek(i);
         SPUSH(v);
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackPeekTagMethod)
+    FORTHOP(oControlStackPeekTagMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         int i = (int)SPOP;
         cell v = (cell)stack->PeekTag(i);
         SPUSH(v);
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackPeekAddressMethod)
+    FORTHOP(oControlStackPeekAddressMethod)
     {
-        ForthShellStack* stack = GET_ENGINE->GetShell()->GetShellStack();
+        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
         int i = (int)SPOP;
         cell v = (cell)stack->PeekAddress(i);
         SPUSH(v);
         METHOD_RETURN;
     }
 
-    FORTHOP(oShellStackLastUsedTagMethod)
+    FORTHOP(oControlStackLastUsedTagMethod)
     {
-        cell v = (cell)kShellLastTag;
+        ucell v = (cell)kCSTagLastTag;
         SPUSH(v);
         METHOD_RETURN;
     }
     
-    baseMethodEntry oShellStackMembers[] =
+    baseMethodEntry oControlStackMembers[] =
     {
-        METHOD("delete", oShellStackDeleteMethod),
-        METHOD_RET("size", oShellStackSizeMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("depth", oShellStackDepthMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD("push", oShellStackPushMethod),
-        METHOD("pushTag", oShellStackPushTagMethod),
-        METHOD("pushAddress", oShellStackPushAddressMethod),
-        METHOD("pushString", oShellStackPushStringMethod),
-        METHOD_RET("pop", oShellStackPopMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("popTag", oShellStackPopTagMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("popAddress", oShellStackPopAddressMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("popString", oShellStackPopStringMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("peek", oShellStackPopMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("peekTag", oShellStackPopTagMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("peekAddress", oShellStackPopAddressMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("peekString", oShellStackPopStringMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("lastUsedTag", oShellStackLastUsedTagMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD("delete", oControlStackDeleteMethod),
+        METHOD_RET("size", oControlStackSizeMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("depth", oControlStackDepthMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD("push", oControlStackPushMethod),
+        METHOD("pushTag", oControlStackPushTagMethod),
+        METHOD("pushAddress", oControlStackPushAddressMethod),
+        METHOD("pushString", oControlStackPushStringMethod),
+        METHOD_RET("pop", oControlStackPopMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("popTag", oControlStackPopTagMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("popAddress", oControlStackPopAddressMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("popString", oControlStackPopStringMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("peek", oControlStackPopMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("peekTag", oControlStackPopTagMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("peekAddress", oControlStackPopAddressMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("peekString", oControlStackPopStringMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("lastUsedTag", oControlStackLastUsedTagMethod, RETURNS_NATIVE(BaseType::kCell)),
 
         // following must be last in table
         END_MEMBERS
@@ -551,7 +551,7 @@ namespace OSystem
 
     void AddClasses(OuterInterpreter* pOuter)
 	{
-        gpShellStackVocab = pOuter->AddBuiltinClass("ShellStack", kBCIShellStack, kBCIObject, oShellStackMembers);
+        gpControlStackVocab = pOuter->AddBuiltinClass("ControlStack", kBCIControlStack, kBCIObject, oControlStackMembers);
         pOuter->AddBuiltinClass("System", kBCISystem, kBCIObject, oSystemMembers);
 	}
 

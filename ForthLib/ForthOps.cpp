@@ -646,11 +646,11 @@ FORTHOP(doOp)
     NEEDS(2);
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    ForthShellStack *pShellStack = pEngine->GetShell()->GetShellStack();
-    pShellStack->Push( gCompiledOps[ OP_DO_DO ] );
+    ControlStack *pControlStack = pEngine->GetShell()->GetControlStack();
+    pControlStack->Push( gCompiledOps[ OP_DO_DO ] );
     // save address for loop/+loop
-    pShellStack->PushAddress( GET_DP );
-    pShellStack->PushTag( kShellTagDo );
+    pControlStack->PushAddress( GET_DP );
+    pControlStack->PushTag( kCSTagDo );
     // this will be fixed by loop/+loop
     pOuter->CompileDummyOpcode();
     pOuter->CompileInt( 0 );
@@ -664,11 +664,11 @@ FORTHOP(checkDoOp)
     NEEDS(2);
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    ForthShellStack *pShellStack = pEngine->GetShell()->GetShellStack();
-    pShellStack->Push( gCompiledOps[ OP_DO_CHECKDO ] );
+    ControlStack *pControlStack = pEngine->GetShell()->GetControlStack();
+    pControlStack->Push( gCompiledOps[ OP_DO_CHECKDO ] );
     // save address for loop/+loop
-    pShellStack->PushAddress(GET_DP);
-    pShellStack->PushTag( kShellTagDo );
+    pControlStack->PushAddress(GET_DP);
+    pControlStack->PushTag( kCSTagDo );
     // this will be fixed by loop/+loop
     pOuter->CompileDummyOpcode();
     pOuter->CompileInt( 0 );
@@ -683,19 +683,19 @@ FORTHOP(loopOp)
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
-    if ( !pShell->CheckSyntaxError( "loop", pShellStack->PopTag(), kShellTagDo ) )
+    ControlStack *pControlStack = pShell->GetControlStack();
+    if ( !pShell->CheckSyntaxError( "loop", pControlStack->PopTag(), kCSTagDo ) )
     {
         return;
     }
-    forthop* pDoOp = pShellStack->PopAddress();
-	forthop doOpcode = pShellStack->Pop();
+    forthop* pDoOp = pControlStack->PopAddress();
+	forthop doOpcode = pControlStack->Pop();
     *pDoOp++ = doOpcode;
     // compile the "_loop" opcode
     pOuter->CompileBuiltinOpcode( OP_DO_LOOP );
     // fill in the branch to after loop opcode
     *pDoOp = COMPILED_OP( kOpBranch, (GET_DP - pDoOp) - 1 );
-    pOuter->EndLoopContinuations(kShellTagDo);
+    pOuter->EndLoopContinuations(kCSTagDo);
     pOuter->ClearPeephole();
 }
 
@@ -706,19 +706,19 @@ FORTHOP(loopNOp)
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
-    if ( !pShell->CheckSyntaxError( "+loop", pShellStack->PopTag(), kShellTagDo ) )
+    ControlStack *pControlStack = pShell->GetControlStack();
+    if ( !pShell->CheckSyntaxError( "+loop", pControlStack->PopTag(), kCSTagDo ) )
     {
         return;
     }
-    forthop*pDoOp = pShellStack->PopAddress();
-	forthop doOpcode = pShellStack->Pop();
+    forthop*pDoOp = pControlStack->PopAddress();
+	forthop doOpcode = pControlStack->Pop();
     *pDoOp++ = doOpcode;
     // compile the "_loop" opcode
     pOuter->CompileBuiltinOpcode( OP_DO_LOOPN );
     // fill in the branch to after loop opcode
     *pDoOp = COMPILED_OP( kOpBranch, (GET_DP - pDoOp) - 1 );
-    pOuter->EndLoopContinuations(kShellTagDo);
+    pOuter->EndLoopContinuations(kCSTagDo);
     pOuter->ClearPeephole();
 }
 
@@ -728,14 +728,14 @@ FORTHOP( ifOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
+    ControlStack *pControlStack = pShell->GetControlStack();
     // this will be fixed by else/endif
     pOuter->CompileOpcode(kOpBranchZ, 0);
     forthop* branchAddr = (GET_DP - 1);
     // save address for else/endif
-    pShellStack->PushAddress(branchAddr);
+    pControlStack->PushAddress(branchAddr);
     // flag that this is the "if" branch
-    pShellStack->PushTag(kShellTagIf);
+    pControlStack->PushTag(kCSTagIf);
     pOuter->ClearPeephole();
 }
 
@@ -745,14 +745,14 @@ FORTHOP(elifOp)
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
+    ControlStack *pControlStack = pShell->GetControlStack();
     // this will be fixed by else/endif
     pOuter->CompileOpcode(kOpBranchZ, 0);
     forthop* branchAddr = (GET_DP - 1);
     // save address for else/endif
-    pShellStack->PushAddress(branchAddr);
+    pControlStack->PushAddress(branchAddr);
     // flag that this is the "if" branch
-    pShellStack->PushTag(kShellTagElif);
+    pControlStack->PushTag(kCSTagElif);
     pOuter->ClearPeephole();
 }
 
@@ -762,14 +762,14 @@ FORTHOP(orifOp)
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
+    ControlStack *pControlStack = pShell->GetControlStack();
     // this will be fixed by else/endif
     pOuter->CompileOpcode(kOpBranchZ, 0);
     forthop* branchAddr = (GET_DP - 1);
     // save address for else/endif
-    pShellStack->PushAddress(branchAddr);
+    pControlStack->PushAddress(branchAddr);
     // flag that this is an "orif" clause
-    pShellStack->PushTag(kShellTagOrIf);
+    pControlStack->PushTag(kCSTagOrIf);
     pOuter->ClearPeephole();
 }
 
@@ -779,14 +779,14 @@ FORTHOP(andifOp)
 	Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-	ForthShellStack *pShellStack = pShell->GetShellStack();
+	ControlStack *pControlStack = pShell->GetControlStack();
     // this will be fixed by else/endif
     pOuter->CompileOpcode(kOpBranchZ, 0);
     forthop* branchAddr = (GET_DP - 1);
     // save address for else/endif
-    pShellStack->PushAddress(branchAddr);
+    pControlStack->PushAddress(branchAddr);
     // flag that this is an "andif" clause
-    pShellStack->PushTag(kShellTagAndIf);
+    pControlStack->PushTag(kCSTagAndIf);
     pOuter->ClearPeephole();
 }
 
@@ -799,41 +799,41 @@ FORTHOP(elseOp)
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
-    eShellTag branchTag = pShellStack->PeekTag();
+    ControlStack *pControlStack = pShell->GetControlStack();
+    ControlStackTag branchTag = pControlStack->PeekTag();
     forthop* pBranch;
 
-    if (!pShell->CheckSyntaxError("else", branchTag, (kShellTagIf | kShellTagElse | kShellTagElif | kShellTagWhile | kShellTagOrIf | kShellTagAndIf)))
+    if (!pShell->CheckSyntaxError("else", branchTag, (kCSTagIf | kCSTagElse | kCSTagElif | kCSTagWhile | kCSTagOrIf | kCSTagAndIf)))
     {
         return;
     }
 
-    if (branchTag == kShellTagElse)
+    if (branchTag == kCSTagElse)
     {
         // ugh, else followed by else - need to support this mess to pass 2012 tests
         // save address for endif
-        branchTag = pShellStack->PopTag();
-        int dummyCount = pShellStack->Pop();
-        pBranch = pShellStack->PopAddress();
+        branchTag = pControlStack->PopTag();
+        int dummyCount = pControlStack->Pop();
+        pBranch = pControlStack->PopAddress();
         pOuter->PatchOpcode(kOpBranch, (GET_DP - pBranch), pBranch);
         pOuter->PatchOpcode(kOpBranch, (GET_DP - pBranch), pBranch);
-        pShellStack->PushAddress(GET_DP);
-        pShellStack->Push(1);   // else count
+        pControlStack->PushAddress(GET_DP);
+        pControlStack->Push(1);   // else count
         // flag that this is the "else" branch
-        pShellStack->PushTag(kShellTagElse);
+        pControlStack->PushTag(kCSTagElse);
         // this will be fixed by endif
         pOuter->CompileDummyOpcode();
         return;
     }
 
     forthop* falseIP = GET_DP + 1;
-    forthop* trueIP = pShellStack->PeekAddress(1) + 1;
+    forthop* trueIP = pControlStack->PeekAddress(1) + 1;
     bool notDone = true;
     bool followedByOr = false;
     while (notDone)
     {
-        branchTag = pShellStack->PopTag();
-        pBranch = pShellStack->PopAddress();
+        branchTag = pControlStack->PopTag();
+        pBranch = pControlStack->PopAddress();
         if (followedByOr)
         {
             pOuter->PatchOpcode(kOpBranchNZ, (trueIP - pBranch) - 1, pBranch);
@@ -845,42 +845,42 @@ FORTHOP(elseOp)
 
         switch (branchTag)
         {
-        case kShellTagIf:
-        case kShellTagElse:
-        case kShellTagElif:
-        case kShellTagWhile:
+        case kCSTagIf:
+        case kCSTagElse:
+        case kCSTagElif:
+        case kCSTagWhile:
             notDone = false;
             break;
-        case kShellTagOrIf:
+        case kCSTagOrIf:
             followedByOr = true;
-            falseIP = pShellStack->PeekAddress(1) + 1;
+            falseIP = pControlStack->PeekAddress(1) + 1;
             break;
-        case kShellTagAndIf:
+        case kCSTagAndIf:
             followedByOr = false;
-            trueIP = pShellStack->PeekAddress(1) + 1;
+            trueIP = pControlStack->PeekAddress(1) + 1;
             break;
         default:
-            pShell->CheckSyntaxError("else", branchTag, kShellTagIf);
+            pShell->CheckSyntaxError("else", branchTag, kCSTagIf);
             return;
         }
     }
     cell elseCount = 1; // assume there is only one else/elseif branch
-    if (branchTag == kShellTagElif)
+    if (branchTag == kCSTagElif)
     {
         // this isn't first else
         // shell stack at this point: elseTag numberOfElseBranches <N elseBranchAddresses>
-        branchTag = pShellStack->PopTag();
-        if (!pShell->CheckSyntaxError("else", branchTag, (kShellTagElse)))
+        branchTag = pControlStack->PopTag();
+        if (!pShell->CheckSyntaxError("else", branchTag, (kCSTagElse)))
         {
             return;
         }
-        elseCount = pShellStack->Pop() + 1;
+        elseCount = pControlStack->Pop() + 1;
     }
     // save address for endif
-    pShellStack->PushAddress(GET_DP);
-    pShellStack->Push(elseCount);
+    pControlStack->PushAddress(GET_DP);
+    pControlStack->Push(elseCount);
     // flag that this is the "else" branch
-    pShellStack->PushTag(kShellTagElse);
+    pControlStack->PushTag(kCSTagElse);
     // this will be fixed by endif
     pOuter->CompileDummyOpcode();
 }
@@ -893,14 +893,14 @@ FORTHOP( endifOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
-    eShellTag branchTag = pShellStack->PeekTag();
-    if (!pShell->CheckSyntaxError("endif", branchTag, (kShellTagIf | kShellTagElif | kShellTagElse | kShellTagWhile | kShellTagOrIf | kShellTagAndIf)))
+    ControlStack *pControlStack = pShell->GetControlStack();
+    ControlStackTag branchTag = pControlStack->PeekTag();
+    if (!pShell->CheckSyntaxError("endif", branchTag, (kCSTagIf | kCSTagElif | kCSTagElse | kCSTagWhile | kCSTagOrIf | kCSTagAndIf)))
 	{
 		return;
 	}
     bool processElseBranches = false;
-	if (branchTag == kShellTagElse)
+	if (branchTag == kCSTagElse)
 	{
         processElseBranches = true;
 	}
@@ -908,13 +908,13 @@ FORTHOP( endifOp )
     {
         // there was no "else", so process if/andif/orif
         forthop* falseIP = GET_DP;
-        forthop* trueIP = ((forthop *)pShellStack->Peek(1)) + 1;
+        forthop* trueIP = ((forthop *)pControlStack->Peek(1)) + 1;
         bool notDone = true;
         bool followedByOr = false;
         while (notDone)
         {
-            branchTag = pShellStack->PopTag();
-            forthop *pBranch = pShellStack->PopAddress();
+            branchTag = pControlStack->PopTag();
+            forthop *pBranch = pControlStack->PopAddress();
             if (followedByOr)
             {
                 pOuter->PatchOpcode(kOpBranchNZ, (trueIP - pBranch) - 1, pBranch);
@@ -925,23 +925,23 @@ FORTHOP( endifOp )
             }
             switch (branchTag)
             {
-            case kShellTagIf:
-            case kShellTagWhile:
+            case kCSTagIf:
+            case kCSTagWhile:
                 notDone = false;
                 break;
-            case kShellTagElif:
+            case kCSTagElif:
                 notDone = false;
                 processElseBranches = true;
                 break;
-            case kShellTagOrIf:
+            case kCSTagOrIf:
                 followedByOr = true;
                 break;
-            case kShellTagAndIf:
+            case kCSTagAndIf:
                 followedByOr = false;
                 break;
             default:
                 //huh ? can this happen ?
-                pShell->CheckSyntaxError("else", branchTag, kShellTagIf);
+                pShell->CheckSyntaxError("else", branchTag, kCSTagIf);
                 return;
             }
         }
@@ -949,11 +949,11 @@ FORTHOP( endifOp )
     if (processElseBranches)
     {
         // "else" has already handled if/andif/orif, just do branch at end of true body around false body
-        branchTag = pShellStack->PopTag();
-        cell numElseBranches = pShellStack->Pop();
+        branchTag = pControlStack->PopTag();
+        cell numElseBranches = pControlStack->Pop();
         for (cell i = 0; i < numElseBranches; ++i)
         {
-            forthop *pBranch = pShellStack->PopAddress();
+            forthop *pBranch = pControlStack->PopAddress();
             *pBranch = COMPILED_OP(kOpBranch, (GET_DP - pBranch) - 1);
         }
     }
@@ -968,10 +968,10 @@ FORTHOP( beginOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
+    ControlStack *pControlStack = pShell->GetControlStack();
     // save address for repeat/until/again
-    pShellStack->PushAddress(GET_DP);
-    pShellStack->PushTag( kShellTagBegin );
+    pControlStack->PushAddress(GET_DP);
+    pControlStack->PushTag( kCSTagBegin );
     pOuter->StartLoopContinuations();
     pOuter->ClearPeephole();
 }
@@ -984,14 +984,14 @@ FORTHOP( untilOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
-    if ( pShell->CheckSyntaxError( "until", pShellStack->PopTag(), kShellTagBegin ) )
+    ControlStack *pControlStack = pShell->GetControlStack();
+    if ( pShell->CheckSyntaxError( "until", pControlStack->PopTag(), kCSTagBegin ) )
     {
-        forthop *pBeginOp = (forthop *) pShellStack->Pop();
+        forthop *pBeginOp = (forthop *) pControlStack->Pop();
         pOuter->CompileOpcode(kOpBranchZ, 0);
         pOuter->PatchOpcode(kOpBranchZ, (pBeginOp - GET_DP), GET_DP - 1);
     }
-    pOuter->EndLoopContinuations(kShellTagBegin);
+    pOuter->EndLoopContinuations(kCSTagBegin);
     pOuter->ClearPeephole();
 }
 
@@ -1003,20 +1003,20 @@ FORTHOP( whileOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
-    if (!pShell->CheckSyntaxError("while", pShellStack->PopTag(), kShellTagBegin))
+    ControlStack *pControlStack = pShell->GetControlStack();
+    if (!pShell->CheckSyntaxError("while", pControlStack->PopTag(), kCSTagBegin))
     {
         return;
     }
     // stick while tag/address under the begin tag/address
-    forthop* oldAddress = pShellStack->PopAddress();
+    forthop* oldAddress = pControlStack->PopAddress();
     // this will be fixed by else/endif
     pOuter->CompileOpcode(kOpBranchZ, 0);
     forthop* branchAddr = GET_DP - 1;
-    pShellStack->PushAddress(branchAddr);
-    pShellStack->PushTag(kShellTagWhile);
-    pShellStack->PushAddress(oldAddress);
-    pShellStack->PushTag(kShellTagBegin);
+    pControlStack->PushAddress(branchAddr);
+    pControlStack->PushTag(kCSTagWhile);
+    pControlStack->PushAddress(oldAddress);
+    pControlStack->PushTag(kCSTagBegin);
     pOuter->ClearPeephole();
 }
 
@@ -1028,25 +1028,25 @@ FORTHOP( repeatOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
-    if (!pShell->CheckSyntaxError("repeat", pShellStack->PopTag(), kShellTagBegin))
+    ControlStack *pControlStack = pShell->GetControlStack();
+    if (!pShell->CheckSyntaxError("repeat", pControlStack->PopTag(), kCSTagBegin))
     {
         return;
     }
-    forthop *pBeginAddress = pShellStack->PopAddress();
-    eShellTag branchTag = pShellStack->PopTag();
-    if (!pShell->CheckSyntaxError("repeat", branchTag, kShellTagWhile))
+    forthop *pBeginAddress = pControlStack->PopAddress();
+    ControlStackTag branchTag = pControlStack->PopTag();
+    if (!pShell->CheckSyntaxError("repeat", branchTag, kCSTagWhile))
     {
         return;
     }
     // fill in the branch taken when "while" fails
-    forthop* pBranch =  (forthop*) pShellStack->Pop();
-    //*pBranch = COMPILED_OP((branchTag == kShellTagBranchZ) ? kOpBranchZ : kOpBranch, (GET_DP - pBranch));
+    forthop* pBranch =  (forthop*) pControlStack->Pop();
+    //*pBranch = COMPILED_OP((branchTag == kCSTagBranchZ) ? kOpBranchZ : kOpBranch, (GET_DP - pBranch));
     pOuter->PatchOpcode(kOpBranchZ, (GET_DP - pBranch), pBranch);
     forthop* branchAddress = GET_DP;
     pOuter->CompileOpcode(kOpBranch, (pBeginAddress - GET_DP) - 1);
     //printf("repeat compiled branch 0x%x @ %p\n", *branchAddress, branchAddress);
-    pOuter->EndLoopContinuations(kShellTagBegin);
+    pOuter->EndLoopContinuations(kCSTagBegin);
     pOuter->ClearPeephole();
 }
 
@@ -1057,14 +1057,14 @@ FORTHOP( againOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
-    if ( !pShell->CheckSyntaxError( "again", pShellStack->PopTag(), kShellTagBegin ) )
+    ControlStack *pControlStack = pShell->GetControlStack();
+    if ( !pShell->CheckSyntaxError( "again", pControlStack->PopTag(), kCSTagBegin ) )
     {
         return;
     }
-    forthop*pLoopTop =  (forthop*) pShellStack->Pop();
+    forthop*pLoopTop =  (forthop*) pControlStack->Pop();
     pOuter->CompileOpcode( kOpBranch, (pLoopTop - GET_DP) - 1 );
-    pOuter->EndLoopContinuations(kShellTagBegin);
+    pOuter->EndLoopContinuations(kCSTagBegin);
     pOuter->ClearPeephole();
 }
 
@@ -1075,9 +1075,9 @@ FORTHOP( caseOp )
    Engine *pEngine = GET_ENGINE;
    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
    Shell *pShell = pEngine->GetShell();
-   ForthShellStack *pShellStack = pShell->GetShellStack();
-   pShellStack->Push( 0 );
-   pShellStack->PushTag( kShellTagCase );
+   ControlStack *pControlStack = pShell->GetControlStack();
+   pControlStack->Push( 0 );
+   pControlStack->PushTag( kCSTagCase );
    pOuter->StartLoopContinuations();
    pOuter->ClearPeephole();
 }
@@ -1089,10 +1089,10 @@ FORTHOP( ofOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
+    ControlStack *pControlStack = pShell->GetControlStack();
     // save address for endof
-    pShellStack->PushAddress(GET_DP);
-    pShellStack->PushTag( kShellTagOf );
+    pControlStack->PushAddress(GET_DP);
+    pControlStack->PushTag( kCSTagOf );
     // this will be set to a caseBranch by endof
     pOuter->CompileDummyOpcode();
 }
@@ -1104,11 +1104,11 @@ FORTHOP( ofifOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
+    ControlStack *pControlStack = pShell->GetControlStack();
 
     // save address for endof
-    pShellStack->PushAddress(GET_DP);
-    pShellStack->PushTag( kShellTagOfIf );
+    pControlStack->PushAddress(GET_DP);
+    pControlStack->PushTag( kCSTagOfIf );
     // this will be set to a zBranch by endof
     pOuter->CompileDummyOpcode();
 	// if the ofif test succeeded, we need to dispose of the switch input value
@@ -1124,7 +1124,7 @@ FORTHOP( endofOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
+    ControlStack *pControlStack = pShell->GetControlStack();
     forthop* pDP = GET_DP;
 
     // this will be fixed by endcase
@@ -1134,16 +1134,16 @@ FORTHOP( endofOp )
 
     while (true)
     {
-        eShellTag tag = pShellStack->PopTag();
-        if (!pShell->CheckSyntaxError("endof", tag, kShellTagOf | kShellTagOfIf | kShellTagCase))
+        ControlStackTag tag = pControlStack->PopTag();
+        if (!pShell->CheckSyntaxError("endof", tag, kCSTagOf | kCSTagOfIf | kCSTagCase))
         {
             return;
         }
-        if (tag == kShellTagCase)
+        if (tag == kCSTagCase)
         {
             break;
         }
-        forthop* pOp = (forthop* )pShellStack->Pop();
+        forthop* pOp = (forthop* )pControlStack->Pop();
         // fill in the branch taken when case doesn't match
         forthop branchOp;
         cell branchOffset;
@@ -1151,22 +1151,22 @@ FORTHOP( endofOp )
         if (isLastCase)
         {
             // last case test compiles a branch around case body on mismatch
-            branchOp = (tag == kShellTagOfIf) ? kOpBranchZ : kOpCaseBranchF;
+            branchOp = (tag == kCSTagOfIf) ? kOpBranchZ : kOpCaseBranchF;
             pCaseBody = pOp + 1;
             branchOffset = (pHere - pOp) - 1;
         }
         else
         {
             // all case tests except last compiles a branch to case body on match
-            branchOp = (tag == kShellTagOfIf) ? kOpBranchNZ : kOpCaseBranchT;
+            branchOp = (tag == kCSTagOfIf) ? kOpBranchNZ : kOpCaseBranchT;
             branchOffset = (pCaseBody - pOp) - 1;
         }
         *pOp = COMPILED_OP(branchOp, branchOffset);
         isLastCase = false;
     }
     // save address for endcase
-    pShellStack->PushAddress(pDP);
-    pShellStack->PushTag( kShellTagCase );
+    pControlStack->PushAddress(pDP);
+    pControlStack->PushTag( kCSTagCase );
     pOuter->ClearPeephole();
 }
 
@@ -1180,8 +1180,8 @@ FORTHOP( endcaseOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
-    if ( !pShell->CheckSyntaxError( "endcase", pShellStack->PopTag(), kShellTagCase ) )
+    ControlStack *pControlStack = pShell->GetControlStack();
+    if ( !pShell->CheckSyntaxError( "endcase", pControlStack->PopTag(), kCSTagCase ) )
     {
         return;
     }
@@ -1192,7 +1192,7 @@ FORTHOP( endcaseOp )
     // patch branches from end-of-case to common exit point
     while (true)
     {
-        pEndofOp = (forthop* )(pShellStack->Pop());
+        pEndofOp = (forthop* )(pControlStack->Pop());
         if (pEndofOp == nullptr)
         {
             break;
@@ -1200,7 +1200,7 @@ FORTHOP( endcaseOp )
         *pEndofOp = COMPILED_OP(kOpBranch, (GET_DP - pEndofOp) - 1);
     }
     SET_SP( pSP );
-    pOuter->EndLoopContinuations(kShellTagCase);
+    pOuter->EndLoopContinuations(kCSTagCase);
     pOuter->ClearPeephole();
 }
 
@@ -1508,11 +1508,11 @@ FORTHOP(tryOp)
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
+    ControlStack *pControlStack = pShell->GetControlStack();
 
     pOuter->CompileBuiltinOpcode(OP_DO_TRY);
-    pShellStack->PushAddress(GET_DP);
-    pShellStack->PushTag(kShellTagTry);
+    pControlStack->PushAddress(GET_DP);
+    pControlStack->PushTag(kCSTagTry);
     pOuter->CompileInt(0);
     pOuter->CompileInt(0);
     pOuter->ClearPeephole();
@@ -1523,18 +1523,18 @@ FORTHOP(catcherOp)
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
+    ControlStack *pControlStack = pShell->GetControlStack();
 
-    eShellTag tryTag = pShellStack->PopTag();
-    if (!pShell->CheckSyntaxError("]catch[", tryTag, kShellTagTry))
+    ControlStackTag tryTag = pControlStack->PopTag();
+    if (!pShell->CheckSyntaxError("]catch[", tryTag, kCSTagTry))
     {
         return;
     }
-    forthop* pHandlerOffsets = pShellStack->PopAddress();
+    forthop* pHandlerOffsets = pControlStack->PopAddress();
     pOuter->CompileInt(0);        // this will be a branch to the finally section
     *pHandlerOffsets = GET_DP - pHandlerOffsets;
-    pShellStack->PushAddress(pHandlerOffsets);
-    pShellStack->PushTag(kShellTagCatcher);
+    pControlStack->PushAddress(pHandlerOffsets);
+    pControlStack->PushTag(kCSTagCatcher);
     pOuter->ClearPeephole();
 }
 
@@ -1555,24 +1555,24 @@ FORTHOP(finallyOp)
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
+    ControlStack *pControlStack = pShell->GetControlStack();
 
-    eShellTag exceptTag = pShellStack->PopTag();
-    if (!pShell->CheckSyntaxError("]finally[", exceptTag, kShellTagCatcher))
+    ControlStackTag exceptTag = pControlStack->PopTag();
+    if (!pShell->CheckSyntaxError("]finally[", exceptTag, kCSTagCatcher))
     {
         return;
     }
     // compile raise(0) to clear the exception
     pOuter->CompileInt(COMPILED_OP(kOpConstant, 0));
     pOuter->CompileBuiltinOpcode(OP_THROW);
-    forthop* pHandlerOffsets = pShellStack->PopAddress();
+    forthop* pHandlerOffsets = pControlStack->PopAddress();
     forthop* dp = GET_DP;
     pHandlerOffsets[1] = dp - pHandlerOffsets;
     pOuter->CompileBuiltinOpcode(OP_DO_FINALLY);
     // create branch from end of try section to finally section
     forthop* pBranch = pHandlerOffsets +(pHandlerOffsets[0] - 1);
     *pBranch = COMPILED_OP(kOpBranch, (dp - pBranch) - 1);
-    pShellStack->PushTag(kShellTagFinally);
+    pControlStack->PushTag(kCSTagFinally);
     pOuter->ClearPeephole();
 }
 
@@ -1581,21 +1581,21 @@ FORTHOP(endtryOp)
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-    ForthShellStack *pShellStack = pShell->GetShellStack();
+    ControlStack *pControlStack = pShell->GetControlStack();
 
-    eShellTag tag = pShellStack->PopTag();
-    if (!pShell->CheckSyntaxError("endtry", tag, (kShellTagCatcher | kShellTagFinally)))
+    ControlStackTag tag = pControlStack->PopTag();
+    if (!pShell->CheckSyntaxError("endtry", tag, (kCSTagCatcher | kCSTagFinally)))
     {
         return;
     }
 
-    if (tag == kShellTagCatcher)
+    if (tag == kCSTagCatcher)
     {
         // compile raise(0) to clear the exception
         pOuter->CompileInt(COMPILED_OP(kOpConstant, 0));
         pOuter->CompileBuiltinOpcode(OP_THROW);
         // set finallyIP to here
-        forthop* pHandlerOffsets = pShellStack->PopAddress();
+        forthop* pHandlerOffsets = pControlStack->PopAddress();
         forthop* dp = GET_DP;
         pHandlerOffsets[1] = dp - pHandlerOffsets;
         // create branch from end of try section to empty finally section
@@ -1887,33 +1887,33 @@ FORTHOP( funcOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-	ForthShellStack *pShellStack = pShell->GetShellStack();
+	ControlStack *pControlStack = pShell->GetControlStack();
 
 	// if compiling, push DP and compile kOpPushBranch
 	// if interpreting, push DP and enter compile mode
 
-	//pShellStack->Push(pOuter->GetFlags() & kEngineFlagNoNameDefinition);
+	//pControlStack->Push(pOuter->GetFlags() & kEngineFlagNoNameDefinition);
 
     // save newest-defined-op so that defining an anonymous op doesn't break 'recurse'
     //  in any colon-op which defines an anonymous op
-    pShellStack->Push(pOuter->GetNewestDefinedOp());
+    pControlStack->Push(pOuter->GetNewestDefinedOp());
 
     // save address for ;func
-    pShellStack->PushAddress(GET_DP);
+    pControlStack->PushAddress(GET_DP);
 	if (pEngine->IsCompiling())
 	{
 		pOuter->GetLocalVocabulary()->Push();
 		// this op will be replaced by ;func
 		pOuter->CompileDummyOpcode();
 		// flag that previous state was compiling
-		pShellStack->Push(1);
+		pControlStack->Push(1);
 	}
 	else
 	{
 		// switch to compile mode
 		pEngine->SetCompileState(1);
 		// flag that previous state was interpreting
-		pShellStack->Push(0);
+		pControlStack->Push(0);
 	}
     // set newest-defined-op so that 'recurse' will work inside this anonymous op definition
     forthop opcode = COMPILED_OP(kOpRelativeDef, (GET_DP - pCore->pDictionary->pBase));
@@ -1932,7 +1932,7 @@ FORTHOP( endfuncOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
-	ForthShellStack *pShellStack = pShell->GetShellStack();
+	ControlStack *pControlStack = pShell->GetControlStack();
 
 	// compile appropriate __exit opcode
     exitOp( pCore );
@@ -1942,9 +1942,9 @@ FORTHOP( endfuncOp )
 	pOuter->GetLocalVocabulary()->Pop();
 	if (pShell->CheckDefinitionEnd("func", "func"))
 	{
-		bool wasCompiling = (pShellStack->Pop() != 0);
-        forthop* pOldDP = pShellStack->PopAddress();
-        forthop previousNewestOp = (forthop)pShellStack->Pop();
+		bool wasCompiling = (pControlStack->Pop() != 0);
+        forthop* pOldDP = pControlStack->PopAddress();
+        forthop previousNewestOp = (forthop)pControlStack->Pop();
 		if (wasCompiling)
 		{
             forthop branchOffset = GET_DP - (pOldDP + 1);
@@ -6622,22 +6622,22 @@ FORTHOP(ssPushBop)
 {
 	NEEDS(1);
 	int32_t v = SPOP;
-	GET_ENGINE->GetShell()->GetShellStack()->Push(v);
+	GET_ENGINE->GetShell()->GetControlStack()->Push(v);
 }
 
 FORTHOP(ssPopBop)
 {
-	SPUSH(GET_ENGINE->GetShell()->GetShellStack()->Pop());
+	SPUSH(GET_ENGINE->GetShell()->GetControlStack()->Pop());
 }
 
 FORTHOP(ssPeekBop)
 {
-	SPUSH(GET_ENGINE->GetShell()->GetShellStack()->Peek());
+	SPUSH(GET_ENGINE->GetShell()->GetControlStack()->Peek());
 }
 
 FORTHOP(ssDepthBop)
 {
-	SPUSH(GET_ENGINE->GetShell()->GetShellStack()->GetDepth());
+	SPUSH(GET_ENGINE->GetShell()->GetControlStack()->GetDepth());
 }
 
 ///////////////////////////////////////////

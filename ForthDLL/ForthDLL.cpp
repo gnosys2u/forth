@@ -61,9 +61,9 @@ FORTHDLL_API Engine* CreateForthEngine()
     return new Engine;
 }
 
-FORTHDLL_API Shell* CreateForthShell(int argc, const char** argv, const char** envp, Engine* pEngine, Extension* pExtension, int shellStackLongs)
+FORTHDLL_API Shell* CreateForthShell(int argc, const char** argv, const char** envp, Engine* pEngine, Extension* pExtension, int controlStackLongs)
 {
-    return new Shell(argc, argv, envp, pEngine, pExtension, shellStackLongs);
+    return new Shell(argc, argv, envp, pEngine, pExtension, controlStackLongs);
 }
 
 FORTHDLL_API BufferInputStream* CreateForthBufferInputStream(const char* pDataBuffer, int dataBufferLen, bool deleteWhenEmpty)

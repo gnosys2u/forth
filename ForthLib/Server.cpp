@@ -593,8 +593,8 @@ InputStreamType ServerInputStream::GetType(void) const
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-ServerShell::ServerShell( bool doAutoload, Engine *pEngine, Extension *pExtension, int shellStackLongs )
-:   Shell( 0, nullptr, nullptr, pEngine, pExtension, shellStackLongs )
+ServerShell::ServerShell( bool doAutoload, Engine *pEngine, Extension *pExtension, int controlStackLongs )
+:   Shell( 0, nullptr, nullptr, pEngine, pExtension, controlStackLongs )
 ,   mDoAutoload( doAutoload )
 ,   mpMsgPipe( NULL )
 ,	mClientSocket( -1 )

@@ -349,7 +349,7 @@ public:
     void                    AddContinuationBranch(forthop* pAddr, cell opType);
     void                    AddBreakBranch(forthop* pAddr, cell opType);
     void                    StartLoopContinuations();
-    void                    EndLoopContinuations(int controlFlowType);  // actually takes a eShellTag
+    void                    EndLoopContinuations(ucell controlFlowType);  // actually takes a ControlStackTag
     bool                    HasPendingContinuations();
 
 protected:

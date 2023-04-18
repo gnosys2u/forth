@@ -214,7 +214,7 @@ uint32_t ConsoleInputThreadRoutine( void* pThreadData );
 //                     Shell
 // 
 
-Shell::Shell(int argc, const char ** argv, const char ** envp, Engine *pEngine, Extension *pExtension, int shellStackLongs)
+Shell::Shell(int argc, const char ** argv, const char ** envp, Engine *pEngine, Extension *pExtension, int controlStackLongs)
 : mpEngine(pEngine)
 , mFlags(0)
 , mPoundIfDepth(0)
@@ -300,7 +300,7 @@ Shell::Shell(int argc, const char ** argv, const char ** envp, Engine *pEngine, 
 #endif
 
     mpInput = new InputStack;
-	mpStack = new ForthShellStack( shellStackLongs );
+	mpStack = new ControlStack( controlStackLongs );
 
 #if 0
     mMainThreadId = GetThreadId( GetMainFiber() );
@@ -661,7 +661,7 @@ OpResult Shell::ProcessLine()
                 if ( mPoundIfDepth == 0 )
                 {
 					cell marker = mpStack->Pop();
-					if (marker != kShellTagPoundIf)
+					if (marker != kCSTagPoundIf)
 					{
 						// error - unexpected else
 						mpEngine->SetError(ForthError::preprocessorError, "unexpected #endif");
@@ -695,7 +695,7 @@ OpResult Shell::ProcessLine()
                 if ( GET_SDEPTH > 0 )
                 {
                     cell expressionResult = SPOP;
-                    mpStack->PushTag(kShellTagPoundIf);
+                    mpStack->PushTag(kCSTagPoundIf);
                     if (expressionResult == 0)
                     {
                         // skip to #else or #endif
@@ -1016,7 +1016,7 @@ Shell::ParseToken( ParseInfo *pInfo )
     {
         // previous symbol ended in ")", so next token to process is on top of shell stack
         mFlags &= ~SHELL_FLAG_POP_NEXT_TOKEN;
-        if ( CheckSyntaxError( ")", mpStack->PopTag(), kShellTagParen ) )
+        if ( CheckSyntaxError( ")", mpStack->PopTag(), kCSTagParen ) )
         {
             cell tag = mpStack->Peek();
             if ( mpStack->PopString( pInfo->GetToken(), pInfo->GetMaxChars() ) )
@@ -1159,7 +1159,7 @@ Shell::ParseToken( ParseInfo *pInfo )
                          *pDst++ = '\0';
                          pDst = pInfo->GetToken();
                          mpStack->PushString( pDst );
-                         mpStack->PushTag( kShellTagParen );*/
+                         mpStack->PushTag( kCSTagParen );*/
                      }
 					 else
 					 {
@@ -1743,13 +1743,13 @@ const char* Shell::GetArg(int argNum) const
 }
 
 bool
-Shell::CheckSyntaxError(const char *pString, eShellTag tag, int32_t desiredTags)
+Shell::CheckSyntaxError(const char *pString, ControlStackTag tag, ucell desiredTags)
 {
-    int32_t tagVal = (int32_t)tag;
+    ucell tagVal = (ucell)tag;
     bool tagsMatched = ((tagVal & desiredTags) != 0);
 	// special case: BranchZ will match either Branch or BranchZ
     /*
-	if (!tagsMatched && (desiredTag == kShellTagBranchZ) && (tag == kShellTagBranch))
+	if (!tagsMatched && (desiredTag == kCSTagBranchZ) && (tag == kCSTagBranch))
 	{
 		tagsMatched = true;
 	}
@@ -1776,16 +1776,16 @@ Shell::StartDefinition(const char* pSymbol, const char* pFourCharCode)
 {
 	mpStack->PushString(pSymbol);
 	mpStack->Push(FourCharToLong(pFourCharCode));
-    mpStack->PushTag(kShellTagDefine);
+    mpStack->PushTag(kCSTagDefine);
 }
 
 
 bool
 Shell::CheckDefinitionEnd(const char* pDisplayName, const char* pFourCharCode)
 {
-    eShellTag defineTag = mpStack->PopTag();
+    ControlStackTag defineTag = mpStack->PopTag();
 
-	if (CheckSyntaxError(pDisplayName, defineTag, kShellTagDefine))
+	if (CheckSyntaxError(pDisplayName, defineTag, kCSTagDefine))
 	{
 		cell defineType = mpStack->Pop();
 		int32_t expectedDefineType = FourCharToLong(pFourCharCode);
@@ -1961,7 +1961,7 @@ void Shell::PoundIfdef( bool isDefined )
     if ( (pToken == NULL) || (pVocab == NULL) || ((pVocab->FindSymbol( pToken ) != NULL) != isDefined) )
     {
         // skip to "else" or "endif"
-        mpStack->PushTag(kShellTagPoundIf);
+        mpStack->PushTag(kCSTagPoundIf);
         mFlags |= SHELL_FLAG_SKIP_SECTION;
         mPoundIfDepth = 0;
     }
@@ -1971,7 +1971,7 @@ void Shell::PoundIfdef( bool isDefined )
 void Shell::PoundElse()
 {
     cell marker = mpStack->Pop();
-    if ( marker == kShellTagPoundIf )
+    if ( marker == kCSTagPoundIf )
     {
         mFlags |= SHELL_FLAG_SKIP_SECTION;
         // put the marker back for PoundEndif
@@ -1988,7 +1988,7 @@ void Shell::PoundElse()
 void Shell::PoundEndif()
 {
     cell marker = mpStack->Pop();
-    if ( marker != kShellTagPoundIf )
+    if ( marker != kCSTagPoundIf )
     {
         // error - unexpected endif
         mpEngine->SetError( ForthError::preprocessorError, "unexpected #endif" );
@@ -2116,14 +2116,14 @@ void Shell::SetWorkDir(const std::string& workDir)
 //////////////////////////////////////////////////////////////////////
 ////
 ///
-//                     ForthShellStack
+//                     ControlStack
 // 
 
 // this is the number of extra longs to allocate at top and
 //    bottom of stacks
 #define GAURD_AREA 4
 
-ForthShellStack::ForthShellStack( int numLongs )
+ControlStack::ControlStack( int numLongs )
 : mSSLen( numLongs )
 {
    mSSB = new forthop*[mSSLen + (GAURD_AREA * 2)];
@@ -2132,14 +2132,14 @@ ForthShellStack::ForthShellStack( int numLongs )
    EmptyStack();
 }
 
-ForthShellStack::~ForthShellStack()
+ControlStack::~ControlStack()
 {
    delete [] (mSSB - GAURD_AREA);
 }
 
 
 void
-ForthShellStack::PushTag(eShellTag tag)
+ControlStack::PushTag(ControlStackTag tag)
 {
     char tagString[256];
     if (mSSP > mSSB)
@@ -2148,50 +2148,50 @@ ForthShellStack::PushTag(eShellTag tag)
         if (Engine::GetInstance()->GetTraceFlags() & kLogShell)
         {
             GetTagString(tag, tagString);
-            SPEW_SHELL("ShellStack: pushed tag %s 0x%08x\n", tagString, (int32_t) tag);
+            SPEW_SHELL("ControlStack: pushed tag %s 0x%08x\n", tagString, (int32_t) tag);
         }
     }
     else
     {
-        Engine::GetInstance()->SetError(ForthError::shellStackOverflow);
+        Engine::GetInstance()->SetError(ForthError::controlStackOverflow);
     }
 }
 
 void
-ForthShellStack::Push(cell val)
+ControlStack::Push(ucell val)
 {
     if (mSSP > mSSB)
     {
         *--mSSP = (forthop*) val;
-        SPEW_SHELL("ShellStack: pushed value 0x%08x\n", val);
+        SPEW_SHELL("ControlStack: pushed value 0x%08x\n", val);
     }
     else
     {
-        Engine::GetInstance()->SetError(ForthError::shellStackOverflow);
+        Engine::GetInstance()->SetError(ForthError::controlStackOverflow);
     }
 }
 
 void
-ForthShellStack::PushAddress(forthop* addr)
+ControlStack::PushAddress(forthop* addr)
 {
     if (mSSP > mSSB)
     {
         *--mSSP = addr;
-        SPEW_SHELL("ShellStack: pushed address 0x%08x\n", addr);
+        SPEW_SHELL("ControlStack: pushed address 0x%08x\n", addr);
     }
     else
     {
-        Engine::GetInstance()->SetError(ForthError::shellStackOverflow);
+        Engine::GetInstance()->SetError(ForthError::controlStackOverflow);
     }
 }
 
-static bool mayBeAShellTag(cell tag)
+static bool mayBeAShellTag(ucell tag)
 {
     // we assume this is a shell tag if it has exactly one bit set
     bool couldBeATag = false;
-    if (tag <= kShellLastTag)
+    if (tag <= kCSTagLastTag)
     {
-        if ((tag & kShellTagNothing) == 0)
+        if ((tag & kCSTagNothing) == 0)
         {
             tag >>= 1;
             while (tag != 0)
@@ -2208,12 +2208,12 @@ static bool mayBeAShellTag(cell tag)
     return couldBeATag;
 }
 
-forthop* ForthShellStack::PopAddress( void )
+forthop* ControlStack::PopAddress( void )
 {
     if (mSSP == mSST)
     {
-        Engine::GetInstance()->SetError( ForthError::shellStackUnderflow );
-        return (forthop*)kShellTagNothing;
+        Engine::GetInstance()->SetError( ForthError::controlStackUnderflow );
+        return (forthop*)kCSTagNothing;
     }
     forthop* pOp = *mSSP++;
 #ifdef TRACE_SHELL
@@ -2223,23 +2223,23 @@ forthop* ForthShellStack::PopAddress( void )
         if (mayBeAShellTag((cell)pOp))
         {
             GetTagString((cell)pOp, tagString);
-            SPEW_SHELL("ShellStack: popped Tag %s\n", tagString);
+            SPEW_SHELL("ControlStack: popped Tag %s\n", tagString);
         }
         else
         {
-            SPEW_SHELL("ShellStack: popped address 0x%08x\n", pOp);
+            SPEW_SHELL("ControlStack: popped address 0x%08x\n", pOp);
         }
     }
 #endif
     return pOp;
 }
 
-cell ForthShellStack::Pop(void)
+ucell ControlStack::Pop(void)
 {
     if (mSSP == mSST)
     {
-        Engine::GetInstance()->SetError(ForthError::shellStackUnderflow);
-        return kShellTagNothing;
+        Engine::GetInstance()->SetError(ForthError::controlStackUnderflow);
+        return kCSTagNothing;
     }
     cell val = (cell)*mSSP++;
 #ifdef TRACE_SHELL
@@ -2249,34 +2249,34 @@ cell ForthShellStack::Pop(void)
         if (mayBeAShellTag(val))
         {
             GetTagString(val, tagString);
-            SPEW_SHELL("ShellStack: popped Tag %s\n", tagString);
+            SPEW_SHELL("ControlStack: popped Tag %s\n", tagString);
         }
         else
         {
-            SPEW_SHELL("ShellStack: popped value 0x%08x\n", val);
+            SPEW_SHELL("ControlStack: popped value 0x%08x\n", val);
         }
     }
 #endif
     return val;
 }
 
-eShellTag ForthShellStack::PopTag(void)
+ControlStackTag ControlStack::PopTag(void)
 {
-    return (eShellTag)Pop();
+    return (ControlStackTag)Pop();
 }
 
 cell
-ForthShellStack::Peek( int index )
+ControlStack::Peek( int index )
 {
     if ( (mSSP + index) >= mSST )
     {
-        return kShellTagNothing;
+        return kCSTagNothing;
     }
     return (cell)mSSP[index];
 }
 
 forthop*
-ForthShellStack::PeekAddress(int index)
+ControlStack::PeekAddress(int index)
 {
     if ((mSSP + index) >= mSST)
     {
@@ -2285,17 +2285,17 @@ ForthShellStack::PeekAddress(int index)
     return mSSP[index];
 }
 
-eShellTag ForthShellStack::PeekTag(int index)
+ControlStackTag ControlStack::PeekTag(int index)
 {
     if ((mSSP + index) >= mSST)
     {
-        return kShellTagNothing;
+        return kCSTagNothing;
     }
-    return (eShellTag) ((cell)mSSP[index]);
+    return (ControlStackTag) ((cell)mSSP[index]);
 }
 
 void
-ForthShellStack::PushString( const char *pString )
+ControlStack::PushString( const char *pString )
 {
     int len = (int)strlen( pString );
     mSSP -= (len >> CELL_SHIFT) + 1;
@@ -2303,23 +2303,23 @@ ForthShellStack::PushString( const char *pString )
 	{
 		strcpy( (char *) mSSP, pString );
 		SPEW_SHELL( "Pushed String \"%s\"\n", pString );
-        PushTag(kShellTagString);
+        PushTag(kCSTagString);
 	}
 	else
 	{
-        Engine::GetInstance()->SetError( ForthError::shellStackOverflow );
+        Engine::GetInstance()->SetError( ForthError::controlStackOverflow );
 	}
 }
 
 bool
-ForthShellStack::PopString(char *pString, int maxLen)
+ControlStack::PopString(char *pString, int maxLen)
 {
-    eShellTag topTag = PeekTag();
-    if (topTag != kShellTagString )
+    ControlStackTag topTag = PeekTag();
+    if (topTag != kCSTagString )
     {
         *pString = '\0';
         SPEW_SHELL( "Failed to pop string\n" );
-        Engine::GetInstance()->SetError( ForthError::shellStackUnderflow );
+        Engine::GetInstance()->SetError( ForthError::controlStackUnderflow );
         return false;
     }
     mSSP++;
@@ -2338,7 +2338,7 @@ ForthShellStack::PopString(char *pString, int maxLen)
 }
 
 void
-ForthShellStack::ShowStack()
+ControlStack::ShowStack()
 {
 	forthop** pSP = mSSP;
     char* buff = (char *)malloc(512);
