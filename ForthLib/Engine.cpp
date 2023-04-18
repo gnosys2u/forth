@@ -1069,6 +1069,19 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
                 break;
             }
             
+            case kOpNOCombo:  // NUM OP combo - bits 0:12 are signed integer, bits 13:23 are opcode
+            {
+                int32_t num = opVal & 0x1FFF;
+                if ((opVal & 0x1000) != 0)
+                {
+                    num |= 0xFFFFE000;
+                }
+                uint32_t embeddedOp = opVal >> 13;
+                SNPRINTF(pBuffer, buffSize, "%s    %d %s", opTypeName,
+                    num, gOpNames[embeddedOp]);
+                break;
+            }
+
             case kOpLocalStringInit:    // bits 0..11 are string length in bytes, bits 12..23 are frame offset in longs
             case kOpMemberStringInit:   // bits 0..11 are string length in bytes, bits 12..23 are frame offset in longs
                 SNPRINTF( pBuffer, buffSize, "%s    maxBytes %d offset %d", opTypeName, opVal & 0xFFF, opVal >> 12 );

@@ -10,11 +10,9 @@ requires compatability
 requires numberio
 requires floating
 
-"Type 'regularMode' to exit ANSI Forth compatability mode\n" %s
+." Type 'setNonAnsiMode' to exit ANSI Forth compatability mode\n"
 
-: ansiMode kFFAnsi to features ;
-: regularMode kFFRegular to features ;
-ansiMode
+setAnsiMode
 
 autoforget ansi
 

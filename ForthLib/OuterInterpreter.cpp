@@ -162,6 +162,7 @@ OuterInterpreter::OuterInterpreter(Engine* pEngine)
     }
 
     mpForthVocab = new Vocabulary("forth", NUM_FORTH_VOCAB_VALUE_LONGS);
+    mpRootVocab = new Vocabulary("root", NUM_FORTH_VOCAB_VALUE_LONGS);
     mpLiteralsVocab = new Vocabulary("literals", NUM_FORTH_VOCAB_VALUE_LONGS);
     mpLocalVocab = new LocalVocabulary(NUM_LOCALS_VOCAB_VALUE_LONGS);
     mpUsingVocab = new UsingVocabulary();
@@ -176,14 +177,14 @@ OuterInterpreter::OuterInterpreter(Engine* pEngine)
 void OuterInterpreter::Initialize()
 {
     mpVocabStack = new VocabularyStack;
-    mpVocabStack->Initialize();
-    mpVocabStack->Clear();
-
+    mpVocabStack->Initialize(mpRootVocab);
+    mpVocabStack->Clear(mpForthVocab);
 }
 
 OuterInterpreter::~OuterInterpreter()
 {
     delete mpForthVocab;
+    delete mpRootVocab;
     delete mpLiteralsVocab;
     delete mpLocalVocab;
     delete mpUsingVocab;
@@ -214,7 +215,7 @@ OuterInterpreter::~OuterInterpreter()
 
 void OuterInterpreter::Reset(void)
 {
-    mpVocabStack->Clear();
+    mpVocabStack->Clear(mpForthVocab);
 
     mpStringBufferANext = mpStringBufferA;
 
@@ -319,6 +320,7 @@ void OuterInterpreter::AddBuiltinOps( baseDictionaryEntry *pEntries )
     // assert if this is called after any user ops have been defined
     //ASSERT( mpCore->numUserOps == 0 );
 
+    mpDefinitionVocab = mpForthVocab;
     while ( pEntries->value != nullptr )
     {
 
@@ -326,6 +328,24 @@ void OuterInterpreter::AddBuiltinOps( baseDictionaryEntry *pEntries )
         pEntries++;
 		//mpCore->numOps++;
     }
+}
+
+
+void OuterInterpreter::AddRootOps(baseDictionaryEntry* pEntries)
+{
+    // I think this assert is a holdover from when userOps and builtinOps were in a single dispatch table
+    // assert if this is called after any user ops have been defined
+    //ASSERT( mpCore->numUserOps == 0 );
+
+    mpDefinitionVocab = mpRootVocab;
+    while (pEntries->value != nullptr)
+    {
+
+        AddBuiltinOp(pEntries->name, (uint32_t)(pEntries->flags), pEntries->value);
+        pEntries++;
+        //mpCore->numOps++;
+    }
+    mpDefinitionVocab = mpForthVocab;
 }
 
 
@@ -575,6 +595,11 @@ bool OuterInterpreter::ForgetSymbol( const char *pSym, bool quietMode )
         }
         SPEW_ENGINE( "%s", buff );
     }
+
+    // reset search & definitions vocabs in case we deleted a vocab we were using
+    SetDefinitionVocabulary(mpForthVocab);
+    mpVocabStack->Clear(mpForthVocab);
+
     return forgotIt;
 }
 

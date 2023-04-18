@@ -282,6 +282,47 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+April 17 2023
+
+The programming word set includes multiple control stack ops which don't fit
+in with my shell stack.  Changing the shell stack to have same-sized entries
+would make implementing the standard ops much easier.  Most of the ops which
+use the shell stack have a limited set of data - many just have an address and
+a type tag.
+
+o move strings onto the temp string ring
+o for the multiple-else thing just use one stack entry per branch
+o definition ops use 5 or 6 items, some of them can go away
+  there is a 4-char code to distinguish 8 different definition types, make them use different tags
+
+do          OP_DO_DO addr tag           get rid of opcode, give ?do distinct tag
+?do         OP_DO_CHECKDO addr tag
+if          addr tag
+elif        addr tag
+orif        addr tag
+andif       addr tag
+else        addr*N count tag
+begin       addr tag
+while       addr tag            pops addr/tag pair left by 'begin', pushes them back after pushing its own stuff
+case        0 tag               what is the 0 for? -> nullptr that endcase checks for
+of          addr tag
+ofif        addr tag
+endof       addr tag
+try         addr tag
+catcher     addr tag
+finally     tag
+:           name 4charCode tag
+:noname     name 4charCode tag
+f:          op addr flag name 4charCode tag           flag is interpret/compile
+    this is the problem case - stick op/addr/flag on parameter stack?
+    that would mean cs-pick and cs-roll wouldn't work with functions, but is that a problem?
+interface:  name 4charCode tag
+struct:     name 4charCode tag
+class:      name 4charCode tag
+enum:       name 4charCode tag
+
+? what about continuations - will they be messed up if the shell stack is changed?
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 April 15 2023
 
 Even more ANSI 2012 compliance work.

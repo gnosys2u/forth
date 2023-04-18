@@ -19,7 +19,7 @@
 VocabularyStack::VocabularyStack( int maxDepth )
 : mStack( NULL )
 , mMaxDepth( maxDepth )
-, mTop( 0 )
+, mDepth( 0 )
 , mSerial( 0 )
 {
     mpEngine = Engine::GetInstance();
@@ -30,19 +30,27 @@ VocabularyStack::~VocabularyStack()
     delete mStack;
 }
 
-void VocabularyStack::Initialize( void )
+void VocabularyStack::Initialize(Vocabulary* pRootVocab)
 {
+    mpRootVocab = pRootVocab;
     delete mStack;
-    mTop = 0;
+    mDepth = 0;
     mStack = new Vocabulary* [ mMaxDepth ];
 }
 
 void VocabularyStack::DupTop( void )
 {
-    if ( mTop < (mMaxDepth - 1) )
+    if (mDepth < (mMaxDepth - 1))
     {
-        mTop++;
-        mStack[ mTop ] = mStack[ mTop - 1 ];
+        if (mDepth == 0)
+        {
+            mStack[mDepth] = mpRootVocab;
+        }
+        else
+        {
+            mStack[mDepth] = mStack[mDepth - 1];
+        }
+        mDepth++;
     }
     else
     {
@@ -52,9 +60,9 @@ void VocabularyStack::DupTop( void )
 
 bool VocabularyStack::DropTop( void )
 {
-    if ( mTop )
+    if ( mDepth )
     {
-        mTop--;
+        mDepth--;
     }
     else
     {
@@ -63,26 +71,48 @@ bool VocabularyStack::DropTop( void )
     return true;
 }
 
-void VocabularyStack::Clear( void )
+void VocabularyStack::Clear(Vocabulary* pOnlyVocab)
 {
-    mTop = 0;
-    mStack[0] = mpEngine->GetOuterInterpreter()->GetForthVocabulary();
-//    mStack[1] = mpEngine->GetPrecedenceVocabulary();
+    mDepth = 0;
+    if (pOnlyVocab)
+    {
+        Push(pOnlyVocab);
+    }
 }
 
 void VocabularyStack::SetTop( Vocabulary* pVocab )
 {
-    mStack[mTop] = pVocab;
+    if (mDepth)
+    {
+        mStack[mDepth - 1] = pVocab;
+    }
+    else
+    {
+        mStack[mDepth] = pVocab;
+        mDepth++;
+    }
+}
+
+void VocabularyStack::Push(Vocabulary* pVocab)
+{
+    mStack[mDepth] = pVocab;
+    mDepth++;
 }
 
 Vocabulary* VocabularyStack::GetTop( void )
 {
-    return mStack[mTop];
+    return mDepth ? mStack[mDepth - 1] : mpRootVocab;
 }
 
-Vocabulary* VocabularyStack::GetElement( int depth )
+Vocabulary* VocabularyStack::GetElement( ucell depth )
 {
-    return (depth > mTop) ? NULL : mStack[mTop - depth];
+    Vocabulary* pVocab = nullptr;
+
+    if (mDepth && depth < mDepth)
+    {
+        pVocab = mStack[mDepth - (depth + 1)];
+    }
+    return pVocab;
 }
 
 // return pointer to symbol entry, NULL if not found
@@ -90,21 +120,10 @@ Vocabulary* VocabularyStack::GetElement( int depth )
 // set ppFoundVocab to NULL to search just this vocabulary (not the search chain)
 forthop* VocabularyStack::FindSymbol( const char *pSymName, Vocabulary** ppFoundVocab )
 {
-    forthop* pEntry = NULL;
     mSerial++;
-    for ( int i = mTop; i >= 0; i-- )
-    {
-        pEntry = mStack[i]->FindSymbol( pSymName, mSerial );
-        if ( pEntry )
-        {
-            if ( ppFoundVocab != NULL )
-            {
-                *ppFoundVocab = mStack[i];
-            }
-            break;
-        }
-    }
-    if ( (pEntry == NULL) && mpEngine->GetOuterInterpreter()->CheckFeature( kFFIgnoreCase ) )
+    forthop* pEntry = FindSymbolInner(pSymName, ppFoundVocab);
+
+    if ( (pEntry == nullptr) && mpEngine->GetOuterInterpreter()->CheckFeature( kFFIgnoreCase ) )
     {
         // if symbol wasn't found, convert it to lower case and try again
         char buffer[128];
@@ -118,18 +137,44 @@ forthop* VocabularyStack::FindSymbol( const char *pSymName, Vocabulary** ppFound
             }
             buffer[i] = tolower( ch );
         }
+
         // try to find the lower cased version
         mSerial++;
-        for ( int i = mTop; i >= 0; i-- )
+        pEntry = FindSymbolInner(buffer, ppFoundVocab);
+    }
+
+    return pEntry;
+}
+
+forthop* VocabularyStack::FindSymbolInner(const char* pSymName, Vocabulary** ppFoundVocab)
+{
+    forthop* pEntry = nullptr;
+
+    if (mDepth)
+    {
+        for (int i = mDepth - 1; i >= 0; i--)
         {
-            pEntry = mStack[i]->FindSymbol( buffer, mSerial );
-            if ( pEntry )
+            pEntry = mStack[i]->FindSymbol(pSymName, mSerial);
+            if (pEntry)
             {
-                if ( ppFoundVocab != NULL )
+                if (ppFoundVocab != nullptr)
                 {
                     *ppFoundVocab = mStack[i];
                 }
                 break;
+            }
+        }
+    }
+
+    if (pEntry == nullptr)
+    {
+        // check root vocab
+        pEntry = mpRootVocab->FindSymbol(pSymName, mSerial);
+        if (pEntry)
+        {
+            if (ppFoundVocab != nullptr)
+            {
+                *ppFoundVocab = mpRootVocab;
             }
         }
     }
@@ -143,18 +188,35 @@ forthop * VocabularyStack::FindSymbolByValue( int32_t val, Vocabulary** ppFoundV
     forthop *pEntry = NULL;
 
     mSerial++;
-    for ( int i = mTop; i >= 0; i-- )
+    if (mDepth)
     {
-        pEntry = mStack[i]->FindSymbolByValue( val, mSerial );
-        if ( pEntry )
+        for (int i = mDepth - 1; i >= 0; i--)
         {
-            if ( ppFoundVocab != NULL )
+            pEntry = mStack[i]->FindSymbolByValue(val, mSerial);
+            if (pEntry)
             {
-                *ppFoundVocab = mStack[i];
+                if (ppFoundVocab != nullptr)
+                {
+                    *ppFoundVocab = mStack[i];
+                }
+                break;
             }
-            break;
         }
     }
+
+    if (pEntry == nullptr)
+    {
+        // check root vocab
+        pEntry = mpRootVocab->FindSymbolByValue(val, mSerial);
+        if (pEntry)
+        {
+            if (ppFoundVocab != nullptr)
+            {
+                *ppFoundVocab = mpRootVocab;
+            }
+        }
+    }
+
     return pEntry;
 }
 
@@ -163,48 +225,61 @@ forthop * VocabularyStack::FindSymbolByValue( int32_t val, Vocabulary** ppFoundV
 // to the next longword boundary
 forthop * VocabularyStack::FindSymbol( ParseInfo *pInfo, Vocabulary** ppFoundVocab )
 {
-    forthop *pEntry = NULL;
-
     mSerial++;
-    for ( int i = mTop; i >= 0; i-- )
-    {
-        pEntry = mStack[i]->FindSymbol( pInfo, mSerial );
-        if ( pEntry )
-        {
-            if ( ppFoundVocab != NULL )
-            {
-                *ppFoundVocab = mStack[i];
-            }
-            break;
-        }
-    }
+    forthop* pEntry = FindSymbolInner(pInfo, ppFoundVocab);
 
-    if ( (pEntry == NULL) && mpEngine->GetOuterInterpreter()->CheckFeature( kFFIgnoreCase ) )
+    if ((pEntry == nullptr) && mpEngine->GetOuterInterpreter()->CheckFeature(kFFIgnoreCase))
     {
         // if symbol wasn't found, convert it to lower case and try again
         char buffer[128];
-        strncpy( buffer, pInfo->GetToken(), sizeof(buffer) );
-        for ( int i = 0; i < sizeof(buffer); i++ )
+        strncpy(buffer, pInfo->GetToken(), sizeof(buffer));
+        for (int i = 0; i < sizeof(buffer); i++)
         {
             char ch = buffer[i];
-            if ( ch == '\0' )
+            if (ch == '\0')
             {
                 break;
             }
-            buffer[i] = tolower( ch );
+            buffer[i] = tolower(ch);
         }
+
         // try to find the lower cased version
         mSerial++;
-        for ( int i = mTop; i >= 0; i-- )
+        pEntry = FindSymbolInner(buffer, ppFoundVocab);
+    }
+
+    return pEntry;
+}
+
+forthop* VocabularyStack::FindSymbolInner(ParseInfo* pInfo, Vocabulary** ppFoundVocab)
+{
+    forthop* pEntry = nullptr;
+
+    if (mDepth)
+    {
+        for (int i = mDepth - 1; i >= 0; i--)
         {
-            pEntry = mStack[i]->FindSymbol( buffer, mSerial );
-            if ( pEntry )
+            pEntry = mStack[i]->FindSymbol(pInfo, mSerial);
+            if (pEntry)
             {
-                if ( ppFoundVocab != NULL )
+                if (ppFoundVocab != nullptr)
                 {
                     *ppFoundVocab = mStack[i];
                 }
                 break;
+            }
+        }
+    }
+
+    if (pEntry == nullptr)
+    {
+        // check root vocab
+        pEntry = mpRootVocab->FindSymbol(pInfo, mSerial);
+        if (pEntry)
+        {
+            if (ppFoundVocab != nullptr)
+            {
+                *ppFoundVocab = mpRootVocab;
             }
         }
     }

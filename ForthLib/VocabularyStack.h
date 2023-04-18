@@ -14,15 +14,16 @@ class VocabularyStack
 public:
     VocabularyStack( int maxDepth=256 );
     ~VocabularyStack();
-    void                Initialize( void );
+    void                Initialize( Vocabulary* pRootVocab );
     void                DupTop( void );
     bool                DropTop( void );
-    Vocabulary*    GetTop( void );
-    void                SetTop( Vocabulary* pVocab );
-    void                Clear();
+    Vocabulary*         GetTop( void );
+    void                SetTop(Vocabulary* pVocab);
+    void                Push(Vocabulary* pVocab);
+    void                Clear(Vocabulary* pOnlyVocab = nullptr);
     // GetElement(0) is the same as GetTop
-    Vocabulary*    GetElement( int depth );
-	inline int			GetDepth() { return mTop + 1; }
+    Vocabulary*         GetElement( ucell depth );
+	inline ucell		GetDepth() { return mDepth; }
 
     // return pointer to symbol entry, NULL if not found
     // ppFoundVocab will be set to the vocabulary the symbol was actually found in
@@ -38,10 +39,14 @@ public:
     forthop*    FindSymbol( ParseInfo *pInfo, Vocabulary** ppFoundVocab=NULL );
 
 private:
+    forthop* FindSymbolInner(const char* pSymName, Vocabulary** ppFoundVocab);
+    forthop* FindSymbolInner(ParseInfo* pInfo, Vocabulary** ppFoundVocab);
+
     Vocabulary**   mStack;
     Engine*        mpEngine;
-    int                 mMaxDepth;
-    int                 mTop;
-    ucell               mSerial;
+    Vocabulary*    mpRootVocab;                // root vocabulary
+    ucell          mMaxDepth;
+    ucell          mDepth;
+    ucell          mSerial;
 };
 

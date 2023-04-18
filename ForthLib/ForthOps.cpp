@@ -2059,6 +2059,121 @@ FORTHOP( onlyOp )
     pVocabStack->Clear();
 }
 
+FORTHOP(forthWordlistOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    SPUSH((cell)(pOuter->GetForthVocabulary()));
+}
+
+FORTHOP(getCurrentOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    SPUSH((cell)(pOuter->GetDefinitionVocabulary()));
+}
+
+FORTHOP(getOrderOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
+    ucell numVocabs = pVocabStack->GetDepth();
+    ucell ix = 1;
+    while (ix <= numVocabs)
+    {
+        SPUSH((cell)(pVocabStack->GetElement(numVocabs - ix)));
+        ix++;
+    }
+    SPUSH(numVocabs);
+}
+
+FORTHOP(orderOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
+    ucell numVocabs = pVocabStack->GetDepth();
+    ucell ix = 0;
+    while (ix < pVocabStack->GetDepth())
+    {
+        const char* pName = pVocabStack->GetElement(ix)->GetName();
+        CONSOLE_STRING_OUT(pName);
+        CONSOLE_CHAR_OUT(' ');
+        ix++;
+    }
+    CONSOLE_STRING_OUT("   ");
+    CONSOLE_STRING_OUT(pOuter->GetDefinitionVocabulary()->GetName());
+}
+
+FORTHOP(searchWordlistOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+
+    Vocabulary* pVocab = (Vocabulary*)(SPOP);
+    ucell symbolLen = SPOP;
+    const char* pSymbol = (const char*)(SPOP);
+    std::string symbol;
+    symbol.assign(pSymbol, symbolLen);
+    forthop* pEntry = pVocab->FindSymbol(symbol.c_str());
+    if (pEntry == nullptr)
+    {
+        SPUSH(0);
+    }
+    else
+    {
+        forthop op = *pEntry;
+        SPUSH(op);
+        switch (FORTH_OP_TYPE(op))
+        {
+        case kOpNativeImmediate:
+        case kOpUserDefImmediate:
+        case kOpCCodeImmediate:
+        case kOpRelativeDefImmediate:
+            SPUSH(1);
+            break;
+
+        default:
+            SPUSH(-1);
+        }
+    }
+}
+
+FORTHOP(setCurrentOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    Vocabulary* pVocab = (Vocabulary*)(SPOP);
+    pOuter->SetDefinitionVocabulary(pVocab);
+}
+
+FORTHOP(setOrderOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
+
+    pVocabStack->Clear();
+    ucell numVocabs = SPOP;
+    if (numVocabs > 0)
+    {
+        ucell ix = 1;
+        while (ix <= numVocabs)
+        {
+            Vocabulary* pVocab = (Vocabulary*)(pCore->SP[numVocabs - ix]);
+            pVocabStack->Push(pVocab);
+            ix++;
+        }
+        pCore->SP += numVocabs;
+    }
+}
+
+FORTHOP(wordlistOp)
+{
+    SPUSH((cell)(new Vocabulary()));
+}
+
 FORTHOP( vocabularyOp )
 {
     Engine *pEngine = GET_ENGINE;
@@ -2084,10 +2199,6 @@ FORTHOP( strForgetOp )
     const char* pSym = (const char *)(SPOP);
 	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
     bool forgotIt = pOuter->ForgetSymbol( pSym, !verbose );
-    // reset search & definitions vocabs in case we deleted a vocab we were using
-    pOuter->SetDefinitionVocabulary( pOuter->GetForthVocabulary() );
-    VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
-    pVocabStack->Clear();
     SPUSH( forgotIt ? -1 : 0 );
 }
 
@@ -10993,15 +11104,8 @@ baseDictionaryEntry baseDictionary[] =
     ///////////////////////////////////////////
     //  vocabulary/symbol
     ///////////////////////////////////////////
-    OP_DEF(    forthVocabOp,           "forth" ),
     OP_DEF(    literalsVocabOp,        "literals" ),
-    OP_DEF(    definitionsOp,          "definitions" ),
-    OP_DEF(    vocabularyOp,           "vocabulary" ),
-    OP_DEF(    alsoOp,                 "also" ),
-    OP_DEF(    previousOp,             "previous" ),
-    OP_DEF(    onlyOp,                 "only" ),
     OP_DEF(    strForgetOp,            "$forget" ),
-    OP_DEF(    vlistOp,                "vlist" ),
     OP_DEF(    strFindOp,              "$find" ),
 
     ///////////////////////////////////////////
@@ -11274,12 +11378,34 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF( forth64Op,					"FORTH64" ),
 
     OP_DEF( pathSeparatorOp,            "PATH_SEPARATOR"),
+
+    OP_DEF(nullptr, "")
 };
 
 baseMethodEntry opsWhichReturnObjects[] =
 {
     OP_DEF_RETURNS(thisThreadOp,        "thisThread",   kBCIThread),
     OP_DEF_RETURNS(thisFiberOp,         "thisFiber",    kBCIFiber)
+};
+
+baseDictionaryEntry rootDictionary[] =
+{
+    OP_DEF(vlistOp,                "vlist"),
+    OP_DEF(definitionsOp,          "definitions"),
+    OP_DEF(vocabularyOp,           "vocabulary"),
+    OP_DEF(alsoOp,                 "also"),
+    OP_DEF(previousOp,             "previous"),
+    OP_DEF(onlyOp,                 "only"),
+    OP_DEF(forthVocabOp,           "forth"),
+    OP_DEF(forthWordlistOp,        "forth-wordlist"),
+    OP_DEF(getCurrentOp,           "get-current"),
+    OP_DEF(setCurrentOp,           "set-current"),
+    OP_DEF(getOrderOp,             "get-order"),
+    OP_DEF(orderOp,                "order"),
+    OP_DEF(searchWordlistOp,       "search-wordlist"),
+    OP_DEF(setOrderOp,             "set-order"),
+    OP_DEF(wordlistOp,             "wordlist"),
+    OP_DEF(nullptr, "")
 };
 
 //############################################################################
@@ -11291,13 +11417,16 @@ baseMethodEntry opsWhichReturnObjects[] =
 void AddForthOps( Engine* pEngine )
 {
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+
     for (baseDictionaryCompiledEntry& compEntry : baseCompiledDictionary)
 	{
 		forthop* pEntry = pOuter->AddBuiltinOp(compEntry.name, compEntry.flags, compEntry.value );
 		gCompiledOps[compEntry.index] = *pEntry;
 	}
 
-	for (baseDictionaryEntry& dictEntry : baseDictionary)
+    pOuter->AddRootOps(rootDictionary);
+
+    for (baseDictionaryEntry& dictEntry : baseDictionary)
 	{
 		forthop* pEntry = pOuter->AddBuiltinOp( dictEntry.name, dictEntry.flags, dictEntry.value );
 	}
@@ -11307,6 +11436,7 @@ void AddForthOps( Engine* pEngine )
         forthop* pEntry = pOuter->AddBuiltinOp(objEntry.name, kOpCCode, objEntry.value);
         pEntry[1] = OBJECT_TYPE_TO_CODE(0, objEntry.returnType);
     }
+
 }
 
 };  // end extern "C"

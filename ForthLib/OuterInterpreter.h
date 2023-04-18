@@ -147,7 +147,8 @@ public:
     forthop         AddUserOp( const char *pSymbol, forthop** pEntryOut=NULL, bool smudgeIt=false );
     void            AddBuiltinClasses();
     forthop*        AddBuiltinOp( const char* name, uint32_t flags, void* value );
-    void            AddBuiltinOps( baseDictionaryEntry *pEntries );
+    void            AddBuiltinOps(baseDictionaryEntry* pEntries);
+    void            AddRootOps(baseDictionaryEntry* pEntries);
 
     ClassVocabulary* StartClassDefinition(const char* pClassName, eBuiltinClassIndex classIndex = kNumBuiltinClasses);
     void					EndClassDefinition();
@@ -230,7 +231,8 @@ public:
     inline LocalVocabulary  *GetLocalVocabulary( void )   { return mpLocalVocab; };
 	void					ShowSearchInfo();
     inline Vocabulary  *GetForthVocabulary(void) { return mpForthVocab; };
-    inline Vocabulary  *GetLiteralsVocabulary(void) { return mpLiteralsVocab; };
+    inline Vocabulary* GetLiteralsVocabulary(void) { return mpLiteralsVocab; };
+    inline Vocabulary* GetRootVocabulary(void) { return mpRootVocab; };
     inline bool             InStructDefinition( void ) { return ((mCompileFlags & kEngineFlagInStructDefinition) != 0); };
     inline bool             HasLocalVars( void ) { return (mpLocalAllocOp != NULL); };
     inline int32_t             GetFlags( void ) { return mCompileFlags; };
@@ -296,7 +298,8 @@ private:
     TokenStack mTokenStack;		// contains tokens which will be gotten by GetNextSimpleToken instead of from input stream
 
     Vocabulary * mpForthVocab;              // main forth vocabulary
-    Vocabulary * mpLiteralsVocab;            // user-defined literals vocabulary
+    Vocabulary* mpRootVocab;                // root vocabulary
+    Vocabulary * mpLiteralsVocab;           // user-defined literals vocabulary
     LocalVocabulary * mpLocalVocab;         // local variable vocabulary
     UsingVocabulary* mpUsingVocab;          // vocab for 'using:' feature
 
