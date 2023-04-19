@@ -428,93 +428,35 @@ namespace OSystem
     FORTHOP(oControlStackPushMethod)
     {
         ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
-        cell v = SPOP;
-        stack->Push(v);
-        METHOD_RETURN;
-    }
-
-    FORTHOP(oControlStackPushTagMethod)
-    {
-        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
-        cell v = SPOP;
-        stack->PushTag((ControlStackTag) v);
-        METHOD_RETURN;
-    }
-
-    FORTHOP(oControlStackPushAddressMethod)
-    {
-        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
-        cell v = SPOP;
-        stack->PushAddress((forthop *)v);
-        METHOD_RETURN;
-    }
-
-    FORTHOP(oControlStackPushStringMethod)
-    {
-        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
-        cell v = SPOP;
-        stack->PushString((const char *)v);
-        METHOD_RETURN;
-    }
-
-    FORTHOP(oControlStackPopMethod)
-    {
-        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
-        cell v = stack->Pop();
-        SPUSH(v);
-        METHOD_RETURN;
-    }
-
-    FORTHOP(oControlStackPopTagMethod)
-    {
-        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
-        cell v = (cell) stack->PopTag();
-        SPUSH(v);
-        METHOD_RETURN;
-    }
-
-    FORTHOP(oControlStackPopAddressMethod)
-    {
-        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
-        cell v = (cell)stack->PopAddress();
-        SPUSH(v);
-        METHOD_RETURN;
-    }
-
-    FORTHOP(oControlStackPopStringMethod)
-    {
-        ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
-        int maxLen = (int)SPOP;
-        char* pDstString = (char *)SPOP;
-        bool isString = stack->PopString(pDstString, maxLen);
-        SPUSH(isString ? -1 : 0);
+        forthop op = (forthop)(SPOP);
+        const char* pName = (const char*)(SPOP);
+        void* pAddress = (void*)(SPOP);
+        ControlStackTag tag = (ControlStackTag)(SPOP);
+        stack->Push(tag, pAddress, pName, op);
         METHOD_RETURN;
     }
 
     FORTHOP(oControlStackPeekMethod)
     {
         ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
-        int i = (int) SPOP;
-        cell v = stack->Peek(i);
-        SPUSH(v);
+        ControlStackEntry* pEntry = stack->Peek();
+        SPUSH((cell)pEntry);
         METHOD_RETURN;
     }
 
-    FORTHOP(oControlStackPeekTagMethod)
+    FORTHOP(oControlStackPeekAtMethod)
     {
         ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
-        int i = (int)SPOP;
-        cell v = (cell)stack->PeekTag(i);
-        SPUSH(v);
+        ucell index = SPOP;
+        ControlStackEntry* pEntry = stack->Peek(index);
+        SPUSH((cell)pEntry);
         METHOD_RETURN;
     }
 
-    FORTHOP(oControlStackPeekAddressMethod)
+    FORTHOP(oControlStackDropMethod)
     {
         ControlStack* stack = GET_ENGINE->GetShell()->GetControlStack();
-        int i = (int)SPOP;
-        cell v = (cell)stack->PeekAddress(i);
-        SPUSH(v);
+        stack->Drop();
         METHOD_RETURN;
     }
 
@@ -531,17 +473,9 @@ namespace OSystem
         METHOD_RET("size", oControlStackSizeMethod, RETURNS_NATIVE(BaseType::kCell)),
         METHOD_RET("depth", oControlStackDepthMethod, RETURNS_NATIVE(BaseType::kCell)),
         METHOD("push", oControlStackPushMethod),
-        METHOD("pushTag", oControlStackPushTagMethod),
-        METHOD("pushAddress", oControlStackPushAddressMethod),
-        METHOD("pushString", oControlStackPushStringMethod),
-        METHOD_RET("pop", oControlStackPopMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("popTag", oControlStackPopTagMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("popAddress", oControlStackPopAddressMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("popString", oControlStackPopStringMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("peek", oControlStackPopMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("peekTag", oControlStackPopTagMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("peekAddress", oControlStackPopAddressMethod, RETURNS_NATIVE(BaseType::kCell)),
-        METHOD_RET("peekString", oControlStackPopStringMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("peek", oControlStackPeekMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("peekAt", oControlStackPeekAtMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD("drop", oControlStackDropMethod),
         METHOD_RET("lastUsedTag", oControlStackLastUsedTagMethod, RETURNS_NATIVE(BaseType::kCell)),
 
         // following must be last in table

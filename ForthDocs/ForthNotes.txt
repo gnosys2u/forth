@@ -282,6 +282,15 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+April 19 2023
+
+I replaced ForthShellStack with ControlStack in preparation for implementing
+ANSI stuff like AHEAD, CS-PICK and CS-ROLL.  The shell stack was a real mess,
+it was just a bunch of random different elements in a pile.  Each tag could
+have a different number of data items.  The ControlStack has a common entry
+format which will make CS-PICK and CS-ROLL possible to implement, it looks
+like a real stack, not a confusing pile of junk.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 April 17 2023
 
 The programming word set includes multiple control stack ops which don't fit

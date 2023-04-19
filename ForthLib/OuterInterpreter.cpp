@@ -915,7 +915,10 @@ int32_t OuterInterpreter::AddLocalVar( const char        *pVarName,
     pEntry[1] = typeCode;
     if (frameCells == 0)
     {
-        if (mpShell->GetControlStack()->PeekTag() != kCSTagDefine)
+        ControlStackEntry* pEntry = mpShell->GetControlStack()->Peek();
+        ucell thingsThatCanHaveLocals = kCSTagDefColon | kCSTagDefNoName | kCSTagDefMethod | kCSTagDefFunction;
+
+        if (!mpShell->CheckSyntaxError("localCheck", pEntry->tag, (ControlStackTag)thingsThatCanHaveLocals))
         {
             mpEngine->SetError(ForthError::badSyntax, "First local variable definition inside control structure");
         }
