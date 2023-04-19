@@ -18,6 +18,7 @@
 #include "Thread.h"
 #include "ForthPortability.h"
 #include "InputStack.h"
+#include "ControlStack.h"
 
 #include "TypesManager.h"
 #include "ClassVocabulary.h"

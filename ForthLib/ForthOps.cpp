@@ -51,6 +51,7 @@
 #include "NativeType.h"
 #include "DLLVocabulary.h"
 #include "ParseInfo.h"
+#include "ControlStack.h"
 
 #if defined(LINUX) || defined(MACOSX)
 #include <strings.h>

@@ -31,6 +31,7 @@
 #include "ClassVocabulary.h"
 #include "InputStack.h"
 #include "UsingVocabulary.h"
+#include "ControlStack.h"
 
 //////////////////////////////////////////////////////////////////////
 ////

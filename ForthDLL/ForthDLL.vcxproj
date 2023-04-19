@@ -500,6 +500,7 @@
     <ClInclude Include="..\ForthLib\BufferInputStream.h" />
     <ClInclude Include="..\ForthLib\ClassVocabulary.h" />
     <ClInclude Include="..\ForthLib\ConsoleInputStream.h" />
+    <ClInclude Include="..\ForthLib\ControlStack.h" />
     <ClInclude Include="..\ForthLib\DLLVocabulary.h" />
     <ClInclude Include="..\ForthLib\ExpressionInputStream.h" />
     <ClInclude Include="..\ForthLib\FileInputStream.h" />
@@ -554,6 +555,7 @@
     <ClCompile Include="..\ForthLib\BufferInputStream.cpp" />
     <ClCompile Include="..\ForthLib\ClassVocabulary.cpp" />
     <ClCompile Include="..\ForthLib\ConsoleInputStream.cpp" />
+    <ClCompile Include="..\ForthLib\ControlStack.cpp" />
     <ClCompile Include="..\ForthLib\DLLVocabulary.cpp" />
     <ClCompile Include="..\ForthLib\BlockFileManager.cpp" />
     <ClCompile Include="..\ForthLib\BuiltinClasses.cpp" />
