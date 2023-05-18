@@ -282,6 +282,42 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+May 17 2023
+
+I added an 'errors' vocabulary with all the predefined error/exception codes in
+them, but I added it before any other ops, so it shifted the OP_XXX ops by one,
+this broke several things - the global variable assignment code (3 setVarop combo)
+and the ops-with-immediate-data like kOpCCodeU32 - this is because they are
+using OP_XXX instead of gcompiledOps[OP_XXX].
+
+There is also a stack mismatch in tree_examples, one extra value (59).
+-> this disappeared on its own
+
+I also added an 'optypes' vocabulary and removed forth_optypes.fs, which defined
+a 'opType' vocabulary.  I updated all the scripts to use 'optypes'.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+May 12 2023
+
+I'm going to have vocabularies have a unique wordlist ID, which is a unique 
+
++ add wordlist>vocab map to engine
+  + Engine::AddVocabulary(voc)
+  + Engine::GetVocabulary(wid)
+  + Engine::RemoveVocabulary(voc)
++ have forget remove forgotten vocabs from map
++ change ops to use wordlist IDs instead of vocabulary pointers
+  + search-order
+    + forth-wordlist
+    + get-current
+    + set-current
+    + set-order
+    + search-wordlist
+  + tools
+    + marker
++ System:wid2Vocabulary method
++ Vocabulary:getWid method
+
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 April 19 2023
 
 I replaced ForthShellStack with ControlStack in preparation for implementing
@@ -290,6 +326,10 @@ it was just a bunch of random different elements in a pile.  Each tag could
 have a different number of data items.  The ControlStack has a common entry
 format which will make CS-PICK and CS-ROLL possible to implement, it looks
 like a real stack, not a confusing pile of junk.
+
+Ugh, cs-roll and cs-pick DO break continuations, they are maintained in parallel
+to the control stack.  Maybe I should fix this by adding a feature flag that
+enabled either continue/break or cs-roll/cs-pick.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 April 17 2023
 

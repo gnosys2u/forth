@@ -64,6 +64,7 @@ typedef std::map<std::string, std::string> EnvironmentMap;
 
 #define SHELL_FLAGS_NOT_RESET_ON_ERROR (SHELL_FLAG_CREATED_ENGINE)
 
+
 class Shell  
 {
 public:
@@ -142,6 +143,11 @@ public:
     virtual void            SetWorkDir(const std::string& workDir);
 
     bool                    FindFileInPaths(const char* pPath, const std::vector<std::string> paths, std::string& containingDir);
+
+    static void             GetFileLeafName(const char* pPath, std::string& leafOut);
+    void                    OnForget();
+    bool                    IsLoaded(std::string& fileName);
+
 protected:
 
     void                    SetCommandLine(int argc, const char ** argv);
@@ -210,6 +216,12 @@ protected:
     };
     sInternalFile*          mpInternalFiles;
     int                     mInternalFileCount;
+
+    struct loadedFileInfo {
+        std::string     filename;
+        forthop*        startDP;
+    };
+    std::vector<loadedFileInfo> mLoadedFiles;
 
     bool                    mWaitingForConsoleInput;
     bool                    mConsoleInputReady;

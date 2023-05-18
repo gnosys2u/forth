@@ -124,7 +124,7 @@ public:
     void					SetTraceOutRoutine(traceOutRoutine traceRoutine, void* pTraceData);
     void					GetTraceOutRoutine(traceOutRoutine& traceRoutine, void*& pTraceData) const;
 
-    const char* GetOpTypeName(int32_t opType);
+    const char*             GetOpTypeName(int32_t opType) const;
     void                    TraceOp(forthop* pOp, forthop op);
     void                    TraceStack(CoreState* pCore);
     void                    DescribeOp(forthop* pOp, char* pBuffer, int buffSize, bool lookupUserDefs, int& numFollowing);
@@ -166,6 +166,11 @@ public:
     void AddOpNameForTracing(const char* pName);
 
     void Interrupt();
+
+    // can return null if vocabulary not found
+    Vocabulary* GetVocabulary(ucell wordlistId);
+    void AddVocabulary(Vocabulary* pVocab);
+    void RemoveVocabulary(Vocabulary* pVocab);
 
 private:
     OuterInterpreter* mpOuter;
@@ -210,11 +215,11 @@ private:
 
     Extension* mpExtension;
 
-    std::map<ForthError, const char*> mErrorMap;
-
     static Engine* mpInstance;
     bool            mFastMode;
     bool			mIsServer;
+
+    std::map<ucell, Vocabulary*> mWordlistMap;
 
 };
 

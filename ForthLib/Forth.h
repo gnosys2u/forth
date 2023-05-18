@@ -323,7 +323,7 @@ enum class FiberState:ucell
 
 enum class ForthError:cell
 {
-    // NOTE: if you add errors, make sure that you update Engine::GetErrorString
+    // NOTE: if you add errors, make sure that you update OuterInterpreter::GetErrorString
     // codes from -1 to -255 are assigned by ANSI
     none = 0,
     abort = -1,
@@ -424,12 +424,14 @@ enum class ForthError:cell
     unknownType = -270,
     brokenObject = -271,
     controlStackUnderflow = -272,
-    controlStackOverflow = -273,
+    controlStackIndexRange = -273,
     structError = -274,
     illegalMethod = -275,
     stringOverflow = -276,
     badObject = -277,
-    missingExceptionHandler = -278
+    missingExceptionHandler = -278,
+    ansiControlFeature = -279,
+    invalidWordlist = -280
 };
 
 enum class ExceptionState:ucell
@@ -471,6 +473,7 @@ typedef enum {
     kFFParenIsExpression        = 0x00000008,
     kFFAllowContinuations       = 0x00000010,
     kFFAllowVaropSuffix         = 0x00000020,
+    kFFAnsiControlOps           = 0x00000040,
 } ForthFeatureFlags;
 
 

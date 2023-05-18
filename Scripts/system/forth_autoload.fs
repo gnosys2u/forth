@@ -1,6 +1,9 @@
 setTrace(0)
 
 "forth_autoload" $forget drop
+
+only forth definitions decimal
+
 : forth_autoload "This is the forth_autoload.txt tools module" %s ;
 
 \ create the system singleton
@@ -69,7 +72,11 @@ struct: dcell
 _initSystemObject
 $forget("_initSystemObject") drop
 
+
 $20 iconstant bl
+
+: $word false $getToken ;
+: getToken $getToken dup strlen over 1- b! 1- ;
 
 \  gets next token from input stream, returns:
 \  DELIM ... false                 if token is empty or end of line
@@ -83,28 +90,36 @@ $20 iconstant bl
 ;
 : blword? word?(bl) ;
 
+\ the builtin $word op leaves an empty byte below parsed string for us to stuff length into
+: word false getToken ;
+: parse word count ;
+
+: require bl word count required ;
+
 : $alias
   ptrTo byte oldSymbol!
   ptrTo byte newSymbol!
   
-  system.getDefinitionsVocab  Vocabulary vocab!
-  vocab.findEntryByName(oldSymbol)  ptrTo int oldEntry!
-  if(oldEntry)
+  system.getDefinitionsVocab  Vocabulary dstVocab!
+  system.getSearchStack  SearchStack sstack!
+  sstack.find(oldSymbol)  Vocabulary foundVocab!   ptrTo int oldEntry!
+  if(oldEntry) andif(foundVocab)
     \ need to copy value, since addSymbol below could cause vocabulary memory to be realloced at a different address
     makeObject ByteArray valueBuffer
-    valueBuffer.fromMemory(oldEntry vocab.getValueLength 0)
+    valueBuffer.fromMemory(oldEntry foundVocab.getValueLength 0)
     valueBuffer.base -> oldEntry
     
-    vocab.addSymbol(newSymbol 0 0 0)
-    vocab.getNewestEntry -> ptrTo int newEntry
-    move(valueBuffer.base  newEntry  vocab.getValueLength)
+    dstVocab.addSymbol(newSymbol 0 0 0)
+    dstVocab.getNewestEntry -> ptrTo int newEntry
+    move(valueBuffer.base  newEntry  foundVocab.getValueLength)
     \ newSymbol %s %nl dump(valueBuffer.base 32)
     \ newSymbol %s %nl dump(newEntry 32)
     valueBuffer~
+    foundVocab~
   else
     "Symbol " %s oldSymbol %s " not found!\n" %s
   endif
-  vocab~
+  dstVocab~
 ;
 
 : alias
@@ -120,6 +135,7 @@ alias objNotNull 0<>
 alias ds dstack
 alias .s dstack
 alias sf@ ui@       \ 32-bit sfloat fetch is same as unsigned 32-bit int
+alias builds create
 
 $7FFFFFFF int MAXINT!
 $80000000 int MININT!
@@ -127,6 +143,9 @@ $FFFFFFFF int MAXUINT!
 $7FFFFFFFFFFFFFFFL long MAXLONG!
 $8000000000000000L long MINLONG!
 $FFFFFFFFFFFFFFFFL long MAXULONG!
+
+: ialigned 3+ -4 and ;
+: laligned 7+ -8 and ;
 
 #if FORTH64
 alias constant lconstant
@@ -140,12 +159,13 @@ alias lshift llshift
 alias rotate lrotate
 
 : depth s0 sp - 3 rshift 1- ;
-: aligned 7+ -8 and ;
-alias align lalign
 
 alias , l,
 : 2@ dup cell+ @ swap @ ;
 : 2! dup >r ! r> cell+ ! ;
+
+alias @@++ l@@++
+alias @!++ l@!++
 
 #else
 alias constant iconstant
@@ -159,14 +179,54 @@ alias lshift ilshift
 alias rotate irotate
 
 : depth s0 sp - 2 rshift 1- ;
-: aligned 3+ -4 and ;
-alias align ialign
 
 alias , i,
 alias 2@ l@
 alias 2! l!
 
+alias @@++ i@@++
+alias @!++ i@!++
+
 #endif
+
+\ even on 64-bit platforms we only do 32-bit alignment
+alias align ialign
+alias aligned ialigned
+
+\ ######################################################################
+\  optypes vocabulary ops
+
+system.setDefinitionsVocab(system.getVocabByName("optypes"))
+
+\ OPTYPE8 OPVALUE24 --- OPCODE32
+: makeOpcode
+  $FFFFFF and
+  swap 24 lshift
+  or
+;
+
+\ OPCODE32 --- OPTYPE
+: getOptype
+  24 rshift $FF and
+;
+
+\ OPTYPE --- TRUE/FALSE
+: isImmediate
+  cell result
+  case(optypes:getOptype)
+    optypes:NativeImmediate of
+    optypes:UserDefImmediate of
+    optypes:CCodeImmediate of
+    optypes:RelativeDefImmediate of
+      result--
+    endof
+  endcase
+  
+  result
+;
+
+only forth definitions
+\ ######################################################################
 
 : ' blword $' ;
 
@@ -322,9 +382,10 @@ enum: eFeatures
   $0008  kFFParenIsExpression
   $0010  kFFAllowContinuations
   $0020  kFFAllowVaropSuffix
+  $0040  kFFAnsiControlOps
   
   \ kFFAnsi and kFFRegular are the most common feature combinations
-  kFFIgnoreCase         kFFAnsi
+  kFFIgnoreCase kFFAnsiControlOps +                         kFFAnsi
   
   kFFMultiCharacterLiterals kFFCStringLiterals + kFFParenIsExpression +
     kFFAllowContinuations + kFFAllowVaropSuffix +           kFFRegular
@@ -595,8 +656,8 @@ precedence iliteral  precedence sfliteral  precedence lliteral
   ptrTo byte src!
   src strlen cell len!
   len 4+ $FFFFFFFC and 2 rshift cell lenInts!
-  \ opType:makeOpcode( opType:litString lenInts ) i,		\ compile literal string opcode
-  or($15000000 lenInts) i,		\ compile literal string opcode
+  optypes:makeOpcode( optypes:ConstantString lenInts ) i,		\ compile literal string opcode
+  \ or($15000000 lenInts) i,		\ compile literal string opcode
   strcpy( here src )
   allot( lenInts 4* )
 ;
@@ -606,8 +667,8 @@ precedence iliteral  precedence sfliteral  precedence lliteral
   cell len!
   ptrTo byte src!
   len 3+ $FFFFFFFC and 2 rshift cell lenInts!
-  \ opType:makeOpcode( opType:litString lenInts ) i,		\ compile literal string opcode
-  or($0f000000 lenInts) i,		\ compile push branch opcode
+  optypes:makeOpcode( optypes:ConstantString lenInts ) i,		\ compile literal string opcode
+  \ or($0f000000 lenInts) i,		\ compile push branch opcode
   cmove( src here len)
   allot( lenInts 4* )
   or($14000000 len) i,		    \ compile lit(len) opcode
@@ -625,7 +686,7 @@ precedence iliteral  precedence sfliteral  precedence lliteral
 precedence ."
 
 : s"
-  '"' $word
+  '"' false $getToken
   if( state @ )
     compileStringLiteral( dup )
     strlen postpone iliteral
@@ -644,6 +705,9 @@ alias then endif
 : char+ 1+ ;
 alias cr %nl
 alias space %bl
+alias synonym alias
+\ alias words vlist
+
 : accept    \ buffer bufferLen ... bytesRead     read up to bufferLen bytes from console into buffer
   cell bufferLen!
   ptrTo byte buffer!
@@ -1312,10 +1376,11 @@ system.createAsyncLock printLock!
 \ ######################################################################
 addHelp pushContext save the current base, search vocabularies and definitions vocabulary on stack
 : pushContext
-  do(system.getSearchVocabDepth 0)
-    system.getSearchVocabAt(i)
+  system.getSearchStack SearchStack searchStack!o
+  do(searchStack.depth 0)
+    searchStack.getAt(i)
   loop
-  system.getSearchVocabDepth
+  searchStack.depth
   system.getDefinitionsVocab
   base @
   'fctx'
@@ -1324,21 +1389,57 @@ addHelp pushContext save the current base, search vocabularies and definitions v
 addHelp popContext restore the current base, search vocabularies and definitions vocabulary from stack
 : popContext
   int numSearchVocabs
+  system.getSearchStack SearchStack searchStack!o
   if('fctx' <>)
     error("popContext - wrong stuff on stack")
   else
     base !
     system.setDefinitionsVocab
     numSearchVocabs!
-    only
     if(numSearchVocabs 0>)
-      system.setSearchVocabTop
+      searchStack.clear
       do(numSearchVocabs 1)
-        system.pushSearchVocab
+        searchStack.push
       loop
     endif
   endif
 ;
+
+: marker
+  create
+    system.getSearchStack SearchStack searchStack!o
+    \ save this op, definitions vocabs, and all search vocabs
+    system.getDefinitionsVocab.getNewestEntry ui@ ,
+    system.getDefinitionsVocab.getWid ,
+    searchStack.depth ,
+    do(searchStack.depth 0)
+      searchStack.getAt(i).getWid ,
+    loop
+  does>
+    ptrTo cell pData!
+    Vocabulary vocab
+    system.getSearchStack SearchStack searchStack!o
+    searchStack.clear
+    
+    pData& @@++ forgetOp
+    pData& @@++ system.getVocabByWid vocab!o
+
+    if(vocab)
+      system.setDefinitionsVocab(vocab)
+    else
+      error("bad definitions wordlist in marker")
+    endif
+
+    pData& @@++ 0 ?do
+      pData& @@++ system.getVocabByWid vocab!o
+      if(vocab)
+        searchStack.push(vocab)
+      else
+        error("bad search wordlist in marker")
+      endif
+    loop
+;
+
 
 \ ######################################################################
 \ flags to use with setTrace command
@@ -1434,5 +1535,6 @@ struct: sockaddr
 13 _dllEntryType dll_13
 14 _dllEntryType dll_14
 15 _dllEntryType dll_15
+
 
 loaddone

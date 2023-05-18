@@ -217,15 +217,21 @@ public:
     virtual int Save( FILE* pOutFile );
     virtual bool Restore( const char* pBuffer, uint32_t numBytes );
 
+    inline ucell GetWordlistId() const {
+        return mWordlistId;
+    };
+
 #ifdef MAP_LOOKUP
     void                        InitLookupMap();
 #endif
 
 protected:
 
-    static Vocabulary *mpChainHead;
-    Engine         *mpEngine;
-    Vocabulary     *mpChainNext;
+    static Vocabulary   *mpChainHead;
+    static ucell        mNextWordlistId;
+
+    Engine              *mpEngine;
+    Vocabulary          *mpChainNext;
     int                 mNumSymbols;
     int                 mStorageLongs;
     forthop*            mpStorageBase;
@@ -243,6 +249,8 @@ protected:
 	oVocabularyStruct	mVocabStruct;
 	ForthObject			mVocabObject;
     VocabularyType      mType;
+    ucell               mWordlistId;
+
 #ifdef MAP_LOOKUP
     CMapStringToPtr     mLookupMap;
 #endif

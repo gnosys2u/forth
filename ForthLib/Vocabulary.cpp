@@ -40,6 +40,7 @@
 
 // this is head of a chain which links all vocabs
 Vocabulary *Vocabulary::mpChainHead = NULL;
+ucell Vocabulary::mNextWordlistId = 0;
 
 //////////////////////////////////////////////////////////////////////
 ////
@@ -76,10 +77,16 @@ Vocabulary::Vocabulary( const char    *pName,
 	mVocabStruct.vocabulary = this;
 	// initialize vocab object when it is first requested to avoid an order-of-creation problem with OVocabulary class object
 	mVocabObject = nullptr;
+
+    mWordlistId = mNextWordlistId++;
+
+    mpEngine->AddVocabulary(this);
 }
 
 Vocabulary::~Vocabulary()
 {
+    mpEngine->RemoveVocabulary(this);
+
     delete [] mpStorageBase;
 
     Vocabulary **ppNext = &mpChainHead;
@@ -951,6 +958,13 @@ namespace OVocabulary
         METHOD_RETURN;
     }
 
+    FORTHOP(oVocabularyGetWidMethod)
+    {
+        GET_THIS(oVocabularyStruct, pVocabulary);
+        SPUSH(pVocabulary->vocabulary->GetWordlistId());
+        METHOD_RETURN;
+    }
+    
     
 	baseMethodEntry oVocabularyMembers[] =
 	{
@@ -963,7 +977,8 @@ namespace OVocabulary
 		METHOD("getNumEntries", oVocabularyGetNumEntriesMethod),
 		METHOD("getValueLength", oVocabularyGetValueLengthMethod),
 		METHOD("addSymbol", oVocabularyAddSymbolMethod),
-        METHOD_RET("chainNext", oVocabularyChainNextMethod, RETURNS_NATIVE(kBCIInt)),
+        METHOD_RET("chainNext", oVocabularyChainNextMethod, RETURNS_NATIVE(BaseType::kUCell)),
+        METHOD_RET("getWid", oVocabularyGetWidMethod, RETURNS_NATIVE(BaseType::kUCell)),
 
 		MEMBER_VAR("vocabulary", NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell)),
 

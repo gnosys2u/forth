@@ -120,4 +120,6 @@ ptrTo byte holdend								\ current nested end of hold buffer
 \ display unsigned single number in free format followed by space
 : u. 0 ud. ;
 
+: ? @ . ;
+
 base !

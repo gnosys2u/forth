@@ -1,7 +1,6 @@
 \ ansi forth compatability words
 
 requires forth_internals
-requires forth_optype
 
 features
 
@@ -54,14 +53,15 @@ autoforget compatability
 ;
 
 : find
+  \ countedStr
   257 string symbol
   countedStringToString( dup symbol )
   $find( symbol )
   \ countedStr ptrToSymbolEntry
   if( dup )
     nip			\ discard original counted string ptr
-    i@			\ fetch opcode from first word of symbol entry value field
-    if( opType:isImmediate( opType:getOptype( dup ) ) )
+    i@			\ fetch opcode from first  of symbol entry value field
+    if( optypes:isImmediate( optypes:getOptype( dup ) ) )
       1   \ immediate op
     else
       -1
@@ -74,7 +74,7 @@ autoforget compatability
 ;
 precedence .(
 
-: [char]  opType:makeOpcode( opType:litInt blword c@ ) i, ; precedence [char]
+: [char]  optypes:makeOpcode( optypes:Constant blword c@ ) i, ; precedence [char]
 
 \ stringAddr flag           if flag isn't zero, display the string and abort
 : _abortQuote
@@ -111,12 +111,8 @@ cell __sp
   endif
 ;
 
-\ the builtin $word op leaves an empty byte below parsed string for us to stuff length into
-: word $word dup strlen over 1- c! 1- ;
-: parse word count ;
-
 : c"
-  '"' word ptrTo byte src!
+  '"' false getToken ptrTo byte src!
   src ub@ 4+ $FFFFFFFC and 2 rshift cell lenInts!
   or($15000000 lenInts) i,		\ compile literal string opcode
   src here src ub@ 1+ move
@@ -131,7 +127,7 @@ cell __sp
 ; precedence sliteral
 
 : s\"
-  '\q' $wordEscaped dup 1- ub@
+  '\q' false $wordEscaped dup 1- ub@
   processEscapeChars
   state @ if
     compileBlockLiteral
@@ -342,7 +338,7 @@ alias d>s drop
 
 : buffer: create allot ;
 
-: [defined] bl word find nip ;
+: [defined] bl true getToken find nip 0<> ;
 : [undefined] [defined] not ;
 precedence [defined]  precedence [undefined]
 
@@ -401,6 +397,8 @@ alias ffield: dffield:
   orif(ss.equals("FLOATING"))
   orif(ss.equals("DOUBLE"))
     true true
+  elseif(ss.equals("#LOCALS"))
+    256 true
   else
     false
   endif
@@ -410,15 +408,19 @@ alias ffield: dffield:
 
 \ optional memory-allocation word set
 : allocate   \ usize ... addr
-  malloc dup 0<>
+  malloc dup 0=
 ;
 
 : resize    \ oldAddr newSize ... newAddr flag
-  realloc dup 0<>
+  over >r realloc ?dup if
+    r> drop 0
+  else
+    r> -1
+  endif
 ;
 
 : free      \ addr ... flag
-  free true
+  free 0
 ;
 
 \ optional file-access word set
@@ -576,45 +578,58 @@ alias ffield: dffield:
   addTempString $runFile
 ;
   
+: _getAndClearFileError
+  >r 
+  r@ ferror
+  dup if
+    r@ clearerr
+  endif
+  r> drop
+;
+
 \ caddr usize fileid   read-file   uread ior
 : read-file
   cell fileId!
   ucell usize!
   ptrTo byte pDst!
-  fread(pDst 1 usize fileId) dup usize =
+  fread(pDst 1 usize fileId) _getAndClearFileError(fileId)
 ;
 
 \ caddr maxSize fileid   read-line   uread flag ior        (can read maxSize + 2 terminators to caddr)
 : read-line
   cell fileId!
   ucell maxSize!
-  ucell numRead
   ptrTo byte pDst!
+
+  ucell numRead
   bool success
   
   \ add a terminating null at very end of buffer 
   0 maxSize 1+ pDst + c!
-  \ pDst usize pFile
-  pDst maxSize fileId fgets
-  if
-    pDst strlen numRead!
-    numRead if
-      numRead 1- pDst + c@
-      '\n' = if
-        numRead--
+  maxSize if
+    pDst maxSize 1+ fileId fgets
+    if
+      pDst strlen numRead!
+      numRead if
+        numRead 1- pDst + c@
+        '\n' = if
+          numRead--
+        endif
       endif
+      success--   \ makes it TRUE/-1
+    else
+      \ fgets returned null
+      numRead~
+      success~
     endif
-    success++
+  
+    numRead success _getAndClearFileError(fileId)
+
   else
-    \ got back a null,
-    numRead~
-    success~
+    \ read 0 bytes always returns success
+    0 true 0
   endif
   
-  numRead success
-  fileId ferror dup if
-    fileId clearerr
-  endif
 ;
 
 \ caddr1 usize1 caddr2 usize2   rename-file   ior
@@ -631,40 +646,28 @@ alias ffield: dffield:
   fseek(fileId offset 0)
 ;
 
-\ require FILENAME
-: require
-  blword $runFile
-;
-
-\ caddr usize   ...
-: required
-  mko String filename
-  filename.setBytes
-  filename.get $runFile
-  filename~
-;
-
 \ ud fileid   resize-file   ior
 : resize-file
 #if FORTH64
   \ resizeFile takes a 64-bit long, ignore hiword of desired size
-  swap drop resizeFile
+  swap drop resizeFile not
 #else
   >r
   swap  \ change double-cell to long
-  r> resizeFile
+  r> resizeFile not
 #endif
 ;
 
 \ source-id - set to fileid when reading from file
 \ s\" - looks unchanged
 \ s" - looks unchanged
+
 \ caddr usize fileid   write-file   ior
 : write-file
   cell fileId!
   ucell usize!
   ptrTo byte pSrc!
-  fwrite(pSrc 1 usize fileId)
+  fwrite(pSrc 1 usize fileId) drop _getAndClearFileError(fileId)
 ;
 
 \ caddr usize fileid   write-line   ior        (can read usize + 2 terminators to caddr)
@@ -682,6 +685,60 @@ alias ffield: dffield:
     -1
   endif
 ;
+
+vocabulary editor
+
+: name>string
+  \ standard vocabulary entries have 8 value bytes, then symbol length in a byte, then name
+  8+ dup 1+ swap c@
+;
+
+: name>interpret
+  i@
+;
+
+: name>compile
+  i@ op ntOp!
+  optypes:getOptype(ntOp) cell ntOptype!
+  
+  if(optypes:isImmediate(ntOptype))
+      ntOp ['] execute
+  else
+  
+    case(ntOptype)
+      optypes:Native of
+      optypes:UserDef of
+      optypes:CCode of
+      optypes:RelativeDef of
+        ntOp ['] i,
+      endof
+
+      error("name>compile: bad optype")
+    endcase
+
+  endif
+;
+
+: traverse-wordlist
+  ucell wid!
+  op traverseOp!
+  system.getVocabByWid(wid) Vocabulary vocab!
+  if(vocab)
+    vocab.headIter VocabularyIter iter!
+    
+    begin
+    while(iter.next)
+      traverseOp breakIfNot
+    repeat
+    
+    iter~
+    vocab~
+  else
+    
+  endif
+;
+
+
 
 \ ( - allow to span multiple lines when file is input
 

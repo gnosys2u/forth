@@ -133,10 +133,11 @@ section test stats
 
 system.stats
 
-system.getDefinitionsVocab.getName %s %nl
-system.getSearchVocabTop.getName %s %nl
-system.getSearchVocabDepth %d %bl system.getOpsTable %x %nl
-dump(system.getDefinitionsVocab.getNewestEntry 32)
+"defs: " %s system.getDefinitionsVocab.getName %s "  search top: " %s
+system.getSearchStack SearchStack sstack!o
+sstack.getTop.getName %s " depth:" %s sstack.depth %d %nl
+"newest entry: "%s dump(system.getDefinitionsVocab.getNewestEntry 32) %nl
+"ops table is at: 0x" %s system.getOpsTable %x %nl
 
 \ ===========================================================================
 section test showStruct

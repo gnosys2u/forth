@@ -116,6 +116,7 @@ void OpcodeCompiler::CompileOpcode( forthOpType opType, forthop opVal )
                         }
                         else if (previousOpType == NATIVE_OPTYPE)
                         {
+                            // TODO! these assume that opVal(gCompiledOps[OP_XXX_VAL]) == OP_XXX_VAL
                             if (previousOpVal == OP_INT_VAL)
                             {
                                 UncompileLastOpcode();

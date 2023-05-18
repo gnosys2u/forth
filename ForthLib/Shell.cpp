@@ -300,14 +300,18 @@ Shell::~Shell()
 //
 // create a new file input stream & push on stack
 //
-bool
-Shell::PushInputFile( const char *pFilename )
+bool Shell::PushInputFile( const char *pFilename )
 {
     std::string containingDir;
     FILE *pInFile = OpenForthFile( pFilename, containingDir);
     if ( pInFile != NULL )
     {
         //printf("%s is contained in {%s}\n", pFilename, containingDir.c_str());
+        loadedFileInfo lfi;
+        lfi.startDP = mpEngine->GetDP();
+        GetFileLeafName(pFilename, lfi.filename);
+        mLoadedFiles.emplace_back(lfi);
+
         FileInputStream* newStream = new FileInputStream(pInFile, pFilename);
         std::string curWorkDir;
         GetWorkDir(curWorkDir);
@@ -1212,9 +1216,11 @@ Shell::GetNextSimpleToken( void )
 
 
 char *
-Shell::GetToken( int idelim, bool bSkipLeadingWhiteSpace )
+Shell::GetToken( int idelim, bool bSkipLeadingDelims )
 {
-	while (mpInput->IsEmpty() && mpInput->Top()->IsGenerated())
+    char delim = (char)idelim;
+    
+    while (mpInput->IsEmpty() && mpInput->Top()->IsGenerated())
 	{
 		SPEW_SHELL("GetToken: %s empty, popping\n", mpInput->Top()->GetName());
 		if (mpInput->PopInputStream())
@@ -1229,12 +1235,22 @@ Shell::GetToken( int idelim, bool bSkipLeadingWhiteSpace )
     bool bDone;
     char* pDst = &mToken[0];
 
-    if ( bSkipLeadingWhiteSpace )
+    if (bSkipLeadingDelims)
     {
         // eat any leading white space
-        while ( (*pEndToken == ' ') || (*pEndToken == '\t') )
+        if (delim == ' ')
         {
-            pEndToken++;
+            while ((*pEndToken == ' ') || (*pEndToken == '\t'))
+            {
+                pEndToken++;
+            }
+        }
+        else
+        {
+            while (*pEndToken == delim)
+            {
+                pEndToken++;
+            }
         }
     }
 
@@ -1257,7 +1273,6 @@ Shell::GetToken( int idelim, bool bSkipLeadingWhiteSpace )
     }
     else
     {
-        char delim = (char)idelim;
         while (!bDone && (pEndToken <= pTokenLimit))
         {
             c = *pEndToken++;
@@ -2050,6 +2065,53 @@ void Shell::GetWorkDir(std::string& dstString)
 void Shell::SetWorkDir(const std::string& workDir)
 {
     mFileInterface.setWorkDir(workDir.c_str());
+}
+
+void Shell::GetFileLeafName(const char* pPath, std::string& leafOut)
+{
+#if defined(WINDOWS_BUILD)
+    const char* pLeaf = strrchr(pPath, '\\');
+#else
+    const char* pLeaf = strrchr(pPath, '/');
+#endif
+    leafOut.assign((pLeaf != nullptr) ? pLeaf : pPath);
+}
+
+void Shell::OnForget()
+{
+    forthop* newDP = mpEngine->GetDP();
+    size_t ix = mLoadedFiles.size();
+    if (ix)
+    {
+        while (mLoadedFiles[ix - 1].startDP >= newDP)
+        {
+            SPEW_SHELL("Shell::OnForget: forgetting %s @ %p\n", mLoadedFiles[ix - 1].filename.c_str(), mLoadedFiles[ix - 1].startDP);
+            ix--;
+            if (ix == 0)
+            {
+                break;
+            }
+        }
+        mLoadedFiles.resize(ix);
+
+        for (loadedFileInfo& info : mLoadedFiles)
+        {
+            SPEW_SHELL("Shell::OnForget: keeping %s @ %p\n", info.filename.c_str(), info.startDP);
+        }
+    }
+}
+
+bool Shell::IsLoaded(std::string& fileName)
+{
+    for (loadedFileInfo info : mLoadedFiles)
+    {
+        if (info.filename.compare(fileName) == 0)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 //////////////////////////////////////////////////////////////////////

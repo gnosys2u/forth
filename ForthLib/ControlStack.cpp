@@ -36,13 +36,21 @@ ControlStack::~ControlStack()
    delete [] (mCSB - GAURD_AREA);
 }
 
-ControlStackEntry* ControlStack::Peek(int index)
+ControlStackEntry* ControlStack::Peek(ucell index)
 {
+    ControlStackEntry* result = nullptr;
+
     if (index < mDepth)
     {
-        return &(mCSB[mDepth - (index + 1)]);
+        result = &(mCSB[mDepth - (index + 1)]);
+    }
+    else
+    {
+        SPEW_SHELL("ControlStack::Peek(%d) bad index - depth is %d\n", index, mDepth);
+        mpEngine->SetError(ForthError::controlStackIndexRange);
     }
 
+    return result;
 }
 
 void ControlStack::Drop()
@@ -63,7 +71,7 @@ void ControlStack::Push(ControlStackTag tag, void* address, const char* name, uc
     if (mDepth >= mCSLen)
     {
         SPEW_SHELL("Control stack overflow!\n");
-        mpEngine->SetError(ForthError::controlStackOverflow);
+        mpEngine->SetError(ForthError::controlFlowStackOverflow);
         return;
     }
 
@@ -114,7 +122,7 @@ void ControlStack::ShowStack()
             mpEngine->ConsoleOut(buff);
         }
 
-        sprintf(buff, "  addr:%p  op:0x%x", entry.address, entry.op);
+        sprintf(buff, "  addr:%p  op:0x%x\n", entry.address, entry.op);
         mpEngine->ConsoleOut(buff);
         ix--;
     }
@@ -155,6 +163,7 @@ void ControlStack::GetTagString(ucell tags, char* pBuffer, size_t bufferSize)
         "enum",
         "function",
         "method",
+        "ahead",
         nullptr
     };
 

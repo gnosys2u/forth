@@ -29,7 +29,8 @@
 
 namespace OSystem
 {
-    static ClassVocabulary *gpControlStackVocab = nullptr;
+    static ClassVocabulary* gpControlStackVocab = nullptr;
+    static ClassVocabulary* gpSearchStackVocab = nullptr;
 
 	//////////////////////////////////////////////////////////////////////
 	///
@@ -53,6 +54,11 @@ namespace OSystem
         gSystemSingleton.controlStack = pControlStack;
         pControlStack->pMethods = gpControlStackVocab->GetMethods();
         pControlStack->refCount = 2000000000;
+
+        ALLOCATE_OBJECT(oObjectStruct, pSearchStack, gpSearchStackVocab);
+        gSystemSingleton.searchStack = pSearchStack;
+        pSearchStack->pMethods = gpSearchStackVocab->GetMethods();
+        pSearchStack->refCount = 2000000000;
 
         PUSH_OBJECT(obj);
 	}
@@ -116,86 +122,6 @@ namespace OSystem
 		METHOD_RETURN;
 	}
 
-    FORTHOP(oSystemClearSearchVocabMethod)
-    {
-        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
-        pVocabStack->Clear();
-
-        METHOD_RETURN;
-    }
-
-    FORTHOP(oSystemGetSearchVocabDepthMethod)
-	{
-        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
-		SPUSH(pVocabStack->GetDepth());
-
-		METHOD_RETURN;
-	}
-
-	FORTHOP(oSystemGetSearchVocabAtMethod)
-	{
-		int vocabStackIndex = (int) SPOP;
-
-        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
-		Vocabulary* pVocab = pVocabStack->GetElement(vocabStackIndex);
-		if (pVocab != NULL)
-		{
-			PUSH_OBJECT(pVocab->GetVocabularyObject());
-		}
-		else
-		{
-            PUSH_OBJECT(nullptr);
-		}
-		METHOD_RETURN;
-	}
-
-	FORTHOP(oSystemGetSearchVocabTopMethod)
-	{
-        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
-		Vocabulary* pVocab = pVocabStack->GetTop();
-		if (pVocab != NULL)
-		{
-			PUSH_OBJECT(pVocab->GetVocabularyObject());
-		}
-        else
-        {
-            PUSH_OBJECT(nullptr);
-        }
-
-		METHOD_RETURN;
-	}
-
-	FORTHOP(oSystemSetSearchVocabTopMethod)
-	{
-		ForthObject vocabObj;
-		POP_OBJECT(vocabObj);
-		oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct *>(vocabObj);
-
-		Vocabulary* pVocab = pVocabStruct->vocabulary;
-		if (pVocab != NULL)
-		{
-			VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
-			pVocabStack->SetTop(pVocab);
-		}
-		METHOD_RETURN;
-	}
-
-	FORTHOP(oSystemPushSearchVocabMethod)
-	{
-		ForthObject vocabObj;
-		POP_OBJECT(vocabObj);
-		oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct *>(vocabObj);
-
-		Vocabulary* pVocab = pVocabStruct->vocabulary;
-		if (pVocab != NULL)
-		{
-			VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
-			pVocabStack->DupTop();
-			pVocabStack->SetTop(pVocab);
-		}
-		METHOD_RETURN;
-	}
-
 	FORTHOP(oSystemGetVocabByNameMethod)
 	{
 		const char* pVocabName = reinterpret_cast<const char*>(SPOP);
@@ -211,6 +137,22 @@ namespace OSystem
 		METHOD_RETURN;
 	}
 	
+    FORTHOP(oSystemGetVocabByWidMethod)
+    {
+        ucell wid = SPOP;
+        Engine* pEngine = GET_ENGINE;
+        Vocabulary* pVocab = pEngine->GetVocabulary(wid);
+        if (pVocab != NULL)
+        {
+            PUSH_OBJECT(pVocab->GetVocabularyObject());
+        }
+        else
+        {
+            PUSH_OBJECT(nullptr);
+        }
+        METHOD_RETURN;
+    }
+
     FORTHOP(oSystemGetVocabChainHeadMethod)
     {
         const char* pVocabName = reinterpret_cast<const char*>(SPOP);
@@ -360,6 +302,20 @@ namespace OSystem
         METHOD_RETURN;
     }
 
+    FORTHOP(oSystemGetControlStackMethod)
+    {
+        GET_THIS(oSystemStruct, pSystem);
+        PUSH_OBJECT(pSystem->controlStack);
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oSystemGetSearchStackMethod)
+    {
+        GET_THIS(oSystemStruct, pSystem);
+        PUSH_OBJECT(pSystem->searchStack);
+        METHOD_RETURN;
+    }
+
     baseMethodEntry oSystemMembers[] =
     {
         METHOD("__newOp", oSystemNew),
@@ -367,13 +323,8 @@ namespace OSystem
         METHOD("stats", oSystemStatsMethod),
         METHOD_RET("getDefinitionsVocab", oSystemGetDefinitionsVocabMethod, RETURNS_OBJECT(kBCIVocabulary)),
         METHOD("setDefinitionsVocab", oSystemSetDefinitionsVocabMethod),
-        METHOD("clearSearchVocab", oSystemClearSearchVocabMethod),
-        METHOD("getSearchVocabDepth", oSystemGetSearchVocabDepthMethod),
-        METHOD_RET("getSearchVocabAt", oSystemGetSearchVocabAtMethod, RETURNS_OBJECT(kBCIVocabulary)),
-        METHOD_RET("getSearchVocabTop", oSystemGetSearchVocabTopMethod, RETURNS_OBJECT(kBCIVocabulary)),
-        METHOD("setSearchVocabTop", oSystemSetSearchVocabTopMethod),
-        METHOD("pushSearchVocab", oSystemPushSearchVocabMethod),
         METHOD_RET("getVocabByName", oSystemGetVocabByNameMethod, RETURNS_OBJECT(kBCIVocabulary)),
+        METHOD_RET("getVocabByWid", oSystemGetVocabByWidMethod, RETURNS_OBJECT(kBCIVocabulary)),
         METHOD_RET("getVocabChainHead", oSystemGetVocabChainHeadMethod, RETURNS_OBJECT(kBCIVocabulary)),
         METHOD_RET("getOpsTable", oSystemGetOpsTableMethod, RETURNS_NATIVE(BaseType::kCell)),
         METHOD_RET("getClassByIndex", oSystemGetClassByIndexMethod, RETURNS_OBJECT(kBCIObject)),
@@ -388,12 +339,15 @@ namespace OSystem
         METHOD("getWorkDir", oSystemGetWorkDirMethod),
         METHOD("addUsingVocabulary", oSystemAddUsingVocabularyMethod),
         METHOD("clearUsingVocabularies", oSystemClearUsingVocabulariesMethod),
+        METHOD_RET("getControlStack", oSystemGetControlStackMethod, RETURNS_OBJECT(kBCIControlStack)),
+        METHOD_RET("getSearchStack", oSystemGetSearchStackMethod, RETURNS_OBJECT(kBCISearchStack)),
 
         MEMBER_VAR("namedObjects", OBJECT_TYPE_TO_CODE(0, kBCIStringMap)),
         MEMBER_VAR("args", OBJECT_TYPE_TO_CODE(0, kBCIArray)),
         MEMBER_VAR("env", OBJECT_TYPE_TO_CODE(0, kBCIStringMap)),
         MEMBER_VAR("controlStack", OBJECT_TYPE_TO_CODE(0, kBCIControlStack)),
-
+        MEMBER_VAR("searchStack", OBJECT_TYPE_TO_CODE(0, kBCISearchStack)),
+        
 		// following must be last in table
 		END_MEMBERS
 	};
@@ -484,9 +438,171 @@ namespace OSystem
     };
 
 
+    //////////////////////////////////////////////////////////////////////
+    ///
+    //                 OSearchStack
+    //
+
+    FORTHOP(oSearchStackDeleteMethod)
+    {
+        GET_THIS(oObjectStruct, obj);
+        obj->refCount = 2000000000;
+        // TODO: warn that something tried to delete system
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oSearchStackClearMethod)
+    {
+        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+        pVocabStack->Clear();
+
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oSearchStackDepthMethod)
+    {
+        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+        SPUSH(pVocabStack->GetDepth());
+
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oSearchStackGetAtMethod)
+    {
+        int vocabStackIndex = (int)SPOP;
+
+        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+        Vocabulary* pVocab = pVocabStack->GetElement(vocabStackIndex);
+        if (pVocab != NULL)
+        {
+            PUSH_OBJECT(pVocab->GetVocabularyObject());
+        }
+        else
+        {
+            PUSH_OBJECT(nullptr);
+        }
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oSearchStackGetTopMethod)
+    {
+        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+        Vocabulary* pVocab = pVocabStack->GetTop();
+        if (pVocab != NULL)
+        {
+            PUSH_OBJECT(pVocab->GetVocabularyObject());
+        }
+        else
+        {
+            PUSH_OBJECT(nullptr);
+        }
+
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oSearchStackSetTopMethod)
+    {
+        ForthObject vocabObj;
+        POP_OBJECT(vocabObj);
+        oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct*>(vocabObj);
+
+        Vocabulary* pVocab = pVocabStruct->vocabulary;
+        if (pVocab != NULL)
+        {
+            VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+            pVocabStack->SetTop(pVocab);
+        }
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oSearchStackDupTopMethod)
+    {
+        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+        pVocabStack->DupTop();
+
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oSearchStackPushMethod)
+    {
+        ForthObject vocabObj;
+        POP_OBJECT(vocabObj);
+        oVocabularyStruct* pVocabStruct = reinterpret_cast<oVocabularyStruct*>(vocabObj);
+
+        Vocabulary* pVocab = pVocabStruct->vocabulary;
+        if (pVocab != NULL)
+        {
+            VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+            pVocabStack->DupTop();
+            pVocabStack->SetTop(pVocab);
+        }
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oSearchStackFindMethod)
+    {
+        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+        const char* pSymbol = (const char*)(SPOP);
+        Vocabulary* pFoundVocabulary = nullptr;
+
+        forthop* pEntry = pVocabStack->FindSymbol(pSymbol, &pFoundVocabulary);
+        SPUSH((cell)pEntry);
+        if (pFoundVocabulary == nullptr)
+        {
+            SPUSH(0);
+        }
+        else
+        {
+            PUSH_OBJECT(pFoundVocabulary->GetVocabularyObject());
+        }
+
+        METHOD_RETURN;
+    }
+
+    FORTHOP(oSearchStackFindByValueMethod)
+    {
+        VocabularyStack* pVocabStack = GET_ENGINE->GetOuterInterpreter()->GetVocabularyStack();
+        forthop soughtValue = (forthop)(SPOP);
+        Vocabulary* pFoundVocabulary = nullptr;
+
+        forthop* pEntry = pVocabStack->FindSymbolByValue(soughtValue, &pFoundVocabulary);
+        SPUSH((cell)pEntry);
+        if (pFoundVocabulary == nullptr)
+        {
+            SPUSH(0);
+        }
+        else
+        {
+            PUSH_OBJECT(pFoundVocabulary->GetVocabularyObject());
+        }
+
+        METHOD_RETURN;
+    }
+
+    baseMethodEntry oSearchStackMembers[] =
+    {
+        METHOD("delete", oSearchStackDeleteMethod),
+        METHOD("clear", oSearchStackClearMethod),
+        METHOD("depth", oSearchStackDepthMethod),
+        METHOD_RET("getAt", oSearchStackGetAtMethod, RETURNS_OBJECT(kBCIVocabulary)),
+        METHOD_RET("getTop", oSearchStackGetTopMethod, RETURNS_OBJECT(kBCIVocabulary)),
+        METHOD("setTop", oSearchStackSetTopMethod),
+        METHOD("dupTop", oSearchStackDupTopMethod),
+        METHOD("push", oSearchStackPushMethod),
+        METHOD_RET("find", oSearchStackFindMethod, RETURNS_NATIVE(BaseType::kCell)),
+        METHOD_RET("findByValue", oSearchStackFindByValueMethod, RETURNS_NATIVE(BaseType::kCell)),
+
+        // following must be last in table
+        END_MEMBERS
+    };
+
+
+    //////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
     void AddClasses(OuterInterpreter* pOuter)
 	{
         gpControlStackVocab = pOuter->AddBuiltinClass("ControlStack", kBCIControlStack, kBCIObject, oControlStackMembers);
+        gpSearchStackVocab = pOuter->AddBuiltinClass("SearchStack", kBCISearchStack, kBCIObject, oSearchStackMembers);
         pOuter->AddBuiltinClass("System", kBCISystem, kBCIObject, oSystemMembers);
 	}
 
@@ -496,6 +612,7 @@ namespace OSystem
         SAFE_RELEASE(pCore, gSystemSingleton.args);
         SAFE_RELEASE(pCore, gSystemSingleton.env);
         SAFE_RELEASE(pCore, gSystemSingleton.namedObjects);
+        // TODO: cleanup system, search stack and control stack objects
     }
 
 } // namespace OSystem

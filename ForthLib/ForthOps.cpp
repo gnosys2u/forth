@@ -893,7 +893,8 @@ FORTHOP( endifOp )
     ControlStackTag branchTag = pEntry->tag;
     forthop* pBranch = nullptr;
 
-    if (!pShell->CheckSyntaxError("endif", branchTag, (kCSTagIf | kCSTagElif | kCSTagElse | kCSTagWhile | kCSTagOrIf | kCSTagAndIf)))
+    if (!pShell->CheckSyntaxError("endif", branchTag, (kCSTagIf | kCSTagElif | kCSTagElse
+        | kCSTagWhile | kCSTagOrIf | kCSTagAndIf | kCSTagAhead)))
 	{
 		return;
 	}
@@ -903,6 +904,12 @@ FORTHOP( endifOp )
 	{
         processElseBranches = true;
 	}
+    else if (branchTag == kCSTagAhead)
+    {
+        pBranch = (forthop*)(pEntry->address);
+        pOuter->PatchOpcode(kOpBranch, (GET_DP - pBranch) - 1, pBranch);
+        pControlStack->Drop();
+    }
     else
     {
         // there was no "else", so process if/andif/orif
@@ -965,6 +972,22 @@ FORTHOP( endifOp )
             *pBranch = COMPILED_OP(kOpBranch, (GET_DP - pBranch) - 1);
         }
     }
+    pOuter->ClearPeephole();
+}
+
+// ahead - has precedence
+FORTHOP(aheadOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    Shell* pShell = pEngine->GetShell();
+    ControlStack* pControlStack = pShell->GetControlStack();
+    // this will be fixed by endif
+    pOuter->CompileOpcode(kOpBranch, 0);
+    forthop* branchAddr = (GET_DP - 1);
+    // save address for else/endif
+    // flag that this is the "if" branch
+    pControlStack->Push(kCSTagAhead, branchAddr);
     pOuter->ClearPeephole();
 }
 
@@ -1043,14 +1066,16 @@ FORTHOP( repeatOp )
     {
         return;
     }
+
     forthop* pBeginAddress = (forthop*)pEntry->address;
     pControlStack->Drop();
     pEntry = pControlStack->Peek();
     ControlStackTag branchTag = pEntry->tag;
-    if (!pShell->CheckSyntaxError("repeat", branchTag, kCSTagWhile))
+    if (!pShell->CheckSyntaxError("repeat", branchTag, kCSTagWhile | kCSTagIf))
     {
         return;
     }
+
     // fill in the branch taken when "while" fails
     forthop* pBranch = (forthop*) pEntry->address;
     pControlStack->Drop();
@@ -1225,6 +1250,89 @@ FORTHOP( endcaseOp )
     pOuter->ClearPeephole();
 }
 
+FORTHOP(csPickOp)
+{
+    ucell ix = (ucell)(SPOP);
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+
+    if (pOuter->CheckFeature(kFFAnsiControlOps) == 0)
+    {
+        pEngine->SetError(ForthError::ansiControlFeature, "cs-pick only allowed if AnsiControlOps feature is on");
+        return;
+    }
+
+    Shell* pShell = pEngine->GetShell();
+    ControlStack* pControlStack = pShell->GetControlStack();
+    ControlStackEntry* pEntry = pControlStack->Peek(ix);
+    if (pEntry != nullptr)
+    {
+        pControlStack->Push(pEntry->tag, pEntry->address, pEntry->name, pEntry->op);
+    }
+}
+
+FORTHOP(csRollOp)
+{
+    cell ix = SPOP;
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    if (pOuter->CheckFeature(kFFAnsiControlOps) == 0)
+    {
+        pEngine->SetError(ForthError::ansiControlFeature, "cs-roll only allowed if AnsiControlOps feature is on");
+        return;
+    }
+    Shell* pShell = pEngine->GetShell();
+    ControlStack* pControlStack = pShell->GetControlStack();
+    ucell depth = pControlStack->GetDepth();
+
+    if (ix != 0 && pControlStack->GetDepth() > 0)
+    {
+        ucell top = depth - 1;
+        ControlStackEntry pickedEntry;
+
+        if (ix > 0)
+        {
+            if (ix < depth)
+            {
+                // move picked entry to top
+                ControlStackEntry* pEntry = pControlStack->Peek(ix);
+                pickedEntry = *pEntry;
+                for (cell j = 0; j < ix; j++)
+                {
+                    *pEntry = pEntry[1];
+                    pEntry++;
+                }
+                *pEntry = pickedEntry;
+            }
+            else
+            {
+                pEngine->SetError(ForthError::controlStackIndexRange, "cs-roll control stack index out of range");
+            }
+        }
+        else
+        {
+            // ANSI doesn't support backwards roll
+            if (-ix < depth)
+            {
+                // move top to picked entry
+                ControlStackEntry* pEntry = pControlStack->Peek();
+                pickedEntry = *pEntry;
+                for (cell j = 0; j > ix; j--)
+                {
+                    *pEntry = pEntry[-1];
+                    pEntry--;
+                }
+                *pEntry = pickedEntry;
+            }
+            else
+            {
+                pEngine->SetError(ForthError::controlStackIndexRange, "cs-roll control stack index out of range");
+            }
+        }
+    }
+}
+
+
 FORTHOP(labelOp)
 {
 	Engine *pEngine = GET_ENGINE;
@@ -1271,6 +1379,13 @@ FORTHOP(continueDefineOp)
 {
     Engine* pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+
+    if (pOuter->CheckFeature(kFFAnsiControlOps))
+    {
+        pEngine->SetError(ForthError::ansiControlFeature, "continue: only allowed if AnsiControlOps feature is off");
+        return;
+    }
+
     pOuter->SetContinuationDestination(GET_DP);
 }
 
@@ -1278,6 +1393,13 @@ FORTHOP(continueOp)
 {
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+
+    if (pOuter->CheckFeature(kFFAnsiControlOps))
+    {
+        pEngine->SetError(ForthError::ansiControlFeature, "continue only allowed if AnsiControlOps feature is off");
+        return;
+    }
+
     pOuter->AddContinuationBranch(GET_DP, kOpBranch);
     // this will be fixed when surrounding loop is finished
     pOuter->CompileDummyOpcode();
@@ -1287,6 +1409,13 @@ FORTHOP(continueIfOp)
 {
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+
+    if (pOuter->CheckFeature(kFFAnsiControlOps))
+    {
+        pEngine->SetError(ForthError::ansiControlFeature, "continueIf only allowed if AnsiControlOps feature is off");
+        return;
+    }
+
     pOuter->AddContinuationBranch(GET_DP, kOpBranchNZ);
     // this will be fixed when surrounding loop is finished
     pOuter->CompileDummyOpcode();
@@ -1296,6 +1425,13 @@ FORTHOP(continueIfNotOp)
 {
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+
+    if (pOuter->CheckFeature(kFFAnsiControlOps))
+    {
+        pEngine->SetError(ForthError::ansiControlFeature, "continueIfNot only allowed if AnsiControlOps feature is off");
+        return;
+    }
+
     pOuter->AddContinuationBranch(GET_DP, kOpBranchZ);
     // this will be fixed when surrounding loop is finished
     pOuter->CompileDummyOpcode();
@@ -1305,6 +1441,13 @@ FORTHOP(breakOp)
 {
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+
+    if (pOuter->CheckFeature(kFFAnsiControlOps))
+    {
+        pEngine->SetError(ForthError::ansiControlFeature, "break only allowed if AnsiControlOps feature is off");
+        return;
+    }
+
     pOuter->AddBreakBranch(GET_DP, kOpBranch);
     // this will be fixed when surrounding loop is finished
     pOuter->CompileDummyOpcode();
@@ -1314,6 +1457,13 @@ FORTHOP(breakIfOp)
 {
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+
+    if (pOuter->CheckFeature(kFFAnsiControlOps))
+    {
+        pEngine->SetError(ForthError::ansiControlFeature, "breakIf only allowed if AnsiControlOps feature is off");
+        return;
+    }
+
     pOuter->AddBreakBranch(GET_DP, kOpBranchNZ);
     // this will be fixed when surrounding loop is finished
     pOuter->CompileDummyOpcode();
@@ -1323,6 +1473,13 @@ FORTHOP(breakIfNotOp)
 {
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+
+    if (pOuter->CheckFeature(kFFAnsiControlOps))
+    {
+        pEngine->SetError(ForthError::ansiControlFeature, "breakIfNot only allowed if AnsiControlOps feature is off");
+        return;
+    }
+
     pOuter->AddBreakBranch(GET_DP, kOpBranchZ);
     // this will be fixed when surrounding loop is finished
     pOuter->CompileDummyOpcode();
@@ -1683,11 +1840,7 @@ FORTHOP(throwStrOp)
 
 static forthop    *gpSavedDP;
 
-// builds
-// - does not have precedence
-// - is executed while executing the defining word
-// - begins definition of new symbol
-//
+/*
 FORTHOP(buildsOp)
 {
     Engine *pEngine = GET_ENGINE;
@@ -1702,6 +1855,26 @@ FORTHOP(buildsOp)
     gpSavedDP = GET_DP;
     // compile dummy word at DP, will be filled in by does
     pOuter->CompileInt( 0 );
+    pOuter->ClearPeephole();
+}
+*/
+
+// create
+// - does not have precedence
+// - is executed while executing the defining word
+// - begins definition of new symbol
+//
+FORTHOP(createOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    // get next symbol, add it to vocabulary with type "user op"
+    pEngine->AlignDP();
+    forthop* pEntry = pOuter->StartOpDefinition(NULL, false);
+    pEntry[1] = (forthop)BASE_TYPE_TO_CODE(BaseType::kUserDefinition);
+    // remember current DP (for does)
+    gpSavedDP = GET_DP;
+    pOuter->CompileBuiltinOpcode(OP_DO_VAR);
     pOuter->ClearPeephole();
 }
 
@@ -2023,19 +2196,6 @@ FORTHOP( codeOp )
     pOuter->ClearPeephole();
 }
 
-FORTHOP( createOp )
-{
-    Engine *pEngine = GET_ENGINE;
-    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    // get next symbol, add it to vocabulary with type "user op"
-    forthop* pEntry = pOuter->StartOpDefinition( NULL, false );
-    pEntry[1] = (forthop)BASE_TYPE_TO_CODE( BaseType::kUserDefinition );
-    // remember current DP (for does)
-    gpSavedDP = GET_DP;
-    pOuter->CompileBuiltinOpcode( OP_DO_VAR );
-    pOuter->ClearPeephole();
-}
-
 FORTHOP( forthVocabOp )
 {
     Engine *pEngine = GET_ENGINE;
@@ -2097,14 +2257,14 @@ FORTHOP(forthWordlistOp)
 {
     Engine* pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    SPUSH((cell)(pOuter->GetForthVocabulary()));
+    SPUSH(pOuter->GetForthVocabulary()->GetWordlistId());
 }
 
 FORTHOP(getCurrentOp)
 {
     Engine* pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    SPUSH((cell)(pOuter->GetDefinitionVocabulary()));
+    SPUSH(pOuter->GetDefinitionVocabulary()->GetWordlistId());
 }
 
 FORTHOP(getOrderOp)
@@ -2116,7 +2276,7 @@ FORTHOP(getOrderOp)
     ucell ix = 1;
     while (ix <= numVocabs)
     {
-        SPUSH((cell)(pVocabStack->GetElement(numVocabs - ix)));
+        SPUSH(pVocabStack->GetElement(numVocabs - ix)->GetWordlistId());
         ix++;
     }
     SPUSH(numVocabs);
@@ -2145,41 +2305,56 @@ FORTHOP(searchWordlistOp)
     Engine* pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
 
-    Vocabulary* pVocab = (Vocabulary*)(SPOP);
-    ucell symbolLen = SPOP;
-    const char* pSymbol = (const char*)(SPOP);
-    std::string symbol;
-    symbol.assign(pSymbol, symbolLen);
-    forthop* pEntry = pVocab->FindSymbol(symbol.c_str());
-    if (pEntry == nullptr)
+    ucell wid = SPOP;
+    Vocabulary* pVocab = pEngine->GetVocabulary(wid);
+    if (pVocab != nullptr)
     {
-        SPUSH(0);
+        ucell symbolLen = SPOP;
+        const char* pSymbol = (const char*)(SPOP);
+        std::string symbol;
+        symbol.assign(pSymbol, symbolLen);
+        forthop* pEntry = pVocab->FindSymbol(symbol.c_str());
+        if (pEntry == nullptr)
+        {
+            SPUSH(0);
+        }
+        else
+        {
+            forthop op = *pEntry;
+            SPUSH(op);
+            switch (FORTH_OP_TYPE(op))
+            {
+            case kOpNativeImmediate:
+            case kOpUserDefImmediate:
+            case kOpCCodeImmediate:
+            case kOpRelativeDefImmediate:
+                SPUSH(1);
+                break;
+
+            default:
+                SPUSH(-1);
+            }
+        }
     }
     else
     {
-        forthop op = *pEntry;
-        SPUSH(op);
-        switch (FORTH_OP_TYPE(op))
-        {
-        case kOpNativeImmediate:
-        case kOpUserDefImmediate:
-        case kOpCCodeImmediate:
-        case kOpRelativeDefImmediate:
-            SPUSH(1);
-            break;
-
-        default:
-            SPUSH(-1);
-        }
+        pEngine->RaiseException(pCore, ForthError::invalidWordlist);
     }
 }
 
 FORTHOP(setCurrentOp)
 {
     Engine* pEngine = GET_ENGINE;
-    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    Vocabulary* pVocab = (Vocabulary*)(SPOP);
-    pOuter->SetDefinitionVocabulary(pVocab);
+    ucell wid = SPOP;
+    Vocabulary* pVocab = pEngine->GetVocabulary(wid);
+    if (pVocab != nullptr)
+    {
+        pEngine->GetOuterInterpreter()->SetDefinitionVocabulary(pVocab);
+    }
+    else
+    {
+        pEngine->RaiseException(pCore, ForthError::invalidWordlist);
+    }
 }
 
 FORTHOP(setOrderOp)
@@ -2195,9 +2370,17 @@ FORTHOP(setOrderOp)
         ucell ix = 1;
         while (ix <= numVocabs)
         {
-            Vocabulary* pVocab = (Vocabulary*)(pCore->SP[numVocabs - ix]);
-            pVocabStack->Push(pVocab);
-            ix++;
+            Vocabulary* pVocab = pEngine->GetVocabulary(pCore->SP[numVocabs - ix]);
+            if (pVocab != nullptr)
+            {
+                pVocabStack->Push(pVocab);
+                ix++;
+            }
+            else
+            {
+                pEngine->RaiseException(pCore, ForthError::invalidWordlist);
+                break;
+            }
         }
         pCore->SP += numVocabs;
     }
@@ -2205,7 +2388,8 @@ FORTHOP(setOrderOp)
 
 FORTHOP(wordlistOp)
 {
-    SPUSH((cell)(new Vocabulary()));
+    Vocabulary* pNewVocab = new Vocabulary();
+    SPUSH(pNewVocab->GetWordlistId());
 }
 
 FORTHOP( vocabularyOp )
@@ -2234,6 +2418,28 @@ FORTHOP( strForgetOp )
 	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
     bool forgotIt = pOuter->ForgetSymbol( pSym, !verbose );
     SPUSH( forgotIt ? -1 : 0 );
+}
+
+FORTHOP(forgetOpOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    forthop op = (forthop)(SPOP);
+    bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
+    forthop opType = FORTH_OP_TYPE(op);
+    forthop opVal = FORTH_OP_VALUE(op);
+    switch (opType)
+    {
+    case forthOpType::kOpNative:  case forthOpType::kOpNativeImmediate:
+    case forthOpType::kOpCCode:   case forthOpType::kOpCCodeImmediate:
+        pOuter->ForgetOp(opVal, !verbose);
+        break;
+
+        // TODO: handle relative def opcodes - how?  
+    default:
+        pEngine->RaiseException(pCore, ForthError::invalidForget);
+        break;
+    }
 }
 
 #define SCREEN_COLUMNS 120
@@ -2336,6 +2542,8 @@ FORTHOP( vlistOp )
 	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
     pOuter->ShowSearchInfo();
 	int depth = 0;
+    char buffer[128];
+
 	while (!quit)
     {
         pVocab = pVocabStack->GetElement( depth );
@@ -3731,6 +3939,29 @@ FORTHOP( requiresOp )
             SPEW_ENGINE( "!!!! Failure opening source file %s !!!!\n", pFileName );
         }
         __FREE( pFileName );
+    }
+}
+
+FORTHOP(requiredOp)
+{
+    ucell nameSize = SPOP;
+    const char* pName = (const char*)(SPOP);
+    std::string filename(pName, nameSize);
+    const char* pFileName = filename.c_str();
+    Engine* pEngine = GET_ENGINE;
+    if (pEngine->GetShell()->IsLoaded(filename))
+    {
+        SPEW_ENGINE("required - skipping %s, it is already loaded!\n", pFileName);
+    }
+    else
+    {
+        if (pEngine->PushInputFile(pFileName) == false)
+        {
+            CONSOLE_STRING_OUT("!!!! Failure opening source file ");
+            CONSOLE_STRING_OUT(pFileName);
+            CONSOLE_STRING_OUT(" !!!!\n");
+            SPEW_ENGINE("!!!! Failure opening source file %s !!!!\n", pFileName);
+        }
     }
 }
 
@@ -5625,16 +5856,17 @@ FORTHOP( blwordOp )
     SPUSH( (cell) pDst );
 }
 
-FORTHOP( strWordOp )
+FORTHOP( getTokenOp )
 {
     NEEDS( 1 );
 	Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
+    cell skipLeadingDelims = SPOP;
     char delim = (char) (SPOP);
     // leave an unused byte below string so string len can be stuck there in ANSI compatability mode
-	char *pSrc = pShell->GetToken( delim, false );
-	char *pDst = pOuter->AddTempString(pSrc);
+	char *pSrc = pShell->GetToken( delim, skipLeadingDelims != 0);
+    char *pDst = pOuter->AddTempString(pSrc);
     SPUSH( (cell) pDst );
 }
 
@@ -5644,6 +5876,7 @@ FORTHOP(strWordEscapedOp)
     Engine* pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell* pShell = pEngine->GetShell();
+    cell skipLeadingDelims = SPOP;
     char delim = (char)(SPOP);
     // leave an unused byte below string so string len can be stuck there in ANSI compatability mode
     char* pSrc = pShell->GetToken2012(delim);
@@ -5658,7 +5891,7 @@ FORTHOP(parseNameOp)
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell* pShell = pEngine->GetShell();
     // leave an unused byte below string so string len can be stuck there in ANSI compatability mode
-    char* pSrc = pShell->GetToken(-1, true);
+    char* pSrc = pShell->GetToken(' ', true);
     char* pDst = pOuter->AddTempString(pSrc);
     cell len = (cell)(pDst[-1]);
     SPUSH((cell)pDst);
@@ -8753,12 +8986,6 @@ FORTHOP(rpushBop)
     RPUSH( SPOP );
 }
 
-FORTHOP(rpopBop)
-{
-    RNEEDS(1);
-    SPUSH( RPOP );
-}
-
 FORTHOP(rpeekBop)
 {
     SPUSH( *(GET_RP) );
@@ -9371,6 +9598,33 @@ FORTHOP(moveBop)
 }
 
 #endif
+
+FORTHOP(nToROp)
+{
+    ucell n = SPOP;
+    for (ucell i = 0; i < n; i++)
+    {
+        RPUSH(SPOP);
+    }
+    RPUSH(n);
+}
+
+FORTHOP(nRFromOp)
+{
+    ucell n = RPOP;
+
+    for (ucell i = 0; i < n; i++)
+    {
+        SPUSH(RPOP);
+    }
+    SPUSH(n);
+}
+
+FORTHOP(rpopBop)
+{
+    RNEEDS(1);
+    SPUSH(RPOP);
+}
 
 FORTHOP(cmoveOp)
 {
@@ -10754,6 +11008,8 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(    ndupBop,                 "ndup" ),
     NATIVE_DEF(    npickBop,                "npick" ),
 #endif
+    OP_DEF(        nToROp,                  "n>r" ),
+    OP_DEF(        nRFromOp,                "nr>" ),
 
     ///////////////////////////////////////////
     //  memory store/fetch
@@ -11012,6 +11268,9 @@ baseDictionaryEntry baseDictionary[] =
     PRECOP_DEF(ofifOp,                 "ofif" ),
     PRECOP_DEF(endofOp,                "endof" ),
     PRECOP_DEF(endcaseOp,              "endcase" ),
+    PRECOP_DEF(aheadOp,                "ahead" ),
+    OP_DEF(    csPickOp,               "cs-pick" ),
+    OP_DEF(    csRollOp,               "cs-roll" ),
     PRECOP_DEF(labelOp,                "label" ),
     PRECOP_DEF(gotoOp,                 "goto" ),
     PRECOP_DEF(gotoIfOp,               "gotoIf" ),
@@ -11027,7 +11286,7 @@ baseDictionaryEntry baseDictionary[] =
     ///////////////////////////////////////////
     //  op definition
     ///////////////////////////////////////////
-    OP_DEF(    buildsOp,               "builds" ),
+    OP_DEF(    createOp,               "create" ),
     PRECOP_DEF(doesOp,                 "does" ),
     PRECOP_DEF(exitOp,                 "exit" ),
     PRECOP_DEF(semiOp,                 ";" ),
@@ -11039,7 +11298,6 @@ baseDictionaryEntry baseDictionary[] =
 	PRECOP_DEF(endfuncOp,               ";f" ),
     PRECOP_DEF(recurseOp,              "recurse"),
     OP_DEF(    codeOp,                 "code" ),
-    OP_DEF(    createOp,               "create" ),
     OP_DEF(    variableOp,             "variable" ),
     OP_DEF(    iConstantOp,            "iconstant" ),
     OP_DEF(    lConstantOp,            "lconstant" ),
@@ -11103,6 +11361,7 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    includeFileOp,          "include-file" ),
     OP_DEF(    loadDoneOp,             "loaddone" ),
     OP_DEF(    requiresOp,             "requires" ),
+    OP_DEF(    requiredOp,             "required" ),
     OP_DEF(    evaluateOp,             "evaluate" ),
     OP_DEF(    strEvaluateOp,          "$evaluate" ),
     PRECOP_DEF(stateInterpretOp,       "[" ),
@@ -11118,6 +11377,7 @@ baseDictionaryEntry baseDictionary[] =
     ///////////////////////////////////////////
     OP_DEF(    literalsVocabOp,        "literals" ),
     OP_DEF(    strForgetOp,            "$forget" ),
+    OP_DEF(    forgetOpOp,             "forgetOp" ),
     OP_DEF(    strFindOp,              "$find" ),
 
     ///////////////////////////////////////////
@@ -11213,10 +11473,10 @@ baseDictionaryEntry baseDictionary[] =
     //  input buffer
     ///////////////////////////////////////////
     OP_DEF(    blwordOp,               "blword" ),
-    OP_DEF(    strWordOp,              "$word" ),
+    OP_DEF(    getTokenOp,             "$getToken" ),
     OP_DEF(    strWordEscapedOp,       "$wordEscaped" ),
-    OP_DEF(    parseNameOp,             "parse-name" ),
-    OP_DEF(    processEscapeCharsOp,    "processEscapeChars"),
+    OP_DEF(    parseNameOp,            "parse-name" ),
+    OP_DEF(    processEscapeCharsOp,   "processEscapeChars"),
     PRECOP_DEF(parenCommentOp,         "(" ),
     PRECOP_DEF(slashCommentOp,         "\\" ),
     OP_DEF(    sourceOp,               "source" ),
@@ -11387,13 +11647,15 @@ baseDictionaryEntry baseDictionary[] =
 
     OP_DEF( pathSeparatorOp,            "PATH_SEPARATOR"),
 
-    OP_DEF(nullptr, "")
+    OP_DEF(nullptr, nullptr)
 };
 
 baseMethodEntry opsWhichReturnObjects[] =
 {
     OP_DEF_RETURNS(thisThreadOp,        "thisThread",   kBCIThread),
-    OP_DEF_RETURNS(thisFiberOp,         "thisFiber",    kBCIFiber)
+    OP_DEF_RETURNS(thisFiberOp,         "thisFiber",    kBCIFiber),
+
+    OP_DEF_RETURNS(nullptr, nullptr, kBCIObject)
 };
 
 baseDictionaryEntry rootDictionary[] =
@@ -11413,7 +11675,7 @@ baseDictionaryEntry rootDictionary[] =
     OP_DEF(searchWordlistOp,       "search-wordlist"),
     OP_DEF(setOrderOp,             "set-order"),
     OP_DEF(wordlistOp,             "wordlist"),
-    OP_DEF(nullptr, "")
+    OP_DEF(nullptr, nullptr)
 };
 
 //############################################################################
@@ -11442,7 +11704,10 @@ void AddForthOps( Engine* pEngine )
     for (baseMethodEntry& objEntry : opsWhichReturnObjects)
     {
         forthop* pEntry = pOuter->AddBuiltinOp(objEntry.name, kOpCCode, objEntry.value);
-        pEntry[1] = OBJECT_TYPE_TO_CODE(0, objEntry.returnType);
+        if (pEntry != nullptr)
+        {
+            pEntry[1] = OBJECT_TYPE_TO_CODE(0, objEntry.returnType);
+        }
     }
 
 }

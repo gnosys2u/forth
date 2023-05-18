@@ -139,6 +139,7 @@ public:
     OuterInterpreter(Engine* pEngine);
     virtual         ~OuterInterpreter();
     void            Initialize();
+    void            InitializeVocabulariesAndClasses();
 
     void            Reset( void );
 
@@ -288,6 +289,8 @@ public:
     forthop                 GetNewestDefinedOp() const;
     void                    SetNewestDefinedOp(forthop op);
 
+    const char*             GetErrorString(ForthError errorNum) const;
+
 private:
 
     Engine* mpEngine;
@@ -299,7 +302,9 @@ private:
 
     Vocabulary * mpForthVocab;              // main forth vocabulary
     Vocabulary* mpRootVocab;                // root vocabulary
-    Vocabulary * mpLiteralsVocab;           // user-defined literals vocabulary
+    Vocabulary* mpLiteralsVocab;            // user-defined literals vocabulary
+    Vocabulary* mpErrorsVocab;              // errors vocabulary
+    Vocabulary* mpOptypesVocab;             // op types vocabulary
     LocalVocabulary * mpLocalVocab;         // local variable vocabulary
     UsingVocabulary* mpUsingVocab;          // vocab for 'using:' feature
 
@@ -337,6 +342,8 @@ private:
     cell            mNextEnum;
 
 	std::vector<Label> mLabels;
+
+    std::map<ForthError, const char*> mErrorMap;
 
 public:
     void                    PushContinuationAddress(forthop* pOP);

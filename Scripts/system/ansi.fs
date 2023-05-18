@@ -3,7 +3,6 @@
 
 requires assembler
 requires forth_internals
-requires forth_optype
 requires extops
 requires double
 requires compatability

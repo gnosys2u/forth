@@ -112,6 +112,140 @@ void TokenStack::Clear()
 	mpCurrent = mpLimit;
 }
 
+///////////////////////////////////////////////////////////////////////
+//
+// errors must be kept in sync with ForthError enum in forth.h
+//
+struct errorEntry {
+    ForthError code;
+    const char* symbol;
+    const char* text;
+};
+
+static const struct errorEntry errorList[] = {
+    // ANSI defined errors
+    { ForthError::none, "none", "none" },
+    { ForthError::abort, "abort", "abort" },
+    { ForthError::abortQuote, "abortQuote", "abort\"" },
+    { ForthError::stackOverflow, "stackOverflow", "parameter stack overflow" },
+    { ForthError::stackUnderflow, "stackUnderflow", "parameter stack underflow" },
+    { ForthError::returnStackOverflow, "returnStackOverflow", "return stack overflow" },
+    { ForthError::returnStackUnderflow, "returnStackUnderflow", "return stack underflow" },
+    { ForthError::doLoopNestTooDeep, "doLoopNestTooDeep", "do loop nested too deep" },
+    { ForthError::dictionaryOverflow, "dictionaryOverflow", "dictionary overflow" },
+    { ForthError::invalidMemoryAddress, "invalidMemoryAddress", "invalid memory address" },
+    { ForthError::divideByZero, "divideByZero", "divide by zero" },
+    { ForthError::resultOutOfRange, "resultOutOfRange", "result out of range" },
+    { ForthError::argumentTypeMismatch, "argumentTypeMismatch", "argument type mismatch" },
+    { ForthError::undefinedWord, "undefinedWord", "undefined word" },
+    { ForthError::interpretingCompileOnlyWord, "interpretingCompileOnlyWord", "interpreting compile-only word" },
+    { ForthError::invalidForget, "invalidForget", "invalid forget" },
+    { ForthError::zeroLengthName, "zeroLengthName", "zero length name" },
+    { ForthError::picturedOutputStringOverflow, "picturedOutputStringOverflow", "picturedOutputStringOverflow" },
+    { ForthError::parsedStringOverflow, "parsedStringOverflow", "parsedStringOverflow" },
+    { ForthError::definitionNameTooLong, "definitionNameTooLong", "definitionNameTooLong" },
+    { ForthError::writeToAReadOnlyLocation, "writeToAReadOnlyLocation", "writeToAReadOnlyLocation" },
+    { ForthError::unsupportedOperation, "unsupportedOperation", "unsupported operation" },
+    { ForthError::controlStructureMismatch, "controlStructureMismatch", "control structure mismatch" },
+    { ForthError::addressAlignmentException, "addressAlignmentException", "address alignment exception" },
+    { ForthError::invalidNumericArgument, "invalidNumericArgument", "invalid numeric argument" },
+    { ForthError::returnStackImbalance, "returnStackImbalance", "return stack imbalance" },
+    { ForthError::loopParametersUnavailable, "loopParametersUnavailable", "loop parameters unavailable" },
+    { ForthError::invalidRecursion, "invalidRecursion", "invalid recursion" },
+    { ForthError::userInterrupt, "userInterrupt", "user interrupt" },
+    { ForthError::compilerNesting, "compilerNesting", "compiler nesting" },
+    { ForthError::obsolescentFeature, "obsolescentFeature", "obsolescent feature" },
+    { ForthError::invalidToBody, "invalidToBody", "invalidToBody" },
+    { ForthError::invalidNameArgument, "invalidNameArgument", "invalidNameArgument" },
+    { ForthError::blockReadException, "blockReadException", "blockReadException" },
+    { ForthError::blockWriteException, "blockWriteException", "blockWriteException" },
+    { ForthError::invalidBlockNumber, "invalidBlockNumber", "invalidBlockNumber" },
+    { ForthError::invalidFilePosition, "invalidFilePosition", "invalidFilePosition" },
+    { ForthError::fileIOException, "fileIOException", "fileIOException" },
+    { ForthError::nonExistentFile, "nonExistentFile", "nonExistentFile" },
+    { ForthError::unexpectedEndOfFile, "unexpectedEndOfFile", "unexpectedEndOfFile" },
+    { ForthError::invalidBaseForFloatingPointConversion, "invalidBaseForFloatingPointConversion", "invalidBaseForFloatingPointConversion" },
+    { ForthError::lossOfPrecision, "lossOfPrecision", "lossOfPrecision" },
+    { ForthError::fpDivideByZero, "fpDivideByZero", "fpDivideByZero" },
+    { ForthError::fpResultOutOfRange, "fpResultOutOfRange", "fpResultOutOfRange" },
+    { ForthError::fpStackOverflow, "fpStackOverflow", "fpStackOverflow" },
+    { ForthError::fpStackUnderflow, "fpStackUnderflow", "fpStackUnderflow" },
+    { ForthError::fpInvalidArgument, "fpInvalidArgument", "fpInvalidArgument" },
+    { ForthError::compilationWordListDeleted, "compilationWordListDeleted", "compilationWordListDeleted" },
+    { ForthError::invalidPostpone, "invalidPostpone", "invalidPostpone" },
+    { ForthError::searchOrderOverflow, "searchOrderOverflow", "searchOrderOverflow" },
+    { ForthError::searchOrderUnderflow, "searchOrderUnderflow", "searchOrderUnderflow" },
+    { ForthError::compilationWordListChanged, "compilationWordListChanged", "compilationWordListChanged" },
+    { ForthError::controlFlowStackOverflow, "controlFlowStackOverflow", "controlFlowStackOverflow" },
+    { ForthError::exceptionStackOverflow, "exceptionStackOverflow", "exceptionStackOverflow" },
+    { ForthError::fpUnderflow, "fpUnderflow", "fpUnderflow" },
+    { ForthError::fpUnidentifiedFault, "fpUnidentifiedFault", "fpUnidentifiedFault" },
+    { ForthError::quit, "quit", "quit" },
+    { ForthError::sendingOrReceivingCharacter, "sendingOrReceivingCharacter", "sending or receiving character" },
+    { ForthError::preprocessorError, "preprocessorError", "[if], [else] or [then] exception" },
+    { ForthError::allocate, "allocate", "allocate" },
+    { ForthError::free, "free", "free" },
+    { ForthError::resize, "resize", "resize" },
+    { ForthError::closeFile, "closeFile", "closeFile" },
+    { ForthError::createFile, "createFile", "createFile" },
+    { ForthError::deleteFile, "deleteFile", "deleteFile" },
+    { ForthError::filePosition, "filePosition", "filePosition" },
+    { ForthError::fileSize, "fileSize", "fileSize" },
+    { ForthError::fileStatus, "fileStatus", "fileStatus" },
+    { ForthError::flushFile, "flushFile", "flushFile" },
+    { ForthError::openFile, "openFile", "openFile" },
+    { ForthError::readFile, "readFile", "readFile" },
+    { ForthError::readLine, "readLine", "readLine" },
+    { ForthError::renameFile, "renameFile", "renameFile" },
+    { ForthError::repositionFile, "repositionFile", "repositionFile" },
+    { ForthError::resizeFile, "resizeFile", "resizeFile" },
+    { ForthError::writeFile, "writeFile", "writeFile" },
+    { ForthError::writeLine, "writeLine", "writeLine" },
+    { ForthError::malformedXChar, "malformedXChar", "malformed XChar" },
+    { ForthError::substitute, "substitute", "substitute" },
+    { ForthError::replaces, "replaces", "replaces" },
+    { ForthError::invalidParameter, "invalidParameter", "invalid parameter" },
+    { ForthError::illegalOperation, "illegalOperation", "illegal operation" },
+    { ForthError::badReferenceCount, "badReferenceCount", "bad reference count" },
+    { ForthError::invalidType, "invalidType", "invalid type" },
+    { ForthError::badArrayIndex, "badArrayIndex", "bad array index" },
+    { ForthError::badVarOperation, "badVarOperation", "bad variable operation" },
+    { ForthError::exceptionInFinally, "exceptionInFinally", "exception in ]finally[ section" },
+    { ForthError::badSyntax, "badSyntax", "bad syntax" },
+    { ForthError::unimplementedMethod, "unimplementedMethod", "unimplemented method" },
+    { ForthError::badOpcode, "badOpcode", "bad opcode" },
+    { ForthError::badOpcodeType, "badOpcodeType", "bad opcode type" },
+    { ForthError::missingSize, "missingSize", "missing size" },
+    { ForthError::genericUserError, "genericUserError", "genericUserError" },
+    { ForthError::badBlockNumber, "badBlockNumber", "bad block number" },
+    { ForthError::unknownType, "unknownType", "unknown type" },
+    { ForthError::brokenObject, "brokenObject", "broken object" },
+    { ForthError::controlStackUnderflow, "controlStackUnderflow", "control stack underflow" },
+    { ForthError::controlStackIndexRange, "controlStackIndexRange", "control stack index out of range" },
+    { ForthError::structError, "structError", "struct error" },
+    { ForthError::illegalMethod, "illegalMethod", "illegal method" },
+    { ForthError::stringOverflow, "stringOverflow", "string overflow" },
+    { ForthError::badObject, "badObject", "bad object" },
+    { ForthError::missingExceptionHandler, "missingExceptionHandler", "missing exception handler" },
+    { ForthError::invalidWordlist, "invalidWordlist", "invalid wordlist" },
+};
+
+FORTHOP(getErrorTextOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    ForthError errorNum = (ForthError)(SPOP);
+    const char* pText = pOuter->GetErrorString(errorNum);
+    SPUSH((cell)pText);
+}
+
+FORTHOP(getOptypeNameOp)
+{
+    uint32_t opType = (uint32_t)(SPOP);
+    const char* pText = GET_ENGINE->GetOpTypeName(opType);
+    SPUSH((cell)pText);
+}
+
 //////////////////////////////////////////////////////////////////////
 ////
 ///
@@ -163,8 +297,10 @@ OuterInterpreter::OuterInterpreter(Engine* pEngine)
     }
 
     mpForthVocab = new Vocabulary("forth", NUM_FORTH_VOCAB_VALUE_LONGS);
-    mpRootVocab = new Vocabulary("root", NUM_FORTH_VOCAB_VALUE_LONGS);
+    mpRootVocab = new Vocabulary("_root", NUM_FORTH_VOCAB_VALUE_LONGS);
     mpLiteralsVocab = new Vocabulary("literals", NUM_FORTH_VOCAB_VALUE_LONGS);
+    mpErrorsVocab = new Vocabulary("errors", NUM_FORTH_VOCAB_VALUE_LONGS);
+    mpOptypesVocab = new Vocabulary("optypes", NUM_FORTH_VOCAB_VALUE_LONGS);
     mpLocalVocab = new LocalVocabulary(NUM_LOCALS_VOCAB_VALUE_LONGS);
     mpUsingVocab = new UsingVocabulary();
 
@@ -182,11 +318,42 @@ void OuterInterpreter::Initialize()
     mpVocabStack->Clear(mpForthVocab);
 }
 
+void OuterInterpreter::InitializeVocabulariesAndClasses()
+{
+    for (struct errorEntry err : errorList)
+    {
+        mErrorMap[err.code] = err.text;
+        forthop errorOp = COMPILED_OP(kOpConstant, (forthop)err.code);
+        mpErrorsVocab->AddSymbol(err.symbol, errorOp);
+    }
+    mpDefinitionVocab = mpErrorsVocab;
+    AddBuiltinOp("getText", kOpCCode, getErrorTextOp);
+
+    const char* unknownTypeName = mpEngine->GetOpTypeName(256);
+    for (int32_t i = 0; i < 256; ++i)
+    {
+        const char* typeName = mpEngine->GetOpTypeName(i);
+        if (typeName != nullptr && strcmp(typeName, unknownTypeName) != 0)
+        {
+            forthop typeOp = COMPILED_OP(kOpConstant, (forthop)i);
+            mpOptypesVocab->AddSymbol(typeName, typeOp);
+        }
+    }
+    mpDefinitionVocab = mpOptypesVocab;
+    AddBuiltinOp("getName", kOpCCode, getOptypeNameOp);
+
+    mpDefinitionVocab = mpForthVocab;
+
+    AddBuiltinClasses();
+}
+
 OuterInterpreter::~OuterInterpreter()
 {
     delete mpForthVocab;
     delete mpRootVocab;
     delete mpLiteralsVocab;
+    delete mpErrorsVocab;
+    delete mpOptypesVocab;
     delete mpLocalVocab;
     delete mpUsingVocab;
     delete mpOpcodeCompiler;
@@ -301,6 +468,10 @@ void OuterInterpreter::AddBuiltinClasses()
 
 forthop* OuterInterpreter::AddBuiltinOp(const char* name, uint32_t flags, void* value)
 {
+    if (name == nullptr)
+    {
+        return nullptr;
+    }
     forthop newestOp = AddOp(value);
     newestOp = COMPILED_OP(flags, newestOp);
     // AddSymbol will call OuterInterpreter::AddOp to add the operators to op table
@@ -521,6 +692,8 @@ void OuterInterpreter::ForgetOp(forthop opNumber, bool quietMode )
         CleanupGlobalObjectVariables(pNewDP);
         mpDictionary->pCurrent = pNewDP;
         mpCore->numOps = opNumber;
+        mpShell->OnForget();
+        Forgettable::ForgetPropagate(mpDictionary->pCurrent, opNumber);
     }
     else
     {
@@ -588,6 +761,7 @@ bool OuterInterpreter::ForgetSymbol( const char *pSym, bool quietMode )
     {
         SNPRINTF( buff, sizeof(buff), "Error - attempt to forget unknown op %s from %s\n", pSym, GetSearchVocabulary()->GetName() );
     }
+
     if ( buff[0] != '\0' )
     {
         if ( !quietMode )
@@ -1596,6 +1770,12 @@ void OuterInterpreter::AddBreakBranch(forthop* pAddr, cell opType)
 
 void OuterInterpreter::StartLoopContinuations()
 {
+    if (CheckFeature(kFFAnsiControlOps))
+    {
+        // no loop continuations (continue/break) in ANSI mode
+        return;
+    }
+
     PushContinuationAddress(mContinueDestination);
     PushContinuationType(mContinueCount);
     mContinueDestination = nullptr;
@@ -1604,6 +1784,12 @@ void OuterInterpreter::StartLoopContinuations()
 
 void OuterInterpreter::EndLoopContinuations(ucell controlFlowType)  // actually takes a ControlStackTag
 {
+    if (CheckFeature(kFFAnsiControlOps))
+    {
+        // no loop continuations (continue/break) in ANSI mode
+        return;
+    }
+
     // fixup pending continue branches for current loop
     if (mContinueCount > 0)
     {
@@ -2164,7 +2350,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
                 if (mCompileState)
                 {
                     // compile NumOpCombo, op is setVarop, num is varop
-                    uint32_t opVal = (OP_SETVAROP << 13) | ((uint32_t)varop);
+                    uint32_t opVal = ((gCompiledOps[OP_SETVAROP] & 0xFFFFFF) << 13) | ((uint32_t)varop);
                     CompileOpcode(kOpNOCombo, opVal);
                 }
                 else
@@ -2195,5 +2381,15 @@ forthop OuterInterpreter::GetNewestDefinedOp() const
 void OuterInterpreter::SetNewestDefinedOp(forthop op)
 {
     mNewestDefinedOp = op;
+}
+
+const char* OuterInterpreter::GetErrorString(ForthError errorNum) const
+{
+    std::map<ForthError, const char*>::const_iterator iter = mErrorMap.find(errorNum);
+    if (iter != mErrorMap.end())
+    {
+        return iter->second;
+    }
+    return "Unknown Error";
 }
 

@@ -22,7 +22,7 @@ mko IntArray v
   loop
 ;
 
-int _time
+ucell _time
 : startTime
   ms@ _time!
 ;

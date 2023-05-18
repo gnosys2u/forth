@@ -35,7 +35,8 @@ enum ControlStackTag
     kCSTagDefEnum       = 0x00800000,
     kCSTagDefFunction   = 0x01000000,
     kCSTagDefMethod     = 0x02000000,
-    kCSTagLastTag = kCSTagDefMethod  // update this when you add a new tag
+    kCSTagAhead         = 0x04000000,
+    kCSTagLastTag = kCSTagAhead  // update this when you add a new tag
    // if you add tags, remember to update TagStrings in Shell.cpp
 };
 
@@ -53,7 +54,7 @@ public:
    ControlStack( int stackEntries = 256 );
    virtual ~ControlStack();
 
-   ControlStackEntry* Peek(int index = 0);
+   ControlStackEntry* Peek(ucell index = 0);
    void Drop();
    void Push(ControlStackTag tag, void* address = nullptr, const char* name = nullptr, ucell op = 0);
    inline ucell        GetSize(void)         { return mCSLen; };

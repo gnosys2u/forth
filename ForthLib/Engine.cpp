@@ -159,7 +159,7 @@ Engine* Engine::mpInstance = nullptr;
 
 static const char *opTypeNames[] =
 {
-    "Native", "NativeImmediate", "UserDefined", "UserDefinedImmediate", "CCode", "CCodeImmediate", "RelativeDef", "RelativeDefImmediate", "DLLEntryPoint", 0,
+    "Native", "NativeImmediate", "UserDef", "UserDefImmediate", "CCode", "CCodeImmediate", "RelativeDef", "RelativeDefImmediate", "DLLEntryPoint", 0,
     "Branch", "BranchTrue", "BranchFalse", "CaseBranchT", "CaseBranchF", "PushBranch", "RelativeDefBranch", "RelativeData", "RelativeString", 0,
 	"Constant", "ConstantString", "Offset", "ArrayOffset", "AllocLocals", "LocalRef", "LocalStringInit", "LocalStructArray", "OffsetFetch", "MemberRef",
     "LocalByte", "LocalUByte", "LocalShort", "LocalUShort", "LocalInt", "LocalUInt", "LocalLong", "LocalULong", "LocalFloat", "LocalDouble",
@@ -178,123 +178,6 @@ static const char *opTypeNames[] =
     "MethodWithLocalObject", "MethodWithMemberObject"
 };
 
-
-///////////////////////////////////////////////////////////////////////
-//
-// errors must be kept in sync with ForthError enum in forth.h
-//
-struct errorEntry {
-    ForthError code;
-    const char* text;
-};
-
-static const struct errorEntry errors[] = {
-    // ANSI defined errors
-    { ForthError::none, "none" },
-    { ForthError::abort, "abort" },
-    { ForthError::abortQuote, "abort\"" },
-    { ForthError::stackOverflow, "parameter stack overflow" },
-    { ForthError::stackUnderflow, "parameter stack underflow" },
-    { ForthError::returnStackOverflow, "return stack overflow" },
-    { ForthError::returnStackUnderflow, "return stack underflow" },
-    { ForthError::doLoopNestTooDeep, "do loop nested too deep" },
-    { ForthError::dictionaryOverflow, "dictionary overflow" },
-    { ForthError::invalidMemoryAddress, "invalid memory address" },
-    { ForthError::divideByZero, "divide by zero" },
-    { ForthError::resultOutOfRange, "result out of range" },
-    { ForthError::argumentTypeMismatch, "argument type mismatch" },
-    { ForthError::undefinedWord, "undefined word" },
-    { ForthError::interpretingCompileOnlyWord, "interpreting compile-only word" },
-    { ForthError::invalidForget, "invalid forget" },
-    { ForthError::zeroLengthName, "zero length name" },
-    { ForthError::picturedOutputStringOverflow, "picturedOutputStringOverflow" },
-    { ForthError::parsedStringOverflow, "parsedStringOverflow" },
-    { ForthError::definitionNameTooLong, "definitionNameTooLong" },
-    { ForthError::writeToAReadOnlyLocation, "writeToAReadOnlyLocation" },
-    { ForthError::unsupportedOperation, "unsupported operation" },
-    { ForthError::controlStructureMismatch, "control structure mismatch" },
-    { ForthError::addressAlignmentException, "address alignment exception" },
-    { ForthError::invalidNumericArgument, "invalid numeric argument" },
-    { ForthError::returnStackImbalance, "return stack imbalance" },
-    { ForthError::loopParametersUnavailable, "loop parameters unavailable" },
-    { ForthError::invalidRecursion, "invalid recursion" },
-    { ForthError::userInterrupt, "user interrupt" },
-    { ForthError::compilerNesting, "compiler nesting" },
-    { ForthError::obsolescentFeature, "obsolescent feature" },
-    { ForthError::invalidToBody, "invalidToBody" },
-    { ForthError::invalidNameArgument, "invalidNameArgument" },
-    { ForthError::blockReadException, "blockReadException" },
-    { ForthError::blockWriteException, "blockWriteException" },
-    { ForthError::invalidBlockNumber, "invalidBlockNumber" },
-    { ForthError::invalidFilePosition, "invalidFilePosition" },
-    { ForthError::fileIOException, "fileIOException" },
-    { ForthError::nonExistentFile, "nonExistentFile" },
-    { ForthError::unexpectedEndOfFile, "unexpectedEndOfFile" },
-    { ForthError::invalidBaseForFloatingPointConversion, "invalidBaseForFloatingPointConversion" },
-    { ForthError::lossOfPrecision, "lossOfPrecision" },
-    { ForthError::fpDivideByZero, "fpDivideByZero" },
-    { ForthError::fpResultOutOfRange, "fpResultOutOfRange" },
-    { ForthError::fpStackOverflow, "fpStackOverflow" },
-    { ForthError::fpStackUnderflow, "fpStackUnderflow" },
-    { ForthError::fpInvalidArgument, "fpInvalidArgument" },
-    { ForthError::compilationWordListDeleted, "compilationWordListDeleted" },
-    { ForthError::invalidPostpone, "invalidPostpone" },
-    { ForthError::searchOrderOverflow, "searchOrderOverflow" },
-    { ForthError::searchOrderUnderflow, "searchOrderUnderflow" },
-    { ForthError::compilationWordListChanged, "compilationWordListChanged" },
-    { ForthError::controlFlowStackOverflow, "controlFlowStackOverflow" },
-    { ForthError::exceptionStackOverflow, "exceptionStackOverflow" },
-    { ForthError::fpUnderflow, "fpUnderflow" },
-    { ForthError::fpUnidentifiedFault, "fpUnidentifiedFault" },
-    { ForthError::quit, "quit" },
-    { ForthError::sendingOrReceivingCharacter, "sending or receiving character" },
-    { ForthError::preprocessorError, "[if], [else] or [then] exception" },
-    { ForthError::allocate, "allocate" },
-    { ForthError::free, "free" },
-    { ForthError::resize, "resize" },
-    { ForthError::closeFile, "closeFile" },
-    { ForthError::createFile, "createFile" },
-    { ForthError::deleteFile, "deleteFile" },
-    { ForthError::filePosition, "filePosition" },
-    { ForthError::fileSize, "fileSize" },
-    { ForthError::fileStatus, "fileStatus" },
-    { ForthError::flushFile, "flushFile" },
-    { ForthError::openFile, "openFile" },
-    { ForthError::readFile, "readFile" },
-    { ForthError::readLine, "readLine" },
-    { ForthError::renameFile, "renameFile" },
-    { ForthError::repositionFile, "repositionFile" },
-    { ForthError::resizeFile, "resizeFile" },
-    { ForthError::writeFile, "writeFile" },
-    { ForthError::writeLine, "writeLine" },
-    { ForthError::malformedXChar, "malformed XChar" },
-    { ForthError::substitute, "substitute" },
-    { ForthError::replaces, "replaces" },
-    // our defined errors
-    { ForthError::invalidParameter, "invalid parameter" },
-    { ForthError::illegalOperation, "illegal operation" },
-    { ForthError::badReferenceCount, "bad reference count" },
-    { ForthError::invalidType, "invalid type" },
-    { ForthError::badArrayIndex, "bad array index" },
-    { ForthError::badVarOperation, "bad variable operation" },
-    { ForthError::exceptionInFinally, "exception in ]finally[ section" },
-    { ForthError::badSyntax, "bad syntax" },
-    { ForthError::unimplementedMethod, "unimplemented method" },
-    { ForthError::badOpcode, "bad opcode" },
-    { ForthError::badOpcodeType, "bad opcode type" },
-    { ForthError::missingSize, "missing size" },
-    { ForthError::genericUserError, "genericUserError" },
-    { ForthError::badBlockNumber, "bad block number" },
-    { ForthError::unknownType, "unknown type" },
-    { ForthError::brokenObject, "broken object" },
-    { ForthError::controlStackUnderflow, "shell stack underflow" },
-    { ForthError::controlStackOverflow, "shell stack overflow" },
-    { ForthError::structError, "struct error" },
-    { ForthError::illegalMethod, "illegal method" },
-    { ForthError::stringOverflow, "string overflow" },
-    { ForthError::badObject, "bad object" },
-    { ForthError::missingExceptionHandler, "missing exception handler"},
-};
 
 //////////////////////////////////////////////////////////////////////
 ////
@@ -335,11 +218,6 @@ Engine::Engine()
 #else
     ftime( &mStartTime );
 #endif
-    for (struct errorEntry err : errors)
-    {
-        mErrorMap[err.code] = err.text;
-    }
-
 	mDictionary.pBase = nullptr;
 
     ResetExecutionProfile();
@@ -476,7 +354,7 @@ void Engine::Initialize(
     if ( bAddBaseOps )
     {
 		AddForthOps( this );
-        mpOuter->AddBuiltinClasses();
+        mpOuter->InitializeVocabulariesAndClasses();
     }
 
 	// the primary thread objects can't be inited until builtin classes are initialized
@@ -668,10 +546,21 @@ Engine::PopInputStream( void )
 }
 
 // TODO: tracing of built-in ops won't work for user-added builtins...
-const char *
-Engine::GetOpTypeName( int32_t opType )
+const char * Engine::GetOpTypeName( int32_t opType ) const
 {
-    return (opType <= kOpLastBaseDefined) ? opTypeNames[opType] : "unknown";
+    const char* result = nullptr;
+
+    if (opType < (sizeof(opTypeNames) / sizeof(char*)))
+    {
+        result = opTypeNames[opType];
+    }
+
+    if (result == nullptr)
+    {
+        result = "Unknown";
+    }
+
+    return result;
 }
 
 static bool lookupUserTraces = true;
@@ -960,6 +849,7 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
             case kOpLocalString:        case kOpLocalStringArray:
             case kOpLocalOp:            case kOpLocalOpArray:
             case kOpLocalLong:          case kOpLocalLongArray:
+            case kOpLocalULong:         case kOpLocalULongArray:
             case kOpLocalObject:        case kOpLocalObjectArray:
             case kOpLocalUByte:         case kOpLocalUByteArray:
             case kOpLocalUShort:        case kOpLocalUShortArray:
@@ -1629,26 +1519,26 @@ void Engine::SetFatalError( ForthError e, const char *pString )
     }
 }
 
-void Engine::GetErrorString(ForthError errorNum, char *pBuffer, int bufferSize )
+
+void Engine::GetErrorString(ForthError errorNum, char* pBuffer, int bufferSize)
 {
-    std::map<ForthError, const char*>::const_iterator iter = mErrorMap.find(mpCore->error);
-    if (iter != mErrorMap.end())
+    const char* pErrorText = mpOuter->GetErrorString(errorNum);
+    if (pErrorText != nullptr)
     {
-        if ( mpErrorString[0] != '\0' )
+        if (mpErrorString[0] != '\0')
         {
-            sprintf( pBuffer, "%s: %s", iter->second, mpErrorString );
+            sprintf(pBuffer, "%s: %s", pErrorText, mpErrorString);
         }
         else
         {
-            strcpy( pBuffer, iter->second );
+            strcpy(pBuffer, pErrorText);
         }
     }
     else
     {
-        sprintf( pBuffer, "Unknown Error %d", errorNum );
+        sprintf(pBuffer, "Unknown Error %d", errorNum);
     }
 }
-
 
 OpResult Engine::CheckStacks( void )
 {
@@ -2060,6 +1950,29 @@ void Engine::Interrupt()
     Fiber* mainFiber = mpMainThread->GetFiber(0);
     mainFiber->GetCore()->state = OpResult::kInterrupted;
     mainFiber->SetRunState(FiberState::kStopped);
+}
+
+// can return null if vocabulary not found
+Vocabulary* Engine::GetVocabulary(ucell wordlistId)
+{
+    Vocabulary* result = nullptr;
+    std::map<ucell, Vocabulary*>::const_iterator iter = mWordlistMap.find(wordlistId);
+    if (iter != mWordlistMap.end())
+    {
+        result = iter->second;
+    }
+
+    return result;
+}
+
+void Engine::AddVocabulary(Vocabulary* pVocab)
+{
+    mWordlistMap[pVocab->GetWordlistId()] =  pVocab;
+}
+
+void Engine::RemoveVocabulary(Vocabulary* pVocab)
+{
+    mWordlistMap.erase(pVocab->GetWordlistId());
 }
 
 //############################################################################
