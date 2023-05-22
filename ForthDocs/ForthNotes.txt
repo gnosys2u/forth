@@ -282,6 +282,19 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+May 22 2023
+
+I added support for the ANSI optional string wordlist.
+
+I also added NaN/+Inf/-Inf to Float and SFloat classes, as part of preparation
+for adding the ANSI floating point tests.
+
+Much of my pain recently has been because of the semi-case-insensitivity of
+ANSI Forth.  Should I change my tactics for dealing with this from stomping
+out many small fires to just forcing all upper case in all symbols in vocabularies,
+and anywhere else that crops up?  It would make life somewhat easier, but I
+just can't accept giving in to the forces of stupidity.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 May 17 2023
 
 I added an 'errors' vocabulary with all the predefined error/exception codes in
