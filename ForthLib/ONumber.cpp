@@ -296,19 +296,42 @@ namespace ONumber
 		METHOD_RETURN;
 	}
 
-	baseMethodEntry oFloatMembers[] =
-	{
-		METHOD("__newOp", oFloatNew),
+    static float floatNaN;
+    static float floatPlusInfinity;
+    static float floatMinusInfinity;
+
+    FORTHOP(oFloatNan)
+    {
+        FPUSH(floatNaN);
+    }
+
+    FORTHOP(oFloatPlusInfinity)
+    {
+        FPUSH(floatPlusInfinity);
+    }
+
+    FORTHOP(oFloatMinusInfinity)
+    {
+        FPUSH(floatMinusInfinity);
+    }
+
+    baseMethodEntry oFloatMembers[] =
+    {
+        METHOD("__newOp", oFloatNew),
 
         METHOD("showInner", oFloatShowInnerMethod),
-		METHOD_RET("compare", oFloatCompareMethod, RETURNS_NATIVE(BaseType::kInt)),
+        METHOD_RET("compare", oFloatCompareMethod, RETURNS_NATIVE(BaseType::kInt)),
 
         METHOD_RET("get", oFloatGetMethod, RETURNS_NATIVE(BaseType::kFloat)),
         METHOD("set", oFloatSetMethod),
 
         MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, BaseType::kFloat)),
 
-		// following must be last in table
+        CLASS_OP("NaN", oFloatNan),
+        CLASS_OP("+Inf", oFloatPlusInfinity),
+        CLASS_OP("-Inf", oFloatMinusInfinity),
+
+        // following must be last in table
 		END_MEMBERS
 	};
 
@@ -377,6 +400,26 @@ namespace ONumber
         METHOD_RETURN;
     }
 
+    static double doubleNaN;
+    static double doublePlusInfinity;
+    static double doubleMinusInfinity;
+
+    FORTHOP(oDoubleNan)
+    {
+        DPUSH(doubleNaN);
+    }
+
+    FORTHOP(oDoublePlusInfinity)
+    {
+        DPUSH(doublePlusInfinity);
+    }
+
+    FORTHOP(oDoubleMinusInfinity)
+    {
+        DPUSH(doubleMinusInfinity);
+    }
+
+
     baseMethodEntry oDoubleMembers[] =
 	{
 		METHOD("__newOp", oDoubleNew),
@@ -389,6 +432,10 @@ namespace ONumber
 
         MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, BaseType::kDouble)),
 
+        CLASS_OP("NaN", oDoubleNan),
+        CLASS_OP("+Inf", oDoublePlusInfinity),
+        CLASS_OP("-Inf", oDoubleMinusInfinity),
+
 		// following must be last in table
 		END_MEMBERS
 	};
@@ -396,7 +443,17 @@ namespace ONumber
 
 	void AddClasses(OuterInterpreter* pOuter)
 	{
-		pOuter->AddBuiltinClass("Int", kBCIInt, kBCIObject, oIntMembers);
+        float fzero = 0.0f;
+        floatNaN = 0.0f / fzero;
+        floatPlusInfinity = 1.0f / fzero;
+        floatMinusInfinity = -1.0f / fzero;
+
+        double doubleZero = 0.0;
+        doubleNaN = 0.0 / doubleZero;
+        doublePlusInfinity = 1.0 / doubleZero;
+        doubleMinusInfinity = -1.0 / doubleZero;
+
+        pOuter->AddBuiltinClass("Int", kBCIInt, kBCIObject, oIntMembers);
 		pOuter->AddBuiltinClass("Long", kBCILong, kBCIObject, oLongMembers);
 		pOuter->AddBuiltinClass("SFloat", kBCIFloat, kBCIObject, oFloatMembers);
 		pOuter->AddBuiltinClass("Float", kBCIDouble, kBCIObject, oDoubleMembers);
