@@ -2314,6 +2314,24 @@ FORTHOP(searchWordlistOp)
         std::string symbol;
         symbol.assign(pSymbol, symbolLen);
         forthop* pEntry = pVocab->FindSymbol(symbol.c_str());
+        if ((pEntry == nullptr) && pOuter->CheckFeature(kFFIgnoreCase))
+        {
+            // if symbol wasn't found, convert it to lower case and try again
+            char buffer[128];
+            strncpy(buffer, symbol.c_str(), sizeof(buffer));
+            for (int i = 0; i < sizeof(buffer); i++)
+            {
+                char ch = buffer[i];
+                if (ch == '\0')
+                {
+                    break;
+                }
+                buffer[i] = tolower(ch);
+            }
+            pEntry = pVocab->FindSymbol(buffer);
+        }
+
+
         if (pEntry == nullptr)
         {
             SPUSH(0);
@@ -2363,10 +2381,14 @@ FORTHOP(setOrderOp)
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
 
-    pVocabStack->Clear();
-    ucell numVocabs = SPOP;
-    if (numVocabs > 0)
+    cell numVocabs = SPOP;
+    if (numVocabs == 0)
     {
+        pVocabStack->Clear();
+    }
+    else if (numVocabs > 0)
+    {
+        pVocabStack->Clear();
         ucell ix = 1;
         while (ix <= numVocabs)
         {
@@ -2384,6 +2406,15 @@ FORTHOP(setOrderOp)
         }
         pCore->SP += numVocabs;
     }
+    else if (numVocabs == -1)
+    {
+        onlyOp(pCore);
+    }
+    else
+    {
+        pEngine->RaiseException(pCore, ForthError::invalidWordlist);
+    }
+
 }
 
 FORTHOP(wordlistOp)
