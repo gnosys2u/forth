@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <map>
+#include <algorithm>
 
 #include "Engine.h"
 #include "OuterInterpreter.h"
@@ -884,6 +885,135 @@ namespace OString
 		METHOD_RETURN;
 	}
 
+    //substitute 
+    FORTHOP(oStringSubstituteMethod)
+    {
+        GET_THIS(oStringStruct, pString);
+        ForthObject replaceMap;
+        ForthObject templateString;
+        POP_OBJECT(replaceMap);
+        POP_OBJECT(templateString);
+        oStringMap* pMap = (reinterpret_cast<oStringMapStruct*>(replaceMap))->elements;
+        oString* pTemplate = (reinterpret_cast<oStringStruct*>(templateString))->str;
+        ucell numSubstitutions = 0;
+
+        Engine* pEngine = GET_ENGINE;
+        OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+        bool ignoreCase = pOuter->CheckFeature(kFFIgnoreCase);
+
+        std::string replaceKey;
+        pString->hash = 0;
+
+        int sizeGuess = (pTemplate->curLen * 3) / 2;
+        if (pString->str->maxLen < sizeGuess)
+        {
+            resizeOString(pString, sizeGuess);
+        }
+
+        const char* pSrc = &(pTemplate->data[0]);
+
+        // the template contains 'names' which are surrounded by percent signs
+        // when we find one of these names in a template, use the name as a key
+        // into the replacement map, and copy the replacement value into the destination
+
+        // names which aren't found in the replacement map are copied to destination
+        // including their surrounding percent signs
+
+        // '%%' is used to copy a single percent sign to the destination
+
+        // an unpaired % which is at the end of the string is just copied to the destination
+
+        // template: "65%% of %large% %animal%s are edible 20% of the time"
+        // with replace map: {"animal" : "bird"}
+        // would result in: "65% of %large% birds are edible 20% of the time"
+
+        bool lookingForName = true;
+        int startOfName = -1;
+
+        for (int i = 0; i < pTemplate->curLen; i++)
+        {
+            if (pString->str->curLen == pString->str->maxLen)
+            {
+                resizeOString(pString, pString->str->maxLen + 64);
+            }
+
+            char ch = pSrc[i];
+
+            if (lookingForName)
+            {
+                if (ch == '%')
+                {
+                    lookingForName = false;
+                    startOfName = i;
+                }
+                else
+                {
+                    pString->str->data[pString->str->curLen++] = ch;
+                }
+            }
+            else
+            {
+                // we are scanning for second '%' which ends name
+                if (ch == '%')
+                {
+                    lookingForName = true;
+                    int nameSize = i - (startOfName + 1);
+                    if (nameSize == 0)
+                    {
+                        // this is '%%' case - add a single % to dest
+                        pString->str->data[pString->str->curLen++] = ch;
+                    }
+                    else
+                    {
+                        // lookup name in replace map
+                        const char* pReplaceSrc = nullptr;
+                        int replaceLen = 0;
+                        replaceKey.assign(&(pSrc[startOfName + 1]), nameSize);
+                        if (ignoreCase)
+                        {
+                            std::transform(replaceKey.begin(), replaceKey.end(), replaceKey.begin(),
+                                [](unsigned char c) { return std::tolower(c); });
+                        }
+
+                        oStringMap::iterator iter = pMap->find(replaceKey);
+                        if (iter != pMap->end())
+                        {
+                            ForthObject replaceValue = iter->second;
+                            oString* pReplaceStr = (reinterpret_cast<oStringStruct*>(replaceValue))->str;
+                            pReplaceSrc = &(pReplaceStr->data[0]);
+                            replaceLen = pReplaceStr->curLen;
+                            numSubstitutions++;
+                        }
+                        else
+                        {
+                            // unrecognized name, copy %name% to destination
+                            pReplaceSrc = &(pSrc[startOfName]);
+                            replaceLen = (i - startOfName) + 1;
+                        }
+
+                        appendOString(pString, pReplaceSrc, replaceLen);
+                    }
+                }
+            }
+        }
+
+        if (!lookingForName)
+        {
+            // there was an unpaired percent at end of string, copy that chunk to dest
+            appendOString(pString, &(pSrc[startOfName]), pTemplate->curLen - startOfName);
+        }
+        else
+        {
+            if (pString->str->curLen == pString->str->maxLen)
+            {
+                resizeOString(pString, pString->str->maxLen + 16);
+            }
+            pString->str->data[pString->str->curLen] = '\0';
+        }
+
+        SPUSH(numSubstitutions);
+        METHOD_RETURN;
+    }
 
     baseMethodEntry oStringMembers[] =
     {
@@ -932,7 +1062,8 @@ namespace OString
         METHOD(		"toLower",				oStringToLowerMethod ),
         METHOD(		"toUpper",				oStringToUpperMethod ),
 		METHOD(     "replaceChar",          oStringReplaceCharMethod),
-		
+        METHOD_RET("substitute",            oStringSubstituteMethod, RETURNS_NATIVE(BaseType::kUCell)),
+
         MEMBER_VAR( "__hash",				NATIVE_TYPE_TO_CODE(0, BaseType::kUCell) ),
         MEMBER_VAR( "__str",				NATIVE_TYPE_TO_CODE(kDTIsPtr, BaseType::kUCell) ),
 
@@ -1157,11 +1288,13 @@ namespace OString
 	{
 		GET_THIS(oStringMapStruct, pMap);
         std::string key;
-        key = (const char*)(SPOP);
-        ForthObject newObj;
-        POP_OBJECT(newObj);
+        const char* keyStr = (const char*)(SPOP);
+        key.assign(keyStr);
 
-        setStringMap(pMap, key, newObj, pCore);
+        ForthObject valueObj;
+        POP_OBJECT(valueObj);
+
+        setStringMap(pMap, key, valueObj, pCore);
 
         METHOD_RETURN;
 	}
