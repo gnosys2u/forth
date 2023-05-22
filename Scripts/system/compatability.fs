@@ -135,12 +135,51 @@ cell __sp
 ; precedence s\"
 
 : compare
-  \ caddrA uLenA caddrB uLenB ... -1/0/1
-  rot over cmp ?dup if
-    memcmp
+  \ aStr aLen bStr bLen ... -1/0/1
+  ucell bLen!    ptrTo byte bStr!
+  ucell aLen!    ptrTo byte aStr!
+  cell result
+
+  if(aLen bLen =) andif(memcmp(aStr bStr aLen) 0=)
+    \ If the two strings are identical, n is zero. 
+    result~
   else
-    drop drop drop 0
+    \ If the two strings are identical up to the length of the shorter string,
+    \ n is minus-one (-1) if u1 is less than u2 and one (1) otherwise. 
+    aLen bLen min ucell minLen!
+    if(memcmp(aStr bStr minLen) 0=)
+      if(aLen bLen <)
+        result--
+      else
+        result++
+      endif
+    else
+      \ If the two strings are not identical up to the length of the shorter string,
+      \ n is minus-one (-1) if the first non-matching character in the string specified
+      \ by c-addr1 u1 has a lesser numeric value than the corresponding character in
+      \ the string specified by c-addr2 u2 and one (1) otherwise.
+      ucell ix
+      begin
+      while(ix minLen <)
+        aStr ix@+ ub@ bStr ix@+ ub@ -
+        ?dup if
+          0> break
+        endif
+        ix++
+      repeat
+      
+      if
+        result++
+      else
+        result--
+      endif
+
+    endif
   endif
+  \ dump(aStr aLen)
+  \ dump(bStr bLen)
+  \ "compare: " %s result %d cr
+  result
 ;
 
 \ optional locals word set
@@ -322,16 +361,96 @@ alias at-xy setConsoleCursor
   swap strcpy align
 ;
  
+: unescape
+  \ srcStr srcLen dstStr --- dstStr dstLen
+  ptrTo byte dstStr!
+  ucell srcLen!    ptrTo byte srcStr!
+  dstStr    \ leave for return
+  byte bval
+
+  if(srcLen)
+    do(srcLen 0)
+      srcStr& b@@++ dup dstStr& b@!++
+      if('%' =)
+        '%' dstStr& b@!++
+        srcLen++
+      endif
+    loop
+  endif
+  
+  srcLen
+;
+
 : -trailing
   int numChars!
   ptrTo byte pStr!
   
   begin
-  while( and( numChars 0>   pStr numChars + 1- c@ bl <> ) )
+  while( and( numChars 0>   pStr numChars + 1- c@ bl = ) )
     numChars--
   repeat
     
   pStr numChars
+;
+
+: search
+  \ caddr1 u1 caddr2 u2 ... 0 | caddr3 u3 true
+  mko String s
+  mko String q
+
+  q.setBytes
+  ucell srcLen! ptrTo byte srcStr!
+  s.setBytes(srcStr srcLen)
+  
+  strstr(s.get q.get) ptrTo byte foundStr!
+
+  if(foundStr)
+    srcStr foundStr s.get - +
+    s.get s.length + foundStr -
+    true
+  else
+    srcStr srcLen
+    false
+  endif
+  s~ q~
+;
+
+mko StringMap __replaceMap
+: replaces
+  \ valueAddr valueLen keyAddr keyLen
+  mko String key
+  key.setBytes
+  if(features kFFIgnoreCase and)
+    key.toLower
+  endif
+  mko String value
+  value.setBytes
+  
+  value key.get __replaceMap.set
+  \ "mapping {" %s key.get %s "} to {" %s value.get %s "}\n" %s
+  value~
+  key~
+;
+
+: substitute
+  \ srcAddr srcLen dstAddr dstLen --- dstAddr endLen nSubstitutions
+  ucell dstLen!
+  ptrTo byte dstAddr!
+  \ "template\n" %s  2dup dump
+  mko String template
+  template.setBytes
+  
+  mko String result
+  result.substitute(template __replaceMap) cell nSubs!
+  
+  dstAddr result.length
+  if(result.length dstLen >)
+    -1
+  else
+    cmove(result.get dstAddr result.length)
+    nSubs
+  endif
+  \ >r "result\n" %s 2dup dump r>
 ;
 
 alias d>s drop
@@ -698,7 +817,7 @@ vocabulary editor
 ;
 
 : name>compile
-  i@ op ntOp!
+  i@ ucell ntOp!
   optypes:getOptype(ntOp) cell ntOptype!
   
   if(optypes:isImmediate(ntOptype))
@@ -738,6 +857,10 @@ vocabulary editor
   endif
 ;
 
+\ floating point wordset stuff
+: NaN Float:NaN ;
+: +Inf Float:+Inf ;
+: -Inf Float:-Inf ;
 
 
 \ ( - allow to span multiple lines when file is input

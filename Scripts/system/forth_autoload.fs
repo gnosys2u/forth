@@ -213,7 +213,7 @@ system.setDefinitionsVocab(system.getVocabByName("optypes"))
 \ OPTYPE --- TRUE/FALSE
 : isImmediate
   cell result
-  case(optypes:getOptype)
+  case
     optypes:NativeImmediate of
     optypes:UserDefImmediate of
     optypes:CCodeImmediate of
