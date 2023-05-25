@@ -7789,14 +7789,7 @@ FORTHOP(fdivideBop)
     float b = FPOP;
     float a = FPOP;
 
-    if (b == 0.0)
-    {
-        GET_ENGINE->RaiseException(pCore, ForthError::fpDivideByZero);
-    }
-    else
-    {
-        FPUSH(a / b);
-    }
+    FPUSH(a / b);
 }
 
 
@@ -7830,14 +7823,7 @@ FORTHOP( ddivideBop )
     double b = DPOP;
     double a = DPOP;
 
-    if (b == 0.0)
-    {
-        GET_ENGINE->RaiseException(pCore, ForthError::fpDivideByZero);
-    }
-    else
-    {
-        DPUSH(a / b);
-    }
+    DPUSH(a / b);
 }
 
 
