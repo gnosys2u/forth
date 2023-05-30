@@ -107,10 +107,15 @@ CoreState::CoreState(int paramStackSize, int returnStackSize)
     signedPrintMode = kPrintSignedDecimal;
     traceFlags = 0;
 
-    for (int i = 0; i < NUM_CORE_SCRATCH_CELLS; i++)
+    for (int i = 0; i < NUM_CORE_SCRATCH_ITEMS; i++)
     {
         scratch[i] = 0;
     }
+
+#if defined(SUPPORT_FP_STACK)
+    fpIndex = 0;
+    fpStack = nullptr;
+#endif
 }
 
 
@@ -174,10 +179,18 @@ Fiber::~Fiber()
     }
     // TODO: warn if mpNextJoiner is not null
 
+    // TODO: move cleanup of mCore SB, RB, fpStack into CoreState destructor
     mCore.SB -= GAURD_AREA;
-    delete [] mCore.SB;
+    delete[] mCore.SB;
     mCore.RB -= GAURD_AREA;
-    delete [] mCore.RB;
+    delete[] mCore.RB;
+
+#if defined(SUPPORT_FP_STACK)
+    if (mCore.fpStack != nullptr)
+    {
+        delete[] mCore.fpStack;
+    }
+#endif
 
 	if (mpShowContext != NULL)
 	{

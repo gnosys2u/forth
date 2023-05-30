@@ -327,9 +327,9 @@ namespace ONumber
 
         MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, BaseType::kFloat)),
 
-        CLASS_OP("NaN", oFloatNan),
-        CLASS_OP("+Inf", oFloatPlusInfinity),
-        CLASS_OP("-Inf", oFloatMinusInfinity),
+        CLASS_OP("nan", oFloatNan),
+        CLASS_OP("+inf", oFloatPlusInfinity),
+        CLASS_OP("-inf", oFloatMinusInfinity),
 
         // following must be last in table
 		END_MEMBERS
@@ -432,9 +432,9 @@ namespace ONumber
 
         MEMBER_VAR("value", NATIVE_TYPE_TO_CODE(0, BaseType::kDouble)),
 
-        CLASS_OP("NaN", oDoubleNan),
-        CLASS_OP("+Inf", oDoublePlusInfinity),
-        CLASS_OP("-Inf", oDoubleMinusInfinity),
+        CLASS_OP("nan", oDoubleNan),
+        CLASS_OP("+inf", oDoublePlusInfinity),
+        CLASS_OP("-inf", oDoubleMinusInfinity),
 
 		// following must be last in table
 		END_MEMBERS
@@ -444,12 +444,12 @@ namespace ONumber
 	void AddClasses(OuterInterpreter* pOuter)
 	{
         float fzero = 0.0f;
-        floatNaN = 0.0f / fzero;
+        floatNaN = nanf("");
         floatPlusInfinity = 1.0f / fzero;
         floatMinusInfinity = -1.0f / fzero;
 
         double doubleZero = 0.0;
-        doubleNaN = 0.0 / doubleZero;
+        doubleNaN = nan("");
         doublePlusInfinity = 1.0 / doubleZero;
         doubleMinusInfinity = -1.0 / doubleZero;
 

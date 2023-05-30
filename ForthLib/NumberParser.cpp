@@ -45,13 +45,13 @@ NumberParser::~NumberParser()
 {
 }
 
-NumberType NumberParser::ScanNumber(const char* pSrcString, int defaultBase)
+NumberType NumberParser::ScanNumber(const char* pSrc, int defaultBase)
 {
     int32_t digit;
     bool inExponent = false;
     char c;
     int digitsFound = 0;
-    ucell len = (ucell)strlen(pSrcString);
+    ucell len = (ucell)strlen(pSrc);
     bool baseForced = false;
     bool forcedLong = false;
     bool forcedSingleFloat = false;
@@ -62,11 +62,9 @@ NumberType NumberParser::ScanNumber(const char* pSrcString, int defaultBase)
 
     mBase = defaultBase;
 
-    // if CFloatLiterals is off, '.' indicates a double-precision number, not a float
-    //bool periodMeansDoubleInt = !CheckFeature(kFFCFloatLiterals);
-
     mIsNegative = false;
     bool isSingle = true;
+    const char* pSrcString = pSrc;
 
     while (srcIndex < len)
     {
@@ -124,6 +122,7 @@ NumberType NumberParser::ScanNumber(const char* pSrcString, int defaultBase)
                     //   or as very last char (for offsets)
                     return NumberType::kInvalid;
                 }
+                mValidChars[mNumValidChars++] = '+';
             }
         }
         else if (c == '-')
@@ -315,6 +314,171 @@ NumberType NumberParser::ScanNumber(const char* pSrcString, int defaultBase)
 #endif
     }
     return mNumberType;
+}
+
+bool NumberParser::ScanFloat(const char* pSrcString, double& result)
+{
+    int32_t digit;
+    bool inExponent = false;
+    char c;
+    int digitsFound = 0;
+    const char* pSrc = pSrcString;
+    ucell len = (ucell)strlen(pSrc);
+    const char* pEnd = pSrcString + len;
+    int srcIndex = 0;
+    int dstIndex = 0;
+
+    // this method is used by the '>float' op, which supports a wider range of fp formats than outer interpreter
+    ResetValues();
+
+    mIsNegative = false;
+
+    while (srcIndex < len)
+    {
+        if (pSrc[srcIndex] == ' ')
+        {
+            srcIndex++;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    if (len == srcIndex)
+    {
+        // empty string or all blanks is valid
+        result = 0.0;
+        return true;
+    }
+
+    pSrc += srcIndex;
+
+    c = *pSrc;
+    if (c == '+')
+    {
+        pSrc++;
+        mValidChars[mNumValidChars++] = '+';
+    }
+    else if (c == '-')
+    {
+        pSrc++;
+        mIsNegative = true;
+        mValidChars[mNumValidChars++] = '-';
+    }
+
+    bool exponentSignFound = false;
+    bool exponentNegative = false;
+    mExponentPosition = -1;
+    int digitsAfterPeriod = -1;
+    while (pSrc < pEnd)
+    {
+        srcIndex = pSrc - pSrcString;
+        c = tolower(*pSrc++);
+
+        if (mExponentPosition < 0)
+        {
+            // we are in the significand part, leading sign is already consumed
+            // 0...9
+            // .        
+            // +-ed     start exponent part
+            if (c == '+')
+            {
+                mValidChars[mNumValidChars++] = 'E';
+                mExponentPosition = srcIndex;
+                exponentSignFound = true;
+            }
+            else if (c == '-')
+            {
+                mValidChars[mNumValidChars++] = 'E';
+                mValidChars[mNumValidChars++] = c;
+                mExponentPosition = srcIndex;
+                exponentNegative = true;
+                exponentSignFound = true;
+            }
+            else if (c == 'e' || c == 'd')
+            {
+                mValidChars[mNumValidChars++] = 'E';
+                mExponentPosition = srcIndex;
+            }
+            else if (c == '.')
+            {
+                if (mPeriodPosition >= 0)
+                {
+                    // we have already seen a period
+                    return false;
+                }
+                mValidChars[mNumValidChars++] = c;
+                mPeriodPosition = srcIndex;
+                digitsAfterPeriod = 0;
+            }
+            else
+            {
+                if (c >= '0' && c <= '9')
+                {
+                    if (mPeriodPosition >= 0)
+                    {
+                        digitsAfterPeriod++;
+                    }
+                    digit = c - '0';
+                    digitsFound++;
+                    mValidChars[mNumValidChars++] = c;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            // we are in the exponent part
+            if (c >= '0' && c <= '9')
+            {
+                mValidChars[mNumValidChars++] = c;
+            }
+            else if (c == '+')
+            {
+                if (exponentSignFound)
+                {
+                    return false;
+                }
+            }
+            else if (c == '-')
+            {
+                if (exponentSignFound)
+                {
+                    return false;
+                }
+                mValidChars[mNumValidChars++] = c;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+    mValidChars[mNumValidChars++] = '\0';
+
+    // number is valid, set final value based on detected type
+    if (mExponentPosition >= 0)
+    {
+        if (mExponentPosition == mNumValidChars - 2)
+        {
+            // there was no exponent, the float literal string just ended at 'E', we need to
+            //  stuff a dummy exponent 0 to make sscanf happy
+            mValidChars[mNumValidChars - 1] = '0';
+            mValidChars[mNumValidChars] = '\0';
+        }
+        // single or double precision float
+        if (sscanf(&(mValidChars[0]), "%lf", &mDoubleFloatValue) == 1)
+        {
+            result = mDoubleFloatValue;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 NumberType NumberParser::GetNumberType() const

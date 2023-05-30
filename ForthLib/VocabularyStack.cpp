@@ -141,6 +141,22 @@ forthop* VocabularyStack::FindSymbol( const char *pSymName, Vocabulary** ppFound
         // try to find the lower cased version
         mSerial++;
         pEntry = FindSymbolInner(buffer, ppFoundVocab);
+
+        if (pEntry == nullptr)
+        {
+            // last chance - try upper case 
+            for (int i = 0; i < sizeof(buffer); i++)
+            {
+                char ch = buffer[i];
+                if (ch == '\0')
+                {
+                    break;
+                }
+                buffer[i] = toupper(ch);
+            }
+            mSerial++;
+            pEntry = FindSymbolInner(buffer, ppFoundVocab);
+        }
     }
 
     return pEntry;
@@ -230,7 +246,7 @@ forthop * VocabularyStack::FindSymbol( ParseInfo *pInfo, Vocabulary** ppFoundVoc
 
     if ((pEntry == nullptr) && mpEngine->GetOuterInterpreter()->CheckFeature(kFFIgnoreCase))
     {
-        // if symbol wasn't found, convert it to lower case and try again
+        // if symbol wasn't found, change to lower case and try again
         char buffer[128];
         strncpy(buffer, pInfo->GetToken(), sizeof(buffer));
         for (int i = 0; i < sizeof(buffer); i++)
@@ -243,9 +259,26 @@ forthop * VocabularyStack::FindSymbol( ParseInfo *pInfo, Vocabulary** ppFoundVoc
             buffer[i] = tolower(ch);
         }
 
-        // try to find the lower cased version
+        // try to find the lower case version
         mSerial++;
         pEntry = FindSymbolInner(buffer, ppFoundVocab);
+
+        if (pEntry == nullptr)
+        {
+            // last chance - try upper case 
+            for (int i = 0; i < sizeof(buffer); i++)
+            {
+                char ch = buffer[i];
+                if (ch == '\0')
+                {
+                    break;
+                }
+                buffer[i] = toupper(ch);
+            }
+            mSerial++;
+            pEntry = FindSymbolInner(buffer, ppFoundVocab);
+        }
+
     }
 
     return pEntry;

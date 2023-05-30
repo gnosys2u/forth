@@ -1854,6 +1854,11 @@ bool OuterInterpreter::HasPendingContinuations()
     return mContinueCount != 0;
 }
 
+NumberParser& OuterInterpreter::GetNumberParser()
+{
+    return mNumberParser;
+}
+
 
 void OuterInterpreter::AddGlobalObjectVariable(ForthObject* pObject, Vocabulary* pVocab, const char* pName)
 {
@@ -2239,12 +2244,21 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
             }
             else
             {
-#if defined(FORTH64)
-                mpCore->SP -= 1;
-#else
-                mpCore->SP -= 2;
+#if defined(SUPPORT_FP_STACK)
+                if (CheckFeature(kFFFloatingPointStack) != 0)
+                {
+                    pushFPStack(mpCore, dvalue);
+                }
+                else
 #endif
-                * (double*)mpCore->SP = dvalue;
+                {
+#if defined(FORTH64)
+                    mpCore->SP -= 1;
+#else
+                    mpCore->SP -= 2;
+#endif
+                    * (double*)mpCore->SP = dvalue;
+                }
             }
         }
         else if (numberType == NumberType::kLong || numberType == NumberType::kInt)

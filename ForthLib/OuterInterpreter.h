@@ -358,6 +358,7 @@ public:
     void                    StartLoopContinuations();
     void                    EndLoopContinuations(ucell controlFlowType);  // actually takes a ControlStackTag
     bool                    HasPendingContinuations();
+    NumberParser&           GetNumberParser();
 
 protected:
     std::vector<forthop*> mContinuations;

@@ -136,14 +136,11 @@ struct: ForthCoreState
   ptrTo int     pDictionary            \ ForthMemorySection*
   ptrTo int     pFileFuncs             \ ForthFileInterface*
 
-  ptrTo int	innerLoop              \ inner interpreter re-entry point for assembler
+  ptrTo int	    innerLoop              \ inner interpreter re-entry point for assembler
+  ptrTo int	    innerExecute           \ inner interpreter re-entry point for assembler
   
-  ptrTo byte    pConOutData            \ void*
-  int           consoleOut             \ consoleOutRoutine
-  int		consoleOutOp
+  OutStream     consoleOutStream
 
-  ptrTo int     pDefaultOutFile        \ FILE*
-  ptrTo int     pDefaultInFile         \ FILE*
   int           base                   \ output base
   int           signedPrintMode        \ if numers are printed as signed/unsigned
 
@@ -151,6 +148,8 @@ struct: ForthCoreState
 
   ptrTo int     pExceptionFrame        \ points to current exception handler frame in rstack
 
+  ucell         fpIndex;
+  ptrTo float   fpStack;
 ;struct
 
 -> features

@@ -12,9 +12,6 @@ kFFRegular to features
 autoforget FLOATING
 : FLOATING ;
 
-: fnegate -1.0E f* ;
-: sfnegate -1.0Ef sf* ;
-
 cell precision
 : set-precision precision! ;
 
@@ -31,6 +28,8 @@ alias s>f l2sf
 
 15 set-precision
 
+: fnegate $8000000000000000 xor ;
+
 #else
 
 alias fdup 2dup
@@ -44,11 +43,23 @@ alias s>f i2sf
 
 8 set-precision
 
+: fnegate swap $80000000 xor swap ;
+
 #endif
+
+: sfnegate $80000000 xor ;
 
 alias fliteral lliteral
 alias sfliteral iliteral
 alias fconstant lconstant
+
+: sf! >r f2sf r> i! ;
+alias df! l!
+
+Float:nan fconstant nan
+Float:+inf fconstant +inf
+Float:-inf fconstant -inf
+
 
 : fround
   fdup f0>= if
@@ -63,17 +74,6 @@ alias fconstant lconstant
      fabs floor fnegate
   else
     floor
-  endif
-;
-
-: >float
-  sfloat fval
-  _TempStringA blockToString
-  _TempStringA "%f" fval& 1 sscanf
-  if
-    fval true
-  else
-    false
   endif
 ;
 
@@ -162,7 +162,7 @@ alias fconstant lconstant
     if(r3 f0=)
       \ If r3 is zero, flag is true if the implementation-dependent encoding of r1 and r2 are
       \ exactly identical (positive and negative zero are unequal if they have distinct encodings).
-      r1 r2 f=
+      r1 r2 l=      \ use l= instead of f= so +0 and -0 return unequal
     else
       \ If r3 is negative, flag is true if the absolute value of (r1 minus r2) is less than the
       \ absolute value of r3 times the sum of the absolute values of r1 and r2.

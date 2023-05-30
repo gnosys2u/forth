@@ -19,6 +19,9 @@ struct CoreState;
 #define WINDOWS_BUILD
 #endif
 
+#define SUPPORT_FP_STACK
+#define FP_STACK_SIZE   16
+
 // forthop is the type of forth opcodes
 // cell/ucell is the type of parameter stack elements
 #ifdef FORTH64
@@ -474,6 +477,7 @@ typedef enum {
     kFFAllowContinuations       = 0x00000010,
     kFFAllowVaropSuffix         = 0x00000020,
     kFFAnsiControlOps           = 0x00000040,
+    kFFFloatingPointStack       = 0x00000080
 } ForthFeatureFlags;
 
 

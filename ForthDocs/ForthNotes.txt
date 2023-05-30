@@ -282,6 +282,50 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+May 29 2023
+
+I got most of the ANSI floating point tests to work, up to to-float-test, which
+shows multiple errors every time >float is called and returns success - this is
+because it is checking that the parameter stack depth and fp stack depth change
+by the proper amount, since we have no fp stack both depth tests fail.  The
+2012 standard in one place states that a separate fp stack is required, but in
+other places it implies that an fp stack is optional.  There are also many errors
+in the paranoia test, it may be that it is requiring 80-bit accuracy, which is
+true if all operands are kept on an fp stack internal to an fp unit.  There is
+also a hang in paranoia when it is checking something about square root.
+
+I don't like the separate fp stack idea, it doesn't work well with multiple fibers
+and threads.  I've added the beginnings of fp stack support, CoreState has an
+fpStack pointer and fpIndex.  The fpStack memory isn't allocated until you try
+to push something.  The outer interpreter pushes floating point literals on the
+fp stack if the kFFFloatingPointStack feature flag is set.  I added fpush and
+fpop operators that move data between the param and fp stacks.  The idea would
+be to define the standard ANSI fp operators using fpush/fpop and my param stack
+based operators.
+
+A related idea is to have CoreState have optional objects, and define an FPStack
+object which implements the stack and all the ANSI fp operators.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+May 24 2023
+
+I have started running the ANSI floating point tests and have run into several
+things where the tests appear broken , like this:
+: fnan?  ( f: r -- s: isNaN? )
+  fdup +0 fdatum=
+  \ uh, the fdup is duping the boolean result of fdatum= , not the original fp value
+  fdup -0 fdatum= or
+  fdup -inf fdatum= or
+  fdup +inf fdatum= or IF fdrop false EXIT THEN
+  +inf f< 0= ;
+I think this works when there is a separeate floating point stack.
+
+In ieee-arith-test.fs there are a bunch of nonsensical errors like this:
+    TESTING F+
+    expected: 0
+    actual: 9221120237041090560
+    INCORRECT RESULT: t{ -nan +nan f+ fabs -> +nan }t
+The actual result IS +nan, so why is it saying it expects 0?
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 May 22 2023
 
 I added support for the ANSI optional string wordlist.

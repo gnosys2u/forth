@@ -518,6 +518,8 @@ alias ffield: dffield:
     true true
   elseif(ss.equals("#LOCALS"))
     256 true
+\  elseif(ss.equals("FLOATING-STACK"))
+\    16 true
   else
     false
   endif
@@ -858,9 +860,9 @@ vocabulary editor
 ;
 
 \ floating point wordset stuff
-: NaN Float:NaN ;
-: +Inf Float:+Inf ;
-: -Inf Float:-Inf ;
+: nan Float:nan ;
+: +inf Float:+inf ;
+: -inf Float:-inf ;
 
 
 \ ( - allow to span multiple lines when file is input

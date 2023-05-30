@@ -24,6 +24,8 @@ public:
     ~NumberParser();
 
     NumberType ScanNumber(const char* pStr, int defaultBase);
+    bool ScanFloat(const char* pStr, double& result);
+
     NumberType GetNumberType() const;
 
     int32_t GetIntValue() const;

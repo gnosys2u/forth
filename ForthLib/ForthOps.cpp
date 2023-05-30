@@ -4872,6 +4872,51 @@ FORTHOP(scanLongOp)
     SPUSH(isValid);
 }
 
+FORTHOP(scanFloatOp)
+{
+    OuterInterpreter* pOuter = GET_ENGINE->GetOuterInterpreter();
+    NumberParser& parser = pOuter->GetNumberParser();
+    ucell len = SPOP;
+    const char* pBytes = (const char*)(SPOP);
+    const char* pString = pOuter->AddTempString(pBytes, len);
+    double val = 0.0;
+    bool good = false;
+
+    if (parser.ScanFloat(pString, val))
+    {
+        good = true;
+    }
+    else
+    {
+        if (len == 0)
+        {
+            good = true;
+        }
+        else
+        {
+            good = true;
+            for (int i = 0; i < len; i++)
+            {
+                if (pString[i] != ' ')
+                {
+                    good = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (good)
+    {
+        DPUSH(val);
+        SPUSH(-1);
+    }
+    else
+    {
+        SPUSH(0);
+    }
+}
+
 FORTHOP(addTempStringOp)
 {
     NEEDS(2);
@@ -8992,6 +9037,36 @@ FORTHOP(dcmpBop)
 	SPUSH( (a == b) ? 0 : (( a > b ) ? 1 : -1 ) );
 }
 
+#if defined(SUPPORT_FP_STACK)
+
+FORTHOP(fpushBop)
+{
+    NEEDS(2);
+    double a = *((double *)(pCore->SP));
+#if defined(FORTH64)
+    pCore->SP++;
+#else
+    pCore->SP += 2;
+#endif
+
+    pushFPStack(pCore, a);
+}
+
+FORTHOP(fpopBop)
+{
+    NEEDS(2);
+    double a = popFPStack(pCore);
+
+#if defined(FORTH64)
+    pCore->SP--;
+#else
+    pCore->SP -= 2;
+#endif
+    *((double*)(pCore->SP)) = a;
+}
+
+#endif
+
 //##############################
 //
 // stack manipulation
@@ -10897,6 +10972,8 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(    dMinBop,                 "fmin" ),
     NATIVE_DEF(    dMaxBop,                 "fmax" ),
     NATIVE_DEF(    dcmpBop,                 "fcmp" ),
+    OP_DEF(        fpushBop,                "fpush" ),
+    OP_DEF(        fpopBop,                 "fpop" ),
 
     ///////////////////////////////////////////
     //  integer/int32_t/float/double conversion
@@ -11439,6 +11516,7 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    representOp,            "represent" ),
     OP_DEF(    scanIntOp,              "scanInt" ),
     OP_DEF(    scanLongOp,             "scanLong" ),
+    OP_DEF(    scanFloatOp,            ">float" ),
     OP_DEF(    addTempStringOp,        "addTempString"),
     OP_DEF(    fprintfOp,              "fprintf" ),
     OP_DEF(    snprintfOp,             "snprintf" ),

@@ -4561,4 +4561,43 @@ OpResult InnerInterpreter( CoreState *pCore )
 }
 #endif
 
+#if defined(SUPPORT_FP_STACK)
+
+double popFPStack(CoreState* pCore)
+{
+    double val = 0.0;
+
+    if (pCore->fpStack == nullptr)
+    {
+        pCore->fpStack = new double[FP_STACK_SIZE];
+        pCore->fpIndex = 0;
+    }
+
+    if (pCore->fpIndex > 0)
+    {
+        pCore->fpIndex--;
+        val = pCore->fpStack[pCore->fpIndex];
+    }
+
+    return val;
+}
+
+void pushFPStack(CoreState* pCore, double val)
+{
+    if (pCore->fpStack == nullptr)
+    {
+        pCore->fpStack = new double[FP_STACK_SIZE];
+        pCore->fpIndex = 0;
+    }
+
+    if (pCore->fpIndex < FP_STACK_SIZE)
+    {
+        pCore->fpStack[pCore->fpIndex] = val;
+        pCore->fpIndex++;
+    }
+}
+
+#endif
+
+
 };      // end extern "C"

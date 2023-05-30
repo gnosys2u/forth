@@ -55,7 +55,7 @@ struct ForthFileInterface
 	void				(*rewindDir)( void* pDir );
 };
 
-#define NUM_CORE_SCRATCH_CELLS 8
+#define NUM_CORE_SCRATCH_ITEMS 16
 
 struct CoreState
 {
@@ -110,10 +110,16 @@ struct CoreState
 
     ucell               base;               // output base
     ucell               signedPrintMode;   // if numers are printed as signed/unsigned
-    int32_t                traceFlags;
+    int32_t             traceFlags;
 
     ForthExceptionFrame* pExceptionFrame;  // points to current exception handler frame in rstack
-    ucell               scratch[NUM_CORE_SCRATCH_CELLS];
+
+#if defined(SUPPORT_FP_STACK)
+    ucell               fpIndex;
+    double*             fpStack;
+#endif
+
+    uint64_t               scratch[NUM_CORE_SCRATCH_ITEMS];
 };
 
 
@@ -169,9 +175,11 @@ inline forthop GetCurrentOp( CoreState *pCore )
 #define SDROP                           (pCore->SP++)
 
 #define FPOP                            (*(float *)pCore->SP++)
-#define FPUSH( A )                      --pCore->SP; *(float *)pCore->SP = A
 
 #if defined(FORTH64)
+
+#define FPUSH( A )                      SPUSH(0); *(float *)pCore->SP = A
+
 #define DPOP                            *((double *)(pCore->SP)); pCore->SP += 1
 #define DPUSH(A)                        pCore->SP -= 1; *((double *)(pCore->SP)) = A
 
@@ -183,6 +191,9 @@ inline forthop GetCurrentOp( CoreState *pCore )
 #define LPUSH( _SI64 )                  SPUSH(_SI64.s64)
 
 #else
+
+#define FPUSH( A )                      --pCore->SP; *(float *)pCore->SP = A
+
 #define DPOP                            *((double *)(pCore->SP)); pCore->SP += 2
 #define DPUSH( A )                      pCore->SP -= 2; *((double *)(pCore->SP)) = A
 
@@ -241,6 +252,11 @@ inline forthop GetCurrentOp( CoreState *pCore )
 
 #define GET_PRINT_SIGNED_NUM_MODE       (pCore->signedPrintMode)
 #define SET_PRINT_SIGNED_NUM_MODE( A )  (pCore->signedPrintMode = (A))
+
+#if defined(SUPPORT_FP_STACK)
+extern double popFPStack(CoreState* pCore);
+extern void pushFPStack(CoreState* pCore, double val);
+#endif
 
 };      // end extern "C"
 
