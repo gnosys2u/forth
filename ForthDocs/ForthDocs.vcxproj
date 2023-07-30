@@ -180,53 +180,22 @@
     </Midl>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="..\Sandbox\ansi_case.txt" />
-    <Text Include="..\Sandbox\asm_pentium.txt" />
-    <Text Include="..\Sandbox\carmack_fast_sqrt.txt" />
-    <Text Include="..\Sandbox\compare.txt" />
-    <Text Include="..\Sandbox\div_reciprocal_test.txt" />
-    <Text Include="..\Sandbox\ellipse.txt" />
-    <Text Include="..\Sandbox\fast_logn_approximation.txt" />
-    <Text Include="..\Sandbox\forth_autoload.txt" />
-    <Text Include="..\Sandbox\good_test_output.txt" />
-    <Text Include="..\Sandbox\help.txt" />
-    <Text Include="..\Sandbox\mergefiles.txt" />
-    <Text Include="..\Sandbox\random_generator.txt" />
-    <Text Include="..\Sandbox\scales.txt" />
-    <Text Include="..\Sandbox\sdl.txt" />
-    <Text Include="..\Sandbox\sdltest.txt" />
-    <Text Include="..\Sandbox\sdlutil.txt" />
-    <Text Include="..\Sandbox\sprig.txt" />
-    <Text Include="..\Sandbox\sprigtest.txt" />
-    <Text Include="..\Sandbox\tests\autotest.txt" />
-    <Text Include="..\Sandbox\tests\biclasstest.txt" />
-    <Text Include="..\Sandbox\tests\classtest.txt" />
-    <Text Include="..\Sandbox\tests\filetest.txt" />
-    <Text Include="..\Sandbox\tests\forthtest.txt" />
-    <Text Include="..\Sandbox\tests\optest.txt" />
-    <Text Include="..\Sandbox\tests\output_test.txt" />
-    <Text Include="..\Sandbox\tests\rctest.txt" />
-    <Text Include="..\Sandbox\tests\sdltest.txt" />
-    <Text Include="..\Sandbox\tests\structtest.txt" />
-    <Text Include="..\Sandbox\tests\testbase.txt" />
-    <Text Include="..\Sandbox\turbo_test_output.txt" />
-    <Text Include="ForthAssembler.txt" />
-    <Text Include="ForthBuiltinClasses.txt" />
-    <Text Include="ForthClasses.txt" />
-    <Text Include="ForthCode.txt" />
+    <Text Include="Assembler.txt" />
+    <Text Include="BuiltinClasses.txt" />
+    <Text Include="Classes.txt" />
+    <Text Include="Code.txt" />
     <Text Include="ForthDS.txt" />
-    <Text Include="ForthGUI.txt" />
-    <Text Include="ForthNotes.txt" />
-    <Text Include="ForthOpList.txt" />
-    <Text Include="ForthSave.txt" />
-    <Text Include="ForthServer.txt" />
-    <Text Include="ForthStructs.txt" />
-    <Text Include="ForthTbd.txt" />
-    <Text Include="ForthThreads.txt" />
-    <Text Include="ForthVocabularies.txt" />
+    <Text Include="GUI.txt" />
+    <Text Include="Notes.txt" />
+    <Text Include="OpList.txt" />
+    <Text Include="Save.txt" />
+    <Text Include="Server.txt" />
+    <Text Include="Structs.txt" />
+    <Text Include="Tbd.txt" />
+    <Text Include="Threads.txt" />
+    <Text Include="Vocabularies.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\.gitignore" />
     <None Include="..\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
