@@ -1,0 +1,24 @@
+
+The OSystem class has a single instance object which is accessible from the system global object variable.
+The system object allows you to:
+1) create threads
+2) manipulate the search vocabularies and the definitions vocabulary
+
+Its methods are:
+
+delete
+stats
+    prints a bunch of system statistics
+getDefinitionsVocab
+    returns the current definitions vocabulary object
+setDefinitionsVocab
+clearSearchVocab
+getSearchVocabDepth
+getSearchVocabAt
+getSearchVocabTop
+setSearchVocabTop
+pushSearchVocab
+getVocabByName
+getOpsTable
+createAsyncThread
+createAsyncLock

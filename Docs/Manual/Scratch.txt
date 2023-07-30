@@ -1,0 +1,172 @@
+dell xps 8700 system bios
+version 1 0 0 4
+
+.track ionian
+  c d e f g a b c+
+.endtrack
+
+.track dorian
+  c d eb f g a bb c+
+.endtrack
+
+.track phrygian
+  c db eb f g ab bb c+
+.endtrack
+
+.track lydian
+  c d e f# g a b c+
+.endtrack
+
+.track mixolydian
+  c d e f g a bb c+
+.endtrack
+
+.track aeolian
+  c d eb f g ab bb c+
+.endtrack
+
+.track locrian
+  c db eb f gb ab bb c+
+.endtrack
+
+rhythm trainer
+scale trainer
+muse
+
+synth parts
+  audio output
+  score source
+    aml parser based sequencer
+    algorithm based
+      muse
+  orchestra
+    takes input from score source
+    sends commands to instruments
+  instruments
+    send output to effects
+    built from
+  effects
+    effects ops
+    straight throughs to audio outputs
+  synth ops
+  
+yyyy-mm-ddThh:mm:ss.nnnZ
+  yyyy year
+  mm month
+  dd day
+  hh hour
+  mm minute
+  ss second
+  nnn milliseconds
+
+
+
+
+
+
+
+
+Index
+
+Introduction
+
+Control Structures
+  if ... else ... endif
+  begin ... again
+  begin ... until
+  begin ... while ... repeat
+  do ... loop
+  do ... +loop
+  case ... of ... endof ... endcase
+  
+Differences from ANSI Forth
+  string literals
+  character literals
+
+Simple data types
+  native types
+    byte
+    short
+    int
+    long
+    float
+    double
+    ubyte, ushort, uint, ulong - just for show
+    string
+    op
+    void
+  literals
+    0x
+    l L
+    d D g
+  global variables
+  local variables
+Structures
+  definitions
+  __init
+
+64-bit Integer Support
+
+Objects
+  Builtin Classes
+  
+IO
+  Streams
+  File IO (clib style)
+  Block IO
+  redirecting output
+  
+Inner Interpreter
+
+Strings and characters
+
+Outer Interpreter
+
+Conditional compilation
+
+Building forth executable 
+
+Builtin Operators
+  Standard FORTH Ops
+  clib routines
+  
+Threading
+
+Client/Server configuration
+
+Logging
+
+Closures
+
+Command line
+  accessing command line in forth code
+  
+Creating stand alone applications
+  embedding source files
+  
+Environment Variables
+  accessing environment variables in forth code
+
+Loading script files
+
+Vocabularies
+  Regular vocabularies
+  DLL vocabularies
+  OVocabulary
+  
+Special Files
+  forth_autoload.txt
+  _blocks.blk
+  
+Special Directories
+  system
+
+Generated code
+  global variables
+  local variables
+  if-else-endif
+  begin-until
+  begin-while-repeat
+  begin-atain
+  case statement
+  

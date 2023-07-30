@@ -1,0 +1,47 @@
+Forth manual TODOs:
+
+- overview
+- table of contents
+- index
+
+- differences from ansi forth
+
+- syntactic extensions
+  - literals
+    - float & double
+    - string
+    - character
+      - multibyte
+    - long integer
+  - parenthesized expressions
+  
+- inner interpreter
+  - opcodes
+  
+- platforms supported
+  - x86
+    - windows
+    - linux
+    - macosx
+  - ARM
+  
+- structs
+
+- classes
+  - reference counting
+  - Object rooted hierarchy
+  - builtin classes
+    - containers
+    - streams
+    - strings
+    - numbers
+- native datatypes
+- tracing/logging
+- anonymous functions
+- client/server
+- search paths
+- startup sequense
+  - loading of forth_autoload
+- standalone application support
+  - archived files
+  

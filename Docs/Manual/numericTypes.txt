@@ -1,0 +1,64 @@
+Numeric Types
+
+The supported numeric types are:
+
+byte    signed 8-bit integer
+ubyte   unsigned 8-bit integer
+short   signed 16-bit integer
+ushort  unsigned 16-bit integer
+int     signed 32-bit integer
+uint    unsigned 32-bit integer
+long    signed 64-bit integer
+ulong   unsigned 64-bit integer
+float   32-bit floating point number
+double  64-bit floating point number
+
+The most common type of data is the signed 32-bit integer.
+##############################################################################
+The differences between signed and unsigned integer types are:
+
+1) how sign extension is done when fetching from a variable to the stack
+2) how a numeric field is displayed in Object.show
+
+##############################################################################
+The memory representation and stack representations of all numeric types
+except 64-bit integers is the same.  64-bit integers on the stack have the
+high and low 32-bit words in the opposite order of the memory representation,
+this is done for ANS Forth compatability.
+##############################################################################
+Numeric Literals
+
+32-bit integer literals are repr
+  hex
+64-bit integer literals
+  hex
+32-bit floating point literals
+64-bit floating point literals
+ANS compatability
+
+##############################################################################
+Squished floats and doubles
+
+There are opcode types that are used to represent single and double precision
+literals in a single 32-bit word.  They are only used in compiled definitions
+and only when the number can be represented exactly in a reduced number of
+bits.
+##############################################################################
+Integer offsets
+
+There are opcode types that are 
+##############################################################################
+Numeric Object Types
+
+There are four built-in classes for the numeric types:
+  OInt
+  OLong
+  OFloat
+  ODouble
+  
+These classes have the following methods:
+  set
+  get
+You can also set or get the value of a numeric object instance by directly
+accessing its 'value' member variable.  
+##############################################################################

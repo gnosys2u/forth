@@ -1,0 +1,219 @@
+Opcodes
+
+0x00 Native
+0x01 NativeImmediate
+  Bits 0..23 are index into userOps table of routine for op coded in assembly language.
+  
+0x02 UserDefined
+0x03 UserDefinedImmediate
+  Bits 0..23 are is index into opstable of routine for used defined op.
+  
+0x04 CCode
+0x05 CCodeImmediate
+  Bits 0..23 are index into opstable of routine for op coded in C.
+  
+0x06 RelativeDef
+0x07 RelativeDefImmediate
+  Bits 0..23 are longword offset from start of dictionary of start of used defined op.
+
+0x08 DLLEntryPoint
+  Bits 0..15 are index into userOps table, 16..18 are flags, 19..23 are arg count
+  Bit 16 is set if the entry point has no return value
+  Bit 17 is set if the entry point has a 64-bit return value
+  Bit 18 is set if the entry point uses stdcall calling convention
+  
+0x09 UNUSED
+
+0x0a Branch
+0x0b BranchTrue
+0x0c BranchFalse
+  Bits 0..23 are signed longword offset of destination of branch
+  
+0x0d CaseBranch
+  Bits 0..23 are unsigned longword offset of destination of branch (next case to check)
+  
+0x0e PushBranch
+  Bits 0..23 are unsigned longword offset of destination of branch
+  Pushes address of longword just after this opcde before branching
+  Currently unused, intended to be used for blocks of data inside definitions
+  This is redundant with ConstantString (opcode 0x15)
+  
+0x0f RelativeDefBranch
+  Bits 0..23 are unsigned longword offset of destination of branch
+  Pushes RelativeDef opcode for code that starts just after this opcde before branching
+  Compiled at the start of anonymous functions which are defined inside an op
+  
+0x10 - 0x13 UNUSED
+
+0x14 Constant
+  Bits 0..23 are signed value
+  
+0x15 ConstantString
+  Bits 0..23 are unsigned longword offset of destination of branch
+  Pushes address of longword just after this opcde before branching
+  Used for strings inside op definitions
+  
+0x16 Offset
+  Bits 0..23 are signed longword value which is added to number on TOS
+
+0x17 ArrayOffset
+  Bits 0..23 are array element size in bytes
+  TOS and TOS+1 are replaced by TOS + (element size * TOS+1)
+  
+0x18 AllocLocals
+  Bits 0..23 is size of new stack frame in longs
+
+0x19 LocalRef
+  Bits 0..23 is stack frame offset in longs
+  Pushes address of a local variable
+  
+0x1a LocalStringInit
+  Bits 0..11 are string length in bytes, bits 12..23 are frame offset in longs
+  Inits the current & max length fields of a local string
+  
+0x1b LocalStructArray
+  Bits 0..11 are padded struct length in bytes, bits 12..23 are unsigned frame offset in longs
+  Multiply struct length by TOS, add in (negative) frame offset, and put result on TOS
+  
+0x1c OffsetFetch
+  Bits 0..23 are signed longword offset which is added to TOS to form address of long
+  which then replaces TOS
+  
+0x1d MemberRef
+  Bits 0..23 are unsigned byte offset which is added to frame pointer to make address which is pushed on TOS
+  
+0x1e LocalByte
+0x1f LocalUByte
+0x20 LocalShort
+0x21 LocalUShort
+0x22 LocalInt
+0x23 LocalUInt
+0x24 LocalLong
+0x25 LocalULong
+0x26 LocalFloat
+0x27 LocalDouble
+0x28 LocalString
+0x29 LocalOp
+0x2a LocalObject
+0x2b LocalByteArray
+0x2c LocalUByteArray
+0x2d LocalShortArray
+0x2e LocalUShortArray
+0x2f LocalIntArray
+0x30 LocalUIntArray
+0x31 LocalLongArray
+0x32 LocalULongArray
+0x33 LocalFloatArray
+0x34 LocalDoubleArray
+0x35 LocalStringArray
+0x36 LocalOpArray
+0x37 LocalObjectArray
+  Bits 0..23 are unsigned frame offset in longs of local variable
+
+0x38 FieldByte
+0x39 FieldUByte
+0x3a FieldShort
+0x3b FieldUShort
+0x3c FieldInt
+0x3d FieldUInt
+0x3e FieldLong
+0x3f FieldULong
+0x40 FieldFloat
+0x41 FieldDouble
+0x42 FieldString
+0x43 FieldOp
+0x44 FieldObject
+0x41 FieldByteArray
+0x42 FieldUByteArray
+0x43 FieldShortArray
+0x44 FieldUShortArray
+0x45 FieldIntArray
+0x46 FieldUIntArray
+0x47 FieldLongArray
+0x48 FieldULongArray
+0x49 FieldFloatArray
+0x4a FieldDoubleArray
+0x4b FieldStringArray
+0x4c FieldOpArray
+0x4d FieldObjectArray
+  Bits 0..23 are unsigned field offset in byte, which is added to structure address on TOS
+
+0x4e MemberByte
+0x4f MemberUByte
+0x50 MemberShort
+0x51 MemberUShort
+0x52 MemberInt
+0x53 MemberUInt
+0x54 MemberLong
+0x55 MemberULong
+0x56 MemberFloat
+0x57 MemberDouble
+0x58 MemberString
+0x59 MemberOp
+0x5a MemberObject
+0x5b MemberByteArray
+0x5c MemberUByteArray
+0x5d MemberShortArray
+0x5e MemberUShortArray
+0x5f MemberIntArray
+0x60 MemberUIntArray
+0x61 MemberLongArray
+0x62 MemberULongArray
+0x63 MemberFloatArray
+0x64 MemberDoubleArray
+0x65 MemberStringArray
+0x66 MemberOpArray
+0x67 MemberObjectArray
+  Bits 0..23 are unsigned member offset in byte, which is added to current This pointer
+
+0x68 MethodWithThis
+  Bits 0..23 are method value
+  
+0x69 MethodWithTOS
+  Bits 0..23 are method value
+  
+0x6a MemberStringInit
+  Bits 0..11 are string length in bytes, bits 12..23 are member offset in longs
+  Init the current & max length fields of a local string
+  
+0x6b NumVaropOpCombo
+  Bits 0:10 are signed integer, bits 11:12 are varop-2, bits 13-23 are opcode
+  bogus, drop this
+  
+0x6c NumVaropCombo
+  Bits 0:21 are signed integer, bits 22:23 are varop-2
+  
+0x6d NumOpCombo
+  Bits 0..12 are signed integer, bits 13..23 are opcode
+  
+0x6e VaropOpCombo
+  Bits 0-1 are varop-2, bits 2-23 are opcode
+  bogus, drop this
+
+0x6f OpBranchFalseCombo
+  Bits 0..11 are opcode, bits 12-23 are signed integer branch offset in longs
+  
+0x70 OpBranchTrueCombo
+  Bits 0..11 are opcode, bits 12-23 are signed integer branch offset in longs
+  
+0x71 SquishedFloat
+  Bits 0..23 are squished single precision floating point number
+  
+0x72 SquishedDouble
+  Bits 0..23 are squished double precision floating point number
+  
+0x73 SquishedLong
+  Bits 0..23 are squished 64-bit integer number
+  
+0x74 LocalRefOpCombo
+  Bits 0..11 are frame offset in longs, bits 12-23 are op
+  
+0x75 MemberRefOpCombo
+  Bits 0..11 are member offset in bytes, bits 12-23 are op
+  
+0x76 MethodWithSuper
+  Bits 0..23 are method value
+
+UNUSED
+
+LocalUserDefined

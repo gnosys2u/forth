@@ -1,0 +1,61 @@
+Vocabularies
+
+predefined vocabularies
+  forth
+  assembler
+  locals
+  builtin classes
+search order
+definitions vocab
+DLL vocabularies
+struct vocabularies
+class vocabularies
+forgetting
+
+internals
+  vocabulary entry format
+  forget propagation
+  
+         1         2         3         4         5         6         7
+1234567890123456789012345678901234567890123456789012345678901234567890123456789
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  Forth Vocabularies
+----------------------
+o all vocabularies are linked together in a chain starting at ForthVocabulary::mpChainHead
+o each vocabulary has a storage block of longwords which is used to store its entries
+o vocabularies are derived from ForthForgettable
+
+  Vocabulary Entries
+----------------------
+Vocabulary entries are variable length.
+The first longword is the value field.
+
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+
+What a vocabulary does:
+
+o stores symbols
+o does lookup of symbols
+o processes symbols
+o handles forgetting of symbols
+? propagates symbol lookup
+
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+
+vocabulary NAME
+
+forth definitions
+forth uses
+
+SYMBOL_NAME SYMBOL_VALUE SYMBOL_TYPE VOCAB addSymbol	ENTRY_PTR
+SYMBOL_NAME VOCAB  findSymbol	ENTRY_PTR
+
+! this isn't very flexible - for example, how would this be used to make
+  a vocabulary which would recognize fixed point numbers?
+
+
+
+//       11111111112222222222333333333344444444445555555555666666666677777777778
+//345678901234567890123456789012345678901234567890123456789012345678901234567890
+<############################# Last Line In File ##############################>

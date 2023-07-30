@@ -1,0 +1,120 @@
+
+ForthShell::ParseToken
+  reads characters from the input stream
+  skips leading whitespace
+  handles // comments
+  handles parenthesized expressions
+  sets flags telling:
+    token is a string literal
+    token is a character literal
+    token contains a period
+    token contains a colon
+  returns a ForthParseInfo with token and flags    
+    
+  
+ForthEngine::ProcessToken
+  takes a ForthParseInfo struct containing the token and flags
+  
+  if token is a string
+    if compiling
+      compile string literal code
+    else
+      copy string to temp string ring buffer and leave address on TOS
+    return OK
+  
+  else if token is a character literal
+    if compiling
+      compile character literal code
+    else
+      push character literal value on TOS
+    return OK
+    
+  if there is an interpreter extension
+    pass token to interpreter extension
+    if interpreter extension processed symbol
+      return OK
+      
+  if compiling
+    if token is a local variable name
+      compile local variable code
+      return OK
+    if token is a local variable name preceeded by '&'
+      compile local variable reference code
+      return OK
+    
+  if compiling and we are in a class definition
+    give ForthTypesManager::ProcessMemberSymbol a chance to process token
+      return exitStatus result if token was processed
+  
+  if token contains a colon
+    if len(token) > 2 and token isn't first or last character
+      lookup vocabulary named by part of token before colon
+      if there is a vocabulary with that name
+        find symbol in that vocabulary
+        
+  if there is no found symbol
+    lookup token in search vocabulary
+    
+  if a vocab symbol was found
+    process that symbol in the vocabulary it was found in
+    return exit status returned by ForthVocabulary::ProcessEntry
+    
+  if token contains a period
+    try to process it with ForthTypesManager::ProcessSymbol
+    return exit status returned by ForthTypesManager::ProcessSymbol
+  
+  if token ends with "[]"      
+    if part of token before "[]" is a structure name
+      elementSize = sizeof structure
+    else
+      if part of token before "[]" is a native type name (byte/int/double etc.)
+        elementSize = sizeof native type
+      else
+        if part of token before "[]" is an integer
+          elementSize = integer value
+    if any of the above set elementSize
+      if compiling
+        compile opcode that does array array calculation: baseAddress + elementSize * index
+      else
+        do array address calculation and leave result on TOS
+      
+  if token has a period
+    attempt to convert to a floating point value
+    if conversion is successful
+      if result is a single precision float
+        if compiling
+          compile a single precision float constant
+        else
+          push single precision float constant on TOS
+      else
+        if compiling
+          compile a double precision float constant
+        else
+          push double precision float constant on TOS
+          
+  else
+    attempt to convert to an integer value
+    if conversion is successful
+      if result is a single precision integer
+        if compiling
+          compile a 32-bit integer constant
+        else
+          push 32-bit integer constant on TOS
+      else
+        if compiling
+          compile a 64-bit integer constant
+        else
+          push 64-bit integer constant on TOS
+          
+  else if we are in an enum definition
+    (getting here means token is not a recognized symbol, so will be treated as a new enum member)
+    if param stack is deeper than at start of enum definition
+      pop TOS into next enum value
+    if next enum value fits in 24 bits
+      add next enum value as a 24 bit integer constant to definitions vocab with token as name
+    else
+      add enum as a constant user defined op to definitions vocab
+    add one to next enum value
+    
+  else
+    print unknown symbol error

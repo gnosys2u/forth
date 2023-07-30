@@ -1,0 +1,43 @@
+OList methods
+  headIter
+  tailIter
+  find
+  clone
+  count
+  clear
+  load
+  toArray
+  isEmpty
+  head
+  tail
+  addHead
+  addTail
+  removeHead
+  removeTail
+  unrefHead
+  unrefTail
+  remove
+  
+OList members
+  __head
+  __tail
+
+OListIter methods
+
+  seekNext
+  seekPrev
+  seekHead
+  seekTail
+  next
+  prev
+  current
+  remove
+  unref
+  findNext
+  swapNext
+  swapPrev
+  split
+
+OListIter members
+  parent
+  __cursor

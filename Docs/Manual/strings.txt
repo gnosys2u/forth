@@ -1,0 +1,10 @@
+Strings
+
+literals
+  special characters
+
+word/blword ring buffer
+local and global variables
+struct/class fields
+
+

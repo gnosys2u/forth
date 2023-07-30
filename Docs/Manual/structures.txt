@@ -1,0 +1,22 @@
+Structures
+
+Users can define structures.
+
+struct: STRUCT_NAME
+  ... fields ...
+;struct
+
+Structure fields are declared using the same syntax as local or global variables:
+  FIELD_TYPE FIELD_NAME
+  ptrTo FIELD_TYPE FIELD_NAME
+  arrayOf FIELD_TYPE FIELD_NAME
+Structure declarations can't include initializations like variable declarations.
+
+Structure instance declaration
+
+Internal detail: each structure has its own forth vocabulary.
+
+string fields in structures - initialization operator
+? are arrays of string fields supported
+
+unions

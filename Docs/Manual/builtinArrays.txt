@@ -1,0 +1,122 @@
+Array
+
+ByteArray
+ShortArray
+IntArray
+FloatArray
+LongArray
+DoubleArray
+
+StringArray
+
+Pair
+Triple
+
+iterators
+
+get
+set
+ref
+swap
+resize
+count
+clear
+insert
+remove
+push
+pop
+base
+load
+fromMemory
+clone
+headIter
+tailIter
+find
+findIndex
+reverse
+sort
+usort
+-----------------------------------------------------
+Array methods
+  get               IX ... ELEMENT_IX                   return element IX of array
+  set               OBJECT IX ...                       set element IX of array to object on TOS
+  ref               IX ... ADDR_OF_ELEMENT_IX           return the address of element IX of array
+  swap              IXA IXB ...                         elements IXA and IXB have swapped positions in array
+  resize            NEW_NUM_ELEMENTS ...                array size is changed to NEW_NUM_ELEMENTS
+  count             ... NUM_ELEMENTS                    returns number of elements in array
+  clear             ...                                 array is set to empty
+  insert            OBJECT IX ...                       inserts OBJECT into array before position IX
+  remove            IX ... OBJECT                       removes OBJECT from array
+  push              OBJECT ...                          OBJECT is appended to end of array
+  pop               ... OBJECT                          last element of array is removed and pushed on TOS
+  base              ... ADDR_OF_ELEMENT_0               return address of first element of array (null if array has size 0)
+  load              N_OBJECTS N ...                     array is loaded with N objects from stack
+  fromMemory        SRC_ADDR NUM_ELEMENTS OFFSET ...    NUM_ELEMENTS objects from SRC_ADDR are copied into array starting at OFFSET
+  clone             ... CLONED_ARRAY_OBJECT             returns a copy of the array
+  headIter          ... ITERATOR                        returns iterator pointing at first element of array
+  tailIter          ... ITERATOR                        returns iterator pointing just past last element of array
+  find              OBJECT ... RESULT                   RESULT is either (false) if object not in array or (INDEX true) if found
+  findIndex         OBJECT ... INDEX                    INDEX is -1 if object is not found
+  reverse           ...                                 array element order is reversed
+  sort              ...                                 array is sorted using quicksort algorithm using object.compare methods
+     NOTE: all objects in array must be of the same type, or have the same compare method
+  
+  toList            ... LIST_OBJECT                     a list object is created from array
+  unref             IX ... ELEMENT_IX                   element IX in array now contains null object
+  
+Array members
+  __elements        Array vector, do not touch
+  
+-----------------------------------------------------
+ArrayIter methods
+  insert            OBJECT IX ...                       inserts OBJECT into array before position IX
+  seekNext          ...                                 iterator position increases by one
+  seekPrev          ...                                 iterator position decreases by one
+  seekHead          ...                                 iterator position is set to first element
+  seekTail          ...                                 iterator position is set to after last element
+  next              ... RESULT                          RESULT is either (FALSE) if at end of array else (OBJECT TRUE)
+  prev              ... RESULT                          RESULT is either (FALSE) if at start of array else (OBJECT TRUE)
+  current           ... RESULT                          RESULT is either (FALSE) if at end of array else (OBJECT TRUE)
+  remove            ...                                 object at current iterator position is removed from array
+  unref             ... OBJECT                          object at current iterator position is removed from array and left on TOS
+  findNext          OBJECT ... RESULT                   RESULT is FALSE if OBJECT not found else TRUE, iterator position is moved to found object
+  clone             ... OBJECT                          clone of iterator object is returned
+  insert            OBJECT ...                          OBJECT is inserted in array in front of iterator position
+  
+ArrayIter members
+  parent            parent Array
+  __cursor          current position in parent array
+-----------------------------------------------------
+ByteArray/ShortArray/IntArray/LongArray/FloatArray/DoubleArray methods
+  get               IX ... VALUE                        return element IX of array
+  set               VALUE IX ...                        set element IX of array to value on TOS
+  ref               IX ... ADDR_OF_ELEMENT_IX           return the address of element IX of array
+  swap              IXA IXB ...                         elements IXA and IXB have swapped positions in array
+  resize            NUM_ELEMENTS ...                    set size of array to NUM_ELEMENTS
+  count             ... NUM_ELEMENTS                    return number of elements in array
+  clear             ...                                 set array size to zero
+  insert            VALUE IX ...                        inserts VALUE into array before position IX
+  remove            IX ... VALUE                        removes VALUE from array
+  push              VALUE ...                           VALUE is appended to end of array
+  pop               ... VALUE                           last element of array is removed and pushed on TOS
+  base              ... ADDR_OF_ELEMENT_0               return address of first element of array (null if array has size 0)
+  load              N_VALUES N ...                      array is loaded with N values from stack
+  fromMemory        SRC_ADDR NUM_ELEMENTS OFFSET ...    NUM_ELEMENTS objects from SRC_ADDR are copied into array starting at OFFSET
+  clone             ... CLONED_ARRAY_OBJECT             returns a copy of the array
+  headIter          ... ITERATOR                        returns iterator pointing at first element of array
+  tailIter          ... ITERATOR                        returns iterator pointing just past last element of array
+  find              VALUE ... RESULT                    RESULT is either (false) if VALUE not in array or (INDEX true) if found
+  findIndex         VALUE ... INDEX                     INDEX is -1 if VALUE is not found
+  reverse           ...                                 array element order is reversed
+  sort              ...                                 array is sorted as signed bytes
+  usort             ...                                 array is sorted as unsigned bytes
+  
+ByteArray/ShortArray/IntArray/LongArray/FloatArray/DoubleArray members
+-----------------------------------------------------
+
+StringArray
+
+Pair
+Triple
+
+and any iterators

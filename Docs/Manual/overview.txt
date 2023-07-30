@@ -1,0 +1,69 @@
+Overview
+
+This document describes a version of Forth which is intended to:
+? make writing forth more accessible for people with non-RPN language experience
+  ? also makes porting from c/c++/java easier
+? get the productivity advantages that you get with things like the STL (reword)
+
+Datatypes
+  numeric types
+    int
+    byte
+    short
+    long
+    float
+    double
+    unsigned byte, short, int, long
+  strings
+  ops
+  literals
+    characters
+    ints
+    floats
+    doubles
+    strings
+  objects
+    arrays
+    maps
+    lists
+    strings
+    threads
+    streams
+    system
+    vocabulary
+    numeric
+  structures
+    
+Control Structures
+  andif orif
+  elseif ]if
+  continue
+  break
+  goto
+  ofif
+  of (multiple case)
+  
+Syntactic extensions to standard Forth
+  Parenthesized Expressions
+  Compound ops - structure member accessors, class method and member accessors
+  0xNNNNNNNN
+  NNNNNN+ NNNNNN-
+  0.12345
+  'C' 'ABCD' 'ABCDEFGH' 'ABCD'
+  NNNNNNNNNNNNNNL 0xNNNNNNNNNNNNNNNNL 0.12345L 'C'L
+  TYPE[] array indexing
+  "STRINGS"
+  VOCABULARY:OP
+  CLASS:OP
+  Enums
+  Continuation Lines
+  Variables
+  
+Problem Areas
+  syntax of assignment to array elements
+  crash on exit due to global object variable references
+  printing floating point numbers
+  memory leaks due to circular object references
+  declaration of first local variable inside control structure
+  pointer handling is not convenient
+  
