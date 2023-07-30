@@ -223,8 +223,11 @@
     <Text Include="ForthStructs.txt" />
     <Text Include="ForthTbd.txt" />
     <Text Include="ForthThreads.txt" />
-    <Text Include="ForthVaropSuffixes.txt" />
     <Text Include="ForthVocabularies.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\.gitignore" />
+    <None Include="..\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

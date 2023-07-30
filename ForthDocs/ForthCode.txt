@@ -14,46 +14,181 @@ o the code generated for local variables
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 Shell stack usage:
 
-do
-	pushes OP_DO_DO
-	pushes DP
-	pushes kShellTagDo
-	compiles OP_ABORT, 0 at DP
+The control primitives are designed using the idea of two flows:
+o false flow
+  o chain of kOpBranchZ opcodes
+  o branches which are taken when a conditional expression returns false
+  o branches that jump you past the 'true' code body
+  o started by 'if' or 'while'
+  o continued by 'orif'
+o true flow
+  o chain of kOpBranchNZ opcodes
+  o branches which are taken when a conditional expression returns true
+  o branches that take you to the next 'orif'
+  o started/continued by 'andif'
 
-?do
-	pushes OP_DO_CHECKDO
-	pushes DP
-	pushes kShellTagDo
-	compiles OP_ABORT, 0 at DP
-
-loop/+loop
-	pops kShellTagDo
-	pops OLD_DP
-	pops opcode
-	compiles opcode at OLD_DP
-	compiles kOpBranch(DP - OLD_DP) at OLD_DP+1 (branch used by 'leave')
-
-if
-	pushes DP
-	pushes kShellTagBranchZ
-	compiles OP_ABORT at DP
-
+if andif orif ...
+  body 1
+elseif andif orif ...
+  body 2
+elseif andif orif ...
+  body 3
 else
-	pops kShellTagBranchZ
+  body Z
+endif
+
+A group of if/andif/orif ops will direct flow to either
+the immediately following body of code, or direct flow to
+the section after that body of code, which may be a elseif/andif/orif
+conditional section, or the final body of code which is preceeded by
+an else op.
+
+----------------------------------
+if
+  compile kOpBranchZ(0)
+  ssPush addr of kOpBranchZ opcode
+  ssPush kShellTagIf
+
+----------------------------------
+else
+  ssPop tag
+  if tag not in {kShellTagIf | kShellTagElif | kShellTagWhile | kShellTagOrIf | kShellTagAndIf}
+    report syntax error 'else' and exit
+  falseIP = DP + 1
+  trueIP = ssPeek(1)
+  done = false
+  followedByOr = false
+  while !done
+    ssPop branchTag
+    ssPop branchAddress
+    if followedByOr
+      patchOpcode(kOpBranchNZ, trueIP, branchAddress)
+    else
+      patchOpcode(kOpBranchZ, falseIP, branchAddress)
+    switch(branchTag)
+      kShellTagIf kShellTagElif kShellTagWhile:
+        / branch we just patched was if/elseif/while, nothing left to do
+        done = true
+        break;
+      kShellTagOrif:
+        followedByOr = true
+        falseIP = ssPeek(1) + 1
+        ? how do we know previous thing on stack is part of false chain
+        break
+      kShellTagAndif:
+        followedByOr = false
+        trueIP = ssPeek(1) + 1
+        ? how do we know previous thing on stack is part of true chain
+        break
+      default:
+        report syntax error 'else' and exit
+  endwhile
+  elseCount = 1
+  if branchTag == kShellTagElif
+TODO!
 	pops OLD_DP
 	pushes DP
 	pushes kShellTagBranch
 	compiles OP_ABORT at DP
 	compiles kOpBranchZ(DP - OLD_DP) at OLD_DP
 
+----------------------------------
 endif
+TODO!
 	pops kShellTagBranch/kShellTagBranchZ
 	pops OLD_DP
 	compiles kOpBranch/kOpBranchZ((DP - OLD_DP) - 1) at OLD_DP
 	
+----------------------------------
+]if  (elseif)
+    TODO
+    
+----------------------------------
+andif
+  compile kOpBranchZ(0)
+  ssPush DP - 1
+  ssPush kShellTagOrIf
+    
+----------------------------------
+orif
+  compile kOpBranchZ(0)
+  ssPush DP - 1
+  ssPush kShellTagAndIf
+    
+----------------------------------
 begin
+  ssPush DP
+  ssPush kShellTagBegin
+
+----------------------------------
+while
+  ssPop tag
+  if tag is not kShellTagBegin
+    report syntax error 'while' and exit
+  ssPop oldAddress
+  compile kOpBranchZ(0)
+  ssPush(DP - 1)
+  ssPush(kShellTagWhile)
+  ssPush(oldAddress)
+  ssPush(kShellTagBegin)
+  ssPop branchTag
+
+----------------------------------
+repeat
+  ssPop tag
+  if tag is not kShellTagBegin
+    report syntax error 'repeat' and exit
+  ssPop pBeginAddress
+  ssPop branchTag
+  if branchTag is not kShellTagWhile
+    report syntax error 'repeat' and exit
+  ssPop pBranch
+  patchOpcode(kOpBranchZ, (pBeginAddress - DP) - 1)     \ fill in branch taken when 'while' fails
+  compile kOpBranch((pBeginAddress - DP) - 1)
+  endLoopContinuations
+  
+----------------------------------
+until
+  ssPop tag
+  if tag is not kShellTagBegin
+    report syntax error 'until'
+  else
+    ssPop pBeginOp
+    compile kOpBranchZ(0)
+    patchOpcode(kOpBranchZ, pBeginOp, DP - 1)  \ patch the branchZ we just compiled
+  endLoopContinuations
+
+----------------------------------
+again
+  ssPop tag
+  if tag is not kShellTagBegin
+    report syntax error 'again' and exit
+  ssPop pLoopTop
+  compile kOpBranch((pLoopTop - DP) - 1)
+  endLoopContinuations
+
+
+----------------------------------
+do
+	pushes OP_DO_DO
 	pushes DP
-	pushes kShellTagBegin
+	pushes kShellTagDo
+	compiles OP_ABORT, 0 at DP
+
+----------------------------------
+?do
+	pushes OP_DO_CHECKDO
+	pushes DP
+	pushes kShellTagDo
+	compiles OP_ABORT, 0 at DP
+
+----------------------------------
+loop/+loop
+	pops kShellTagDo
+	pops OLD_DP
+	pops opcode
+	compiles opcode at OLD_DP
+	compiles kOpBranch(DP - OLD_DP) at OLD_DP+1 (branch used by 'leave')
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 Code optimizations and combo ops.
@@ -296,6 +431,109 @@ caller of "fur"
 
 TBDs:
 - show how vars...endvars have been made unnecessary
+
+
+
+In progress: april 7 2023
+
+I added 'orif' and 'andif' ops which are inspired by C's || and && operators for
+early outing of if-conditionals.  They are only designed to work with 'if', not
+'while' or 'until'.  The overall idea is:
+o existing if/else/endif evaluate a single conditional then follow either the true flow or the false flow
+o andif/orif allow modification of the true/false flows to either early out or add more conditionals
+o andif/orif push the branch address and an andif/orif tag on the shellstack
+o either 'else' or 'endif' will iterate through all the andif/orif tags until they reach an 'if' (branchz)
+o andif and orif tags redefine one of two IPs that else maintains: the trueIP which
+initially points to the 'true' body of the if statement, and the falseIP which initially
+points to the 'false' body (after the else),
+o orif statements redirect the false flow to point to their conditonal code, since an
+  orif gives you another chance to succeed after a previous test returned false
+o andif statements redirect the true flow to point to their conditional code,
+  since an andif adds another conditional you must pass to continue on the true flow
+
+
+==================================
+stuffBefore
+condA if
+  trueBody
+else
+  falseBody
+endif
+stuffAfter
+
+
+condA
+branchZ .falseBody
+trueBody
+branch .after
+.falseBody:
+falseBody
+.after:
+stuffAfter
+
+==================================
+stuffBefore
+condA if condB andif
+  trueBody
+else
+  falseBody
+endif
+stuffAfter
+
+
+condA
+branchZ .falseBody
+condB
+branchZ .falseBody
+trueBody
+branch .after
+.falseBody:
+falseBody
+.after:
+stuffAfter
+
+
+
+==================================
+stuffBefore
+condA if condB andif condC orif
+  trueBody
+else
+  falseBody
+endif
+stuffAfter
+
+  condA
+  branchZ .testC
+  condB
+  branchNZ .trueBody
+.testC:
+  condC
+  branch .falseBody
+.trueBody
+  trueBody
+  branch .after
+.falseBody:
+  falseBody
+.after:
+  stuffAfter
+
+
+
+
+condA
+branchZ .1
+condB
+branchNZ .2
+1:
+condC
+branchZ .3
+
+trueBody
+branch .2
+.1:
+falseBody
+.2:
 
 
 

@@ -282,6 +282,25 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+July 29 2023
+
+I've been busy with work the last few months.  That should end in a few days.
+
+Possibly stupid new plan: change all existing builtin floating point ops to have
+name with no overlap with ANSI names - so for sine there would be builtin ops
+named dsin (64bit) and ssin (32bit), and fsin would be a colon definition which used dsin and
+the fpstack.  I need to decide if the fpstack is a per fiber thing.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+June 4 2023
+
+I'm beginning to think that trying to support a separate FP stack in parallel
+with keeping floats on the param stack is a huge waste of time, and I should just
+tell traditional forth-ers that I fail some of the ANSI-2012 FP tests which
+require a separate FP stack, but that otherwise my FP operaters pass the tests.
+
+The most recent thing I noticed is that I will have to change kOpNativeF64/kOpCCodeF64/kOpUserDefF64
+to push things to the FP stack.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 May 29 2023
 
 I got most of the ANSI floating point tests to work, up to to-float-test, which
