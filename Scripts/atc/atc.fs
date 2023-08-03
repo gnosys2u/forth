@@ -13,8 +13,8 @@ FileOutStream traceFileStream
   oclear traceFileStream
 ;
 
-: t{ setConsoleOut( traceFileStream ) ;
-: }t setConsoleOut( getDefaultConsoleOut ) ;
+: tf{ setConsoleOut( traceFileStream ) ;
+: }tf setConsoleOut( getDefaultConsoleOut ) ;
 
 enum: atcTileType  byte
   kATTEmpty
@@ -138,7 +138,7 @@ class: atcTile
   ;m
     
   m: delete
-    t{ "deleting tile\n" %s }t
+    tf{ "deleting tile\n" %s }tf
     oclear airplanes
     super.delete
   ;m
@@ -364,15 +364,15 @@ lf atcFileReader
 #endif
   if(atcFileReader:loadAtcFile( game.name.get game))
     clearConsole
-    \ t{ game.show "\n\n\n=====================================\n\n\n" %s }t
+    \ tf{ game.show "\n\n\n=====================================\n\n\n" %s }tf
     game.play
-    \ t{ game.show }t
+    \ tf{ game.show }tf
     game.reset
   else
     "Available games:" %s %nl
     listATCGames
   endif
-  \ t{ game.show }t
+  \ tf{ game.show }tf
   game~
   setConsoleColor( color )
   closeTrace

@@ -10,7 +10,7 @@ class: atcConsoleDisplay extends iAtcDisplay
   int defaultColors
   
   m: delete
-    \ t{ "deleting display " %s %nl }t
+    \ tf{ "deleting display " %s %nl }tf
     oclear text
     super.delete
   ;m

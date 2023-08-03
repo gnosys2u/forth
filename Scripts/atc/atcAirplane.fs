@@ -39,7 +39,7 @@ class: atcAirplane extends iAtcAirplane
       heading commandedHeading - dup leftTurns!
       8 swap - rightTurns!
     endif
-    t{ "old heading " %s heading 45 * %d " commandedHeading " %s commandedHeading 45 * %d }t
+    tf{ "old heading " %s heading 45 * %d " commandedHeading " %s commandedHeading 45 * %d }tf
     
     case(forceDirection)
 
@@ -68,7 +68,7 @@ class: atcAirplane extends iAtcAirplane
     endif
    
     heading deltaHeading + 7 and -> heading
-    t{ "  rightTurns " %s rightTurns %d " left turns " %s leftTurns %d "   new heading " %s heading 45 * %d %nl }t
+    tf{ "  rightTurns " %s rightTurns %d " left turns " %s leftTurns %d "   new heading " %s heading 45 * %d %nl }tf
   ;
   
   : calculateNextPosition
@@ -122,7 +122,7 @@ class: atcAirplane extends iAtcAirplane
   ;m
   
   m: delete
-    \ t{ "deleting plane " %s thisData %x %bl name.get %s %nl }t
+    \ tf{ "deleting plane " %s thisData %x %bl name.get %s %nl }tf
     name~
   ;m
   

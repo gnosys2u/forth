@@ -37,7 +37,7 @@ class: atcInputHandler extends iAtcInputHandler
   ;
   
   : executeCommand
-    t{ "command: " %s displayString.get %s %nl }t
+    tf{ "command: " %s displayString.get %s %nl }tf
     setIdle
     display.showCommand("")
     display.showWarning("")
@@ -485,7 +485,7 @@ class: atcInputHandler extends iAtcInputHandler
   ;m
   
   m: delete
-    \ t{ "deleting inputHandler " %s %nl }t
+    \ tf{ "deleting inputHandler " %s %nl }tf
     display~
     displayString~
     commandString~

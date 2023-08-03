@@ -51,7 +51,7 @@ class: atcRegion extends iAtcRegion
     if(objNotNull(tiles))
       resetTiles
       tiles~
-      t{ airports.show }t
+      tf{ airports.show }tf
       airports~
       portals~
       beacons~
@@ -60,7 +60,7 @@ class: atcRegion extends iAtcRegion
   ;m
     
   m: delete
-    \ t{ "deleting region\n" %s }t
+    \ tf{ "deleting region\n" %s }tf
     reset
   ;m
 
@@ -213,7 +213,7 @@ class: atcRegion extends iAtcRegion
     int dir!
     int y!
     int x!
-    t{ "new airport at " %s x %d %bl y %d "  direction: " %s dir %d %nl }t
+    tf{ "new airport at " %s x %d %bl y %d "  direction: " %s dir %d %nl }tf
     mko atcAirport airport
     airport.init(x y dir id)
     airports.insert(airport 0)

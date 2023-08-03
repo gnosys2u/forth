@@ -44,7 +44,7 @@ class: atcGame extends iAtcGame
   ;
   
   m: delete
-    \ t{ "deleting game\n" %s }t
+    \ tf{ "deleting game\n" %s }tf
     reset
   ;m
   
@@ -86,7 +86,7 @@ class: atcGame extends iAtcGame
     \ display.showWarning(plane.name.get) %bl newX %d %bl newY %d %bl
     region.getTile( plane.x plane.y ) oldTile!o 
     oldTile.removeAirplane( plane )
-    t{ "plane " %s plane.name.get %s " moved to " %s newX %d ',' %c newY %d " at " %s plane.altitude %d %nl }t
+    tf{ "plane " %s plane.name.get %s " moved to " %s newX %d ',' %c newY %d " at " %s plane.altitude %d %nl }tf
     if( and(within(newX 0 region.columns) within(newY 0 region.rows)) )
       \ plane still in airspace
       region.getTile(newX newY) newTile!o 
@@ -335,7 +335,7 @@ class: atcGame extends iAtcGame
     ptrTo atcCommandInfo commandInfo!
     if( commandInfo.airplaneNum airplanes.count < )
       airplanes.get(commandInfo.airplaneNum) iAtcAirplane plane!
-      \ t{ "executeCommand " %s  commandInfo.airplaneNum %d %bl plane.beaconNum %d %nl }t
+      \ tf{ "executeCommand " %s  commandInfo.airplaneNum %d %bl plane.beaconNum %d %nl }tf
       if( and(commandInfo.command kNumCommands <   commandInfo.command 0>=) )
         plane.executeCommand( commandInfo display )
       else
