@@ -191,7 +191,9 @@ STRUC FCore
     .signedPrintMode	RESD 1  ; 108
     .traceFlags			RESD 1  ; 112
 	.ExceptionPtr		RESD 1  ; 116
-    .scratch            RESD 4  ; 120
+    .fpStackBase        RESD 1  ; 120
+    .fpStackPtr         RESD 1  ; 124
+    .scratch            RESD 4  ; 128
 ENDSTRUC 
 
 STRUC Object

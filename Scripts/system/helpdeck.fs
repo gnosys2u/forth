@@ -650,68 +650,68 @@ addOp sfOffsetBlock|SRC DST OFFSET NUM ...|add OFFSET to block of NUM floats at 
 addOp sfMixBlock|SRC DST SCALE NUM ...|multiply block of NUM floats at SRC by SCALE and add results into DST
 
 tags: float math
-addOp d+|DA DB ... (DA+DB)|add top two double floating point items
-addOp d-|DA DB ... (DA-DB)|subtract top two double floating point items
-addOp d*|DA DB ... (DA*DB)|multiply top two double floating point items
-addOp d/|DA DB ... (DA/DB)|divide top two double floating point items
-addOp dsin|DA ... sin(DA)|double sine
-addOp darcsin|DA ... arcsin(DA)|double arcsine
-addOp dcos|DA ... cos(DA)|double cosine
-addOp darccos|DA ... arccos(DA)|double arccosine
-addOp dtan|DA ... tan(DA)|double tan
-addOp darctan|DA ... arctan(DA)|double arctan
-addOp darctan2|DA DB ... arctan(DA/DB)|double arctan of ratio
-addOp dexp|DA ... exp(DA)|
-addOp dln|DA ... ln(DA)|
-addOp dlog10|DA ... log10(DA)|
-addOp dpow|DA DB ... DA**DB|
-addOp dsqrt|DA ... sqrt(DA)|
-addOp dceil|DA ... ceil(DA)|
-addOp dfloor|DA ... floor(DA)|
-addOp dabs|DA ... abs(DA)|
-addOp dldexp|DA B ... ldexp(DA,B)|
-addOp dfrexp|DA ... frac(DA) exponent(DA)|
-addOp dmodf|DA ... frac(DA) whole(DA)|
-addOp dfmod|DA DB ... fmod(DA,DB)|
+addOp df+|DA DB ... (DA+DB)|add top two double floating point items
+addOp df-|DA DB ... (DA-DB)|subtract top two double floating point items
+addOp df*|DA DB ... (DA*DB)|multiply top two double floating point items
+addOp df/|DA DB ... (DA/DB)|divide top two double floating point items
+addOp dfsin|DA ... sin(DA)|double sine
+addOp dfarcsin|DA ... arcsin(DA)|double arcsine
+addOp dfcos|DA ... cos(DA)|double cosine
+addOp dfarccos|DA ... arccos(DA)|double arccosine
+addOp dftan|DA ... tan(DA)|double tan
+addOp dfarctan|DA ... arctan(DA)|double arctan
+addOp dfarctan2|DA DB ... arctan(DA/DB)|double arctan of ratio
+addOp dfexp|DA ... exp(DA)|
+addOp dfln|DA ... ln(DA)|
+addOp dflog10|DA ... log10(DA)|
+addOp dfpow|DA DB ... DA**DB|
+addOp dfsqrt|DA ... sqrt(DA)|
+addOp dfceil|DA ... ceil(DA)|
+addOp dffloor|DA ... floor(DA)|
+addOp dfabs|DA ... abs(DA)|
+addOp dfldexp|DA B ... ldexp(DA,B)|
+addOp dffrexp|DA ... frac(DA) exponent(DA)|
+addOp dfmodf|DA ... frac(DA) whole(DA)|
+addOp dffmod|DA DB ... fmod(DA,DB)|
 
 tags: float compare
-addOp f=|DA DB ... DA=DB|
-addOp f<>|DA DB ... DA<>DB|
-addOp f>|DA DB ... DA>DB|
-addOp f>=|DA DB ... DA>=DB|
-addOp f<|DA DB ... DA<DB|
-addOp f<=|DA DB ... DA<=DB|
-addOp f0=|DA ... DA=0|
-addOp f0<>|DA ... DA<>0|
-addOp f0>|DA ... DA>0|
-addOp f0>=|DA ... DA>=0|
-addOp f0<|DA ... DA<0|
-addOp f0<=|DA ... DA<=0|
-addOp fwithin|DVAL DLO DHI ... (DLO<=DVAL<DHI)|
-addOp fmin|DA DB ... min(DA,DB)|
-addOp fmax|DA DB ... max(DA,DB)|
+addOp df=|DA DB ... DA=DB|
+addOp df<>|DA DB ... DA<>DB|
+addOp df>|DA DB ... DA>DB|
+addOp df>=|DA DB ... DA>=DB|
+addOp df<|DA DB ... DA<DB|
+addOp df<=|DA DB ... DA<=DB|
+addOp df0=|DA ... DA=0|
+addOp df0<>|DA ... DA<>0|
+addOp df0>|DA ... DA>0|
+addOp df0>=|DA ... DA>=0|
+addOp df0<|DA ... DA<0|
+addOp df0<=|DA ... DA<=0|
+addOp dfwithin|DVAL DLO DHI ... (DLO<=DVAL<DHI)|
+addOp dfmin|DA DB ... min(DA,DB)|
+addOp dfmax|DA DB ... max(DA,DB)|
 
 tags: float block
-addOp fAddBlock|SRCA SRCB DST NUM ...|add blocks of NUM doubles at SRCA and SRCB and store results in DST
-addOp fSubBlock|SRCA SRCB DST NUM ...|subtract blocks of NUM doubles at SRCA and SRCB and store results in DST
-addOp fMulBlock|SRCA SRCB DST NUM ...|multiply blocks of NUM doubles at SRCA and SRCB and store results in DST
-addOp fDivBlock|SRCA SRCB DST NUM ...|divide blocks of NUM doubles at SRCA and SRCB and store results in DST
-addOp fScaleBlock|SRC DST SCALE NUM ...|multiply block of NUM doubles at SRC by SCALE and store results in DST
-addOp fOffsetBlock|SRC DST OFFSET NUM ...|add OFFSET to block of NUM doubles at SRC and store results in DST
-addOp fMixBlock|SRC DST SCALE NUM ...|multiply block of NUM doubles at SRC by SCALE and add results into DST
+addOp dfAddBlock|SRCA SRCB DST NUM ...|add blocks of NUM doubles at SRCA and SRCB and store results in DST
+addOp dfSubBlock|SRCA SRCB DST NUM ...|subtract blocks of NUM doubles at SRCA and SRCB and store results in DST
+addOp dfMulBlock|SRCA SRCB DST NUM ...|multiply blocks of NUM doubles at SRCA and SRCB and store results in DST
+addOp dfDivBlock|SRCA SRCB DST NUM ...|divide blocks of NUM doubles at SRCA and SRCB and store results in DST
+addOp dfScaleBlock|SRC DST SCALE NUM ...|multiply block of NUM doubles at SRC by SCALE and store results in DST
+addOp dfOffsetBlock|SRC DST OFFSET NUM ...|add OFFSET to block of NUM doubles at SRC and store results in DST
+addOp dfMixBlock|SRC DST SCALE NUM ...|multiply block of NUM doubles at SRC by SCALE and add results into DST
 
 tags: convert
-addOp i2sf|A ... sfloat(A)|convert int to sfloat|int sfloat
-addOp i2f|A ... float(A)|convert int to float|int float
-addOp sf2i|A ... int(A)|convert sfloat to int|int sfloat
-addOp sf2f|A ... float(A)|convert sfloat to float|sfloat float
-addOp f2i|A ... int(A)|convert float to int|int float
-addOp f2sf|A ... sfloat(A)|convert float to sfloat|float sfloat
-addOp i2l|INTA ... LONGA|convert signed 32-bit int to signed 64-bit int|int long
-addOp l2sf|LONGA ... FLOATA|convert signed 64-bit int to 32-bit sfloat|long sfloat
-addOp l2f|LONGA ... DOUBLEA|convert signed 64-bit int to 64-bit sfloat|long float
-addOp sf2l|FLOATA ... LONGA|convert 32-bit sfloat to signed 64-bit int|sfloat long
-addOp f2l|DOUBLEA ... LONGA|convert 64-bit sfloat to signed 64-bit int|float long
+addOp i>sf|A ... sfloat(A)|convert int to sfloat|int sfloat
+addOp i>df|A ... float(A)|convert int to float|int float
+addOp sf>i|A ... int(A)|convert sfloat to int|int sfloat
+addOp sf>df|A ... float(A)|convert sfloat to float|sfloat float
+addOp df>i|A ... int(A)|convert float to int|int float
+addOp df>sf|A ... sfloat(A)|convert float to sfloat|float sfloat
+addOp i>l|INTA ... LONGA|convert signed 32-bit int to signed 64-bit int|int long
+addOp l>sf|LONGA ... FLOATA|convert signed 64-bit int to 32-bit sfloat|long sfloat
+addOp l>df|LONGA ... DOUBLEA|convert signed 64-bit int to 64-bit sfloat|long float
+addOp sf>l|FLOATA ... LONGA|convert 32-bit sfloat to signed 64-bit int|sfloat long
+addOp df>l|DOUBLEA ... LONGA|convert 64-bit sfloat to signed 64-bit int|float long
 
 tags: logic cell
 addOp or|A B ... or(A,B)|

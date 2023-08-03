@@ -32,7 +32,7 @@ null ptrTo Instruction __nextLoc!
 : make_loc_hint
   mko Place place
   place.init
-  d[ t{ "make_loc " %s place.long_desc.get %s %bl place.locID %d %nl ds }t ]d
+  d[ tr{ "make_loc " %s place.long_desc.get %s %bl place.locID %d %nl ds }tr ]d
 
   if(place.locID game.places.count <>)
     "WARNING: adding location " %s place.locID %d " at index " %s game.places.count %d %nl
@@ -55,7 +55,7 @@ null ptrTo Instruction __nextLoc!
   __nextLoc.dest!
   __nextLoc.cond!
   __nextLoc.mot!
-  d[ t{ "make_inst " %s __nextLoc.dest %d %nl }t ]d
+  d[ tr{ "make_inst " %s __nextLoc.dest %d %nl }tr ]d
 ;
 
 \ #define make_ins(m, d) make_inst(q++, m, 0, d)

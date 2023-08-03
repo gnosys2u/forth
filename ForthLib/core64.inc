@@ -203,7 +203,9 @@ STRUC FCore
     .signedPrintMode	RESQ 1  ; 216
     .traceFlags			RESQ 1  ; 224
 	.ExceptionPtr		RESQ 1  ; 232
-    .scratch            RESQ 4  ; 240
+    .fpStackBase        RESQ 1  ; 240
+    .fpStackPtr         RESQ 1  ; 248
+    .scratch            RESQ 4  ; 256
 ENDSTRUC 
 
 STRUC Object

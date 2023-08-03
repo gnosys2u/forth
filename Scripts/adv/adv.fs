@@ -28,7 +28,7 @@ alias sp? sp@
 \   good for tracking down when loading just dies quietly
 : spoo
   0 $word ptrTo byte msg!
-  d[ t{ msg %s %nl ds }t ]d
+  d[ tr{ msg %s %nl ds }tr ]d
 ; immediate spoo
 
 spoo before defs

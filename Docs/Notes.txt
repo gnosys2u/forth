@@ -4,6 +4,9 @@
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
+
+- there is a dcell struct, but there is no DCell object, would adding it be usefull?
+
 - document how ExpressionInputStream works, I believe I did this somewhere, it
   probably just needs to be updated
 
@@ -282,14 +285,66 @@ Double has consistent layout, long is reversed on param stack.
 
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
-July 29 2023
+August 2 2023
+
+I've finished debugging the ANSI FP stack support, at least for Win64 Debug no asm.
+The ANSI FP test suite finishes with no errors! WOOHOO!
+test.fs also runs without errors.  There are almost certainly more problems
+related to all the double/float name changes hiding in old scripts.
+
+The debugging of the other Windows and Arm32 flavors is for another day.  I no
+longer have a modern Mac, so the Mac flavors will wither for now - I never had
+access to a Mac silicon so it was withering anyway.
+
+Another idea: take all the non-fpstack operators like dfcos and sfsin, and make
+them be static ops in DFloat and SFloat, so you would access them with DFloat:cos
+and SFloat:sin.  Allowing 'alias' to apply to vocabs so DFloat could be called df
+would make DFloat:cos be df:cos, which wouldn't be so bad.
+
+Most things like dfcos or sfsin could just be called dcos or ssin, there are a
+few ANSI name collisions with double-cell ops like dabs or dwithin.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+July 31 2023
 
 I've been busy with work the last few months.  That should end in a few days.
 
 Possibly stupid new plan: change all existing builtin floating point ops to have
-name with no overlap with ANSI names - so for sine there would be builtin ops
-named dsin (64bit) and ssin (32bit), and fsin would be a colon definition which used dsin and
-the fpstack.  I need to decide if the fpstack is a per fiber thing.
+names with no overlap with ANSI names - so for sine there would be builtin ops
+named dfsin (64bit) and sfsin (32bit), and fsin would be a colon definition which
+used dfsin and the fpstack.
+
+The kFFFloatingPointStack feature flag would still be needed to control how FP
+literals are handled.
+
+    kFFFloatingPointStack 0:
+interpret mode:     FP value is pushed to param stack
+compile mode:       'dflit' is compiled followed by 64-bit literal value
+
+    kFFFloatingPointStack 1:
+interpret mode:     FP value is pushed to fpstack
+compile mode:       'dflit' is compiled followed by 64-bit literal value, followed by fpush
+
+The peephole optimizer will combine the dflit(FPVALUE) and fpush into a 
+kOpNativeF64(fpush, FPVALUE) combo which will take 3 longwords.
+
+Users should decide to either use the fpstack or not - the compiled
+code will function correctly even if you use an opposite setting at runtime than
+what you used at compile time, but where you will get in trouble is with FP input
+and output.  If you compile with kFFFloatingPointStack set and define times5:
+    : times5 5.0e f* ;
+Running times5 in fpstack mode will take an argument from the fpstack and leave
+it on the fpstack.
+
+If you try to run this interactively in non-fpstack mode, it will still try to
+get its input from the fpstack, but the outer interpreter has left the fp value
+on the pstack, sp times5 will grab whatever is on the fpstack (or fault if fpstack
+is empty), ignoring the fp value on the pstack.
+
++ rename all non-fpstack ops to df* and sf*
+  + in C++ code
+  - in scripts
++ have outer interpreter compile flit(FPVALUE) if kFFFloatingPointStack is set
+
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 June 4 2023
 

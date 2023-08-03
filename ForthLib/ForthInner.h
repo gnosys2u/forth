@@ -55,7 +55,7 @@ struct ForthFileInterface
 	void				(*rewindDir)( void* pDir );
 };
 
-#define NUM_CORE_SCRATCH_ITEMS 16
+#define NUM_CORE_SCRATCH_ITEMS 4
 
 struct CoreState
 {
@@ -114,10 +114,8 @@ struct CoreState
 
     ForthExceptionFrame* pExceptionFrame;  // points to current exception handler frame in rstack
 
-#if defined(SUPPORT_FP_STACK)
-    ucell               fpIndex;
-    double*             fpStack;
-#endif
+    double*             fpStackBase;
+    double*             fpStackPtr;         // top element of FP stack
 
     uint64_t               scratch[NUM_CORE_SCRATCH_ITEMS];
 };
@@ -256,6 +254,7 @@ inline forthop GetCurrentOp( CoreState *pCore )
 #if defined(SUPPORT_FP_STACK)
 extern double popFPStack(CoreState* pCore);
 extern void pushFPStack(CoreState* pCore, double val);
+extern ucell getFPStackDepth(CoreState* pCore);
 #endif
 
 };      // end extern "C"

@@ -16,7 +16,7 @@ enum: eBaseType
   kBTLong
   kBTULong
   kBTSFloat				\ 8
-  kBTFloat
+  kBTDFloat
   kBTString
   kBTOp
   kBTObject				\ 12
@@ -149,7 +149,7 @@ struct: ForthCoreState
   ptrTo int     pExceptionFrame        \ points to current exception handler frame in rstack
 
   ucell         fpIndex;
-  ptrTo float   fpStack;
+  ptrTo dfloat  fpStack;
 ;struct
 
 -> features

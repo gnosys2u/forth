@@ -134,7 +134,7 @@ struct: colorTri
   3 arrayOf point p
   rgb32 color
   sfloat size
-  float cost
+  dfloat cost
   ptrTo colorTri pNext
 ;struct
 

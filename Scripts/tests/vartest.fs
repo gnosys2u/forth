@@ -18,10 +18,10 @@ test[ checkResult( "aba" ) ]
 \ =========================================================
 
 -11 byte gvb!   4 ubyte gvub!   short gvs   55 ushort gvus!   12 int gvi!   uint gvui
-55L long gvl!   12L ulong gvul!   7.5Ef sfloat gvf!   -100.25E float gvd!
+55L long gvl!   12L ulong gvul!   7.5Ef sfloat gvf!   -100.25E dfloat gvd!
 
 test[ -11 gvb = 4 gvub = 0 gvs = 55 gvus = 12 gvi = 0 gvui = ]
-test[ 55L gvl l= 12l gvul l= 7.5Ef gvf sf= -100.25E gvd f= ]
+test[ 55L gvl l= 12l gvul l= 7.5Ef gvf sf= -100.25E gvd df= ]
 
 test[ $1ffffffffl gvl! gvl++ gvl $200000000l l= ]
 test[ gvl-- gvl $1ffffffffl l= ]
@@ -125,7 +125,7 @@ test[ testGlobalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 
 : testLocalVars4
   startTest
-  sfloat lvf   float lvd
+  sfloat lvf   dfloat lvd
   22.5Ef lvf! lvf sg. -0.125Ef lvf!+  lvf sg. 0.75Ef lvf!-  lvf sg.
   22.5E lvd! lvd g. -0.125E lvd!+  lvd g. 0.75E lvd!-  lvd g.
 ;

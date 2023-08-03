@@ -98,89 +98,89 @@ addHelp /mod	A B ... (A/B) (A mod B)	divide top two items, return quotient & rem
 addHelp mod		A B ... (A mod B)			take modulus of top two items
 addHelp negate	A ... (-A)	negate top item
 
-addHelp f+	FA FB ... (FA+FB)	add top two floating point items
-addHelp f-	FA FB ... (FA-FB)	subtract top two floating point items
-addHelp f*	FA FB ... (FA*FB)	multiply top two floating point items
-addHelp f/	FA FB ... (FA/FB)	divide top two floating point items
+addHelp sf+	FA FB ... (FA+FB)	add top two floating point items
+addHelp sf-	FA FB ... (FA-FB)	subtract top two floating point items
+addHelp sf*	FA FB ... (FA*FB)	multiply top two floating point items
+addHelp sf/	FA FB ... (FA/FB)	divide top two floating point items
 
-addHelp f=	FA FB ... FA=FB
-addHelp f<>	FA FB ... FA<>FB
-addHelp f>	FA FB ... FA>FB
-addHelp f>=	FA FB ... FA>=FB
-addHelp f<	FA FB ... FA<FB
-addHelp f<=	FA FB ... FA<=FB
-addHelp f0=	FA ... FA=0
-addHelp f0<>	FA ... FA<>0
-addHelp f0>	FA ... FA>0
-addHelp f0>=	FA ... FA>=0
-addHelp f0<	FA ... FA<0
-addHelp f0<=	FA ... FA<=0
-addHelp fwithin	FVAL FLO FHI ... (FLO<=FVAL<FHI)
-addHelp fmin	FA FB ... min(FA,FB)
-addHelp fmax	FA FB ... max(FA,FB)
+addHelp sf=	FA FB ... FA=FB
+addHelp sf<>	FA FB ... FA<>FB
+addHelp sf>	FA FB ... FA>FB
+addHelp sf>=	FA FB ... FA>=FB
+addHelp sf<	FA FB ... FA<FB
+addHelp sf<=	FA FB ... FA<=FB
+addHelp sf0=	FA ... FA=0
+addHelp sf0<>	FA ... FA<>0
+addHelp sf0>	FA ... FA>0
+addHelp sf0>=	FA ... FA>=0
+addHelp sf0<	FA ... FA<0
+addHelp sf0<=	FA ... FA<=0
+addHelp sfwithin	FVAL FLO FHI ... (FLO<=FVAL<FHI)
+addHelp sfmin	FA FB ... min(FA,FB)
+addHelp sfmax	FA FB ... max(FA,FB)
 
-addHelp fAddBlock    SRCA SRCB DST NUM ...   add blocks of NUM floats at SRCA and SRCB and store results in DST
-addHelp fSubBlock    SRCA SRCB DST NUM ...   subtract blocks of NUM floats at SRCA and SRCB and store results in DST
-addHelp fMulBlock    SRCA SRCB DST NUM ...   multiply blocks of NUM floats at SRCA and SRCB and store results in DST
-addHelp fDivBlock    SRCA SRCB DST NUM ...   divide blocks of NUM floats at SRCA and SRCB and store results in DST
-addHelp fScaleBlock  SRC DST SCALE NUM ...   multiply block of NUM floats at SRC by SCALE and store results in DST
-addHelp fOffsetBlock  SRC DST OFFSET NUM ... add OFFSET to block of NUM floats at SRC and store results in DST
-addHelp fMixBlock    SRC DST SCALE NUM ...   multiply block of NUM floats at SRC by SCALE and add results into DST
+addHelp sfAddBlock    SRCA SRCB DST NUM ...   add blocks of NUM floats at SRCA and SRCB and store results in DST
+addHelp sfSubBlock    SRCA SRCB DST NUM ...   subtract blocks of NUM floats at SRCA and SRCB and store results in DST
+addHelp sfMulBlock    SRCA SRCB DST NUM ...   multiply blocks of NUM floats at SRCA and SRCB and store results in DST
+addHelp sfDivBlock    SRCA SRCB DST NUM ...   divide blocks of NUM floats at SRCA and SRCB and store results in DST
+addHelp sfScaleBlock  SRC DST SCALE NUM ...   multiply block of NUM floats at SRC by SCALE and store results in DST
+addHelp sfOffsetBlock  SRC DST OFFSET NUM ... add OFFSET to block of NUM floats at SRC and store results in DST
+addHelp sfMixBlock    SRC DST SCALE NUM ...   multiply block of NUM floats at SRC by SCALE and add results into DST
 
-addHelp d+	DA DB ... (DA+DB)	add top two 64-bit floating point items
-addHelp d-	DA DB ... (DA-DB)	subtract top two 64-bit floating point items
-addHelp d*	DA DB ... (DA*DB)	multiply top two 64-bit floating point items
-addHelp d/	DA DB ... (DA/DB)	divide top two 64-bit floating point items
-addHelp d=	DA DB ... DA=DB
-addHelp d<>	DA DB ... DA<>DB
-addHelp d>	DA DB ... DA>DB
-addHelp d>=	DA DB ... DA>=DB
-addHelp d<	DA DB ... DA<DB
-addHelp d<=	DA DB ... DA<=DB
-addHelp d0=	DA ... DA=0
-addHelp d0<>	DA ... DA<>0
-addHelp d0>	DA ... DA>0
-addHelp d0>=	DA ... DA>=0
-addHelp d0<	DA ... DA<0
-addHelp d0<=	DA ... DA<=0
-addHelp dwithin	DVAL DLO DHI ... (DLO<=DVAL<DHI)
-addHelp dmin	DA DB ... min(DA,DB)
-addHelp dmax	DA DB ... max(DA,DB)
+addHelp df+	DA DB ... (DA+DB)	add top two 64-bit floating point items
+addHelp df-	DA DB ... (DA-DB)	subtract top two 64-bit floating point items
+addHelp df*	DA DB ... (DA*DB)	multiply top two 64-bit floating point items
+addHelp df/	DA DB ... (DA/DB)	divide top two 64-bit floating point items
+addHelp df=	DA DB ... DA=DB
+addHelp df<>	DA DB ... DA<>DB
+addHelp df>	DA DB ... DA>DB
+addHelp df>=	DA DB ... DA>=DB
+addHelp df<	DA DB ... DA<DB
+addHelp df<=	DA DB ... DA<=DB
+addHelp df0=	DA ... DA=0
+addHelp df0<>	DA ... DA<>0
+addHelp df0>	DA ... DA>0
+addHelp df0>=	DA ... DA>=0
+addHelp df0<	DA ... DA<0
+addHelp df0<=	DA ... DA<=0
+addHelp dfwithin	DVAL DLO DHI ... (DLO<=DVAL<DHI)
+addHelp dfmin	DA DB ... min(DA,DB)
+addHelp dfmax	DA DB ... max(DA,DB)
 
-addHelp dAddBlock    SRCA SRCB DST NUM ...   add blocks of NUM doubles at SRCA and SRCB and store results in DST
-addHelp dSubBlock    SRCA SRCB DST NUM ...   subtract blocks of NUM doubles at SRCA and SRCB and store results in DST
-addHelp dMulBlock    SRCA SRCB DST NUM ...   multiply blocks of NUM doubles at SRCA and SRCB and store results in DST
-addHelp dDivBlock    SRCA SRCB DST NUM ...   divide blocks of NUM doubles at SRCA and SRCB and store results in DST
-addHelp dScaleBlock  SRC DST SCALE NUM ...   multiply block of NUM doubles at SRC by SCALE and store results in DST
-addHelp dOffsetBlock  SRC DST OFFSET NUM ...  add OFFSET to block of NUM doubles at SRC and store results in DST
-addHelp dMixBlock    SRC DST SCALE NUM ...   multiply block of NUM doubles at SRC by SCALE and add results into DST
+addHelp dfAddBlock    SRCA SRCB DST NUM ...   add blocks of NUM doubles at SRCA and SRCB and store results in DST
+addHelp dfSubBlock    SRCA SRCB DST NUM ...   subtract blocks of NUM doubles at SRCA and SRCB and store results in DST
+addHelp dfMulBlock    SRCA SRCB DST NUM ...   multiply blocks of NUM doubles at SRCA and SRCB and store results in DST
+addHelp dfDivBlock    SRCA SRCB DST NUM ...   divide blocks of NUM doubles at SRCA and SRCB and store results in DST
+addHelp dfScaleBlock  SRC DST SCALE NUM ...   multiply block of NUM doubles at SRC by SCALE and store results in DST
+addHelp dfOffsetBlock  SRC DST OFFSET NUM ...  add OFFSET to block of NUM doubles at SRC and store results in DST
+addHelp dfMixBlock    SRC DST SCALE NUM ...   multiply block of NUM doubles at SRC by SCALE and add results into DST
 
-addHelp dsin		DA    ... sin(DA)
-addHelp darcsin		DA    ... arcsin(DA)
-addHelp dcos		DA    ... cos(DA)
-addHelp darccos		DA    ... arccos(DA)
-addHelp dtan		DA    ... tan(DA)
-addHelp darctan		DA    ... arctan(DA)
-addHelp darctan2	DA DB ... arctan(DA/DB)
-addHelp dexp		DA    ... exp(DA)
-addHelp dln			DA    ... ln(DA)
-addHelp dlog10		DA    ... log10(DA)
-addHelp dpow		DA DB ... DA**DB
-addHelp dsqrt		DA    ... sqrt(DA)
-addHelp dceil		DA    ... ceil(DA)
-addHelp dfloor		DA    ... floor(DA)
-addHelp dabs		DA    ... abs(DA)
-addHelp dldexp		DA B  ... ldexp(DA,B)
-addHelp dfrexp		DA    ... frac(DA) exponent(DA)
-addHelp dmodf		DA    ... frac(DA) whole(DA)
-addHelp dfmod		DA DB ... fmod(DA,DB)
+addHelp dfsin		DA    ... sin(DA)
+addHelp dfarcsin		DA    ... arcsin(DA)
+addHelp dfcos		DA    ... cos(DA)
+addHelp dfarccos		DA    ... arccos(DA)
+addHelp dftan		DA    ... tan(DA)
+addHelp dfarctan		DA    ... arctan(DA)
+addHelp dfarctan2	DA DB ... arctan(DA/DB)
+addHelp dfexp		DA    ... exp(DA)
+addHelp dfln			DA    ... ln(DA)
+addHelp dflog10		DA    ... log10(DA)
+addHelp dfpow		DA DB ... DA**DB
+addHelp dfsqrt		DA    ... sqrt(DA)
+addHelp dfceil		DA    ... ceil(DA)
+addHelp dffloor		DA    ... floor(DA)
+addHelp dfabs		DA    ... abs(DA)
+addHelp dfldexp		DA B  ... ldexp(DA,B)
+addHelp dffrexp		DA    ... frac(DA) exponent(DA)
+addHelp dfmodf		DA    ... frac(DA) whole(DA)
+addHelp dffmod		DA DB ... fmod(DA,DB)
 
-addHelp i2sf		A ... sfloat(A)
-addHelp i2f			A ... float(A)
-addHelp sf2i		A ... int(A)
-addHelp sf2f		A ... float(A)
-addHelp f2i			A ... int(A)
-addHelp f2sf		A ... sfloat(A)
+addHelp i>sf		A ... sfloat(A)
+addHelp i>df			A ... float(A)
+addHelp sf>i		A ... int(A)
+addHelp sf>df		A ... float(A)
+addHelp df>i			A ... int(A)
+addHelp df>sf		A ... sfloat(A)
 
 addHelp or			A B ... or(A,B)
 addHelp and			A B ... and(A,B)
@@ -293,11 +293,11 @@ addHelp l/		LA LB ... (LA/LB)
 addHelp lmod	LA LB ... (LA mod LB
 addHelp l/mod	A B ... (LA/LB) (LA mod LB)	divide top two items, return quotient & remainder
 addHelp lnegate	A ... (-LA)	negate top item
-addHelp i2l		INTA ... LONGA		convert signed 32-bit int to signed 64-bit int
-addHelp l2sf	LONGA ... FLOATA	convert signed 64-bit int to 32-bit sfloat
-addHelp l2f		LONGA ... DOUBLEA	convert signed 64-bit int to 64-bit sfloat
-addHelp sf2l	FLOATA ... LONGA	convert 32-bit sfloat to signed 64-bit int
-addHelp f2l		DOUBLEA ... LONGA	convert 64-bit sfloat to signed 64-bit int
+addHelp i>l		INTA ... LONGA		convert signed 32-bit int to signed 64-bit int
+addHelp l>sf	LONGA ... FLOATA	convert signed 64-bit int to 32-bit sfloat
+addHelp l>df		LONGA ... DOUBLEA	convert signed 64-bit int to 64-bit sfloat
+addHelp sf>l	FLOATA ... LONGA	convert 32-bit sfloat to signed 64-bit int
+addHelp df>l		DOUBLEA ... LONGA	convert 64-bit sfloat to signed 64-bit int
 
 addHelp l=		LA LB ... LA=LB
 addHelp l<>		LA LB ... LA<>LB

@@ -1,10 +1,11 @@
 \
-\ floating-point optional word set
+\ floating-point optional word set using fp stack
 \
-\ pjm   march 23 2023
+\ pjm   2023march23   (fpstack version 2023august2)
 
 requires compatability
 requires extops
+
 
 features
 kFFRegular to features
@@ -15,114 +16,144 @@ autoforget FLOATING
 cell precision
 : set-precision precision! ;
 
+
 #if FORTH64
 
-alias fdup dup
-alias fdrop drop
-alias fover over
-alias frot rot
-alias fswap swap
+\ _fdup/_fswap/_fdrop/_fover  are aliases which manipulates FP values on param stack
+alias _fdup dup
+alias _fswap swap
+alias _fdrop drop
+alias _fover over
+
+: frot fpop fpop fpop >r fpush fpush r> fpush ;
+: f>s fpop df>l ;
+: s>f l>df fpush ;
 alias fvariable variable
-alias f>s f2l
-alias s>f l2sf
 
 15 set-precision
 
-: fnegate $8000000000000000 xor ;
+: dfnegate $8000000000000000 xor ;
 
 #else
 
-alias fdup 2dup
-alias fdrop 2drop
-alias fover 2over
-alias frot 2rot
-alias fswap 2swap
+alias _fdup 2dup
+alias _fswap 2swap
+alias _fdrop 2drop
+alias _fover 2over
+
+: frot fpop fpop fpop 2>r fpush fpush 2r> fpush ;
+: f>s fpop df>i ;
+: s>f i>df fpush ;
 : fvariable variable 0 , ;
-alias f>s f2i
-alias s>f i2sf
 
 8 set-precision
 
-: fnegate swap $80000000 xor swap ;
+: dfnegate swap $80000000 xor swap ;
 
 #endif
 
-: sfnegate $80000000 xor ;
+\ display fp stack
+: fs
+  fdepth "fs[" %s _fdup %d "] " %s
+  dup >r
+  0 ?do
+    fpop _fdup %g %bl
+  loop
+  r> 0 ?do
+    fpush
+  loop
+  cr
+;
 
-alias fliteral lliteral
-alias sfliteral iliteral
-alias fconstant lconstant
+: fdup fpop _fdup fpush fpush ;
+: fswap fpop fpop _fswap fpush fpush ;
+: fdrop fpop _fdrop ;
+: fover fpop fpop _fswap _fover fpush fpush fpush ;
 
-: sf! >r f2sf r> i! ;
-alias df! l!
+: fnegate fpop dfnegate fpush ;
 
-Float:nan fconstant nan
-Float:+inf fconstant +inf
-Float:-inf fconstant -inf
+: f@ l@ fpush ;
+: f! >r fpop r> l! ;
+alias df@ f@
+alias df! f!
 
+: fconstant
+  create fpop l,
+  does l@ fpush
+;
 
-: fround
-  fdup f0>= if
-    0.5 f+ floor
+: >float
+  >dfloat if
+    fpush true
   else
-    0.5 f- fceil
+    false
   endif
 ;
 
-: ftrunc
-  fdup f0< if
-     fabs floor fnegate
+: represent 2>r fpop 2r> dfrepresent ;
+
+: sf! >r fpop df>sf r> i! ;
+: sf@ ui@ sf>df fpush ;
+
+DFloat:nan  fpush fconstant nan
+DFloat:+inf fpush fconstant +inf
+DFloat:-inf fpush fconstant -inf
+
+: dfround
+  dfloat val!
+  val df0>= if
+    val 0.5e df+ dffloor
   else
-    floor
+    val 0.5e df- dfceil
   endif
 ;
+: fround fpop dfround fpush ;
 
+: dftrunc
+  dfloat val!
+  val df0< if
+     val dfabs dffloor dfnegate
+  else
+    val dffloor
+  endif
+;
+: ftrunc fpop dftrunc fpush ;
 
-: f. %g %bl ;
-
-: fdepth depth ;
+: f. fpop %g %bl ;
 
 : fsincos
-  fdup fcos fswap fsin
+  fpop dfloat angle!
+  angle dfsin fpush angle dfcos fpush
 ;
-
-: sfsincos
-  dup sfcos swap sfsin
-;
-
 
 : falog
-  10.0e fswap f**
-;
-
-: sfalog
-  10.0ef swap sf**
+  10.0e fpop df** fpush
 ;
 
 : fvalue
   create l,
   does
     getVarop if
-      f! 0 setVarop
+      fpop l! 0 setVarop
     else
-      f@
+      l@ fpush
     endif
 ;
 
 : fs. \ prinf 64-bit float with 1 digit before period ("%e" format)
-  float val!
+  fpop dfloat val!
   mko String fmt
   fmt.format("%%.%dE " precision 1)
   fprintf(stdout fmt.get val 1)  drop
 ;
 
 : fe. \ prinf 64-bit float with 1 to 3 digits before period, exponent is multiple of 3
-  float val!
+  fpop dfloat val!
   mko String buffer
   buffer.resize(precision 16+)
   buffer.get buffer.size 0 fill
   buffer.set("GaRbAgE")
-  represent(val buffer.get precision 1+)
+  dfrepresent(val buffer.get precision 1+)
   bool isValid!   bool isNegative!   1- cell exponent!
   if(isValid)
     if(isNegative)
@@ -153,29 +184,73 @@ Float:-inf fconstant -inf
 
 : f~ ( r1 r2 r3 -- flag ) \ called f-proximate
 
-  float r3!   float r2!   float r1!
+  fpop dfloat r3!   fpop dfloat r2!   fpop dfloat r1!
   
-  if(r3 f0>)
+  if(r3 df0>)
     \ If r3 is positive, flag is true if the absolute value of (r1 minus r2) is less than r3.
-    r1 r2 f- fabs r3 f<
+    r1 r2 df- dfabs r3 df<
   else
-    if(r3 f0=)
+    if(r3 df0=)
       \ If r3 is zero, flag is true if the implementation-dependent encoding of r1 and r2 are
       \ exactly identical (positive and negative zero are unequal if they have distinct encodings).
-      r1 r2 l=      \ use l= instead of f= so +0 and -0 return unequal
+      r1 r2 l=      \ use l= instead of df= so +0 and -0 return unequal
     else
       \ If r3 is negative, flag is true if the absolute value of (r1 minus r2) is less than the
       \ absolute value of r3 times the sum of the absolute values of r1 and r2.
-      r1 r2 f- fabs
-      r3 fnegate  r1 fabs r2 fabs f+  f*
-      f<
+      r1 r2 df- dfabs
+      r3 dfnegate  r1 dfabs r2 dfabs df+  df*
+      df<
     endif
   endif
 ;
 
+: f0< fpop df0< ;
+: f0= fpop df0= ;
+: f< fpop fpop _fswap df< ;
+: f> fpop fpop _fswap df> ;
+
+: fabs fpop dfabs fpush ;
+: facos fpop dfacos fpush ;
+: facosh fpop dfacosh fpush ;
+: fasin fpop dfasin fpush ;
+: fasinh fpop dfasinh fpush ;
+: fatan fpop dfatan fpush ;
+: fatanh fpop dfatanh fpush ;
+: floor fpop dffloor fpush ;
+: fround fpop dfround fpush ;
+: fcos fpop dfcos fpush ;
+: fcosh fpop dfcosh fpush ;
+: fexp fpop dfexp fpush ;
+: fexpm1 fpop dfexpm1 fpush ;
+: fln fpop dfln fpush ;
+: flnp1 fpop dflnp1 fpush ;
+: flog fpop dflog fpush ;
+: fsin fpop dfsin fpush ;
+: fsinh fpop dfsinh fpush ;
+: fsqrt fpop dfsqrt fpush ;
+: ftan fpop dftan fpush ;
+: ftanh fpop dftanh fpush ;
+: ftrunc fpop dftrunc fpush ;
+
+: f+ fpop fpop df+ fpush ;
+: f* fpop fpop df* fpush ;
+: fmax fpop fpop dfmax fpush ;
+: fmin fpop fpop dfmin fpush ;
+
+: f- fpop fpop _fswap df- fpush ;
+: f/ fpop fpop _fswap df/ fpush ;
+: f** fpop fpop _fswap df** fpush ;
+: fatan2 fpop fpop _fswap dfatan2 fpush ;
+
+: fliteral ['] flit i, fpop l, ;  precedence fliteral
+
+: d>f d>df fpush ;
+: f>d fpop df>d ;
+
+: ds ds fdepth if fs endif ;
 
 features!
-  
+
 loaddone
 
 : woo  compiled

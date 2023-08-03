@@ -113,8 +113,8 @@ CoreState::CoreState(int paramStackSize, int returnStackSize)
     }
 
 #if defined(SUPPORT_FP_STACK)
-    fpIndex = 0;
-    fpStack = nullptr;
+    fpStackBase = nullptr;
+    fpStackPtr = nullptr;
 #endif
 }
 
@@ -186,9 +186,9 @@ Fiber::~Fiber()
     delete[] mCore.RB;
 
 #if defined(SUPPORT_FP_STACK)
-    if (mCore.fpStack != nullptr)
+    if (mCore.fpStackBase != nullptr)
     {
-        delete[] mCore.fpStack;
+        delete[] mCore.fpStackBase;
     }
 #endif
 

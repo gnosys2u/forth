@@ -860,9 +860,9 @@ vocabulary editor
 ;
 
 \ floating point wordset stuff
-: nan Float:nan ;
-: +inf Float:+inf ;
-: -inf Float:-inf ;
+: nan DFloat:nan ;
+: +inf DFloat:+inf ;
+: -inf DFloat:-inf ;
 
 
 \ ( - allow to span multiple lines when file is input

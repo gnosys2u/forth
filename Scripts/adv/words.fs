@@ -7,7 +7,7 @@
   WordClass wc!
   int m!
   ptrTo byte w!
-  d[ t{  "new_word " %s w %s %bl m %d %nl  }t ]d
+  d[ tr{  "new_word " %s w %s %bl m %d %nl  }tr ]d
   new Word Word word!
   word.init(w m wc)
   game.words.push(word)

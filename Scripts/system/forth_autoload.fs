@@ -383,9 +383,10 @@ enum: eFeatures
   $0010  kFFAllowContinuations
   $0020  kFFAllowVaropSuffix
   $0040  kFFAnsiControlOps
+  $0080  kFFFloatingPointStack
   
   \ kFFAnsi and kFFRegular are the most common feature combinations
-  kFFIgnoreCase kFFAnsiControlOps +                         kFFAnsi
+  kFFIgnoreCase kFFAnsiControlOps + kFFFloatingPointStack + kFFAnsi
   
   kFFMultiCharacterLiterals kFFCStringLiterals + kFFParenIsExpression +
     kFFAllowContinuations + kFFAllowVaropSuffix +           kFFRegular
@@ -1347,10 +1348,10 @@ addHelp popConsoleOut   popConsoleOut ... OLD_CONSOLE_OUTSTREAM      restore pre
   endif
 ;
 
-\ use t{ ... }t to quickly redirect all print output to the trace stream (usually an external logger program)
+\ use tr{ ... }tr to quickly redirect all print output to the trace stream (usually an external logger program)
 mko TraceOutStream traceOut
-: t{ pushConsoleOut(traceOut) ;
-: }t popConsoleOut drop ;
+: tr{ pushConsoleOut(traceOut) ;
+: }tr popConsoleOut drop ;
 
 addHelp outToScreen   restore output to the normal console
 : outToScreen getDefaultConsoleOut setConsoleOut ;

@@ -4567,16 +4567,13 @@ double popFPStack(CoreState* pCore)
 {
     double val = 0.0;
 
-    if (pCore->fpStack == nullptr)
+    if (pCore->fpStackBase == nullptr || (pCore->fpStackBase + FP_STACK_SIZE == pCore->fpStackPtr))
     {
-        pCore->fpStack = new double[FP_STACK_SIZE];
-        pCore->fpIndex = 0;
+        GET_ENGINE->RaiseException(pCore, ForthError::fpStackUnderflow);
     }
-
-    if (pCore->fpIndex > 0)
+    else
     {
-        pCore->fpIndex--;
-        val = pCore->fpStack[pCore->fpIndex];
+        val = *pCore->fpStackPtr++;
     }
 
     return val;
@@ -4584,17 +4581,25 @@ double popFPStack(CoreState* pCore)
 
 void pushFPStack(CoreState* pCore, double val)
 {
-    if (pCore->fpStack == nullptr)
+    if (pCore->fpStackBase == nullptr)
     {
-        pCore->fpStack = new double[FP_STACK_SIZE];
-        pCore->fpIndex = 0;
+        pCore->fpStackBase = new double[FP_STACK_SIZE];
+        pCore->fpStackPtr = pCore->fpStackBase + FP_STACK_SIZE;
     }
 
-    if (pCore->fpIndex < FP_STACK_SIZE)
+    if (pCore->fpStackPtr > pCore->fpStackBase)
     {
-        pCore->fpStack[pCore->fpIndex] = val;
-        pCore->fpIndex++;
+        *--pCore->fpStackPtr = val;
     }
+    else
+    {
+        GET_ENGINE->RaiseException(pCore, ForthError::fpStackOverflow);
+    }
+}
+
+ucell getFPStackDepth(CoreState* pCore)
+{
+    return (ucell)(pCore->fpStackBase == nullptr ? 0 : ((pCore->fpStackBase + FP_STACK_SIZE) - pCore->fpStackPtr));
 }
 
 #endif

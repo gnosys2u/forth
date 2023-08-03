@@ -327,6 +327,7 @@ bool NumberParser::ScanFloat(const char* pSrcString, double& result)
     const char* pEnd = pSrcString + len;
     int srcIndex = 0;
     int dstIndex = 0;
+    int numSignChars = 0;
 
     // this method is used by the '>float' op, which supports a wider range of fp formats than outer interpreter
     ResetValues();
@@ -352,19 +353,19 @@ bool NumberParser::ScanFloat(const char* pSrcString, double& result)
         return true;
     }
 
-    pSrc += srcIndex;
-
     c = *pSrc;
     if (c == '+')
     {
         pSrc++;
         mValidChars[mNumValidChars++] = '+';
+        numSignChars++;
     }
     else if (c == '-')
     {
         pSrc++;
         mIsNegative = true;
         mValidChars[mNumValidChars++] = '-';
+        numSignChars++;
     }
 
     bool exponentSignFound = false;
@@ -458,24 +459,28 @@ bool NumberParser::ScanFloat(const char* pSrcString, double& result)
             }
         }
     }
-    mValidChars[mNumValidChars++] = '\0';
+    mValidChars[mNumValidChars] = '\0';
 
-    // number is valid, set final value based on detected type
-    if (mExponentPosition >= 0)
+    if (mNumValidChars == numSignChars)
     {
-        if (mExponentPosition == mNumValidChars - 2)
-        {
-            // there was no exponent, the float literal string just ended at 'E', we need to
-            //  stuff a dummy exponent 0 to make sscanf happy
-            mValidChars[mNumValidChars - 1] = '0';
-            mValidChars[mNumValidChars] = '\0';
-        }
-        // single or double precision float
-        if (sscanf(&(mValidChars[0]), "%lf", &mDoubleFloatValue) == 1)
-        {
-            result = mDoubleFloatValue;
-            return true;
-        }
+        // just sign characters +/-, not valid
+        return false;
+    }
+
+    if ((mExponentPosition == mNumValidChars - 1)
+        || ((mExponentPosition == mNumValidChars - 2)
+                && (mValidChars[mNumValidChars - 1] == '+' || mValidChars[mNumValidChars - 1] == '-')))
+    {
+        // there was no exponent, the float literal string just ended at 'E', or 'E'+-,
+        //  we need to stuff a dummy exponent 0 to make sscanf happy
+        mValidChars[mNumValidChars++] = '0';
+        mValidChars[mNumValidChars] = '\0';
+    }
+
+    if (sscanf(&(mValidChars[0]), "%lf", &mDoubleFloatValue) == 1)
+    {
+        result = mDoubleFloatValue;
+        return true;
     }
 
     return false;

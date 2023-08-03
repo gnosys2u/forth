@@ -2226,6 +2226,36 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
             ////////////////////////////////////
             double dvalue = mNumberParser.GetDoubleFloatValue();
             SPEW_OUTER_INTERPRETER("Floating point double literal %g\n", dvalue);
+#if defined(SUPPORT_FP_STACK)
+            if (mCompileState)
+            {
+                // compile the literal value
+                CompileBuiltinOpcode(OP_DOUBLE_VAL);
+                pDPD = (double*)mpDictionary->pCurrent;
+                *pDPD++ = dvalue;
+                mpDictionary->pCurrent = (forthop*)pDPD;
+                if (CheckFeature(kFFFloatingPointStack) != 0)
+                {
+                    CompileBuiltinOpcode(OP_FPUSH);
+                }
+            }
+            else
+            {
+                if (CheckFeature(kFFFloatingPointStack) != 0)
+                {
+                    pushFPStack(mpCore, dvalue);
+                }
+                else
+                {
+#if defined(FORTH64)
+                    mpCore->SP -= 1;
+#else
+                    mpCore->SP -= 2;
+#endif
+                    * (double*)mpCore->SP = dvalue;
+                }
+            }
+#else
             if (mCompileState)
             {
                 // compile the literal value
@@ -2244,13 +2274,11 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
             }
             else
             {
-#if defined(SUPPORT_FP_STACK)
                 if (CheckFeature(kFFFloatingPointStack) != 0)
                 {
                     pushFPStack(mpCore, dvalue);
                 }
                 else
-#endif
                 {
 #if defined(FORTH64)
                     mpCore->SP -= 1;
@@ -2260,6 +2288,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
                     * (double*)mpCore->SP = dvalue;
                 }
             }
+#endif
         }
         else if (numberType == NumberType::kLong || numberType == NumberType::kInt)
         {

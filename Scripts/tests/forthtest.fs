@@ -87,7 +87,7 @@ test[ startTest 1 casetest   3 casetest   0 casetest   2 casetest   5 casetest  
 \ ==================================
 
 byte gvb   ubyte gvub   short gvs   ushort gvus   int gvi   uint gvui
-long gvl   ulong gvul   sfloat gvf   float gvd
+long gvl   ulong gvul   sfloat gvf   dfloat gvd
 
 : testGlobalVars1
   startTest
@@ -157,7 +157,7 @@ test[ testGlobalVars4 checkResult( "22.5 22.375 21.625 22.5 22.375 21.625 " ) ]
 
 : testLocalVars4
   startTest
-  sfloat lvf   float lvd
+  sfloat lvf   dfloat lvd
   22.5Ef -> lvf lvf sg. -0.125Ef ->+ lvf lvf sg. 0.75Ef ->- lvf lvf sg.
   22.5E -> lvd lvd g. -0.125E ->+ lvd lvd g. 0.75E ->- lvd lvd g.
 ;
@@ -242,16 +242,16 @@ test[ 0.0Ef sf0= ] test[ 0.7Ef sf0= not ] test[ 0.0Ef sf0> not ] test[ 1.2Ef sf0
 test[ 5.1Ef sf0>= ] test[ 9.4Ef sf0< not ] test[ 0.0Ef sf0<= ] test[  -2.3Ef sf0<= ] test[ -5.0Ef -1.0Ef 1.0Ef sfwithin not ]
 test[ 0.5Ef -1.0Ef 1.0Ef sfwithin ] test[ 7.0Ef -1.0Ef 1.0Ef sfwithin not ] test[ 5.0Ef 2.3Ef sfmin 2.3Ef sf= ] test[ -10.0Ef 4.3Ef sfmax 4.3Ef sf= ]
    
-\ f+ f- f* f/ f= f<> f> f>= f< f<= 
-test[ 3.5E 4.25E f+ 7.75E f= ] test[ 8.5E 3.25E f- 5.25E f= ] test[ 3.5E 4.5E f* 63.0E 4.0E f/ f= ] test[ 5.0E 4.0E f<> ]
-test[ 27.3E 22.2E f> ] test[ 27.3E 27.3E f> not ] test[ 27.3E 27.3E f>= ] test[ 7.2E 121.9E f< ] test[ 676.0E 676.0E f< not ]
-test[ 676.0E 676.0E f<= ]
+\ df+ df- df* df/ df= df<> df> df>= df< df<= 
+test[ 3.5E 4.25E df+ 7.75E df= ] test[ 8.5E 3.25E df- 5.25E df= ] test[ 3.5E 4.5E df* 63.0E 4.0E df/ df= ] test[ 5.0E 4.0E df<> ]
+test[ 27.3E 22.2E df> ] test[ 27.3E 27.3E df> not ] test[ 27.3E 27.3E df>= ] test[ 7.2E 121.9E df< ] test[ 676.0E 676.0E df< not ]
+test[ 676.0E 676.0E df<= ]
 
 \ f0= f0<> f0> f0>= f0< f0<= fwithin fmin fmax
-test[ 0.0E f0= ] test[ 0.7E f0= not ] test[ 0.0E f0> not ] test[ 1.2E f0> ] test[ 0.0E f0>= ] test[ -3.3E f0>= not ]
-test[ 5.1E f0>= ] test[ 9.4E f0< not ] test[ 0.0E f0<= ] test[  -2.3E f0<= ] test[ -5.0E -1.0E 1.0E fwithin not ]
-test[ 0.5E -1.0E 1.0E fwithin ] test[ 7.0E -1.0E 1.0E fwithin not ] test[ 5.0E 2.3E fmin 2.3E f= ]
-test[ -10.0E 4.3E fmax 4.3E f= ]
+test[ 0.0E df0= ] test[ 0.7E df0= not ] test[ 0.0E df0> not ] test[ 1.2E df0> ] test[ 0.0E df0>= ] test[ -3.3E df0>= not ]
+test[ 5.1E df0>= ] test[ 9.4E df0< not ] test[ 0.0E df0<= ] test[  -2.3E df0<= ] test[ -5.0E -1.0E 1.0E dfwithin not ]
+test[ 0.5E -1.0E 1.0E dfwithin ] test[ 7.0E -1.0E 1.0E dfwithin not ] test[ 5.0E 2.3E dfmin 2.3E df= ]
+test[ -10.0E 4.3E dfmax 4.3E df= ]
    
 \ lshift arshift rshift rotate
 test[ 1 8 lshift 256 = ] test[ 17 2 lshift 68 = ] test[ -80 3 arshift -10 = ] test[ 19 2 arshift 4 = ]
@@ -274,16 +274,16 @@ test[ 87 5 ?dup 0 ?dup 0= rot 5 = rot 5 = and and over 87 = rot 87 = ]
 test[ 43 27 88 -rot 27 = -rot 43 = -rot 88 = and and and 1 4 5 nip 5 = swap 1 = and 11 22 tuck 22 = swap 11 = and swap 22 = and ]
 
 test[ sfabs(-56.75Ef) 56.75Ef sf= sfabs(56.75Ef) 56.75Ef sf= ]
-test[ fabs(-56.75E) 56.75E f= fabs(56.75e) 56.75E f= ]
-test[ sfldexp(0.875Ef 8) 224.0Ef sf= fldexp(-0.875E 8) -224.0E f= ]
-test[ sffrexp(-224.0Ef) 8 = swap -0.875Ef sf= ffrexp(224.0E) 8 = >r 0.875E f= r> ]
-test[ sfmodf(12345.625Ef) 0.625Ef sf= swap 12345.0Ef sf= fmodf(-12345.625E) -0.625E f= >r -12345.0E f= r> ]
-test[ sffmod(-27.375Ef 4.0Ef) -3.375Ef sf= ffmod(27.375E 4.0E) 3.375E f= ]
+test[ dfabs(-56.75E) 56.75E df= dfabs(56.75e) 56.75E df= ]
+test[ sfldexp(0.875Ef 8) 224.0Ef sf= dfldexp(-0.875E 8) -224.0E df= ]
+test[ sffrexp(-224.0Ef) 8 = swap -0.875Ef sf= dffrexp(224.0E) 8 = >r 0.875E df= r> ]
+test[ sfmodf(12345.625Ef) 0.625Ef sf= swap 12345.0Ef sf= dfmodf(-12345.625E) -0.625E df= >r -12345.0E df= r> ]
+test[ sffmod(-27.375Ef 4.0Ef) -3.375Ef sf= dffmod(27.375E 4.0E) 3.375E df= ]
 
 \ 2dup 2swap 2drop 2over 2rot r[ ]r
 \ b! b@ sb@ s! s@ ss@ ! @ 2! 2@ 
 \ move fill varAction! varAction@
-\ l+ l- l* l/ lmod l/mod lnegate i2l i2sf i2f sf2l sf2i sf2f f2l f2i f2sf l2sf l2f
+\ l+ l- l* l/ lmod l/mod lnegate i>l i>sf i>df sf>l sf>i sf>df df>l df>i df>sf l>sf l>df
 \ l= l<> l> l>= l< l<= l0= l0> l0>= l0< l0<= lwithin lmin lmax
 \ . %d %x %2d %2x %s %c type %bl %nl %f %2f format 2format
 \ printDecimalSigned printAllSigned printAllUnsigned octal decimal hex
@@ -333,14 +333,14 @@ create ddst
   0.0E l, 0.0E l, 0.0E l, 0.0E l, 17.0E l,
 
 : fcheck4
-  ddst 32+ -> ptrTo float pd
+  ddst 32+ -> ptrTo dfloat pd
   false -> int itWorked
-  if(pd f@ 17.0E f=)
+  if(pd df@ 17.0E df=)
     true -> itWorked
     do(4 0)
-      -> float dv
+      -> dfloat dv
       8 ->- pd
-      if(dv pd f@ f<>)
+      if(dv pd df@ df<>)
         pd l@ g. dv g.
         false -> itWorked
       endif
@@ -349,15 +349,15 @@ create ddst
   itWorked
 ;
 
-test[ fAddBlock(dsrcA dsrcB ddst 4)   40.0E 19.0E 9.125E 104.0E  fcheck4 ]
-test[ fSubBlock(dsrcA dsrcB ddst 4)   30.0E 15.0E -6.875E 96.0E fcheck4 ]
-test[ fMulBlock(dsrcA dsrcB ddst 4)   175.0E 34.0E 9.0E 400.0E fcheck4 ]
-test[ fDivBlock(dsrcA dsrcB ddst 4)   7.0E 8.5E 0.140625E 25.0E fcheck4 ]
-test[ fScaleBlock(dsrcA ddst 4.0E 4)  140.0E 68.0E 4.5E 400.0E fcheck4 ]
-test[ fOffsetBlock(dsrcA ddst 4.0E 4) 39.0E 21.0E 5.125E 104.0E fcheck4 ]
-test[ fScaleBlock(dsrcA ddst 0.0E 4)  0.0E 0.0E 0.0E 0.0E fcheck4 ]
-test[ fMixBlock(dsrcA ddst 1.0E 4)    35.0E 17.0E 1.125E 100.0E fcheck4 ]
-test[ fMixBlock(dsrcB ddst 0.5E 4)    37.5E 18.0E 5.125E 102.0E fcheck4 ]
+test[ dfAddBlock(dsrcA dsrcB ddst 4)   40.0E 19.0E 9.125E 104.0E  fcheck4 ]
+test[ dfSubBlock(dsrcA dsrcB ddst 4)   30.0E 15.0E -6.875E 96.0E fcheck4 ]
+test[ dfMulBlock(dsrcA dsrcB ddst 4)   175.0E 34.0E 9.0E 400.0E fcheck4 ]
+test[ dfDivBlock(dsrcA dsrcB ddst 4)   7.0E 8.5E 0.140625E 25.0E fcheck4 ]
+test[ dfScaleBlock(dsrcA ddst 4.0E 4)  140.0E 68.0E 4.5E 400.0E fcheck4 ]
+test[ dfOffsetBlock(dsrcA ddst 4.0E 4) 39.0E 21.0E 5.125E 104.0E fcheck4 ]
+test[ dfScaleBlock(dsrcA ddst 0.0E 4)  0.0E 0.0E 0.0E 0.0E fcheck4 ]
+test[ dfMixBlock(dsrcA ddst 1.0E 4)    35.0E 17.0E 1.125E 100.0E fcheck4 ]
+test[ dfMixBlock(dsrcB ddst 0.5E 4)    37.5E 18.0E 5.125E 102.0E fcheck4 ]
 
 \ ==================================
 

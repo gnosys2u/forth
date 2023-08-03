@@ -2069,7 +2069,7 @@ spoo before determine_motion_instruction
       exit
     endif
     begin
-      d[ t{ showInstruction(q) }t ]d
+      d[ tr{ showInstruction(q) }tr ]d
       q.cond int cond!
       mod(cond 100) MIN_OBJ + int obj!
       if(cond 0=)
@@ -2421,12 +2421,12 @@ knives at you!  All of them get you!")
     begin
       \ sp!
       Game_adventureStates.get(mCurStateNum) curState!o
-      d[ t{
+      d[ tr{
         "<<<STATE>>> " %s mCurStateNum %d %bl
         curState.name.get %s %bl
         " location " %s mLoc locationToName %s %bl
         inWord1.base %s %bl inWord2.base %s %bl %nl
-      }t ]d
+      }tr ]d
       curState.stateOp
       \ sp?(curState.name.get)
     until(or(mCurStateNum kStateQuit =  gave_up))

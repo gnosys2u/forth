@@ -30,7 +30,7 @@ NativeType gNativeTypeULong( "ulong", 8, BaseType::kULong );
 
 NativeType gNativeTypeFloat( "sfloat", 4, BaseType::kFloat );
 
-NativeType gNativeTypeDouble( "float", 8, BaseType::kDouble );
+NativeType gNativeTypeDouble( "dfloat", 8, BaseType::kDouble );
 
 NativeType gNativeTypeString( "string", 12, BaseType::kString );
 

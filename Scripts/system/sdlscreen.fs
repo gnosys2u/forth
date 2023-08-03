@@ -813,7 +813,7 @@ SDLScreen screenInstance
     \ i %d
     \ dp( i i )
     fsin( angle ) float y!
-    dp( i y y f* y f* yscale f* f2i )
+    dp( i y y f* y f* yscale f* df>i )
     dangle angle!+
   loop
 ;

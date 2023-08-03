@@ -456,7 +456,7 @@ namespace ONumber
         pOuter->AddBuiltinClass("Int", kBCIInt, kBCIObject, oIntMembers);
 		pOuter->AddBuiltinClass("Long", kBCILong, kBCIObject, oLongMembers);
 		pOuter->AddBuiltinClass("SFloat", kBCIFloat, kBCIObject, oFloatMembers);
-		pOuter->AddBuiltinClass("Float", kBCIDouble, kBCIObject, oDoubleMembers);
+		pOuter->AddBuiltinClass("DFloat", kBCIDouble, kBCIObject, oDoubleMembers);
     }
 
 } // namespace ONumber

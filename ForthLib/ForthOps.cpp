@@ -9037,36 +9037,6 @@ FORTHOP(dcmpBop)
 	SPUSH( (a == b) ? 0 : (( a > b ) ? 1 : -1 ) );
 }
 
-#if defined(SUPPORT_FP_STACK)
-
-FORTHOP(fpushBop)
-{
-    NEEDS(2);
-    double a = *((double *)(pCore->SP));
-#if defined(FORTH64)
-    pCore->SP++;
-#else
-    pCore->SP += 2;
-#endif
-
-    pushFPStack(pCore, a);
-}
-
-FORTHOP(fpopBop)
-{
-    NEEDS(2);
-    double a = popFPStack(pCore);
-
-#if defined(FORTH64)
-    pCore->SP--;
-#else
-    pCore->SP -= 2;
-#endif
-    *((double*)(pCore->SP)) = a;
-}
-
-#endif
-
 //##############################
 //
 // stack manipulation
@@ -9712,12 +9682,6 @@ FORTHOP(nRFromOp)
     SPUSH(n);
 }
 
-FORTHOP(rpopBop)
-{
-    RNEEDS(1);
-    SPUSH(RPOP);
-}
-
 FORTHOP(cmoveOp)
 {
     NEEDS(3);
@@ -9743,6 +9707,13 @@ FORTHOP(rcmoveOp)
 }
 
 #ifndef ASM_INNER_INTERPRETER
+
+FORTHOP(rpopBop)
+{
+    RNEEDS(1);
+    SPUSH(RPOP);
+}
+
 FORTHOP(fillBop)
 {
     NEEDS(3);
@@ -10015,8 +9986,8 @@ FORTHOP(dc2fOp)
     // and fractional part of 2^64 (lo part)
     // and finally reapply the sign if needed
     bool isNegative = (inVal.cells[0] < 0);
-    uint64_t hi = inVal.ucells[0];
-    uint64_t lo = inVal.ucells[1];
+    uint64_t hi = inVal.ucells[1];
+    uint64_t lo = inVal.ucells[0];
     if (isNegative)
     {
         hi = ~hi;
@@ -10070,8 +10041,8 @@ FORTHOP(f2dcOp)
         inVal = -inVal;
     }
     double hiPart;
-    double loPart = modf(inVal, &hiPart);
-    uint64_t lo = loPart;
+    double loPart = modf(inVal/ hiWordValue, &hiPart);
+    uint64_t lo = (loPart * hiWordValue);
     uint64_t hi = hiPart;
     if (isNegative)
     {
@@ -10082,8 +10053,8 @@ FORTHOP(f2dcOp)
             hi++;
         }
     }
-    outVal.ucells[1] = lo;
-    outVal.ucells[0] = hi;
+    outVal.ucells[0] = lo;
+    outVal.ucells[1] = hi;
 #else
     // on all 32-bit builds, or non-Windows builds, compiler can do all the work for us
     outVal.sdcell = inVal;
@@ -10612,6 +10583,79 @@ FORTHOP(scGetShowRefCountOp)
 	SPUSH(show ? -1 : 0);
 }
 
+//##############################
+//
+// ops used to support ANSI floating point stack
+//
+
+#if defined(SUPPORT_FP_STACK)
+
+FORTHOP(fpushOp)
+{
+    NEEDS(2);
+
+    double a = *((double*)(pCore->SP));
+#if defined(FORTH64)
+    pCore->SP++;
+#else
+    pCore->SP += 2;
+#endif
+
+    pushFPStack(pCore, a);
+}
+
+FORTHOP(fpopOp)
+{
+    NEEDS(2);
+
+    double a = popFPStack(pCore);
+
+#if defined(FORTH64)
+    pCore->SP--;
+#else
+    pCore->SP -= 2;
+#endif
+    * ((double*)(pCore->SP)) = a;
+}
+
+FORTHOP(fdepthBop)
+{
+    SPUSH(getFPStackDepth(pCore));
+}
+
+FORTHOP(flitOp)
+{
+    pushFPStack(pCore, *((double*)pCore->IP));
+    pCore->IP += 2;
+}
+
+#else
+
+FORTHOP(fpushOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    pEngine->SetError(ForthError::illegalOperation, "fpush without an FP stack");
+}
+
+FORTHOP(fpopOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    pEngine->SetError(ForthError::illegalOperation, "fpop without an FP stack");
+}
+
+FORTHOP(fdepthBop)
+{
+    SPUSH(0);
+}
+
+FORTHOP(flitOp)
+{
+    Engine* pEngine = GET_ENGINE;
+    pEngine->SetError(ForthError::illegalOperation, "flit without an FP stack");
+}
+
+#endif
+
 // NOTE: the order of the first few entries in this table must agree
 // with the list near the top of the file!  (look for COMPILED_OP)
 
@@ -10786,7 +10830,7 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     NATIVE_COMPILED_DEF(    litBop,                   "uilit",			OP_UINT_VAL),
 #endif
     NATIVE_COMPILED_DEF(    litBop,                  "sflit",			OP_FLOAT_VAL ),
-    NATIVE_COMPILED_DEF(    dlitBop,                 "flit",			OP_DOUBLE_VAL ),
+    NATIVE_COMPILED_DEF(    dlitBop,                 "dflit",			OP_DOUBLE_VAL ),
     NATIVE_COMPILED_DEF(    dlitBop,                 "llit",			OP_LONG_VAL ),
     NATIVE_COMPILED_DEF(    doVariableBop,           "_doVariable",	    OP_DO_VAR ),
     NATIVE_COMPILED_DEF(    doIConstantBop,          "_doIConstant",	OP_DO_ICONSTANT ),
@@ -10875,6 +10919,8 @@ baseDictionaryCompiledEntry baseCompiledDictionary[] =
     NATIVE_COMPILED_DEF(    thisBop,                "this",             OP_THIS),
     OP_COMPILED_DEF(        doI128ConstantOp,       "_doI128Constant",	OP_DO_I128_CONSTANT),
     OP_COMPILED_DEF(        i128LitOp,              "i128lit",			OP_I128_VAL),
+    OP_COMPILED_DEF(        fpushOp,                "fpush",            OP_FPUSH),
+    OP_COMPILED_DEF(        flitOp,                 "flit",             OP_FLIT),
 };
 
 
@@ -10945,52 +10991,52 @@ baseDictionaryEntry baseDictionary[] =
     ///////////////////////////////////////////
     //  double-precision fp math
     ///////////////////////////////////////////
-    NATIVE_DEF(    lfetchBop,               "f@"),
-    NATIVE_DEF(    lstoreBop,               "f!"),
-    NATIVE_DEF(    dplusBop,                "f+" ),
-    NATIVE_DEF(    dminusBop,               "f-" ),
-    NATIVE_DEF(    dtimesBop,               "f*" ),
-    NATIVE_DEF(    ddivideBop,              "f/" ),
+    NATIVE_DEF(    lfetchBop,               "df@"),
+    NATIVE_DEF(    lstoreBop,               "df!"),
+    NATIVE_DEF(    dplusBop,                "df+" ),
+    NATIVE_DEF(    dminusBop,               "df-" ),
+    NATIVE_DEF(    dtimesBop,               "df*" ),
+    NATIVE_DEF(    ddivideBop,              "df/" ),
 
 
     ///////////////////////////////////////////
     //  double-precision fp comparisons
     ///////////////////////////////////////////
-    NATIVE_DEF(    dEqualsBop,              "f=" ),
-    NATIVE_DEF(    dNotEqualsBop,           "f<>" ),
-    NATIVE_DEF(    dGreaterThanBop,         "f>" ),
-    NATIVE_DEF(    dGreaterEqualsBop,       "f>=" ),
-    NATIVE_DEF(    dLessThanBop,            "f<" ),
-    NATIVE_DEF(    dLessEqualsBop,          "f<=" ),
-    NATIVE_DEF(    dEquals0Bop,             "f0=" ),
-    NATIVE_DEF(    dNotEquals0Bop,          "f0<>" ),
-    NATIVE_DEF(    dGreaterThan0Bop,        "f0>" ),
-    NATIVE_DEF(    dGreaterEquals0Bop,      "f0>=" ),
-    NATIVE_DEF(    dLessThan0Bop,           "f0<" ),
-    NATIVE_DEF(    dLessEquals0Bop,         "f0<=" ),
-    NATIVE_DEF(    dWithinBop,              "fwithin" ),
-    NATIVE_DEF(    dMinBop,                 "fmin" ),
-    NATIVE_DEF(    dMaxBop,                 "fmax" ),
-    NATIVE_DEF(    dcmpBop,                 "fcmp" ),
-    OP_DEF(        fpushBop,                "fpush" ),
-    OP_DEF(        fpopBop,                 "fpop" ),
+    NATIVE_DEF(    dEqualsBop,              "df=" ),
+    NATIVE_DEF(    dNotEqualsBop,           "df<>" ),
+    NATIVE_DEF(    dGreaterThanBop,         "df>" ),
+    NATIVE_DEF(    dGreaterEqualsBop,       "df>=" ),
+    NATIVE_DEF(    dLessThanBop,            "df<" ),
+    NATIVE_DEF(    dLessEqualsBop,          "df<=" ),
+    NATIVE_DEF(    dEquals0Bop,             "df0=" ),
+    NATIVE_DEF(    dNotEquals0Bop,          "df0<>" ),
+    NATIVE_DEF(    dGreaterThan0Bop,        "df0>" ),
+    NATIVE_DEF(    dGreaterEquals0Bop,      "df0>=" ),
+    NATIVE_DEF(    dLessThan0Bop,           "df0<" ),
+    NATIVE_DEF(    dLessEquals0Bop,         "df0<=" ),
+    NATIVE_DEF(    dWithinBop,              "dfwithin" ),
+    NATIVE_DEF(    dMinBop,                 "dfmin" ),
+    NATIVE_DEF(    dMaxBop,                 "dfmax" ),
+    NATIVE_DEF(    dcmpBop,                 "dfcmp" ),
+    OP_DEF(        fpopOp,                  "fpop" ),
+    OP_DEF(        fdepthBop,               "fdepth"),
 
     ///////////////////////////////////////////
-    //  integer/int32_t/float/double conversion
+    //  integer/long/float/double conversion
     ///////////////////////////////////////////
-    NATIVE_DEF(    i2fBop,                  "i2sf" ), 
-    NATIVE_DEF(    i2dBop,                  "i2f" ),
-    NATIVE_DEF(    f2iBop,                  "sf2i" ),
-    NATIVE_DEF(    f2dBop,                  "sf2f" ),
-    NATIVE_DEF(    d2iBop,                  "f2i" ),
-    NATIVE_DEF(    d2fBop,                  "f2sf" ),
-    OP_DEF(    i2lOp,                  "i2l" ), 
-    OP_DEF(    l2fOp,                  "l2sf" ), 
-    OP_DEF(    l2dOp,                  "l2f" ), 
-    OP_DEF(    f2lOp,                  "sf2l" ),
-    OP_DEF(    d2lOp,                  "f2l" ),
-    OP_DEF(    dc2fOp,                  "d>f" ),
-    OP_DEF(    f2dcOp,                  "f>d" ),
+    NATIVE_DEF(    i2fBop,                  "i>sf" ), 
+    NATIVE_DEF(    i2dBop,                  "i>df" ),
+    NATIVE_DEF(    f2iBop,                  "sf>i" ),
+    NATIVE_DEF(    f2dBop,                  "sf>df" ),
+    NATIVE_DEF(    d2iBop,                  "df>i" ),
+    NATIVE_DEF(    d2fBop,                  "df>sf" ),
+    OP_DEF(    i2lOp,                       "i>l" ), 
+    OP_DEF(    l2fOp,                       "l>sf" ), 
+    OP_DEF(    l2dOp,                       "l>df" ), 
+    OP_DEF(    f2lOp,                       "sf>l" ),
+    OP_DEF(    d2lOp,                       "df>l" ),
+    OP_DEF(    dc2fOp,                      "d>df" ),
+    OP_DEF(    f2dcOp,                      "df>d" ),
 
     ///////////////////////////////////////////
     //  bit-vector logic
@@ -11161,7 +11207,7 @@ baseDictionaryEntry baseDictionary[] =
     //  single-precision fp functions
     ///////////////////////////////////////////
     NATIVE_DEF(fsinBop,                 "sfsin"),
-    NATIVE_DEF(fasinBop,                "sfasin"),
+    NATIVE_DEF(fasinBop,                "sasin"),
     NATIVE_DEF(fcosBop,                 "sfcos"),
     NATIVE_DEF(facosBop,                "sfacos"),
     NATIVE_DEF(ftanBop,                 "sftan"),
@@ -11178,7 +11224,6 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF(fldexpBop,               "sfldexp"),
     NATIVE_DEF(ffrexpBop,               "sffrexp"),
     NATIVE_DEF(fmodfBop,                "sfmodf"),
-    NATIVE_DEF(ffmodBop,                "sffmod"),
     NATIVE_DEF(ffmodBop,                "sffmod"),
     OP_DEF(    fsinhOp,                 "sfsinh" ),
     OP_DEF(    fasinhOp,                "sfasinh" ),
@@ -11203,44 +11248,44 @@ baseDictionaryEntry baseDictionary[] =
     ///////////////////////////////////////////
     //  double-precision fp functions
     ///////////////////////////////////////////
-    NATIVE_DEF(    dsinBop,                 "fsin" ),
-    NATIVE_DEF(    dasinBop,                "fasin" ),
-    NATIVE_DEF(    dcosBop,                 "fcos" ),
-    NATIVE_DEF(    dacosBop,                "facos" ),
-    NATIVE_DEF(    dtanBop,                 "ftan" ),
-    NATIVE_DEF(    datanBop,                "fatan" ),
-    NATIVE_DEF(    datan2Bop,               "fatan2" ),
-    NATIVE_DEF(    dexpBop,                 "fexp" ),
-    NATIVE_DEF(    dlnBop,                  "fln" ),
-    NATIVE_DEF(    dlog10Bop,               "flog" ),
-    NATIVE_DEF(    dpowBop,                 "f**" ),
-    NATIVE_DEF(    dsqrtBop,                "fsqrt" ),
-    NATIVE_DEF(    dceilBop,                "fceil" ),
-    NATIVE_DEF(    dfloorBop,               "floor" ),
-    NATIVE_DEF(    dabsBop,                 "fabs" ),
-    NATIVE_DEF(    dldexpBop,               "fldexp" ),
-    NATIVE_DEF(    dfrexpBop,               "ffrexp" ),
-    NATIVE_DEF(    dmodfBop,                "fmodf" ),
-    NATIVE_DEF(    dfmodBop,                "ffmod" ),
-    OP_DEF(        dsinhOp,                 "fsinh" ),
-    OP_DEF(        dasinhOp,                "fasinh" ),
-    OP_DEF(        dcoshOp,                 "fcosh" ),
-    OP_DEF(        dacoshOp,                "facosh" ),
-    OP_DEF(        dtanhOp,                 "ftanh" ),
-    OP_DEF(        datanhOp,                "fatanh" ),
-    OP_DEF(        dexpm1Op,                "fexpm1" ),
-    OP_DEF(        dlnp1Op,                 "flnp1" ),
+    NATIVE_DEF(    dsinBop,                 "dfsin" ),
+    NATIVE_DEF(    dasinBop,                "dfasin" ),
+    NATIVE_DEF(    dcosBop,                 "dfcos" ),
+    NATIVE_DEF(    dacosBop,                "dfacos" ),
+    NATIVE_DEF(    dtanBop,                 "dftan" ),
+    NATIVE_DEF(    datanBop,                "dfatan" ),
+    NATIVE_DEF(    datan2Bop,               "dfatan2" ),
+    NATIVE_DEF(    dexpBop,                 "dfexp" ),
+    NATIVE_DEF(    dlnBop,                  "dfln" ),
+    NATIVE_DEF(    dlog10Bop,               "dflog" ),
+    NATIVE_DEF(    dpowBop,                 "df**" ),
+    NATIVE_DEF(    dsqrtBop,                "dfsqrt" ),
+    NATIVE_DEF(    dceilBop,                "dfceil" ),
+    NATIVE_DEF(    dfloorBop,               "dffloor" ),
+    NATIVE_DEF(    dabsBop,                 "dfabs" ),
+    NATIVE_DEF(    dldexpBop,               "dfldexp" ),
+    NATIVE_DEF(    dfrexpBop,               "dffrexp" ),
+    NATIVE_DEF(    dmodfBop,                "dfmodf" ),
+    NATIVE_DEF(    dfmodBop,                "dffmod" ),
+    OP_DEF(        dsinhOp,                 "dfsinh" ),
+    OP_DEF(        dasinhOp,                "dfasinh" ),
+    OP_DEF(        dcoshOp,                 "dfcosh" ),
+    OP_DEF(        dacoshOp,                "dfacosh" ),
+    OP_DEF(        dtanhOp,                 "dftanh" ),
+    OP_DEF(        datanhOp,                "dfatanh" ),
+    OP_DEF(        dexpm1Op,                "dfexpm1" ),
+    OP_DEF(        dlnp1Op,                 "dflnp1" ),
 
     ///////////////////////////////////////////
     //  single-precision fp block ops
     ///////////////////////////////////////////
-    NATIVE_DEF(    daddBlockBop,           "fAddBlock"),
-    NATIVE_DEF(    dsubBlockBop,           "fSubBlock"),
-    NATIVE_DEF(    dmulBlockBop,           "fMulBlock"),
-    NATIVE_DEF(    ddivBlockBop,           "fDivBlock"),
-    NATIVE_DEF(    dscaleBlockBop,         "fScaleBlock"),
-    NATIVE_DEF(    doffsetBlockBop,        "fOffsetBlock"),
-    NATIVE_DEF(    dmixBlockBop,           "fMixBlock"),
+    NATIVE_DEF(    daddBlockBop,           "dfAddBlock"),
+    NATIVE_DEF(    dsubBlockBop,           "dfSubBlock"),
+    NATIVE_DEF(    dmulBlockBop,           "dfMulBlock"),
+    NATIVE_DEF(    ddivBlockBop,           "dfDivBlock"),
+    NATIVE_DEF(    dscaleBlockBop,         "dfScaleBlock"),
+    NATIVE_DEF(    doffsetBlockBop,        "dfOffsetBlock"),
+    NATIVE_DEF(    dmixBlockBop,           "dfMixBlock"),
 
     ///////////////////////////////////////////
     //  string manipulation
@@ -11404,7 +11449,7 @@ baseDictionaryEntry baseDictionary[] =
     PRECOP_DEF(longOp,                 "long" ),
     PRECOP_DEF(ulongOp,                "ulong" ),
     PRECOP_DEF(floatOp,                "sfloat" ),
-    PRECOP_DEF(doubleOp,               "float" ),
+    PRECOP_DEF(doubleOp,               "dfloat" ),
     PRECOP_DEF(stringOp,               "string" ),
     PRECOP_DEF(opOp,                   "op" ),
 #if defined(FORTH64)
@@ -11513,10 +11558,10 @@ baseDictionaryEntry baseDictionary[] =
     OP_DEF(    printDoubleGOp,         "%g" ),
     OP_DEF(    format32Op,             "format" ),
     OP_DEF(    format64Op,             "lformat" ),
-    OP_DEF(    representOp,            "represent" ),
+    OP_DEF(    representOp,            "dfrepresent" ),
     OP_DEF(    scanIntOp,              "scanInt" ),
     OP_DEF(    scanLongOp,             "scanLong" ),
-    OP_DEF(    scanFloatOp,            ">float" ),
+    OP_DEF(    scanFloatOp,            ">dfloat" ),
     OP_DEF(    addTempStringOp,        "addTempString"),
     OP_DEF(    fprintfOp,              "fprintf" ),
     OP_DEF(    snprintfOp,             "snprintf" ),

@@ -292,7 +292,7 @@ ucell _time
   begin
   while(not(sorted))
     \ Update the gap value for a next comb
-    gap i2sf shrink sf/ sf2i gap!
+    gap i2sf shrink sf/ sf>i gap!
     if(gap 1 >)
       sorted~
     else
