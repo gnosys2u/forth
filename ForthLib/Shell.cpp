@@ -1980,6 +1980,7 @@ FILE* Shell::OpenForthFile(const char* pPath, std::string& containingDir)
     FILE *pFile = OpenInternalFile( pPath );
     if (pFile != nullptr)
     {
+        SPEW_SHELL("Shell::OpenForthFile found internal file %s", pPath);
         return pFile;
     }
 
@@ -2013,6 +2014,7 @@ FILE* Shell::OpenForthFile(const char* pPath, std::string& containingDir)
         {
             std::string path(containingDir);
             path.append(pPath);
+            SPEW_SHELL("Shell::OpenForthFile found %s", path.c_str());
             pFile = fopen(path.c_str(), "r");
         }
     }
