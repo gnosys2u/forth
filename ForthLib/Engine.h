@@ -184,7 +184,7 @@ private:
     Thread* mpMainThread;
     Shell* mpShell;
     int32_t* mpEngineScratch;
-    char* mpErrorString;  // optional error information from shell
+    std::string mErrorString;  // optional error information from shell
     traceOutRoutine	mTraceOutRoutine;
     void* mpTraceOutData;
     ForthObject		mDefaultConsoleOutStream;

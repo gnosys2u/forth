@@ -72,7 +72,8 @@ SRCS = \
 	TypesManager.cpp \
 	NumberParser.cpp \
 	UsingVocabulary.cpp \
-	VocabularyStack.cpp
+	VocabularyStack.cpp \
+	ControlStack.cpp
 	
 	
 	
@@ -91,11 +92,11 @@ $(OBJ)/libforth.a:	$(OBJS)
 	
 	
 $(OBJ)/%.o: $(LIBSRC)/%.cpp
-	$(CC) $(CFLAGS) -o $(OBJ)/$*.o $(LIBSRC)/$*.cpp
+	$(CC) $(LIBSRC)/$*.cpp $(CPPFLAGS) -o $(OBJ)/$*.o
     
 $(OBJ)/ForthMain.o:	$(MAINSRC)/ForthMain.cpp
 	mkdir -p $(OBJ)
-	$(CC) $(CPPFLAGS) -o $(OBJ)/ForthMain.o $(MAINSRC)/ForthMain.cpp
+	$(CC) $(MAINSRC)/ForthMain.cpp $(CPPFLAGS) -o $(OBJ)/ForthMain.o
 
 forth:	$(OBJ)/ForthMain.o $(OBJ)/libforth.a
 	mkdir -p $(OBJ)

@@ -130,6 +130,22 @@ extern "C"
                     int32_t opVal = FORTH_OP_VALUE(op);
                     SpewMethodName(thisObject, opVal);
                 }
+                else if (opType == kOpMethodWithLocalObject)
+                {
+                    // bits 0..11 are method index, bits 12..23 are frame offset in longs
+                    int32_t opVal = FORTH_OP_VALUE(op);
+                    ForthObject thisObject = *((ForthObject*)(GET_FP - (opVal >> 12)));
+                    int methodIndex = opVal & 0xFFF;
+                    SpewMethodName(thisObject, methodIndex);
+                }
+                else if (opType == kOpMethodWithMemberObject)
+                {
+                    // bits 0..11 are method index, bits 12..23 are object offset in longs
+                    int32_t opVal = FORTH_OP_VALUE(op);
+                    ForthObject thisObject = *((ForthObject*)(((cell)(GET_TP)) + (opVal >> 12)));
+                    int methodIndex = opVal & 0xFFF;
+                    SpewMethodName(thisObject, methodIndex);
+                }
             }
 
             if (pCore->traceFlags & kLogProfiler)
@@ -204,7 +220,6 @@ Engine::Engine()
     ASSERT( mpInstance == nullptr );
     mpInstance = this;
     mpEngineScratch = new int32_t[70];
-    mpErrorString = new char[ ERROR_STRING_MAX + 1 ];
 
     // remember creation time for elapsed time method
 #ifdef WIN32
@@ -258,7 +273,6 @@ Engine::~Engine()
         __FREE( mDictionary.pBase );
 #endif
     }
-    delete [] mpErrorString;
 
     Forgettable* pForgettable = Forgettable::GetForgettableChainHead();
     while ( pForgettable != nullptr )
@@ -1486,7 +1500,7 @@ void Engine::ReleaseObject(CoreState* pCore, ForthObject& inObject)
 
 void Engine::AddErrorText( const char *pString )
 {
-    strcat( mpErrorString, pString );
+    mErrorString.append(pString);
 }
 
 void Engine::SetError( ForthError e, const char *pString )
@@ -1494,13 +1508,13 @@ void Engine::SetError( ForthError e, const char *pString )
     mpCore->error = e;
     if ( pString )
     {
-	    strcat( mpErrorString, pString );
+        mErrorString.append(pString);
     }
 
     if ( e == ForthError::none )
     {
         // previous error state is being cleared
-        mpErrorString[0] = '\0';
+        mErrorString.clear();
     }
     else
     {
@@ -1515,7 +1529,7 @@ void Engine::SetFatalError( ForthError e, const char *pString )
     mpCore->error = e;
     if ( pString )
     {
-        strcpy( mpErrorString, pString );
+        mErrorString.append(pString);
     }
 }
 
@@ -1525,13 +1539,13 @@ void Engine::GetErrorString(ForthError errorNum, char* pBuffer, int bufferSize)
     const char* pErrorText = mpOuter->GetErrorString(errorNum);
     if (pErrorText != nullptr)
     {
-        if (mpErrorString[0] != '\0')
+        if (mErrorString.size() != 0)
         {
-            sprintf(pBuffer, "%s: %s", pErrorText, mpErrorString);
+            sprintf(pBuffer, "%s: %s", pErrorText, mErrorString.c_str());
         }
         else
         {
-            strcpy(pBuffer, pErrorText);
+            strncpy(pBuffer, pErrorText, bufferSize);
         }
     }
     else
@@ -1903,7 +1917,9 @@ void Engine::RaiseException(CoreState *pCore, ForthError newExceptionNum)
         pCore->error = newExceptionNum;
         SPEW_ENGINE("\nEngine::RaiseException {%s} (%d) uncaught exception\n",
             exceptionDescription, (int)newExceptionNum);
-        snprintf(mpErrorString, ERROR_STRING_MAX, "Uncaught exception of type %d", (int)newExceptionNum);
+        char buffer[100];
+        snprintf(buffer, sizeof(buffer), "\nUncaught exception of type %d", (int)newExceptionNum);
+        mErrorString.append(buffer);
         pCore->state = OpResult::kUncaughtException;
     }
 }
@@ -1930,7 +1946,9 @@ void Engine::ContinueException(CoreState* pCore)
     else
     {
         SPEW_ENGINE("\nEngine::ContinueException - no exception frame!\n");
-        snprintf(mpErrorString, ERROR_STRING_MAX, "Uncaught exception of type %d", (int)exceptionNum);
+        char buffer[100];
+        snprintf(buffer, sizeof(buffer), "\nUncaught exception of type %d", (int)exceptionNum);
+        mErrorString.append(buffer);
         pCore->state = OpResult::kUncaughtException;
     }
 }

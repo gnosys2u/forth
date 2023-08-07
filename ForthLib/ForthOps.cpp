@@ -807,7 +807,7 @@ FORTHOP(elseOp)
     {
         // ugh, else followed by else - need to support this mess to pass 2012 tests
         // save address for endif
-        pOuter->PatchOpcode(kOpBranch, (GET_DP - pEntry->address), (forthop*)(pEntry->address));
+        pOuter->PatchOpcode(kOpBranch, (GET_DP - (forthop*)(pEntry->address)), (forthop*)(pEntry->address));
         // leave 'else' entry on stack, but change its branch address to here
         pEntry->address = GET_DP;
         pEntry->op = 1;     // I'm not sure this is necessary
@@ -3472,6 +3472,9 @@ FORTHOP(doNewOp)
 		if (pTypeInfo->pVocab->IsClass())
 		{
 			ClassVocabulary *pClassVocab = static_cast<ClassVocabulary *>(pTypeInfo->pVocab);
+#ifdef TRACE_ENGINE
+            SPEW_ENGINE( "creating {%s} ", pClassVocab->GetName() );
+#endif
 			SPUSH((cell)pClassVocab);
 			pEngine->FullyExecuteOp(pCore, pClassVocab->GetClassObject()->newOp);
 		}
@@ -3496,7 +3499,7 @@ FORTHOP( allocObjectOp )
     {
         int32_t nBytes = pClassVocab->GetSize();
         ForthObject newObject = (ForthObject) ALLOCATE_BYTES( nBytes );
-		memset(newObject, 0, nBytes );
+		memset((void*)newObject, 0, nBytes );
         newObject->pMethods = pMethods;
         SPUSH( (cell)newObject);
     }
@@ -5454,7 +5457,11 @@ FORTHOP(resizeFileOp)
 #else
         // TODO!  find a 64-bit resize-file op for linux/osx/rpi
         off_t newSize = pos.u64;
-        int err = ftruncate(_fileno(pFile, newSize);
+#if defined(RASPI)
+        int err = ftruncate(fileno(pFile), newSize);
+#else
+        int err = ftruncate(_fileno(pFile), newSize);
+#endif
         if (err == 0)
         {
             SPUSH(-1);

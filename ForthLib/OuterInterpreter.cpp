@@ -327,7 +327,7 @@ void OuterInterpreter::InitializeVocabulariesAndClasses()
         mpErrorsVocab->AddSymbol(err.symbol, errorOp);
     }
     mpDefinitionVocab = mpErrorsVocab;
-    AddBuiltinOp("getText", kOpCCode, getErrorTextOp);
+    AddBuiltinOp("getText", kOpCCode, (void *)getErrorTextOp);
 
     const char* unknownTypeName = mpEngine->GetOpTypeName(256);
     for (int32_t i = 0; i < 256; ++i)
@@ -340,7 +340,7 @@ void OuterInterpreter::InitializeVocabulariesAndClasses()
         }
     }
     mpDefinitionVocab = mpOptypesVocab;
-    AddBuiltinOp("getName", kOpCCode, getOptypeNameOp);
+    AddBuiltinOp("getName", kOpCCode, (void *)getOptypeNameOp);
 
     mpDefinitionVocab = mpForthVocab;
 

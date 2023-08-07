@@ -40,7 +40,7 @@ enum ControlStackTag
    // if you add tags, remember to update TagStrings in Shell.cpp
 };
 
-typedef struct ControlStackEntry
+struct ControlStackEntry
 {
     const char* name;
     void* address;
