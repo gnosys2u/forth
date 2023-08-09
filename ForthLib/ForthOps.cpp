@@ -297,9 +297,10 @@ FORTHOP( timesDivOp )
 	int a = SPOP;
 	int b = SPOP;
 
-    if (b == 0)
+    if (denom == 0)
     {
-        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+        //GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+        SPUSH(0);
     }
     else
     {
@@ -321,9 +322,11 @@ FORTHOP( timesDivModOp )
 	int a = SPOP;
 	int b = SPOP;
 
-    if (b == 0)
+    if (denom == 0)
     {
-        GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+        //GET_ENGINE->RaiseException(pCore, ForthError::divideByZero);
+        SPUSH(0);
+        SPUSH(0);
     }
     else
     {

@@ -183,7 +183,6 @@ private:
     Thread* mpThreads;
     Thread* mpMainThread;
     Shell* mpShell;
-    int32_t* mpEngineScratch;
     std::string mErrorString;  // optional error information from shell
     traceOutRoutine	mTraceOutRoutine;
     void* mpTraceOutData;

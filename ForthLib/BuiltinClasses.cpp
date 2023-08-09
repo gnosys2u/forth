@@ -114,7 +114,7 @@ namespace
         int32_t nBytes = pClassVocab->GetSize();
 		ALLOCATE_OBJECT(oObjectStruct, pThis, pClassVocab);
         // clear the entire object area - this handles both its refcount and any object pointers it might contain
-        memset(pThis, 0, nBytes);
+        memset((void *)pThis, 0, nBytes);
         pThis->pMethods = pClassVocab->GetMethods();
         TRACK_NEW;
         PUSH_OBJECT(pThis);

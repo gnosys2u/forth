@@ -219,7 +219,6 @@ Engine::Engine()
     // scratch area for temporary definitions
     ASSERT( mpInstance == nullptr );
     mpInstance = this;
-    mpEngineScratch = new int32_t[70];
 
     // remember creation time for elapsed time method
 #ifdef WIN32
@@ -300,8 +299,6 @@ Engine::~Engine()
 		delete pThread;
 		pThread = pNextThread;
     }
-
-    delete mpEngineScratch;
 
     delete mBlockFileManager;
 

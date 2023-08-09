@@ -318,7 +318,6 @@ NumberType NumberParser::ScanNumber(const char* pSrc, int defaultBase)
 
 bool NumberParser::ScanFloat(const char* pSrcString, double& result)
 {
-    int32_t digit;
     bool inExponent = false;
     char c;
     int digitsFound = 0;
@@ -369,7 +368,6 @@ bool NumberParser::ScanFloat(const char* pSrcString, double& result)
     }
 
     bool exponentSignFound = false;
-    bool exponentNegative = false;
     mExponentPosition = -1;
     int digitsAfterPeriod = -1;
     while (pSrc < pEnd)
@@ -394,7 +392,6 @@ bool NumberParser::ScanFloat(const char* pSrcString, double& result)
                 mValidChars[mNumValidChars++] = 'E';
                 mValidChars[mNumValidChars++] = c;
                 mExponentPosition = srcIndex;
-                exponentNegative = true;
                 exponentSignFound = true;
             }
             else if (c == 'e' || c == 'd')
@@ -421,7 +418,6 @@ bool NumberParser::ScanFloat(const char* pSrcString, double& result)
                     {
                         digitsAfterPeriod++;
                     }
-                    digit = c - '0';
                     digitsFound++;
                     mValidChars[mNumValidChars++] = c;
                 }

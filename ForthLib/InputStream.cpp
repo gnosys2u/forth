@@ -85,6 +85,14 @@ void InputStream::TrimLine()
             {
                 pEnd--;
             }
+
+            if (pEnd > mpBufferBase)
+            {
+                if (pEnd[-1] == '\r')
+                {
+                    pEnd--;
+                }
+            }
         }
         mWriteOffset = pEnd - mpBufferBase;
     }

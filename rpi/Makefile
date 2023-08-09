@@ -84,7 +84,7 @@ OBJS := $(patsubst %.cpp,$(OBJ)/%.o,$(SRCS)) $(ASMOBJS)
 LIBS := -lm -lstdc++ -ldl -lpthread -no-pie
 
 $(OBJ)/InnerInterpARM32.o: $(LIBSRC)/InnerInterpARM32.S
-	$(CC) $(CFLAGS) -o $(OBJ)/InnerInterpARM32.o -DATOMIC_REFCOUNTS -DASM_INNER_INTERPRETER -c $(LIBSRC)/InnerInterpARM32.S
+	$(CC) $(LIBSRC)/InnerInterpARM32.S -o $(OBJ)/InnerInterpARM32.o $(CFLAGS) -DATOMIC_REFCOUNTS -DASM_INNER_INTERPRETER
 
 $(OBJ)/libforth.a:	$(OBJS)
 	mkdir -p $(OBJ)

@@ -55,6 +55,21 @@
 #define CONTINUATION_MARKER "\\+"
 #define CONTINUATION_MARKER_LEN 2
 
+// switch checkOpResult on to provide a convenient place to put a breakpoint when trying
+// down where an error is coming from in the debugger
+#if 0
+void checkOpResult(OpResult result)
+{
+    if (result != OpResult::kOk)
+    {
+        printf("bad OpResult: %d\n", (int) result);
+    }
+}
+#else
+#define checkOpResult(RESULT)
+#endif
+
+
 // split a string with delimiter
 void splitString(const std::string inString, std::vector<std::string>& tokens, char delim)
 {
@@ -397,6 +412,7 @@ Shell::RunOneStream(InputStream *pInStream)
 		if (!bQuit)
 		{
 			result = ProcessLine();
+            checkOpResult(result);
 
 			switch (result)
 			{
@@ -494,6 +510,7 @@ Shell::Run( InputStream *pInStream )
         if (!bQuit)
         {
             result = ProcessLine();
+            checkOpResult(result);
 
             switch( result )
             {
@@ -559,7 +576,8 @@ Shell::Run( InputStream *pInStream )
             }
         }
     } // while !bQuit
-    
+
+    checkOpResult(result);
     return retVal;
 }
 
@@ -633,12 +651,14 @@ OpResult Shell::ProcessLine()
         if (mpEngine->GetError() != ForthError::none)
         {
             result = OpResult::kError;
+            checkOpResult(result);
         }
     }
     else
     {
         // we are currently not skipping input lines
         result = InterpretLine();
+        checkOpResult(result);
 
         if ( result == OpResult::kOk )
         {
@@ -671,6 +691,8 @@ OpResult Shell::ProcessLine()
             }
         }
     }
+
+    checkOpResult(result);
     return result;
 }
 
@@ -725,11 +747,13 @@ OpResult Shell::InterpretLine()
 			}
 #else
             result = pOuter->ProcessToken( &parseInfo );
+            checkOpResult(result);
             CHECK_STACKS( mpEngine->GetMainFiber() );
 #endif
             if ( result == OpResult::kOk )
 			{
                 result = mpEngine->CheckStacks();
+                checkOpResult(result);
             }
         }
     }
@@ -1980,13 +2004,14 @@ FILE* Shell::OpenForthFile(const char* pPath, std::string& containingDir)
     FILE *pFile = OpenInternalFile( pPath );
     if (pFile != nullptr)
     {
-        SPEW_SHELL("Shell::OpenForthFile found internal file %s", pPath);
+        SPEW_SHELL("Shell::OpenForthFile found internal file %s\n", pPath);
         return pFile;
     }
 
     pFile = fopen( pPath, "r" );
     if (pFile != nullptr)
     {
+        SPEW_SHELL("Shell::OpenForthFile found %s\n", pPath);
         std::string path(pPath);
         auto pathEnd = path.find_last_of("/\\");
         if (pathEnd != std::string::npos)
@@ -2014,7 +2039,7 @@ FILE* Shell::OpenForthFile(const char* pPath, std::string& containingDir)
         {
             std::string path(containingDir);
             path.append(pPath);
-            SPEW_SHELL("Shell::OpenForthFile found %s", path.c_str());
+            SPEW_SHELL("Shell::OpenForthFile found %s\n", path.c_str());
             pFile = fopen(path.c_str(), "r");
         }
     }

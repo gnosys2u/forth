@@ -33,6 +33,14 @@
 #include "UsingVocabulary.h"
 #include "ControlStack.h"
 
+// switch checkOpResult on to provide a convenient place to put a breakpoint when trying
+// down where an error is coming from in the debugger
+#if 0
+extern void checkOpResult(OpResult result);
+#else
+#define checkOpResult(RESULT)
+#endif
+
 //////////////////////////////////////////////////////////////////////
 ////
 ///
@@ -2060,6 +2068,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
             // symbol is a member variable or method
             //
             ////////////////////////////////////
+            checkOpResult(exitStatus);
             return exitStatus;
         }
     }
@@ -2094,6 +2103,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
                     // push ptr to string after colon and invoke literal processing op
                     *--mpCore->SP = (cell)(pColon + 1);
                     exitStatus = mpEngine->FullyExecuteOp(mpCore, *pEntry);
+                    checkOpResult(exitStatus);
                     return exitStatus;
                 }
             }
@@ -2118,7 +2128,9 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
         //
         ////////////////////////////////////
         SPEW_OUTER_INTERPRETER( "Forth op {%s} in vocabulary %s\n", pToken, pFoundVocab->GetName() );
-        return pFoundVocab->ProcessEntry( pEntry );
+        exitStatus = pFoundVocab->ProcessEntry( pEntry );
+        checkOpResult(exitStatus);
+        return exitStatus;
     }
 
     // see if this is a structure/object access (like structA.fieldB.fieldC)
@@ -2131,6 +2143,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
             // symbol is a structure/object access
             //
             ////////////////////////////////////
+            checkOpResult(exitStatus);
             return exitStatus;
         }
     }
@@ -2368,6 +2381,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
                             // symbol is a member variable with a varop suffix
                             //
                             ////////////////////////////////////
+                            checkOpResult(exitStatus);
                             return exitStatus;
                         }
                     }
@@ -2411,6 +2425,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
     SPEW_ENGINE("Unknown symbol %s\n", pToken);
     mpCore->error = ForthError::undefinedWord;
     exitStatus = OpResult::kError;
+    checkOpResult(exitStatus);
 
     // TODO: return exit-shell flag
     return exitStatus;

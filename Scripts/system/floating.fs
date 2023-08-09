@@ -54,7 +54,7 @@ alias _fover 2over
 
 \ display fp stack
 : fs
-  fdepth "fs[" %s _fdup %d "] " %s
+  fdepth "fs[" %s dup %d "] " %s
   dup >r
   0 ?do
     fpop _fdup %g %bl

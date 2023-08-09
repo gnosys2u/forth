@@ -82,7 +82,9 @@ base          	=	104
 signed_print_mode = 108
 trace_flags     =   112
 exception_ptr	=	116
-scratch			=	120
+fpstack_base	=	120
+fpstack_ptr		=	124
+scratch			=	128
 
 kVarDefaultOp			=	0
 kVarGet				    =	1
@@ -4003,9 +4005,9 @@ fatanBop:
 
 fatan2Bop:
 	push	{rcore, lr}
-	flds	s0, [rsp]
-	add		rsp, #4
 	flds	s1, [rsp]
+	add		rsp, #4
+	flds	s0, [rsp]
 	bl	atan2f
 	fsts	s0, [rsp]
 	pop	{rcore, lr}
@@ -4178,9 +4180,9 @@ datanBop:
 
 datan2Bop:
 	push	{rcore, lr}
-	fldd	d0, [rsp]
-	add		rsp, #8
 	fldd	d1, [rsp]
+	add		rsp, #8
+	fldd	d0, [rsp]
 	bl	atan2
 	fstd	d0, [rsp]
 	pop	{rcore, lr}
@@ -5330,7 +5332,9 @@ dEqualsBop:
 	add	rsp, #12
 	fcmpd	d7, d6
 	fmstat
+	bvs	.deq				@ overflow set if either arg is NaN
 	subeq	r2, #1
+.deq:
 	str	r2, [rsp]
 	bx	lr
 	
@@ -5343,7 +5347,9 @@ dNotEqualsBop:
 	add	rsp, #12
 	fcmpd	d7, d6
 	fmstat
+	bvs	.dne				@ overflow set if either arg is NaN
 	subne	r2, #1
+.dne:
 	str	r2, [rsp]
 	bx	lr
 
@@ -5356,7 +5362,9 @@ dGreaterThanBop:
 	add	rsp, #12
 	fcmpd	d7, d6
 	fmstat
+	bvs	.dgt				@ overflow set if either arg is NaN
 	subgt	r2, #1
+.dgt:
 	str	r2, [rsp]
 	bx	lr
 
@@ -5369,7 +5377,9 @@ dGreaterEqualsBop:
 	add	rsp, #12
 	fcmpd	d7, d6
 	fmstat
+	bvs	.dge				@ overflow set if either arg is NaN
 	subge	r2, #1
+.dge:
 	str	r2, [rsp]
 	bx	lr
 
@@ -5382,7 +5392,9 @@ dLessThanBop:
 	add	rsp, #12
 	fcmpd	d7, d6
 	fmstat
+	bvs	.dlt				@ overflow set if either arg is NaN
 	sublt	r2, #1
+.dlt:
 	str	r2, [rsp]
 	bx	lr
 
@@ -5395,7 +5407,9 @@ dLessEqualsBop:
 	add	rsp, #12
 	fcmpd	d7, d6
 	fmstat
+	bvs	.dle				@ overflow set if either arg is NaN
 	suble	r2, #1
+.dle:
 	str	r2, [rsp]
 	bx	lr
 
@@ -5407,7 +5421,9 @@ dEquals0Bop:
 	add	rsp, #4
 	fcmpzd	d7
 	fmstat
+	bvs	.de0				@ overflow set if either arg is NaN
 	subeq	r2, #1
+.de0:
 	str	r2, [rsp]
 	bx	lr
 
@@ -5419,7 +5435,9 @@ dNotEquals0Bop:
 	add	rsp, #4
 	fcmpzd	d7
 	fmstat
+	bvs	.dne0				@ overflow set if either arg is NaN
 	subne	r2, #1
+.dne0:
 	str	r2, [rsp]
 	bx	lr
 
@@ -5431,7 +5449,9 @@ dGreaterThan0Bop:
 	add	rsp, #4
 	fcmpzd	d7
 	fmstat
+	bvs	.dgt0				@ overflow set if either arg is NaN
 	subgt	r2, #1
+.dgt0:
 	str	r2, [rsp]
 	bx	lr
 
@@ -5443,7 +5463,9 @@ dGreaterEquals0Bop:
 	add	rsp, #4
 	fcmpzd	d7
 	fmstat
+	bvs	.dge0				@ overflow set if either arg is NaN
 	subge	r2, #1
+.dge0:
 	str	r2, [rsp]
 	bx	lr
 
@@ -5455,7 +5477,9 @@ dLessThan0Bop:
 	add	rsp, #4
 	fcmpzd	d7
 	fmstat
+	bvs	.dlt0				@ overflow set if either arg is NaN
 	sublt	r2, #1
+.dlt0:
 	str	r2, [rsp]
 	bx	lr
 
@@ -5467,7 +5491,9 @@ dLessEquals0Bop:
 	add	rsp, #4
 	fcmpzd	d7
 	fmstat
+	bvs	.dle0				@ overflow set if either arg is NaN
 	suble	r2, #1
+.dle0:
 	str	r2, [rsp]
 	bx	lr
 
@@ -5961,6 +5987,7 @@ memcmpBop:
 	mov	r0, r1
 	mov	r1, r3
 	bl	memcmp
+	stmdb	rsp!, {r0}
 	pop	{rcore, lr}
 	bx	lr
 	

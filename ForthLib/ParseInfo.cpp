@@ -183,7 +183,6 @@ const char * ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLim
 		const char *pSrc = pSrcIn + 1;
 		int iDst = 0;
 		int maxChars = pEngine->GetOuterInterpreter()->CheckFeature(kFFMultiCharacterLiterals) ? 8 : 1;
-        bool brokeOnWhitespace = false;
 		while ((iDst < maxChars) && (pSrc < pSrcLimit))
 		{
 			char ch = *pSrc++;
@@ -193,10 +192,7 @@ const char * ParseInfo::ParseSingleQuote(const char *pSrcIn, const char *pSrcLim
 			}
             else if (ch == ' ' || ch == '\t')
             {
-                // brokeOnWhitespace is needed to make the string "' '" be treated as using
-                //  the tick operator to get the execution token for the tick operator,
-                //  not just a literal space character
-                brokeOnWhitespace = true;
+                // this is the tick operator
 				break;
 			}
             else if (ch == '\\')
