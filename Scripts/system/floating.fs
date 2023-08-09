@@ -144,7 +144,7 @@ DFloat:-inf fpush fconstant -inf
   fpop dfloat val!
   mko String fmt
   fmt.format("%%.%dE " precision 1)
-  fprintf(stdout fmt.get val 1)  drop
+  fprintf(stdout fmt.get r[ val ]r)  drop
 ;
 
 : fe. \ prinf 64-bit float with 1 to 3 digits before period, exponent is multiple of 3

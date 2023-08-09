@@ -4039,9 +4039,9 @@ flog10Bop:
 
 fpowBop:
 	push	{rcore, lr}
-	flds	s0, [rsp]
-	add		rsp, #4
 	flds	s1, [rsp]
+	add		rsp, #4
+	flds	s0, [rsp]
 	bl	powf
 	fsts	s0, [rsp]
 	pop	{rcore, lr}
@@ -4214,9 +4214,9 @@ dlog10Bop:
 
 dpowBop:
 	push	{rcore, lr}
-	fldd	d0, [rsp]
-	add		rsp, #8
 	fldd	d1, [rsp]
+	add		rsp, #8
+	fldd	d0, [rsp]
 	bl	pow
 	fstd	d0, [rsp]
 	pop	{rcore, lr}
