@@ -5,6 +5,14 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+- get rid of 'requires', replace it with ANSI 'require', that will avoid things
+  like the confusion when I had a directory 'ansi' which contained ANSI standard
+  forth programs, and the source file ansi.fs which loads all the files for ANSI
+  compatability.  Also I could get rid of the manual auto-forgetting stuff.
+
+- consider moving many builtin ops into Number classes as static methods, so
+  dfcos would be DFloat:cos and so on.
+
 - there is a dcell struct, but there is no DCell object, would adding it be usefull?
 
 - document how ExpressionInputStream works, I believe I did this somewhere, it
@@ -283,6 +291,69 @@ Double and long memory and stack layouts:
 Double has consistent layout, long is reversed on param stack.
 
 
+
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 9 2023
+
+The raspberry pi DbgAsm build passes all the ANSI tests!
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 8 2023
+
+I've been trying to get all the various build flavors to pass the ANSI tests.
+So far it has been an uphill battle:
+- x64
+  + Debug
+  x DbgAsm
+    gets many errors in fp tests
+  x Release
+    crashes in core.fr!
+  x RelAsm
+    gets many errors in fp tests, looks like the same ones as DbgAsm
+
+- x86
+  x Debug
+  x DbgAsm
+  x Release
+  x RelAsm
+    all 4 flavors fail at same point in paranoia.fs:
+        Program is now RUNNING tests on small integers:
+        -1, 0, 1/2, 1, 2, 3, 4, 5, 9, 27, 32 & 240 are O.K.
+
+        Searching for Radix and Precision.
+        Radix = 2 .
+        Closest relative separation found is U1 =
+
+- ARM32
+  x DbgAsm
+    passes all the non-FP tests, then gets lots of errors in FP land, crashes after
+    Page 7, 'Testing powers Z^i for small integers Z and i'.
+  - RelAsm
+  
+I ran into an odd mystery on rpi, the file r.fs which sets up ansi mode and then
+runs the ANSI tests kept failing almost immediately with bogus undefined symbol
+errors.  This was being caused by line buffers having a carriage return at the
+end.  I finally figured out this happened because almost all source files are
+gotten from git, and it removes the CRs on non-windows systems.  I manually copied
+r.fs from Windows to rpi, so that one file had the CRs in it.
+
+Another problem I ran into was with 'lf ansi' - I wanted this to find ansi.fs
+and load it, it was failing because it found the directory 'ansi' and tried to
+load that as a source file and silently failed to do anything.  Normally ansi
+is loaded by 'requires ansi' this checks if an op named 'ansi' exists, and if
+not it loads 'ansi.fs', so it didn't have the problem with the ansi directory.
+I should replace 'requires' with ANSI 'require'.
+
+The assembler memcmp op had the same bug in win32 and arm32, it didn't return
+any value on TOS.  The win64 version doesn't have the problem.
+
+I also found out that if you do something like $load("foo.fs") you will get into
+a problem, because the parens mean you are using an expression stream, and there
+is a single expression stream which belongs to the shell, so if anything under
+foo.fs uses an expression things explode.  The input stack is implemented using
+a next pointer in input stream instances, so having more than one active expression
+at a time turns that stack into a circular list.  I had thought that there could
+never be more than one expression stream in use at any time, the case where the
+expression is part of a stream load is the exception to that rule.
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 2 2023

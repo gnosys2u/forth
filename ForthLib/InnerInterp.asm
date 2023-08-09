@@ -6535,7 +6535,8 @@ entry memcmpBop
 	add	esp, 20
 	pop	rip
 	pop	rpsp
-	add	rpsp, 12
+	add	rpsp, 8
+    mov [rpsp], eax
 	jmp	rnext
 
 ;========================================
