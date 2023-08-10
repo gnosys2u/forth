@@ -869,8 +869,8 @@ addOp ;enum||ends an enumerated type definition
 addOp recursize||used inside a colon definition, allows it to invoke itself recursively
 addOp precedence||used inside a colon definition, makes it have precedence (execute in compile mode)
 addOp load|load PATH|start loading a forth source file whose name immediately follows "load"
-addOp $load|PATH $load ...|start loading a forth source file whose name is on TOS
-addOp loaddone||terminate loading a forth source file before the end of file
+addOp $load|CSTR_PATH $load ...|start loading a forth source file whose path is on TOS
+addOp $load?|CSTR_PATH $load ... T/F|start loading a forth source file whose path is on TOS, returns true if file is found
 addOp requires|requires NAME|if forthop NAME exists do nothing, if not load NAME.txt
 addOp $evaluate|STR $evaluate|interpret string on TOS
 addOp ]||sets state to compile

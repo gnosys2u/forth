@@ -8,10 +8,12 @@ TBDs:
 - get rid of 'requires', replace it with ANSI 'require', that will avoid things
   like the confusion when I had a directory 'ansi' which contained ANSI standard
   forth programs, and the source file ansi.fs which loads all the files for ANSI
-  compatability.  Also I could get rid of the manual auto-forgetting stuff.
+  compatability.  Also see if I could get rid of the manual auto-forgetting stuff.
 
 - consider moving many builtin ops into Number classes as static methods, so
   dfcos would be DFloat:cos and so on.
+  - add formatting ops here too, to try to get rid of using *printf/*scanf ops
+    which break in 32-bit land (need to manually swap)
 
 - there is a dcell struct, but there is no DCell object, would adding it be usefull?
 
@@ -290,12 +292,60 @@ Double and long memory and stack layouts:
 
 Double has consistent layout, long is reversed on param stack.
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+- x64
+  + Debug
+  + DbgAsm
+  + RelAsm
+  + Release
+
+- x86
+  + Debug
+  + Release
+  x DbgAsm
+  x RelAsm
+                   Page: 4
+
+        Program is now RUNNING tests on small integers:
+        -1, 0, 1/2, 1, 2, 3, 4, 5, 9, 27, 32 & 240 are O.K.
+
+        Searching for Radix and Precision.
+        Radix = 2 .
+        Closest relative separation found is U1 = 1.11022302E-16
+
+        Recalculating radix and precision
+        confirms closest relative separation U1 .
+        Radix confirmed.
+        FAILURE Comparison is fuzzy,X=1 but X-1/2-1/2 != 0.
+        The number of significant digits of the Radix is 53
+        Diagnosis resumes after milestone Number 30
 
 
+- ARM32
+  + DbgAsm
+  - RelAsm
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 9 2023
 
 The raspberry pi DbgAsm build passes all the ANSI tests!
+
+There are several fp comparisons in InnerInterp.asm like dLessEqualsBop which
+seem to be testing the wrong flags - I suspect 41h is supposed to be 5.
+
+All the x64 builds except Release pass all the ANSI tests now.  The Release
+build is failing because it crashes whenever it tries to execute an op defined
+in assembler, and several ANSI compatability ops are done that way.  The Debug
+build can execute assembler defined ops just fine, so why can't Release?
+The only differences in their properties are:
+    Debug:      _DEBUG;INCLUDE_TRACE;
+    Release:    NDEBUG;
+
+The problem was that I was stomping on rbx, and it isn't one of the volatile
+registers.  After fixing that all x64 builds pass ANSI testing.
+
+That just leaves the x86 DbgAsm/RelAsm paranoia failure.  That is happening
+because something the test is saying is 1.0 is actually wrong in the lowest
+bit so it is 0.999... I'll try to chase it down tomorrow.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 8 2023
 

@@ -4268,6 +4268,8 @@ dEqualsBop1:
 	xor	ebx, ebx
 	fucompp
 	fnstsw	ax
+    test    ah, 2       ; check for 'unordered' result - happens if either arg is NaN
+    jnz     dLessThanBop2
 	test	ah, 44h
 	jp	dEqualsBop2
 	dec	ebx
@@ -4290,6 +4292,8 @@ dNotEqualsBop1:
 	xor	ebx, ebx
 	fucompp
 	fnstsw	ax
+    test    ah, 2       ; check for 'unordered' result - happens if either arg is NaN
+    jnz     dLessThanBop2
 	test	ah, 44h
 	jnp	dNotEqualsBop2
 	dec	ebx
@@ -4313,6 +4317,8 @@ dGreaterThanBop1:
 	fcomp	st1
 	fnstsw	ax
 	fstp	st0
+    test    ah, 2       ; check for 'unordered' result - happens if either arg is NaN
+    jnz     dLessThanBop2
 	test	ah, 41h
 	jne	dGreaterThanBop2
 	dec	ebx
@@ -4336,6 +4342,8 @@ dGreaterEqualsBop1:
 	fcomp	st1
 	fnstsw	ax
 	fstp	st0
+    test    ah, 2       ; check for 'unordered' result - happens if either arg is NaN
+    jnz     dLessThanBop2
 	test	ah, 1
 	jne	dGreaterEqualsBop2
 	dec	ebx
@@ -4359,6 +4367,8 @@ dLessThanBop1:
 	fcomp	st1
 	fnstsw	ax
 	fstp	st0
+    test    ah, 2       ; check for 'unordered' result - happens if either arg is NaN
+    jnz     dLessThanBop2
 	test	ah, 5
 	jp	dLessThanBop2
 	dec	ebx
@@ -4382,6 +4392,8 @@ dLessEqualsBop1:
 	fcomp	st1
 	fnstsw	ax
 	fstp	st0
+    test    ah, 2       ; check for 'unordered' result - happens if either arg is NaN
+    jnz     dLessThanBop2
 	test	ah, 41h
 	jp	dLessEqualsBop2
 	dec	ebx

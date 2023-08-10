@@ -95,164 +95,6 @@ code roll
   endif,
   next,
   
-code 2dup
-  rpsp ] rax mov,
-  8 rpsp d] rbx mov,
-  $10 # rpsp sub,
-  rax rpsp ] mov,
-  rbx 8 rpsp d] mov,
-  next,
-  
-code 2swap
-  rpsp ] rax mov,
-  $10 rpsp d] rbx mov,
-  rax $10 rpsp d] mov,
-  rbx rpsp ] mov,
-  8 rpsp d] rax mov,
-  $18 rpsp d] rbx mov,
-  rax $18 rpsp d] mov,
-  rbx 8 rpsp d] mov,
-  next,
-  
-code 2drop
-  $10 # rpsp add,
-  next,
-
-code ndrop
-  rpsp ] rax mov,
-  8 rpsp rax *8 di] rpsp lea,
-  next,
-  
-code ndup
-  rpsp ] rcx mov,
-  rpsp rcx *8 i] rbx lea,
-  8 # rpsp add,
-  rcx rcx or,
-  nz, if,
-    do,
-      8 # rpsp sub,
-      rbx ] rax mov,
-      rax rpsp ] mov,
-      8 # rbx sub,
-    loop,
-  endif,
-  next,
-  
-code 2over
-  $10 rpsp d] rax mov,
-  $18 rpsp d] rbx mov,
-  $10 # rpsp sub,
-  rax rpsp ] mov,
-  rbx 8 rpsp d] mov,
-  next,
-  
-\ 5 -> 1 4 -> 0 3 -> 5 2 -> 4 1 -> 3 0 -> 2
-code 2rot
-  $28 rpsp d] rax mov,
-  $18 rpsp d] rbx mov,
-  rbx $28 rpsp d] mov,
-  8 rpsp d] rbx mov,
-  rbx $18 rpsp d] mov,
-  rax 8 rpsp d] mov,
-  $20 rpsp d] rax mov,
-  $10 rpsp d] rbx mov,
-  rbx $20 rpsp d] mov,
-  rpsp ] rbx mov,
-  rbx $10 rpsp d] mov,
-  rax rpsp ] mov,
-  next,
-  
-\ 5 -> 3 4 -> 2 3 -> 1 2 -> 0 1 -> 5 0 -> 4
-code -2rot
-  $28 rpsp d] rax mov,
-  $8 rpsp d] rbx mov,
-  rbx $28 rpsp d] mov,	\ 1->5 complete
-  $18 rpsp d] rbx mov,
-  rbx $8 rpsp d] mov,		\ 3->1 complete
-  rax $18 rpsp d] mov,	\ 5->3 complete
-  $20 rpsp d] rax mov,
-  rpsp ] rbx mov,
-  rbx $20 rpsp d] mov,	\ 0->4 complete
-  $10 rpsp d] rbx mov,
-  rbx rpsp ] mov,		\ 2->0
-  rax $10 rpsp d] mov,	\ 4->2
-  next,
-
-code 2nip
-  rpsp ] rax mov,
-  8 rpsp d] rbx mov,
-  $10 # rpsp add,
-  rax rpsp ] mov,
-  rbx 8 rpsp d] mov,
-  next,
-  
-code 2tuck
-  $10 # rpsp sub,
-  $10 rpsp d] rax mov,
-  rax rpsp ] mov,
-  $20 rpsp d] rbx mov,
-  rax $20 rpsp d] mov,
-  rbx $10 rpsp d] mov,
-  $18 rpsp d] rax mov,
-  rax $8 rpsp d] mov,
-  $28 rpsp d] rbx mov,
-  rax $28 rpsp d] mov,
-  rbx $18 rpsp d] mov,
-  next,
-  
-code 2pick
-  rpsp ] rax mov,
-  1 # rax add,
-  rax rax add,
-  8 # rpsp sub,
-  rpsp rax *8 i] rbx mov,
-  rbx rpsp ] mov,
-  8 rpsp rax *8 di] rbx mov,
-  rbx 8 rpsp d] mov,
-  next,
-  
-code 2roll
-  rsi push,
-  rdi push,
-  rpsp ] rcx mov,
-  8 # rpsp add,
-  rcx rcx or,
-  nz, if,
-    0>=, if,
-      rcx rax mov,
-      4 # rax shl,
-      rpsp rax add,
-      rax ] rbx mov,
-      8 rax d] rdi mov,
-      do,
-        $10 # rax sub,
-        rax ] rsi mov,
-        rsi $10 rax d] mov,
-        8 rax d] rsi mov,
-        rsi $18 rax d] mov,
-      loop,
-      rbx rpsp ] mov,
-      rdi 8 rpsp d] mov,
-    else,
-      rcx neg,
-      rpsp ] rsi mov,
-      8 rpsp d] rdi mov,
-      rpsp rax mov,
-      do,
-        $10 rax d] rbx mov,
-        rbx rax ] mov,
-        $18 rax d] rbx mov,
-        rbx 8 rax d] mov,
-        $10 # rax add,
-      loop,
-      rsi rax ] mov,
-      rdi 4 rax d] mov,
-    endif,
-  endif,
-  rdi pop,
-  rsi pop,
-  next,
-  
 \ .fl for 64-bit, .fs for 32-bit
 
 \ this requires that caller not have extra junk on return stack
@@ -487,3 +329,161 @@ code compareMemory
   
 loaddone
 
+code 2dup
+  rpsp ] rax mov,
+  8 rpsp d] rbx mov,
+  $10 # rpsp sub,
+  rax rpsp ] mov,
+  rbx 8 rpsp d] mov,
+  next,
+  
+code 2swap
+  rpsp ] rax mov,
+  $10 rpsp d] rbx mov,
+  rax $10 rpsp d] mov,
+  rbx rpsp ] mov,
+  8 rpsp d] rax mov,
+  $18 rpsp d] rbx mov,
+  rax $18 rpsp d] mov,
+  rbx 8 rpsp d] mov,
+  next,
+  
+code 2drop
+  $10 # rpsp add,
+  next,
+
+code ndrop
+  rpsp ] rax mov,
+  8 rpsp rax *8 di] rpsp lea,
+  next,
+  
+code ndup
+  rpsp ] rcx mov,
+  rpsp rcx *8 i] rbx lea,
+  8 # rpsp add,
+  rcx rcx or,
+  nz, if,
+    do,
+      8 # rpsp sub,
+      rbx ] rax mov,
+      rax rpsp ] mov,
+      8 # rbx sub,
+    loop,
+  endif,
+  next,
+  
+code 2over
+  $10 rpsp d] rax mov,
+  $18 rpsp d] rbx mov,
+  $10 # rpsp sub,
+  rax rpsp ] mov,
+  rbx 8 rpsp d] mov,
+  next,
+  
+\ 5 -> 1 4 -> 0 3 -> 5 2 -> 4 1 -> 3 0 -> 2
+code 2rot
+  $28 rpsp d] rax mov,
+  $18 rpsp d] rbx mov,
+  rbx $28 rpsp d] mov,
+  8 rpsp d] rbx mov,
+  rbx $18 rpsp d] mov,
+  rax 8 rpsp d] mov,
+  $20 rpsp d] rax mov,
+  $10 rpsp d] rbx mov,
+  rbx $20 rpsp d] mov,
+  rpsp ] rbx mov,
+  rbx $10 rpsp d] mov,
+  rax rpsp ] mov,
+  next,
+  
+\ 5 -> 3 4 -> 2 3 -> 1 2 -> 0 1 -> 5 0 -> 4
+code -2rot
+  $28 rpsp d] rax mov,
+  $8 rpsp d] rbx mov,
+  rbx $28 rpsp d] mov,	\ 1->5 complete
+  $18 rpsp d] rbx mov,
+  rbx $8 rpsp d] mov,		\ 3->1 complete
+  rax $18 rpsp d] mov,	\ 5->3 complete
+  $20 rpsp d] rax mov,
+  rpsp ] rbx mov,
+  rbx $20 rpsp d] mov,	\ 0->4 complete
+  $10 rpsp d] rbx mov,
+  rbx rpsp ] mov,		\ 2->0
+  rax $10 rpsp d] mov,	\ 4->2
+  next,
+
+code 2nip
+  rpsp ] rax mov,
+  8 rpsp d] rbx mov,
+  $10 # rpsp add,
+  rax rpsp ] mov,
+  rbx 8 rpsp d] mov,
+  next,
+  
+code 2tuck
+  $10 # rpsp sub,
+  $10 rpsp d] rax mov,
+  rax rpsp ] mov,
+  $20 rpsp d] rbx mov,
+  rax $20 rpsp d] mov,
+  rbx $10 rpsp d] mov,
+  $18 rpsp d] rax mov,
+  rax $8 rpsp d] mov,
+  $28 rpsp d] rbx mov,
+  rax $28 rpsp d] mov,
+  rbx $18 rpsp d] mov,
+  next,
+  
+code 2pick
+  rpsp ] rax mov,
+  1 # rax add,
+  rax rax add,
+  8 # rpsp sub,
+  rpsp rax *8 i] rbx mov,
+  rbx rpsp ] mov,
+  8 rpsp rax *8 di] rbx mov,
+  rbx 8 rpsp d] mov,
+  next,
+  
+code 2roll
+  rsi push,
+  rdi push,
+  rpsp ] rcx mov,
+  8 # rpsp add,
+  rcx rcx or,
+  nz, if,
+    0>=, if,
+      rcx rax mov,
+      4 # rax shl,
+      rpsp rax add,
+      rax ] rbx mov,
+      8 rax d] rdi mov,
+      do,
+        $10 # rax sub,
+        rax ] rsi mov,
+        rsi $10 rax d] mov,
+        8 rax d] rsi mov,
+        rsi $18 rax d] mov,
+      loop,
+      rbx rpsp ] mov,
+      rdi 8 rpsp d] mov,
+    else,
+      rcx neg,
+      rpsp ] rsi mov,
+      8 rpsp d] rdi mov,
+      rpsp rax mov,
+      do,
+        $10 rax d] rbx mov,
+        rbx rax ] mov,
+        $18 rax d] rbx mov,
+        rbx 8 rax d] mov,
+        $10 # rax add,
+      loop,
+      rsi rax ] mov,
+      rdi 4 rax d] mov,
+    endif,
+  endif,
+  rdi pop,
+  rsi pop,
+  next,
+  

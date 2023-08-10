@@ -89,7 +89,6 @@
     <None Include="system\floating.fs" />
     <None Include="system\forth_autoload.fs" />
     <None Include="system\forth_internals.fs" />
-    <None Include="system\fpstack.fs" />
     <None Include="system\help.fs" />
     <None Include="system\helpdeck.fs" />
     <None Include="system\hersheyfont.fs" />

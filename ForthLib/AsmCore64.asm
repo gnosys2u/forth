@@ -153,6 +153,8 @@ CallDLL4:
     push rrp
     push rfp
     push rip
+    push rbx
+    sub rsp, 8    
 	; stack should be 16-byte aligned at this point
 
     mov rcore, rcx                        ; rcore -> CoreState
@@ -173,7 +175,9 @@ nativeActionExit:
 	mov	[rcore + FCore.RPtr], rrp
 	mov	[rcore + FCore.FPtr], rfp
 
-	pop rip
+	add rsp, 8
+    pop rbx
+    pop rip
 	pop	rfp
 	pop	rrp
 	pop rpsp

@@ -3,7 +3,6 @@ DEFAULT REL
 BITS 64
 
 %include "core64.inc"
-
 ; Windows:
 ; first four non-FP args are in rcx, rdx, r8, r9, rest are on stack
 ; floating point args are passed in xmm0 - xmm3
@@ -4445,6 +4444,7 @@ entry dEqualsBop
 dEqualsBop1:
     movsd xmm1, QWORD[rpsp]
     comisd xmm0, xmm1
+	jp dLessThanBop2        ; unordered result - happens if either arg is NaN
 	jnz	dEqualsBop2
 	dec	rax
 dEqualsBop2:
@@ -4465,6 +4465,7 @@ entry dNotEqualsBop
 dNotEqualsBop1:
     movsd xmm1, QWORD[rpsp]
     comisd xmm0, xmm1
+	jp dLessThanBop2        ; unordered result - happens if either arg is NaN
 	jz	dNotEqualsBop2
 	dec	rax
 dNotEqualsBop2:
@@ -4485,6 +4486,7 @@ entry dGreaterThanBop
 dGreaterThanBop1:
     movsd xmm0, QWORD[rpsp]
     comisd xmm0, xmm1
+	jp dLessThanBop2        ; unordered result - happens if either arg is NaN
 	jbe dGreaterThanBop2
 	dec	rax
 dGreaterThanBop2:
@@ -4506,6 +4508,7 @@ entry dGreaterEqualsBop
 dGreaterEqualsBop1:
     movsd xmm0, QWORD[rpsp]
     comisd xmm0, xmm1
+	jp dLessThanBop2        ; unordered result - happens if either arg is NaN
 	jb dGreaterEqualsBop2
 	dec	rax
 dGreaterEqualsBop2:
@@ -4527,6 +4530,7 @@ entry dLessThanBop
 dLessThanBop1:
     movsd xmm0, QWORD[rpsp]
     comisd xmm0, xmm1
+	jp dLessThanBop2        ; unordered result - happens if either arg is NaN
 	jae dLessThanBop2
 	dec	rax
 dLessThanBop2:
@@ -4548,6 +4552,7 @@ entry dLessEqualsBop
 dLessEqualsBop1:
     movsd xmm0, QWORD[rpsp]
     comisd xmm0, xmm1
+	jp dLessThanBop2        ; unordered result - happens if either arg is NaN
 	ja dLessEqualsBop2
 	dec	rax
 dLessEqualsBop2:
@@ -4992,16 +4997,18 @@ entry f2dBop
 
 entry d2iBop
     xor rax, rax
-	cvttsd2si eax, QWORD[rax]
-    mov [rpsp], eax
+	cvtsd2ss xmm0, QWORD[rpsp]
+	cvttss2si eax, xmm0
+    mov [rpsp], rax
 	jmp	rnext
 
 ;========================================
 
 entry d2fBop
     xor rax, rax
-	cvttsd2si eax, QWORD[rpsp]
-    mov [rpsp], eax
+	cvtsd2ss xmm0, QWORD[rpsp]
+    movd eax, xmm0
+    mov [rpsp], rax
 	jmp	rnext
 
 ;========================================
