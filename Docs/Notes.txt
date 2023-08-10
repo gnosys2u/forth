@@ -325,6 +325,32 @@ Double has consistent layout, long is reversed on param stack.
   + DbgAsm
   - RelAsm
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 10 2023
+
+The discrepancy in paranoia.fs between win32 asm and non-asm builds is still
+a mystery.  I've tracked it down to this line in part2 (milestone 20):
+	X F@ One F@ F<>  Z F@ Zero F@ F= or 
+Here X is a calculated value of 1.0, but isn't exactly the same bit pattern,
+even though %g shows "1".  Z is the result of subtracting 0.5 from X twice,
+so it isn't exactly zero either.
+    X       3fefffffffffffff    1?
+    Y       3fdffffffffffffe    0.5?
+    Z       bca0000000000000    -1.11022e-16
+    One     3ff0000000000000    1
+    Half    3fe0000000000000    0.5
+
+On Debug, the X!=1 test is true, and Z=0 fails, so the 'or' returns true.
+On DbgAsm, both tests fail, the X!=1 test should pass.
+
+When I tried to duplicate this by plugging the exact bit patterns for X and Z
+I wasn't able to repro the problem, maybe because the tests redefine F= and F<>
+in a few places.
+
+The problem went away when I added definitions for F= and F<> to floating.fs,
+but I would still like to know why the failure happened.
+
+Anyway, all flavors of builds now fully pass the ANSI 2012 tests!
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 9 2023
 
 The raspberry pi DbgAsm build passes all the ANSI tests!

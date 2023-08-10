@@ -209,9 +209,17 @@ DFloat:-inf fpush fconstant -inf
 ;
 
 : f0< fpop df0< ;
+: f0<= fpop df0<= ;
+: f0> fpop df0> ;
+: f0>= fpop df0>= ;
 : f0= fpop df0= ;
+: f0<> fpop df0<> ;
 : f< fpop fpop _fswap df< ;
 : f> fpop fpop _fswap df> ;
+: f<= fpop fpop _fswap df<= ;
+: f>= fpop fpop _fswap df>= ;
+: f= fpop fpop df= ;
+: f<> fpop fpop df<> ;
 
 : fabs fpop dfabs fpush ;
 : facos fpop dfacos fpush ;
