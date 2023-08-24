@@ -144,7 +144,7 @@ StructVocabulary::DefineInstance( void )
                     //  so it will be initialized
                     forthop* pEntry = pVocab->GetNewestEntry();
                     forthop op = COMPILED_OP(kOpLocalCell, pEntry[0]);
-                    pOuter->CompileOpcode(op | ((forthop)VarOperation::kVarSet) << 20);
+                    pOuter->CompileOpcode(op | ((forthop)VarOperation::varSet) << 20);
                 }
                 else if (bCompileInstanceOp)
                 {
@@ -216,10 +216,10 @@ StructVocabulary::DefineInstance( void )
             {
                 if (doInitializationVarop)
                 {
-                    SET_VAR_OPERATION(VarOperation::kVarSet);
+                    SET_VAR_OPERATION(VarOperation::varSet);
                 }
 
-                if (GET_VAR_OPERATION == VarOperation::kVarSet)
+                if (GET_VAR_OPERATION == VarOperation::varSet)
                 {
                     // var definition was preceeded by "->", so initialize var
                     mpEngine->FullyExecuteOp(pCore, pEntry[0]);

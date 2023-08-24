@@ -187,7 +187,7 @@ void NativeType::DefineInstance( Engine *pEngine, void *pInitialVal, int32_t fla
                     // local var name ended with '!', so compile op for this local var with varop Set
                     //  so it will be initialized
                     forthop* pEntry = pVocab->GetNewestEntry();
-                    pOuter->CompileOpcode(pEntry[0] | ((forthop) VarOperation::kVarSet) << 20);
+                    pOuter->CompileOpcode(pEntry[0] | ((forthop) VarOperation::varSet) << 20);
                 }
                 else if (bCompileInstanceOp)
                 {
@@ -225,10 +225,10 @@ void NativeType::DefineInstance( Engine *pEngine, void *pInitialVal, int32_t fla
                 pEngine->AllotLongs( (nBytes  + 3) >> 2 );
                 if (doInitializationVarop)
                 {
-                    SET_VAR_OPERATION(VarOperation::kVarSet);
+                    SET_VAR_OPERATION(VarOperation::varSet);
                 }
 
-                if (GET_VAR_OPERATION == VarOperation::kVarSet )
+                if (GET_VAR_OPERATION == VarOperation::varSet )
                 {
                     // var definition was preceeded by "->", or name ended in '!', so initialize var
 #if 1
@@ -315,7 +315,7 @@ void NativeType::DefineInstance( Engine *pEngine, void *pInitialVal, int32_t fla
                     // local var name ended with '!', so compile op for this local var with varop Set
                     //  so it will be initialized
                     forthop* pEntry = pVocab->GetNewestEntry();
-                    pOuter->CompileOpcode(pEntry[0] | ((forthop)VarOperation::kVarSet) << 20);
+                    pOuter->CompileOpcode(pEntry[0] | ((forthop)VarOperation::varSet) << 20);
                 }
                 else if (bCompileInstanceOp)
                 {
@@ -358,10 +358,10 @@ void NativeType::DefineInstance( Engine *pEngine, void *pInitialVal, int32_t fla
                 *pStr = 0;
                 if (doInitializationVarop)
                 {
-                    SET_VAR_OPERATION(VarOperation::kVarSet);
+                    SET_VAR_OPERATION(VarOperation::varSet);
                 }
 
-                if (GET_VAR_OPERATION == VarOperation::kVarSet)
+                if (GET_VAR_OPERATION == VarOperation::varSet)
                 {
                     // var definition was preceeded by "->", so initialize var
                     pEngine->ExecuteOp(pCore,  pEntry[0] );

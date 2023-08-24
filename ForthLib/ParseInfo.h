@@ -49,7 +49,7 @@ private:
     int             mNumChars;
 	int				mMaxChars;
     char*           mpSuffix;       // null, unless CheckVaropSuffix found a valid suffix
-    VarOperation	mSuffixVarop;   // initialized to kNumVarops to indicate suffix not checked yet
+    VarOperation	mSuffixVarop;   // initialized to numVarops to indicate suffix not checked yet
     char            mChoppedChar;   // set by ChopVaropSuffix
 };
 

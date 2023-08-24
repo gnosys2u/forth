@@ -230,7 +230,7 @@ inline forthop GetCurrentOp( CoreState *pCore )
 
 #define GET_VAR_OPERATION               (pCore->varMode)
 #define SET_VAR_OPERATION( A )          (pCore->varMode = (A))
-#define CLEAR_VAR_OPERATION             (pCore->varMode = VarOperation::kVarDefaultOp)
+#define CLEAR_VAR_OPERATION             (pCore->varMode = VarOperation::varDefaultOp)
 
 #define GET_NUM_OPS		                (pCore->numOps)
 

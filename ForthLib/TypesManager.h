@@ -27,7 +27,7 @@ public:
     virtual bool    ProcessSymbol( ParseInfo *pInfo, OpResult& exitStatus );
 
     // compile symbol if it is a class member variable or method
-    virtual bool    ProcessMemberSymbol( ParseInfo *pInfo, OpResult& exitStatus, VarOperation varop = VarOperation::kVarDefaultOp );
+    virtual bool    ProcessMemberSymbol( ParseInfo *pInfo, OpResult& exitStatus, VarOperation varop = VarOperation::varDefaultOp );
 
     void            AddBuiltinClasses(OuterInterpreter* pOuter);
     void            ShutdownBuiltinClasses(Engine* pEngine);

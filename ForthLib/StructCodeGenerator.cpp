@@ -48,7 +48,7 @@ StructCodeGenerator::StructCodeGenerator( TypesManager* pTypeManager )
     , mTypeCode((uint32_t)BASE_TYPE_TO_CODE(BaseType::kVoid))
     , mTOSTypeCode((uint32_t)BASE_TYPE_TO_CODE(BaseType::kVoid))
     , mUsesSuper(false)
-    , mSuffixVarop(VarOperation::kVarDefaultOp)
+    , mSuffixVarop(VarOperation::varDefaultOp)
     , mbLocalObjectPrevious(false)
     , mbMemberObjectPrevious(false)
 {
@@ -68,11 +68,11 @@ bool StructCodeGenerator::Generate( ParseInfo *pInfo, forthop*& pDst, int dstLon
     mpContainedClassVocab = nullptr;
     Engine* pEngine = Engine::GetInstance();
 
-    mSuffixVarop = VarOperation::kVarDefaultOp;
+    mSuffixVarop = VarOperation::varDefaultOp;
     if (pEngine->GetOuterInterpreter()->CheckFeature(kFFAllowVaropSuffix))
     {
         mSuffixVarop = mpParseInfo->CheckVaropSuffix();
-        if (mSuffixVarop != VarOperation::kVarDefaultOp)
+        if (mSuffixVarop != VarOperation::varDefaultOp)
         {
             mpParseInfo->ChopVaropSuffix();
         }
@@ -149,10 +149,10 @@ void StructCodeGenerator::HandlePreceedingVarop()
     {
         // we are interpreting, clear any existing varAction, but compile an op to set it after first op
         VarOperation varMode = GET_VAR_OPERATION;
-        if ( varMode != VarOperation::kVarDefaultOp )
+        if ( varMode != VarOperation::varDefaultOp )
         {
             CLEAR_VAR_OPERATION;
-            mCompileVarop = (uint32_t)(gCompiledOps[OP_FETCH] + ((ucell)varMode - (ucell)VarOperation::kVarGet));
+            mCompileVarop = (uint32_t)(gCompiledOps[OP_FETCH] + ((ucell)varMode - (ucell)VarOperation::varGet));
         }
     }
 }
@@ -801,7 +801,7 @@ bool StructCodeGenerator::HandleLast()
     //
 
     // keep using mCompileVarop as-is for things which are using explicit varop ops (-> ->+ oclear...)
-    if (mSuffixVarop == VarOperation::kVarDefaultOp && mCompileVarop != 0)
+    if (mSuffixVarop == VarOperation::varDefaultOp && mCompileVarop != 0)
     {
         // compile variable-mode setting op just before final field
         *mpDst++ = mCompileVarop;

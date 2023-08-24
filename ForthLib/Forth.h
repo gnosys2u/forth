@@ -251,50 +251,50 @@ typedef bool (*interpreterExtensionRoutine)( char *pToken );
 typedef void (*traceOutRoutine) ( void *pData, const char* pFormat, va_list argList );
 
 // the varMode state makes variables do something other
-//  than their default behaviour (fetch)VarOperation xxx = kVarDefaultOp
+//  than their default behaviour (fetch)VarOperation xxx = varDefaultOp
 enum class VarOperation:ucell {
-    kVarDefaultOp = 0,
-    kVarGet,
-    kVarRef,
-    kVarSet,
+    varDefaultOp = 0,
+    varGet,
+    varRef,
+    varSet,
 
-    kVarSetPlus,
-    kVarSetMinus,
-    kVarClear,
-    kVarPlus,
+    varSetPlus,
+    varSetMinus,
+    varClear,
+    varPlus,
 
-    kVarInc,
-    kVarMinus,
-    kVarDec,
-    kVarIncGet,
+    varInc,
+    varMinus,
+    varDec,
+    varIncGet,
     
-    kVarDecGet,
-    kVarGetInc,
-    kVarGetDec,
-    kVarUnused1,
+    varDecGet,
+    varGetInc,
+    varGetDec,
+    varUnused1,
 
-    kPtrAtGet,
-    kPtrAtSet,
-    kPtrAtSetPlus,
-    kPtrAtSetMinus,
+    ptrAtGet,
+    ptrAtSet,
+    ptrAtSetPlus,
+    ptrAtSetMinus,
 
-    kPtrAtGetInc,
-    kPtrAtGetDec,
-    kPtrAtSetInc,
-    kPtrAtSetDec,
+    ptrAtGetInc,
+    ptrAtGetDec,
+    ptrAtSetInc,
+    ptrAtSetDec,
 
-    kPtrIncAtGet,
-    kPtrDecAtGet,
-    kPtrIncAtSet,
-    kPtrDecAtSet,
+    ptrIncAtGet,
+    ptrDecAtGet,
+    ptrIncAtSet,
+    ptrDecAtSet,
 
-    kNumVarops,
+    numVarops,
 
-    kVarUnref = kVarSetMinus,
-    kVarStoreNoRef = kVarSetPlus,
+    objUnref = varSetMinus,
+    objStoreNoRef = varSetPlus,
 
-    kNumBasicVarops = kVarGetDec + 1,
-    kUnchecked = kNumVarops
+    numBasicVarops = varGetDec + 1,
+    unchecked = numVarops
 };
 
 #define DEFAULT_INPUT_BUFFER_LEN   (16 * 1024)

@@ -99,7 +99,7 @@ CoreState::CoreState(int paramStackSize, int returnStackSize)
     innerLoop = nullptr;
     innerExecute = nullptr;
 
-    varMode = VarOperation::kVarDefaultOp;
+    varMode = VarOperation::varDefaultOp;
     state = OpResult::kDone;
     error = ForthError::none;
 
@@ -272,7 +272,7 @@ Fiber::Reset( void )
 
     mCore.error = ForthError::none;
     mCore.state = OpResult::kDone;
-    mCore.varMode = VarOperation::kVarDefaultOp;
+    mCore.varMode = VarOperation::varDefaultOp;
     mCore.base = 10;
     mCore.signedPrintMode = kPrintSignedDecimal;
 	mCore.IP = &(mOps[0]);

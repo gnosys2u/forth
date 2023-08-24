@@ -1921,7 +1921,7 @@ void OuterInterpreter::UngrabTempBuffer()
 // return true IFF compilation occured
 bool OuterInterpreter::CompileLocalVariableOpcode(forthop* pEntry, VarOperation varop)
 {
-    if (varop < VarOperation::kNumBasicVarops)
+    if (varop < VarOperation::numBasicVarops)
     {
         CompileOpcode(*pEntry | (((int)varop) << 20));
         return true;
@@ -2350,7 +2350,7 @@ OpResult OuterInterpreter::ProcessToken( ParseInfo   *pInfo )
         //
         ////////////////////////////////////
         VarOperation varop = pInfo->CheckVaropSuffix();
-        if (varop != VarOperation::kVarDefaultOp)
+        if (varop != VarOperation::varDefaultOp)
         {
             pInfo->ChopVaropSuffix();
 

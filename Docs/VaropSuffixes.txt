@@ -571,3 +571,43 @@ IncAtGet    ++@@
   - field vars
   - field ptrs
 new ptr varops won't support arrays, just scalars
+---------------------------
+17aug2023 varops
+
+
+        varDefaultOp        0
+v@      varGet              1
+v&      varRef              2
+v!      varSet              3
+
+v!+     varSetPlus          4
+v!-     varSetMinus         5
+v~      varClear            6
+v@+     varPlus             7
+
+v++     varInc              8
+v@-     varMinus            9
+v--     varDec              10
+v++@    varIncGet           11
+
+v--@    varDecGet           12
+v@++    varGetInc           13
+v@--    varGetDec           14
+        varUnused1          15
+
+o@~     objUnref            5   AKA varSetMinus
+o!o     objStoreNoRef       4   AKA varSetPlus - set object ref but don't inc refcount
+
+
+p--@@   ptrDecAtGet
+p++@@   ptrIncAtGet
+p@@     ptrAtGet
+p--@!   ptrDecAtSet
+p++@!   ptrIncAtSet
+p@!     ptrAtSet
+p@@--   ptrAtGetDec
+p@!--   ptrAtSetDec
+p@!-    ptrAtSetMinus
+p@@++   ptrAtGetInc
+p@!++   ptrAtSetInc
+p@!+    ptrAtSetPlus

@@ -21,7 +21,7 @@ ParseInfo::ParseInfo(int32_t *pBuffer, int numLongs)
 	, mNumLongs(0)
 	, mNumChars(0)
     , mpSuffix(nullptr)
-    , mSuffixVarop(VarOperation::kNumVarops)
+    , mSuffixVarop(VarOperation::numVarops)
 {
 	ASSERT(numLongs > 0);
 
@@ -351,7 +351,7 @@ void ParseInfo::ParseDoubleQuote(const char *&pSrc, const char *pSrcLimit, bool 
 
 VarOperation ParseInfo::CheckVaropSuffix()
 {
-    VarOperation varop = VarOperation::kVarDefaultOp;
+    VarOperation varop = VarOperation::varDefaultOp;
 
     mpSuffix = nullptr;
     char* pToken = ((char*)mpToken) + 1;
@@ -360,18 +360,18 @@ VarOperation ParseInfo::CheckVaropSuffix()
     switch (*pLastChar)
     {
     case '&':
-        varop = VarOperation::kVarRef;
+        varop = VarOperation::varRef;              // v& - push addr of var on TOS
         break;
 
     case '~':
         if (pLastChar[-1] == '@')
         {
             pLastChar--;
-            varop = VarOperation::kVarUnref;        // v@~ - push obj on TOS, clear var, decrement obj refcount but don't delete if 0
+            varop = VarOperation::objUnref;        // v@~ - push obj on TOS, clear var, decrement obj refcount but don't delete if 0
         }
         else
         {
-            varop = VarOperation::kVarClear;        // v~ - clear var and decrement obj refcount, delete if 0
+            varop = VarOperation::varClear;        // v~ - clear var and decrement obj refcount, delete if 0
         }
         break;
 
@@ -387,7 +387,7 @@ VarOperation ParseInfo::CheckVaropSuffix()
                 if (pLastChar[-2] == '-')
                 {
                     pLastChar -= 2;
-                    varop = VarOperation::kPtrDecAtGet;     // p--@@
+                    varop = VarOperation::ptrDecAtGet;     // p--@@
                 }
                 break;
 
@@ -395,12 +395,12 @@ VarOperation ParseInfo::CheckVaropSuffix()
                 if (pLastChar[-2] == '+')
                 {
                     pLastChar -= 2;
-                    varop = VarOperation::kPtrIncAtGet;     // p++@@
+                    varop = VarOperation::ptrIncAtGet;     // p++@@
                 }
                 break;
 
             default:
-                varop = VarOperation::kPtrAtGet;            // p@@
+                varop = VarOperation::ptrAtGet;            // p@@
                 break;
             }
             break;
@@ -409,7 +409,7 @@ VarOperation ParseInfo::CheckVaropSuffix()
             if (pLastChar[-1] == '-')
             {
                 pLastChar -= 2;
-                varop = VarOperation::kVarDecGet;     // v--@
+                varop = VarOperation::varDecGet;     // v--@
             }
             break;
 
@@ -417,12 +417,12 @@ VarOperation ParseInfo::CheckVaropSuffix()
             if (pLastChar[-1] == '+')
             {
                 pLastChar -= 2;
-                varop = VarOperation::kVarIncGet;     // v++@
+                varop = VarOperation::varIncGet;     // v++@
             }
             break;
 
         default:
-            varop = VarOperation::kVarGet;            // v@
+            varop = VarOperation::varGet;            // v@
             break;
         }
         break;
@@ -439,7 +439,7 @@ VarOperation ParseInfo::CheckVaropSuffix()
                 if (pLastChar[-2] == '-')
                 {
                     pLastChar -= 2;
-                    varop = VarOperation::kPtrDecAtSet;     // p--@!
+                    varop = VarOperation::ptrDecAtSet;     // p--@!
                 }
                 break;
 
@@ -447,18 +447,18 @@ VarOperation ParseInfo::CheckVaropSuffix()
                 if (pLastChar[-2] == '+')
                 {
                     pLastChar -= 2;
-                    varop = VarOperation::kPtrIncAtSet;     // p++@!
+                    varop = VarOperation::ptrIncAtSet;     // p++@!
                 }
                 break;
 
             default:
-                varop = VarOperation::kPtrAtSet;            // p@!
+                varop = VarOperation::ptrAtSet;            // p@!
                 break;
             }
             break;
 
         default:
-            varop = VarOperation::kVarSet;            // v!
+            varop = VarOperation::varSet;            // v!
             break;
         }
         break;
@@ -476,11 +476,11 @@ VarOperation ParseInfo::CheckVaropSuffix()
                 if (pLastChar[-1] == '@')
                 {
                     pLastChar--;
-                    varop = VarOperation::kPtrAtGetDec;     // p@@--
+                    varop = VarOperation::ptrAtGetDec;     // p@@--
                 }
                 else
                 {
-                    varop = VarOperation::kVarGetDec;     // v@--
+                    varop = VarOperation::varGetDec;     // v@--
                 }
                 break;
 
@@ -488,12 +488,12 @@ VarOperation ParseInfo::CheckVaropSuffix()
                 if (pLastChar[-2] == '@')
                 {
                     pLastChar -= 2;
-                    varop = VarOperation::kPtrAtSetDec;     // p@!--
+                    varop = VarOperation::ptrAtSetDec;     // p@!--
                 }
                 break;
 
             default:
-                varop = VarOperation::kVarDec;            // v--
+                varop = VarOperation::varDec;            // v--
                 break;
             }
             break;
@@ -503,17 +503,17 @@ VarOperation ParseInfo::CheckVaropSuffix()
             if (pLastChar[-1] == '@')
             {
                 pLastChar--;
-                varop = VarOperation::kPtrAtSetMinus;            // p@!-
+                varop = VarOperation::ptrAtSetMinus;            // p@!-
             }
             else
             {
-                varop = VarOperation::kVarSetMinus;             // v!-
+                varop = VarOperation::varSetMinus;             // v!-
             }
             break;
 
         case'@':
             pLastChar--;
-            varop = VarOperation::kVarMinus;                    // v@-
+            varop = VarOperation::varMinus;                    // v@-
             break;
 
         default:
@@ -534,11 +534,11 @@ VarOperation ParseInfo::CheckVaropSuffix()
                 if (pLastChar[-1] == '@')
                 {
                     pLastChar--;
-                    varop = VarOperation::kPtrAtGetDec;     // p@@++
+                    varop = VarOperation::ptrAtGetInc;     // p@@++
                 }
                 else
                 {
-                    varop = VarOperation::kVarGetInc;     // v@++
+                    varop = VarOperation::varGetInc;     // v@++
                 }
                 break;
 
@@ -546,12 +546,12 @@ VarOperation ParseInfo::CheckVaropSuffix()
                 if (pLastChar[-2] == '@')
                 {
                     pLastChar -= 2;
-                    varop = VarOperation::kPtrAtSetInc;     // p@!++
+                    varop = VarOperation::ptrAtSetInc;     // p@!++
                 }
                 break;
 
             default:
-                varop = VarOperation::kVarInc;            // v++
+                varop = VarOperation::varInc;            // v++
                 break;
             }
             break;
@@ -561,17 +561,17 @@ VarOperation ParseInfo::CheckVaropSuffix()
             if (pLastChar[-1] == '@')
             {
                 pLastChar--;
-                varop = VarOperation::kPtrAtSetPlus;            // p@!+
+                varop = VarOperation::ptrAtSetPlus;            // p@!+
             }
             else
             {
-                varop = VarOperation::kVarSetPlus;            // v!+
+                varop = VarOperation::varSetPlus;            // v!+
             }
             break;
 
         case'@':
             pLastChar--;
-            varop = VarOperation::kVarPlus;                    // v@+
+            varop = VarOperation::varPlus;                    // v@+
             break;
 
         default:
@@ -584,18 +584,18 @@ VarOperation ParseInfo::CheckVaropSuffix()
         if (pLastChar[-1] == '!')
         {
             pLastChar--;
-            varop = VarOperation::kVarSetPlus;            // v!o - set object, don't inc refcount
+            varop = VarOperation::objStoreNoRef;            // v!o - set object, don't inc refcount
         }
         break;
     }
 
     if (pLastChar == pToken)
     {
-        varop = VarOperation::kVarDefaultOp;
+        varop = VarOperation::varDefaultOp;
     }
     else
     {
-        if (varop != VarOperation::kVarDefaultOp)
+        if (varop != VarOperation::varDefaultOp)
         {
             mpSuffix = pLastChar;
         }
@@ -661,7 +661,7 @@ const char* ParseInfo::GetVaropSuffix(VarOperation varop)
         "--@!"  // kPtrDecAtSet,
     };
 
-    return (varop >= VarOperation::kVarDefaultOp && varop < VarOperation::kNumVarops)
+    return (varop >= VarOperation::varDefaultOp && varop < VarOperation::numVarops)
         ? varopNames[(int)varop] : "_UNKNOWN_VAROP";
 }
 

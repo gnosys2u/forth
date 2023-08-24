@@ -2218,7 +2218,7 @@ FORTHOP( definitionsOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
-	if ( GET_VAR_OPERATION != VarOperation::kVarDefaultOp )
+	if ( GET_VAR_OPERATION != VarOperation::varDefaultOp )
 	{
 		pOuter->GetDefinitionVocabulary()->DoOp( pCore );
 	}
@@ -2449,7 +2449,7 @@ FORTHOP( strForgetOp )
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     const char* pSym = (const char *)(SPOP);
-	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
+	bool verbose = (GET_VAR_OPERATION != VarOperation::varDefaultOp);
     bool forgotIt = pOuter->ForgetSymbol( pSym, !verbose );
     SPUSH( forgotIt ? -1 : 0 );
 }
@@ -2459,7 +2459,7 @@ FORTHOP(forgetOpOp)
     Engine* pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     forthop op = (forthop)(SPOP);
-    bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
+    bool verbose = (GET_VAR_OPERATION != VarOperation::varDefaultOp);
     forthop opType = FORTH_OP_TYPE(op);
     forthop opVal = FORTH_OP_VALUE(op);
     switch (opType)
@@ -2573,7 +2573,7 @@ FORTHOP( vlistOp )
     bool quit = false;
     VocabularyStack* pVocabStack = pOuter->GetVocabularyStack();
     Vocabulary* pVocab;
-	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
+	bool verbose = (GET_VAR_OPERATION != VarOperation::varDefaultOp);
     pOuter->ShowSearchInfo();
 	int depth = 0;
     char buffer[128];
@@ -2595,7 +2595,7 @@ FORTHOP( vlistOp )
 
 FORTHOP( verboseBop )
 {
-    SET_VAR_OPERATION( VarOperation::kNumVarops );
+    SET_VAR_OPERATION( VarOperation::numVarops );
 }
 
 FORTHOP( strFindOp )
@@ -3445,7 +3445,7 @@ FORTHOP(makeObjectOp)
             }
             else
             {
-                SET_VAR_OPERATION(VarOperation::kVarSet);
+                SET_VAR_OPERATION(VarOperation::varSet);
             }
             pClassVocab->DefineInstance(pInstanceName, pContainedClassName);
         }
@@ -3723,7 +3723,7 @@ FORTHOP(doStructTypeOp)
 	}
 	else
 	{
-		if (GET_VAR_OPERATION == VarOperation::kVarRef)
+		if (GET_VAR_OPERATION == VarOperation::varRef)
 		{
 			SPUSH((cell)pVocab);
 			doDefineInstance = false;
@@ -3773,7 +3773,7 @@ FORTHOP( doEnumOp )
     }
     else
     {
-        if (GET_VAR_OPERATION == VarOperation::kVarRef)
+        if (GET_VAR_OPERATION == VarOperation::varRef)
         {
             // ref ENUM_DEFINING_OP ... returns ptr to enum info block
             SPUSH((cell)oldIP);
@@ -5663,7 +5663,7 @@ FORTHOP( describeOp )
 	}
     TypesManager* pManager = TypesManager::GetInstance();
     StructVocabulary* pVocab = pManager->GetStructVocabulary( buff );
-	bool verbose = (GET_VAR_OPERATION != VarOperation::kVarDefaultOp);
+	bool verbose = (GET_VAR_OPERATION != VarOperation::varDefaultOp);
 
     if ( pVocab )
     {
@@ -6063,24 +6063,24 @@ FORTHOP( featuresOp )
 
     switch ( GET_VAR_OPERATION )
     {
-    case VarOperation::kVarSet:
+    case VarOperation::varSet:
         pOuter->SetFeatures( SPOP );
         break;
 
-    case VarOperation::kVarDefaultOp:
-    case VarOperation::kVarGet:
+    case VarOperation::varDefaultOp:
+    case VarOperation::varGet:
         SPUSH(pOuter->GetFeatures() );
         break;
 
-    case VarOperation::kVarRef:
+    case VarOperation::varRef:
         SPUSH( (cell)(&(pOuter->GetFeatures())) );
         break;
 
-    case VarOperation::kVarSetPlus:
+    case VarOperation::varSetPlus:
         pOuter->SetFeature( SPOP );
         break;
 
-    case VarOperation::kVarSetMinus:
+    case VarOperation::varSetMinus:
         pOuter->ClearFeature( SPOP );
         break;
 
@@ -9735,27 +9735,27 @@ FORTHOP(fillBop)
 
 FORTHOP(fetchVaractionBop)
 {
-	SET_VAR_OPERATION( VarOperation::kVarGet );
+	SET_VAR_OPERATION( VarOperation::varGet );
 }
 
 FORTHOP(intoVaractionBop)
 {
-    SET_VAR_OPERATION( VarOperation::kVarSet );
+    SET_VAR_OPERATION( VarOperation::varSet );
 }
 
 FORTHOP(addToVaractionBop)
 {
-    SET_VAR_OPERATION( VarOperation::kVarSetPlus );
+    SET_VAR_OPERATION( VarOperation::varSetPlus );
 }
 
 FORTHOP(subtractFromVaractionBop)
 {
-    SET_VAR_OPERATION( VarOperation::kVarSetMinus );
+    SET_VAR_OPERATION( VarOperation::varSetMinus );
 }
 
 FORTHOP(refVaractionBop)
 {
-    SET_VAR_OPERATION( VarOperation::kVarRef );
+    SET_VAR_OPERATION( VarOperation::varRef );
 }
 
 FORTHOP(setVaropBop)
@@ -10307,7 +10307,7 @@ FORTHOP( archX86Bop )
 
 FORTHOP( oclearVaractionBop )
 {
-	SET_VAR_OPERATION( VarOperation::kVarClear );
+	SET_VAR_OPERATION( VarOperation::varClear );
 }
 
 FORTHOP(faddBlockBop)
@@ -11641,19 +11641,6 @@ baseDictionaryEntry baseDictionary[] =
     ///////////////////////////////////////////
     OP_DEF(    vocChainHeadOp,         "vocChainHead" ),
     OP_DEF(    vocChainNextOp,         "vocChainNext" ),
-#if 0
-	OP_DEF(    vocNewestEntryOp,       "vocNewestEntry" ),
-    OP_DEF(    vocNextEntryOp,         "vocNextEntry" ),
-    OP_DEF(    vocNumEntriesOp,        "vocNumEntries" ),
-    OP_DEF(    vocNameOp,              "vocName" ),
-    OP_DEF(    vocFindEntryOp,         "vocFindEntry" ),
-    OP_DEF(    vocFindNextEntryOp,     "vocFindNextEntry" ),
-    OP_DEF(    vocFindEntryByValueOp,  "vocFindEntryByValue" ),
-    OP_DEF(    vocFindNextEntryByValueOp,  "vocFindNextEntryByValue" ),
-    OP_DEF(    vocAddEntryOp,          "vocAddEntry" ),
-    OP_DEF(    vocRemoveEntryOp,       "vocRemoveEntry" ),
-    OP_DEF(    vocValueLengthOp,       "vocValueLength" ),
-#endif
 
     ///////////////////////////////////////////
     //  DLL support

@@ -96,7 +96,7 @@ void ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
 
     // if new instance name ends in '!', chop the '!' and initialize the new instance
     size_t instanceNameLen = strlen(pInstanceName);
-    VarOperation initVarOp = VarOperation::kVarDefaultOp;
+    VarOperation initVarOp = VarOperation::varDefaultOp;
 
     if (pOuter->CheckFeature(kFFAllowVaropSuffix))
     {
@@ -104,7 +104,7 @@ void ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
         {
             instanceNameLen--;
             pInstanceName[instanceNameLen] = '\0';
-            initVarOp = VarOperation::kVarSet;
+            initVarOp = VarOperation::varSet;
         }
         else if (instanceNameLen > 2
             && pInstanceName[instanceNameLen - 2] == '!'
@@ -112,7 +112,7 @@ void ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
         {
             instanceNameLen -= 2;
             pInstanceName[instanceNameLen] = '\0';
-            initVarOp = VarOperation::kVarStoreNoRef;
+            initVarOp = VarOperation::objStoreNoRef;
         }
     }
 
@@ -168,7 +168,7 @@ void ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
             pHere = (ForthObject*)mpEngine->GetDP();
             bool bCompileInstanceOp = pOuter->GetLastCompiledIntoPtr() == (((forthop *)pHere) - 1);
             pOuter->AddLocalVar( pInstanceName, typeCode, nBytes );
-            if (initVarOp != VarOperation::kVarDefaultOp)
+            if (initVarOp != VarOperation::varDefaultOp)
             {
                 // local var name ended with '!', so compile op for this local var with varop Set
                 //  so it will be initialized
@@ -230,7 +230,7 @@ void ClassVocabulary::DefineInstance(char* pInstanceName, const char* pContained
                 pOuter->AddGlobalObjectVariable(pHere, this, pInstanceName);
             }
 
-            if ( GET_VAR_OPERATION == VarOperation::kVarSet || (initVarOp != VarOperation::kVarDefaultOp))
+            if ( GET_VAR_OPERATION == VarOperation::varSet || (initVarOp != VarOperation::varDefaultOp))
             {
                 ForthObject srcObj = (ForthObject)SPOP;
                 if ( isPtr )
