@@ -7,8 +7,8 @@ requires compatability
 requires extops
 
 
-features
-kFFRegular to features
+getFeatures
+kFFRegular setFeatures
 
 autoforget FLOATING
 : FLOATING ;
@@ -261,7 +261,7 @@ DFloat:-inf fpush fconstant -inf
 
 : ds ds fdepth if fs endif ;
 
-features!
+setFeatures
 
 loaddone
 

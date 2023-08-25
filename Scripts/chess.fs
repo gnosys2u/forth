@@ -11,7 +11,7 @@ decimal
 \ PJM definitions
 : A@ @ ;
 
-kFFAnsi -> features
+kFFAnsi setFeatures
 
 \ Please see copyright information at the following site:
 \
@@ -1725,7 +1725,7 @@ new
 
 DECIMAL
 
-kFFRegular -> features
+kFFRegular setFeatures
 
 loaddone
 

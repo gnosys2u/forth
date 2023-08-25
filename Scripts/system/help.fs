@@ -474,8 +474,11 @@ addHelp getConOutFile		... FILE	returns redirected output file
 addHelp blword					... STRING_ADDR						fetch next whitespace-delimited token from input stream, return its address
 addHelp $word					CHARVAL ... STRING_ADDR				fetch next token delimited by CHARVAL from input stream, return its address
 addHelp (						(  COMMENT TEXT )					inline comment, ends at ')' or end of line
-addHelp features			                                        variable that allows you to enable and disable language features
-addHelp .features                                                   displays what features are currently enabled
+addHelp getFeatures			                                        get language features
+addHelp setFeatures			                                        set language features
+addHelp addFeatures			                                        add language features
+addHelp removeFeatures		                                        remove language features
+addHelp showFeatures                                                displays what features are currently enabled
 addHelp source					... INPUT_BUFFER_ADDR LENGHT		return address of base of input buffer and its length
 addHelp >in						... INPUT_OFFSET_ADDR				return pointer to input buffer offset variable
 addHelp fillInputBuffer			PROMPT_STRING ... INPUT_BUFFER_ADDR		display prompt, fill input buffer & return input buffer address

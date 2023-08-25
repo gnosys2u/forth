@@ -6054,41 +6054,35 @@ FORTHOP( parenCommentOp )
 	char *pToken = pShell->GetToken( ')' );
 }
 
-// fake variable used to turn on/off features
-FORTHOP( featuresOp )
+FORTHOP( getFeaturesOp )
+{
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    SPUSH(pOuter->GetFeatures());
+}
+
+FORTHOP(setFeaturesOp)
+{
+    NEEDS(1);
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    pOuter->SetFeatures(SPOP);
+}
+
+FORTHOP(addFeaturesOp)
+{
+    NEEDS(1);
+    Engine* pEngine = GET_ENGINE;
+    OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
+    pOuter->SetFeature(SPOP);
+}
+
+FORTHOP(removeFeaturesOp)
 {
     NEEDS( 1 );
     Engine* pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-
-    switch ( GET_VAR_OPERATION )
-    {
-    case VarOperation::varSet:
-        pOuter->SetFeatures( SPOP );
-        break;
-
-    case VarOperation::varDefaultOp:
-    case VarOperation::varGet:
-        SPUSH(pOuter->GetFeatures() );
-        break;
-
-    case VarOperation::varRef:
-        SPUSH( (cell)(&(pOuter->GetFeatures())) );
-        break;
-
-    case VarOperation::varSetPlus:
-        pOuter->SetFeature( SPOP );
-        break;
-
-    case VarOperation::varSetMinus:
-        pOuter->ClearFeature( SPOP );
-        break;
-
-    default:
-        pEngine->SetError( ForthError::badVarOperation, "features: unkown var operation" );
-        break;
-    }
-    CLEAR_VAR_OPERATION;
+    pOuter->ClearFeature(SPOP);
 }
 
 FORTHOP( dumpCrashStateOp )
@@ -11697,7 +11691,10 @@ baseDictionaryEntry baseDictionary[] =
     NATIVE_DEF( setTraceBop,           "setTrace"),
 	OP_DEF(    getTraceOp,             "getTrace" ),
     OP_DEF(    verboseBop,             "verbose" ),
-    OP_DEF(    featuresOp,             "features" ),
+    OP_DEF(    getFeaturesOp,          "getFeatures" ),
+    OP_DEF(    setFeaturesOp,          "setFeatures" ),
+    OP_DEF(    addFeaturesOp,          "addFeatures" ),
+    OP_DEF(    removeFeaturesOp,       "removeFeatures" ),
     OP_DEF(    dumpCrashStateOp,       "dumpCrashState" ),
 	OP_DEF(		bkptOp,				    "bkpt"),
     OP_DEF(     dumpProfileOp,          "dumpProfile"),

@@ -1,8 +1,8 @@
 \ forth internal definitions
 autoforget forth_internals
 
-features
-kFFRegular -> features
+getFeatures
+kFFRegular setFeatures
 
 : forth_internals ;
 
@@ -152,7 +152,7 @@ struct: ForthCoreState
   ptrTo dfloat  fpStack;
 ;struct
 
--> features
+setFeatures
 
 loaddone
 

@@ -5,6 +5,8 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+? change global variables to have an opcode type
+
 - get rid of 'requires', replace it with ANSI 'require', that will avoid things
   like the confusion when I had a directory 'ansi' which contained ANSI standard
   forth programs, and the source file ansi.fs which loads all the files for ANSI
@@ -293,37 +295,30 @@ Double and long memory and stack layouts:
 Double has consistent layout, long is reversed on param stack.
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+Cases to test after big changes:
+
 - x64
-  + Debug
-  + DbgAsm
-  + RelAsm
-  + Release
+  - Debug
+  - DbgAsm
+  - RelAsm
+  - Release
 
 - x86
-  + Debug
-  + Release
-  x DbgAsm
-  x RelAsm
-                   Page: 4
-
-        Program is now RUNNING tests on small integers:
-        -1, 0, 1/2, 1, 2, 3, 4, 5, 9, 27, 32 & 240 are O.K.
-
-        Searching for Radix and Precision.
-        Radix = 2 .
-        Closest relative separation found is U1 = 1.11022302E-16
-
-        Recalculating radix and precision
-        confirms closest relative separation U1 .
-        Radix confirmed.
-        FAILURE Comparison is fuzzy,X=1 but X-1/2-1/2 != 0.
-        The number of significant digits of the Radix is 53
-        Diagnosis resumes after milestone Number 30
-
+  - Debug
+  - Release
+  - DbgAsm
+  - RelAsm
 
 - ARM32
-  + DbgAsm
+  - DbgAsm
   - RelAsm
+
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 24 2023
+
+I replaced the 'features' pseudo variable with 4 ops (getFeatures, setFeatures,
+addFeatures, removeFeatures) to avoid possible confusion based on you not knowing
+what the current set of features when you enter a script file.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 10 2023
 

@@ -2,7 +2,7 @@
 
 requires forth_internals
 
-features
+getFeatures
 
 setNonAnsiMode
 
@@ -210,12 +210,13 @@ true constant locals-ext
   257 string varExpression
   ?dup if
     blockToString( varName )
-    features setNonAnsiMode
+    getFeatures
+    setNonAnsiMode
     "cell " varExpression!
     varName varExpression!+
     "!" varExpression!+
     $evaluate( varExpression )
-    features!
+    setFeatures
   else
     \ length 0 signals end of locals definitions
     drop
@@ -228,7 +229,8 @@ true constant locals-ext
   128 string token
   257 string varExpression
   0 cell section!
-  features setNonAnsiMode
+  getFeatures
+  setNonAnsiMode
   mko String initializedVars
   
   \ section 0 - each token is an initialized local
@@ -289,7 +291,7 @@ true constant locals-ext
     endif
   until(done)
   
-  features!
+  setFeatures
 ; precedence {:
 
 : defer@   >body i@   ;
@@ -420,7 +422,7 @@ mko StringMap __replaceMap
   \ valueAddr valueLen keyAddr keyLen
   mko String key
   key.setBytes
-  if(features kFFIgnoreCase and)
+  if(getFeatures kFFIgnoreCase and)
     key.toLower
   endif
   mko String value
@@ -867,7 +869,7 @@ vocabulary editor
 
 \ ( - allow to span multiple lines when file is input
 
--> features
+setFeatures
 
 loaddone
 

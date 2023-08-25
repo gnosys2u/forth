@@ -393,11 +393,11 @@ enum: eFeatures
     
 ;enum
 
-: setAnsiMode  kFFAnsi features! ;
-: setNonAnsiMode  kFFRegular features! ;
+: setAnsiMode  kFFAnsi setFeatures ;
+: setNonAnsiMode  kFFRegular setFeatures ;
 
 : showFeatures
-  features
+  getFeatures
   "$" %s dup %x
   dup kFFMultiCharacterLiterals and if " kFFMultiCharacterLiterals" %s endif
   dup kFFCStringLiterals and if " kFFCStringLiterals" %s endif

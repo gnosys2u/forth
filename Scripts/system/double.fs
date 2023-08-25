@@ -6,7 +6,8 @@
 requires extops
 requires compatability
 
-features   kFFRegular features!
+getFeatures
+kFFRegular setFeatures
 
 autoforget double
 : double ;
@@ -84,6 +85,6 @@ autoforget double
 
 : 2variable  variable 0 , ;
 
-features!
+setFeatures
 
 loaddone

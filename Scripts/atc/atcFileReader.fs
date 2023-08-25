@@ -63,10 +63,10 @@ int regionHeight
 int numArgs
 atcFileCommands command
 
-kFFParenIsExpression ->- features
+kFFParenIsExpression removeFeatures
 : ( ;
 : ) numArgs++ ;
-kFFParenIsExpression ->+ features
+kFFParenIsExpression addFeatures
 
 : [ ;
 : ] ;
@@ -113,11 +113,11 @@ kFFParenIsExpression ->+ features
   numArgs~
 forth:;
 
-kFFParenIsExpression ->- features
+kFFParenIsExpression removeFeatures
 : );
   ) ;
 forth:;
-kFFParenIsExpression ->+ features
+kFFParenIsExpression addFeatures
 
 : ];
   ] ;
@@ -137,12 +137,12 @@ forth:;
   
     also atcFileReader
     decimal
-    kFFParenIsExpression features!-
+    kFFParenIsExpression removeFeatures
   
     $runFile( gameName )
   
     only forth
-    kFFParenIsExpression features!+
+    kFFParenIsExpression addFeatures
     true
   else
     "Could not find atc game file " %s gameName %s %nl

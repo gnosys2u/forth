@@ -2,8 +2,8 @@
 requires ansi
 
 \ PJM - can't save old features on TOS, breaks 'clean slate' test
-features -> int oldFeatures
-kFFAnsi -> features
+getFeatures -> int oldFeatures
+kFFAnsi setFeatures
 
 : ansitest ;
 
@@ -1065,4 +1065,4 @@ TESTING DICTIONARY SEARCH RULES
 
 
 forget ansitest
-oldFeatures -> features
+oldFeatures setFeatures

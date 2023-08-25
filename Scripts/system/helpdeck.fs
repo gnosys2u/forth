@@ -994,8 +994,11 @@ addOp getConOutFile|... FILE|returns redirected output file
 addOp blword|... STRING_ADDR|fetch next whitespace-delimited token from input stream, return its address
 addOp $word|CHARVAL ... STRING_ADDR|fetch next token delimited by CHARVAL from input stream, return its address
 addOp (|( COMMENT TEXT )|inline comment, ends at ')' or end of line
-addOp features|... FEATURES|variable that allows you to enable and disable language features
-addOp .features||displays what features are currently enabled
+addOp getFeatures|... FEATURES|get language features
+addOp setFeatures|FEATURES ...|set language features
+addOp addFeatures|ADDED_FEATURES ...|add language features
+addOp removeFeatures|REMOVED_FEATURES ...|remove language features
+addOp showFeatures||displays what features are currently enabled
 addOp source|... INPUT_BUFFER_ADDR LENGTH|return address of base of input buffer and its length
 addOp >in|... INPUT_OFFSET_ADDR|return pointer to input buffer offset variable
 addOp fillInputBuffer|PROMPT_STRING ... INPUT_BUFFER_ADDR|display prompt, fill input buffer & return input buffer address

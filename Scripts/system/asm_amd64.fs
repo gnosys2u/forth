@@ -52,7 +52,7 @@ vocabulary assembler
 also assembler definitions
 
 \ allow inline comments using (...) to allow easier porting from GForth
-features
+getFeatures
 base @
 octal
 
@@ -1059,7 +1059,7 @@ enum: eForthCore
 ;enum
 
 base !
--> features
+setFeatures
 
 previous definitions
 
