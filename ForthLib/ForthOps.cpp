@@ -9065,7 +9065,11 @@ FORTHOP(rdropBop)
 
 FORTHOP(rpBop)
 {
-	intVarAction( pCore, (int *)&(pCore->RP) );
+#if defined(FORTH64)
+    longVarAction(pCore, (int*)&(pCore->RP));
+#else
+    intVarAction(pCore, (int*)&(pCore->RP));
+#endif
 }
 
 FORTHOP(r0Bop)
