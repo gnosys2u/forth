@@ -123,7 +123,7 @@ null ptrTo Instruction __nextLoc!
 "Dead end." $constant dead_end
 
 : build_travel_table
-  0 ref game.travels __nextLoc!
+  game.travels&(0) __nextLoc!
   game.places.push(null)   \ TODO: why do we need to do this?
   
   make_loc(R_ROAD "You are standing at the end of a road before a small brick building.\n\+

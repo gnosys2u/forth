@@ -112,7 +112,7 @@ class: ObjectData
       new Array desc!
     ;m
     
-    m: removeObject ;m
+    m: removeObject ;m      \ hmmm...
     
     m: setProp
       prop!
@@ -329,9 +329,9 @@ class: IGame
     false haveTriedToGetKnife!
     new Array places!
     0 __west_count!
-    new ByteArray inBuffer   inBuffer.resize(BUF_SIZE)   inBuffer.set(0 0)!
-    new ByteArray inWord1    inWord1.resize(BUF_SIZE)    inWord1.set(0 0)!
-    new ByteArray inWord2    inWord2.resize(BUF_SIZE)    inWord2.set(0 0)!
+    new ByteArray inBuffer!   inBuffer.resize(BUF_SIZE)   inBuffer.set(0 0)
+    new ByteArray inWord1!    inWord1.resize(BUF_SIZE)    inWord1.set(0 0)
+    new ByteArray inWord2!    inWord2.resize(BUF_SIZE)    inWord2.set(0 0)
     new Array adventureStates!
     
     new ConsoleInStream consoleInStream!

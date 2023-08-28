@@ -922,8 +922,8 @@ closing soon.  All adventurers exit immediately through main office.\"")
           puts("There's not much point in wandering around out here, and you can't\n\+
 explore the cave without a lamp.  So let's just call it a day.")
           give_up
-        elseif(lamp_limit 30 <) andif(not(warnedOfClosing) andif(here(LAMP loc))
-          "Your lamp is getting dim") %s
+        elseif(lamp_limit 30 <) andif(not(warnedOfClosing)) andif(here(LAMP loc))
+          "Your lamp is getting dim" %s
           if(objs(BATTERIES).prop 1 =)
             puts(", and you're out of spare batteries.  You'd\nbest start wrapping this up.")
           elseif(there(BATTERIES R_LIMBO))
@@ -2790,7 +2790,7 @@ you come to it.  To get the full description, say \"LOOK\".")
       endof
 #endif \ SAVE_AND_RESTORE
       of(FEEFIE)
-        0 int! kk
+        0 int kk!
         begin
         while(not(streq(inWord1.base incantation(kk))))
           kk++

@@ -42,7 +42,7 @@ runtest sort_examples   go   forget SORT_EXAMPLES
 runtest tree_examples   go   forget TREE_EXAMPLES
 runtest directory   mko Directory dd   test[ dd.openHere -1 = ]  dd.listFilenames
    oclear dd   forget Directory
-cd adv runtest adv   forget ADV   cd ..
+cd adv runtest adv   restore full350   forget ADV   cd ..
 cd atc runtest atc   forget ATC   cd ..
 
 : _TEST_ ;
