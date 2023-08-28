@@ -560,9 +560,9 @@ bool StructCodeGenerator::HandleMiddle()
         if (bUsesSuper)
         {
 #ifdef ASM_INNER_INTERPRETER
-            * mpDst++ = COMPILED_OP(kOpNativeU32, OP_THIS);
+            *mpDst++ = COMPILED_OP(kOpNativeU32, OP_THIS);
 #else
-            * mpDst++ = COMPILED_OP(kOpCCodeU32, OP_THIS);
+            *mpDst++ = COMPILED_OP(kOpCCodeU32, OP_THIS);
 #endif
             if (mpStructVocab->IsClass())
             {
@@ -579,23 +579,31 @@ bool StructCodeGenerator::HandleMiddle()
         else
         {
             mOffset = pEntry[0];        // get method number
-            if (bLocalObjectPrevious)
+            opType = kOpMethodWithTOS;
+            uint32_t method = mOffset;
+            uint32_t offset = mpDst[-1] & 0xFFFFFF;
+            if (method < 0x100)
             {
-                mpDst--;
-                opType = kOpMethodWithLocalObject;
-                // grab local object frame offset from previously compiled opcode
-                mOffset |= ((*mpDst & 0xFFF) << 12);
-            }
-            else if (bMemberObjectPrevious)
-            {
-                mpDst--;
-                opType = kOpMethodWithMemberObject;
-                // grab member object offset from previously compiled opcode
-                mOffset |= ((*mpDst & 0xFFF) << 12);
-            }
-            else
-            {
-                opType = kOpMethodWithTOS;
+                if (bLocalObjectPrevious && offset < 0x10000)
+                {
+                    // offset is a cell offset from frame pointer
+                    mpDst--;
+                    opType = kOpMethodWithLocalObject;
+                    // grab local object frame offset from previously compiled opcode
+                    mOffset |= (offset << 8);
+                }
+                else if (bMemberObjectPrevious && ((offset & CELL_MASK) == 0))
+                {
+                    // offset is a byte offset from start of object, must be cell aligned
+                    offset >>= CELL_SHIFT;
+                    if (offset < 0x10000)
+                    {
+                        mpDst--;
+                        opType = kOpMethodWithMemberObject;
+                        // grab member object offset from previously compiled opcode
+                        mOffset |= (offset << 8);
+                    }
+                }
             }
         }
         SPEW_STRUCTS( " opcode 0x%x\n", COMPILED_OP( opType, mOffset ) );
@@ -832,23 +840,31 @@ bool StructCodeGenerator::HandleLast()
         else
         {
             mOffset = pEntry[0];        // get method number
-            if (bLocalObjectPrevious)
+            opType = kOpMethodWithTOS;
+            uint32_t method = mOffset;
+            uint32_t offset = mpDst[-1] & 0xFFFFFF;
+            if (method < 0x100)
             {
-                mpDst--;
-                opType = kOpMethodWithLocalObject;
-                // grab local object frame offset from previously compiled opcode
-                mOffset |= ((*mpDst & 0xFFF) << 12);
-            }
-            else if (bMemberObjectPrevious)
-            {
-                mpDst--;
-                opType = kOpMethodWithMemberObject;
-                // grab member object offset from previously compiled opcode
-                mOffset |= ((*mpDst & 0xFFF) << 12);
-            }
-            else
-            {
-                opType = kOpMethodWithTOS;
+                if (bLocalObjectPrevious && offset < 0x10000)
+                {
+                    // offset is a cell offset from frame pointer
+                    mpDst--;
+                    opType = kOpMethodWithLocalObject;
+                    // grab local object frame offset from previously compiled opcode
+                    mOffset |= (offset << 8);
+                }
+                else if (bMemberObjectPrevious && ((offset & CELL_MASK) == 0))
+                {
+                    // offset is a byte offset from start of object, must be cell aligned
+                    offset >>= CELL_SHIFT;
+                    if (offset < 0x10000)
+                    {
+                        mpDst--;
+                        opType = kOpMethodWithMemberObject;
+                        // grab member object offset from previously compiled opcode
+                        mOffset |= (offset << 8);
+                    }
+                }
             }
         }
     }

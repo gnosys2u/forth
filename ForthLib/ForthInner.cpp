@@ -3766,9 +3766,10 @@ OPTYPE_ACTION( MethodWithTOSAction )
 OPTYPE_ACTION(MethodWithLocalObjectAction)
 {
     // object is a local variable
-    // bits 0..11 are method index, bits 12..23 are frame offset in longs
-    ForthObject obj = *((ForthObject*)(GET_FP - (opVal >> 12)));
-    int methodIndex = opVal & 0xFFF;
+    // bits 0..7 are method index, bits 8..23 are frame offset in cells
+    uint32_t offset = opVal >> 8;
+    ForthObject obj = *((ForthObject *)(GET_FP - offset));
+    int methodIndex = opVal & 0xFF;
     Engine* pEngine = GET_ENGINE;
     //pEngine->TraceOut(">>MethodWithLocalObjectAction IP %p  RP %p\n", GET_IP, GET_RP);
     RPUSH(((cell)GET_TP));
@@ -3791,9 +3792,9 @@ OPTYPE_ACTION(MethodWithLocalObjectAction)
 OPTYPE_ACTION(MethodWithMemberObjectAction)
 {
     // object is a member of this object
-    // bits 0..11 are method index, bits 12..23 are object offset in longs
-    ForthObject obj = *((ForthObject*)(((cell)(GET_TP)) + (opVal >> 12)));
-    int methodIndex = opVal & 0xFFF;
+    // bits 0..7 are method index, bits 8..23 are object offset in cells
+    ForthObject obj = *((ForthObject*)(((cell *)GET_TP) + (opVal >> 8)));
+    int methodIndex = opVal & 0xFF;
     Engine* pEngine = GET_ENGINE;
     //pEngine->TraceOut(">>MethodWithLocalObjectAction IP %p  RP %p\n", GET_IP, GET_RP);
     RPUSH(((cell)GET_TP));
@@ -4462,10 +4463,12 @@ OpResult InnerInterpreter( CoreState *pCore )
 		else
 #endif
 		{
-			while (GET_STATE == OpResult::kOk)
+            forthop* pIP;
+            forthop op;
+            while (GET_STATE == OpResult::kOk)
 			{
-                forthop* pIP = GET_IP;
-				forthop op = *pIP++;
+                pIP = GET_IP;
+				op = *pIP++;
 				SET_IP(pIP);
 				//DISPATCH_FORTH_OP( pCore, op );
 				//#define DISPATCH_FORTH_OP( _pCore, _op ) 	_pCore->optypeAction[ (int) FORTH_OP_TYPE( _op ) ]( _pCore, FORTH_OP_VALUE( _op ) )

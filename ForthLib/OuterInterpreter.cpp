@@ -1441,6 +1441,8 @@ void OuterInterpreter::ProcessConstant(int64_t value, bool isOffset, bool isSing
         {
             ClearPeephole();
 
+            // TODO: this makes all small integer constants be compiled as ILIT + 32-bit data on 64-bit systems
+            //   since there isSingle is always false
             if (isSingle && (lvalue < (1 << 23)) && (lvalue >= -(1 << 23)))
             {
                 // value fits in opcode immediate field

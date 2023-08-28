@@ -3015,7 +3015,7 @@ methodTos1:
 	
 ; invoke a method on an object in a local variable
 entry methodWithLocalObjectType
-	; ebx: bits 0..11 are method index, bits 12..23 are frame offset in longs
+	; ebx: bits 0..7 are method index, bits 8..23 are frame offset in longs
 
 	; push current this on return stack
 	mov	ecx, [rcore + FCore.RPtr]
@@ -3024,11 +3024,11 @@ entry methodWithLocalObjectType
 	mov	eax, [rcore + FCore.TPtr]
 	mov	[ecx], eax
 
-	; set this ptr from local object selected by ebx bits 12..23
+	; set this ptr from local object selected by ebx bits 8..23
     mov	eax, [rcore + FCore.FPtr]
     mov ecx, ebx
-	and	ecx, 00FFF000h
-	shr	ecx, 10
+	and	ecx, 00FFFF00h
+	shr	ecx, 6
 	sub	eax, ecx        ; eax points to local var holding object
 	mov	ecx, [eax]      ; ecx is object pointer
 	or	ecx, ecx
@@ -3039,7 +3039,7 @@ methodLocal1:
 	mov	[rcore + FCore.TPtr], ecx
 
     mov eax, [ecx]              ; eax points to methods table
-    and ebx, 00000FFFh
+    and ebx, 000000FFh
     mov ebx, [eax + ebx * 4]    ; ebx is method opcode
 
 	mov	eax, [rcore + FCore.innerExecute]
@@ -3047,7 +3047,7 @@ methodLocal1:
 
 ; invoke a method on an object in a member variable
 entry methodWithMemberObjectType
-	; ebx: bits 0..11 are method index, bits 12..23 are object offset in longs
+	; ebx: bits 0..7 are method index, bits 8..23 are object offset in longs
 
 	; push current this on return stack
 	mov	ecx, [rcore + FCore.RPtr]
@@ -3056,11 +3056,11 @@ entry methodWithMemberObjectType
 	mov	eax, [rcore + FCore.TPtr]
 	mov	[ecx], eax
 
-	; set this ptr from member object selected by ebx bits 12..23
+	; set this ptr from member object selected by ebx bits 8..23
     mov	eax, [rcore + FCore.TPtr]
     mov ecx, ebx
-	and	ecx, 00FFF000h
-	shr	ecx, 12
+	and	ecx, 00FFFF00h
+	shr	ecx, 6
 	mov	ecx, [eax + ecx]      ; ecx is object pointer
 	or	ecx, ecx
 	jnz methodLocal1

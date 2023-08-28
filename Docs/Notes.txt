@@ -5,6 +5,21 @@
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 TBDs:
 
+- look into why Location& fails to compile (Location is an enum), and more generally
+  how varop suffixes can be used with ops which aren't variables/members
+  ? could this be the gateway to doing stuff like {VAL KEY map!+}
+
+? change local variables to not always take at least one cell per variable?
+  it doesn't seem worth it for most normal uses, but for programs which run
+  with deep nesting or recursion it could be worth doing.
+
+- add actually running collosalCaveAdventure to test.fs
+  -> maybe just add 'restore full350'
+
+- add actually running atc to test.fs
+
+- fix bug in 64-bit mode where small integers are always compiled as ILIT + 32-bit data
+
 ? change global variables to have an opcode type
 
 - get rid of 'requires', replace it with ANSI 'require', that will avoid things
@@ -15,9 +30,9 @@ TBDs:
 - consider moving many builtin ops into Number classes as static methods, so
   dfcos would be DFloat:cos and so on.
   - add formatting ops here too, to try to get rid of using *printf/*scanf ops
-    which break in 32-bit land (need to manually swap)
+    which break in 32-bit land (need to manually swap 64-bit values)
 
-- there is a dcell struct, but there is no DCell object, would adding it be usefull?
+- there is a dcell struct, but there is no DCell object, would adding it be useful?
 
 - document how ExpressionInputStream works, I believe I did this somewhere, it
   probably just needs to be updated
@@ -314,11 +329,75 @@ Cases to test after big changes:
   - RelAsm
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 28 2023
+
+Adventure is still crashing in startup, but now the problem is that in build_travel_table
+when it is adding R_WMIST (west end of hall of mists) it appears that __nextLoc
+is overwriting itself.  The crash only occurs in 64-bit mode, it is probably
+a 64-bit porting bug.  I don't think I have actually played adventure in 64-bit mode.
+
+The problem doesn't happen in 64-bit if I turn compileDebug/compileTrace/runTrace
+all on, of course.  Oops, it isn't happening at all anymore in 64-bit, and there
+weren't any code changes since it was crashing.
+
+This line (adv.fs:216) makes me wonder if I didn't have problems of this sort before
+when I originally ported the game - why is it 22+ instead of 2+?
+  MAX_LOC 22+ arrayOf ptrTo Instruction start    \ Instruction *start[MAX_LOC + 2];
+
+The game was still crashing when I did 'restore full350' at the point where you
+enter 'fee', in both 32-bit and 64-bit.  The problem was another varop-suffix
+bulk replace bug, '0 int! kk' should have been '0 int kk!'.  After fixing that
+the game works in all modes.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+August 25 2023
+
+While testing the change to adv/game.fs, I found out that adventure crashes just
+after startup, in a MethodWithMemberObject op.  The opcode is 8b:788011, and the
+member object is actually MemberObject_2788, so the offset can't actually fit in
+the opcode.  Adventure sticks several large arrays in the Game object to trigger
+this.
+
++ change the method/offset bit assignment from 12/12 to 8/16 in methodWithMemberObject
+  and methodWithLocalObject
+  + c++
+  + win32
+  + x64
+  + arm32
++ add method and range offset checking for MethodWithMemberObject and MethodWithLocalObject
+  where they are compiled
++ check that objects are cell aligned in both member and local cases, I think
+  they may just be 32-bit aligned
+  -> nope, on 64-bit they are 64-bit aligned
++ change methodWithMemberObject code to use cell alignment instead of byte alignment
+  + c++
+  + win32
+  + x64
+  + arm32
+
+It looks like there may be several errors in the C++ and assembly versions.
+-> see what the alignment is that is used in localObject and memberObject optypes, that
+   is where the offset is determined
+
+For kOpMemberObject, the offset compiled is exactly the value in field 0 of the
+class vocabulary entry for that member, which is the byte offset into the object
+of the member field.  This should be changed to be the cell offset of the member.
+
+For kOpLocalObject, the offset compiled is exactly the value in field 0 of the
+local vocabulary entry for that member, which is the cell offset into the local
+variable frame of the local variable.  This can stay as is.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 24 2023
 
 I replaced the 'features' pseudo variable with 4 ops (getFeatures, setFeatures,
 addFeatures, removeFeatures) to avoid possible confusion based on you not knowing
 what the current set of features when you enter a script file.
+
+There is an error at line 925 of adv/game.fs:
+        elseif(lamp_limit 30 <) andif(not(warnedOfClosing) andif(here(LAMP loc))
+          "Your lamp is getting dim") %s
+
+The quoted string and %s should definitely be together, I need to look at Knuth's
+original C code to be sure of the final translation.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 10 2023
 
