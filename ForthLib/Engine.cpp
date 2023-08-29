@@ -132,18 +132,19 @@ extern "C"
                 }
                 else if (opType == kOpMethodWithLocalObject)
                 {
-                    // bits 0..11 are method index, bits 12..23 are frame offset in longs
+                    // bits 0..7 are method index, bits 8..23 are frame offset in cells
                     int32_t opVal = FORTH_OP_VALUE(op);
-                    ForthObject thisObject = *((ForthObject*)(GET_FP - (opVal >> 12)));
-                    int methodIndex = opVal & 0xFFF;
+                    uint32_t offset = opVal >> 8;
+                    ForthObject thisObject = *((ForthObject*)(GET_FP - offset));
+                    int methodIndex = opVal & 0xFF;
                     SpewMethodName(thisObject, methodIndex);
                 }
                 else if (opType == kOpMethodWithMemberObject)
                 {
-                    // bits 0..11 are method index, bits 12..23 are object offset in longs
+                    // bits 0..7 are method index, bits 8..23 are object offset in cells
                     int32_t opVal = FORTH_OP_VALUE(op);
-                    ForthObject thisObject = *((ForthObject*)(((cell)(GET_TP)) + (opVal >> 12)));
-                    int methodIndex = opVal & 0xFFF;
+                    ForthObject thisObject = *((ForthObject*)(((cell*)GET_TP) + (opVal >> 8)));
+                    int methodIndex = opVal & 0xFF;
                     SpewMethodName(thisObject, methodIndex);
                 }
             }
