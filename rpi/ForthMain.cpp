@@ -13,32 +13,62 @@
 #include "Shell.h"
 #include "ConsoleInputStream.h"
 
+//#define LOG_TO_FILE 1
+
+#ifdef LOG_TO_FILE
+static FILE* loggerFile = nullptr;
+#else
 static int loggerFD = -1;
+const char* loggerFifo = "/tmp/forthLoggerFIFO";
+#endif
 
 void OutputToLogger(const char* pBuffer)
 {
-#if 1
-	if (loggerFD < 0)
-	{
-	    const char* myfifo = "/tmp/forthLoggerFIFO";
-
-	    /* create the FIFO (named pipe) */
-		unlink(myfifo);
-	    if (mkfifo(myfifo, 0666) < 0)
-		{
-			perror("error making fifo");
-		}
-	    loggerFD = open(myfifo, O_WRONLY);
-	}
-    write(loggerFD, pBuffer, strlen(pBuffer) + 1);
-    //close(loggerFD);
+#ifdef LOG_TO_FILE
+    if (loggerFile == nullptr)
+    {
+	loggerFile = fopen("logfile.txt", "a");
+    }
     
-    /* remove the FIFO */
-    //unlink(myfifo);
+    int n = fprintf(loggerFile, "%s", pBuffer);
 #else
-	FILE* outFile = fopen("logfile.txt", "a");
-	int n = fprintf(outFile, "%s", pBuffer);
-	fclose(outFile);
+
+
+    if (loggerFD < 0)
+    {
+	// create the FIFO (named pipe)
+	unlink(loggerFifo);
+	if (mkfifo(loggerFifo, 0666) < 0)
+	{
+		perror("error making logger fifo");
+	}
+	
+	// ugh, it seems like O_NONBLOCK doesn't work on rpi, so forth will hang at startup if logger isn't running
+	//loggerFD = open(loggerFifo, O_WRONLY | O_NONBLOCK);
+	loggerFD = open(loggerFifo, O_WRONLY);
+    }
+    
+    write(loggerFD, pBuffer, strlen(pBuffer) + 1);
+#endif
+}
+
+void CloseLogger()
+{
+#ifdef LOG_TO_FILE
+    if (loggerFile != nullptr)
+    {
+	fclose(loggerFile);
+	loggerFile = nullptr;
+    }
+#else
+
+    if (loggerFD >= 0)
+    {
+	close(loggerFD);
+    
+	/* remove the FIFO */
+	unlink(loggerFifo);
+    }
 #endif
 }
 
@@ -178,6 +208,8 @@ int main(int argc, const char* argv[], const char* envp[] )
         delete pShell;
     }
 
+    CloseLogger();
+    
     return nRetCode;
 }
 

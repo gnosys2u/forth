@@ -5,6 +5,7 @@ autoforget asm_arm
 : asm_arm ;
 
 vocabulary assembler
+also assembler definitions
 
 : there here ;
 : t@ @ ;
@@ -40,7 +41,7 @@ base @
 
 hex  \ EVERYTHING BELOW IS IN HEXADECIMAL!
 
-also assembler definitions
+\ also assembler definitions
 
 \ operand types
 enum: eARM \ 0      1           2      3    4        5       6           7
