@@ -13,12 +13,7 @@ TBDs:
   it doesn't seem worth it for most normal uses, but for programs which run
   with deep nesting or recursion it could be worth doing.
 
-- add actually running collosalCaveAdventure to test.fs
-  -> maybe just add 'restore full350'
-
 - add actually running atc to test.fs
-
-- fix bug in 64-bit mode where small integers are always compiled as ILIT + 32-bit data
 
 ? change global variables to have an opcode type
 

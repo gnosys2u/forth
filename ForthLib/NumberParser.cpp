@@ -7,6 +7,7 @@
 #include "pch.h"
 
 #include "NumberParser.h"
+#include "limits.h"
 
 //////////////////////////////////////////////////////////////////////
 ////
@@ -63,7 +64,6 @@ NumberType NumberParser::ScanNumber(const char* pSrc, int defaultBase)
     mBase = defaultBase;
 
     mIsNegative = false;
-    bool isSingle = true;
     const char* pSrcString = pSrc;
 
     while (srcIndex < len)
@@ -306,7 +306,8 @@ NumberType NumberParser::ScanNumber(const char* pSrc, int defaultBase)
     {
         // 32-bit int or 64-bit long
 #if defined(FORTH64)
-        mNumberType = NumberType::kLong;
+        mNumberType = (forcedLong || mDoubleCellValue.cells[0] < LONG_MIN || mDoubleCellValue.cells[0] > LONG_MAX)
+            ? NumberType::kLong : NumberType::kInt;
         mLongValue = mIsNegative ? -mDoubleCellValue.cells[0] : mDoubleCellValue.cells[0];
 #else
         mNumberType = forcedLong ? NumberType::kLong : NumberType::kInt;
