@@ -7134,12 +7134,12 @@ caseBranchTExType:
 	ldmia	rsp, {r0}
     mov r2, r1
     lsr r2, #12
-    ; sign extend case value if needed
+    @ sign extend case value if needed
 	ldr	r3, =0xFFFFF000
-    tst r2, =0x00000800
+    tst r2, #0x00000800
 	orrne	r2, r3
 	cmp	r0, r2
-	bne	.caseMismatch
+	bne	.cbtexMismatch
 	@ case did match - drop case selector and branch to case body
 	add	rsp, #4
     ldr r3, =0xFFF
@@ -7148,7 +7148,7 @@ caseBranchTExType:
 	add	rip, r1
 	bx	lr
 	
-.caseMismatch:
+.cbtexMismatch:
 	@ case didn't match, continue on to next instruction
 	bx	lr
 
@@ -7158,12 +7158,12 @@ caseBranchFExType:
 	ldmia	rsp, {r0}
     mov r2, r1
     lsr r2, #12
-    ; sign extend case value if needed
+    @ sign extend case value if needed
 	ldr	r3, =0xFFFFF000
-    tst r2, =0x00000800
+    tst r2, #0x00000800
 	orrne	r2, r3
 	cmp	r0, r2
-	beq	.caseMatched
+	beq	.cbfexMatched
 	@ case did not match, skip to next case
     ldr r3, =0xFFF
     and r1, r3
@@ -7171,7 +7171,7 @@ caseBranchFExType:
 	add	rip, r1
 	bx	lr
 	
-.caseMatched:
+.cbfexMatched:
 	@ case matched, drop case selector, continue executing this branch
 	add	rsp, #4
 	bx	lr

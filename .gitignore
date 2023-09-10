@@ -140,3 +140,4 @@ rpi/*.txt
 rpi/*.fs
 rpi/objasm
 Scripts/atc/traceOut.txt
+Scripts/adv/tmp.sav
