@@ -192,7 +192,7 @@ static const char *opTypeNames[] =
     "NativeU32", "NativeS32", "NativeF32", "NativeS64", "NativeF64",
     "CCodeU32", "CCodeS32", "CCodeF32", "CCodeS64", "CCodeF64",
     "UserDefU32", "UserDefS32", "UserDefF32", "UserDefS64", "UserDefF64",
-    "MethodWithLocalObject", "MethodWithMemberObject"
+    "MethodWithLocalObject", "MethodWithMemberObject", "CaseBranchTEx", "CaseBranchFEx", "ConstantImmediate"
 };
 
 
@@ -919,6 +919,7 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
                 break;
 
             case kOpConstant:
+            case kOpConstantImmediate:
                 if ( opVal & 0x800000 )
                 {
                     opVal |= 0xFF000000;
@@ -1018,6 +1019,22 @@ void Engine::DescribeOp(forthop *pOp, char *pBuffer, int buffSize, bool lookupUs
             case kOpSquishedLong:
 				SNPRINTF( pBuffer, buffSize, "%s %lld", opTypeName, mpOuter->UnsquishLong( opVal ) );
 				break;
+
+            case kOpCaseBranchTEx:  case kOpCaseBranchFEx:
+            {
+                uint32_t branchOffset = opVal & 0xFFF;
+                cell thisCaseValue = opVal >> 12;
+                if ((thisCaseValue & 0x800) != 0)
+                {
+#ifdef FORTH64
+                    thisCaseValue |= 0xFFFFFFFFFFFFF000;
+#else
+                    thisCaseValue |= 0xFFFFF000;
+#endif
+                }
+                SNPRINTF(pBuffer, buffSize, "%s (%d)   %p", opTypeName, thisCaseValue, branchOffset + 1 + pOp);
+                break;
+            }
 
             default:
                 if ( opType >= (uint32_t)(sizeof(opTypeNames) / sizeof(char *)) )

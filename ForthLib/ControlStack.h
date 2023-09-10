@@ -36,6 +36,7 @@ enum ControlStackTag
     kCSTagDefFunction   = 0x01000000,
     kCSTagDefMethod     = 0x02000000,
     kCSTagAhead         = 0x04000000,
+    kCSTagOfEx          = 0x08000000,
     kCSTagLastTag = kCSTagAhead  // update this when you add a new tag
    // if you add tags, remember to update TagStrings in Shell.cpp
 };

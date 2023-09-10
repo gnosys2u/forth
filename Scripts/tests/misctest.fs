@@ -194,20 +194,32 @@ section goto and labels
   m 100 <= gotoIf isBad
   
 label isGood
-    m . "is good!\n" %s
+    m . "is good!" %s
     goto exit
 label isBad
-    m . "SUCKS!!\n" %s
+    m . "SUCKS!!" %s
 label exit
 ;
 
 : testAndifOrif
   -> int m
   if(m 5 >) andif(m 10 <=) orif(m 100 >)
-    m . "is good!\n" %s
+    m . "is good!" %s
   else
-    m . "SUCKS!!\n" %s
+    m . "SUCKS!!" %s
   endif
+;
+
+: testOf
+  -> int n
+  case(n)
+    of(1) "one" %s endof
+    ofif(n 10 <) "less than 10" %s endof
+    of(10) "ten" %s endof
+    ofif(n 20 <) "11 to 19" %s endof
+    ofif(n 30 <) "20 to 29" %s endof
+    dup " greater than 29:" %s %d
+  endcase
 ;
 
 : testOfIf
@@ -218,11 +230,14 @@ label exit
     ofif(n 10 =) "ten" %s endof
     ofif(n 20 <) "11 to 19" %s endof
     ofif(n 30 <) "20 to 29" %s endof
-    dup %d
+    dup " greater than 29:" %s %d
   endcase
 ;
 
-: testAll dup testGotoLabels dup testAndifOrif testOfIf ;
+: testAll
+  dup testGotoLabels "        " %s dup testAndifOrif %nl
+  dup %d " is " %s dup testOfIf "        " %s testOf %nl
+;
 4 testAll  5 testAll 7 testAll 10 testAll 11 testAll 20 testAll 100 testAll 101 testAll %nl
 forget testGotoLabels
 
@@ -230,8 +245,9 @@ forget testGotoLabels
 section more funcs
 
 : moo
-  int a int b 5 -> a 7 -> b
-  f: 3 -> int a ;f drop
+  int a int b
+  5 a! 7 -> b  \ can't do b! because op 'b!' exists
+  f: 3 int a! ;f drop
   a . b .
 ;
 moo %nl

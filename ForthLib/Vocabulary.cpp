@@ -614,11 +614,14 @@ OpResult Vocabulary::ProcessEntry( forthop* pEntry )
             case kOpNativeImmediate:
             case kOpUserDefImmediate:
             case kOpCCodeImmediate:
+            case kOpRelativeDefImmediate:
+            case kOpConstantImmediate:
                 break;
             default:
                 compileIt = true;
         }
     }
+
     if ( compileIt )
     {
         mpEngine->GetOuterInterpreter()->CompileOpcode( *pEntry );

@@ -164,6 +164,7 @@ void ControlStack::GetTagString(ucell tags, char* pBuffer, size_t bufferSize)
         "function",
         "method",
         "ahead",
+        "ofEx",
         nullptr
     };
 

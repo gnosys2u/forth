@@ -1,9 +1,9 @@
 autoforget PHILOSOPHERS
 : PHILOSOPHERS ;
 
-100 -> int helpingsToEat
-2 -> int eatingTime
-2 -> int digestionTime
+25 -> int helpingsToEat
+1 -> int eatingTime
+1 -> int digestionTime
 5 -> int defaultNumPhilosophers
 true -> bool useForks
 

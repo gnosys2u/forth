@@ -832,6 +832,59 @@ caseMatched:
 	add	rpsp, 8
 	jmp	rnext
 	
+
+entry caseBranchTExType
+    ; TOS: case_selector
+	; rbx: bits 0..11 are branch offset in longs, bits 12-23 are signed integer case value
+    mov rax, rbx
+    shr rax, 12
+    mov rcx, rax
+    and rcx, 0800h
+    jz cbtex1
+    or rax, 0FFFFFFFFFFFFFF000h
+    jmp cbtex2
+
+cbtex1:
+    and rax, 07FFh
+
+cbtex2:
+	cmp	rax, [rpsp]
+	jnz	cbtexMismatch
+	; case did match - branch to case body
+	and	rbx, 0FFFh
+	sal	rbx, 2
+	add	rip, rbx
+	add	rpsp, 8     ; drop case selector
+cbtexMismatch:
+	jmp	rnext
+
+entry caseBranchFExType
+    ; TOS: case_selector
+	; rbx: bits 0..11 are branch offset in longs, bits 12-23 are signed integer case value
+    mov rax, rbx
+    shr rax, 12
+    mov rcx, rax
+    and rcx, 0800h
+    jz cbfex1
+    or rax, 0FFFFFFFFFFFFFF000h
+    jmp cbfex2
+
+cbfex1:
+    and rax, 07FFh
+
+cbfex2:
+	cmp	rax, [rpsp]
+	jz	cbfexMatched
+	; case didn't match - branch to next case test
+	and	rbx, 0FFFh
+	sal	rbx, 2
+	add	rip, rbx
+	jmp	rnext
+
+cbfexMatched:
+	add	rpsp, 8
+	jmp	rnext
+
 ;-----------------------------------------------
 ;
 ; branch around block ops
@@ -8309,12 +8362,15 @@ entry opTypesTable
     DQ  userDef64Type
     DQ  userDef64Type
 
-;   138 - 139
+;   138 - 142
     DQ  methodWithLocalObjectType
     DQ  methodWithMemberObjectType
+	DQ	caseBranchTExType			; kOpCaseBranchTEx,
+	DQ	caseBranchFExType			; kOpCaseBranchFEx,
+	DQ	constantType			; kOpConstantImmediate,   
 
-;	140 - 199
-	DQ	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
+;	143 - 199
+	DQ	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 ;	150 - 199
 	DQ	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 	DQ	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType

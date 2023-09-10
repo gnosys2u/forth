@@ -218,6 +218,7 @@ system.setDefinitionsVocab(system.getVocabByName("optypes"))
     optypes:UserDefImmediate of
     optypes:CCodeImmediate of
     optypes:RelativeDefImmediate of
+    optypes:ConstantImmediate of
       result--
     endof
   endcase

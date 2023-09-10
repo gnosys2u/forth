@@ -4159,6 +4159,60 @@ OPTYPE_ACTION( ReservedOptypeAction )
     SET_ERROR( ForthError::badOpcodeType );
 }
 
+OPTYPE_ACTION(CaseBranchTExAction)
+{
+    // bits 0..11 are branch offset in longs, bits 12-23 are signed integer 
+    // TOS: case_selector
+    uint32_t branchOffset = opVal & 0xFFF;
+    cell thisCaseValue = opVal >> 12;
+    if ((thisCaseValue & 0x800) != 0)
+    {
+#ifdef FORTH64
+        thisCaseValue |= 0xFFFFFFFFFFFFF000;
+#else
+        thisCaseValue |= 0xFFFFF000;
+#endif
+    }
+
+    cell* pSP = GET_SP;
+    if (*pSP == thisCaseValue)
+    {
+        // case matched - drop thisCaseValue & branch to case body
+        pSP++;
+        SET_SP(pSP);
+        SET_IP(GET_IP + branchOffset);
+    }
+}
+
+OPTYPE_ACTION(CaseBranchFExAction)
+{
+    // bits 0..11 are branch offset in longs, bits 12-23 are signed integer 
+    // TOS: case_selector
+    uint32_t branchOffset = opVal & 0xFFF;
+    cell thisCaseValue = opVal >> 12;
+    if ((thisCaseValue & 0x800) != 0)
+    {
+#ifdef FORTH64
+        thisCaseValue |= 0xFFFFFFFFFFFFF000;
+#else
+        thisCaseValue |= 0xFFFFF000;
+#endif
+    }
+
+    cell* pSP = GET_SP;
+    if (*pSP == thisCaseValue)
+    {
+        // case matched - drop test value and fall thru to case body
+        pSP++;
+        SET_SP(pSP);
+    }
+    else
+    {
+        // no match - skip to next case test
+        SET_IP(GET_IP + branchOffset);
+    }
+}
+
 #if 0
 OPTYPE_ACTION( MethodAction )
 {
@@ -4385,9 +4439,12 @@ optypeActionRoutine builtinOptypeAction[] =
     UserDef64Action,            // int64
     UserDef64Action,            // double
 
-    // 138 - 139    8A - 8B
+    // 138 - 142    8A - 8E
     MethodWithLocalObjectAction,
     MethodWithMemberObjectAction,
+    CaseBranchTExAction,
+    CaseBranchFExAction,
+    ConstantAction,
 
     NULL            // this must be last to end the list
 };

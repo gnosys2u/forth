@@ -204,7 +204,19 @@ typedef enum
     kOpMethodWithLocalObject,
     kOpMethodWithMemberObject,
     
-    kOpLastBaseDefined = kOpMethodWithMemberObject,
+    kOpCaseBranchTEx,                       // low 12 bits is unsigned branch offset, high 12 bits is signed case value
+    kOpCaseBranchFEx,                       // low 12 bits is unsigned branch offset, high 12 bits is signed case value
+    kOpConstantImmediate,                   // low 24 bits is signed symbol value
+
+    // WHEN ADDING NEW OPTYPES - remember to:
+    // o update kOpLastBaseDefined below
+    // o add name of optype to Engine::opTypeNames
+    // o add code to describe this op to Engine::DescribeOp
+    // o add function for this optype to ForthInner.cpp
+    // o add function for this optype to ForthInner::builtinOptypeAction
+
+    kOpLastBaseDefined = kOpCaseBranchFEx,
+
     kOpLocalUserDefined = 192,              // user can add more optypes starting with this one
     kOpMaxLocalUserDefined = 255,           // maximum user defined optype
 

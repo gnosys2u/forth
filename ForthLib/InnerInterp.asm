@@ -670,6 +670,58 @@ caseMatched:
 	add	rpsp, 4
 	jmp	rnext
 	
+entry caseBranchTExType
+    ; TOS: case_selector
+	; ebx: bits 0..11 are branch offset in longs, bits 12-23 are signed integer case value
+    mov eax, ebx
+    shr eax, 12
+    mov ecx, eax
+    and ecx, 0800h
+    jz cbtex1
+    or eax, 0FFFFFF000h
+    jmp cbtex2
+
+cbtex1:
+    and eax, 07FFh
+
+cbtex2:
+	cmp	eax, [rpsp]
+	jnz	cbtexMismatch
+	; case did match - branch to case body
+	and	ebx, 0FFFh
+	sal	ebx, 2
+	add	rip, ebx
+	add	rpsp, 4     ; drop case selector
+cbtexMismatch:
+	jmp	rnext
+
+entry caseBranchFExType
+    ; TOS: case_selector
+	; ebx: bits 0..11 are branch offset in longs, bits 12-23 are signed integer case value
+    mov eax, ebx
+    shr eax, 12
+    mov ecx, eax
+    and ecx, 0800h
+    jz cbfex1
+    or eax, 0FFFFFF000h
+    jmp cbfex2
+
+cbfex1:
+    and eax, 07FFh
+
+cbfex2:
+	cmp	eax, [rpsp]
+	jz	cbfexMatched
+	; case didn't match - branch to next case test
+	and	ebx, 0FFFh
+	sal	ebx, 2
+	add	rip, ebx
+	jmp	rnext
+
+cbfexMatched:
+	add	rpsp, 4
+	jmp	rnext
+
 ;-----------------------------------------------
 ;
 ; branch around block ops
@@ -8279,12 +8331,15 @@ entry opTypesTable
     DD  userDef64Type
     DD  userDef64Type
 
-;   138 - 139
+;   138 - 142
     DD  methodWithLocalObjectType
     DD  methodWithMemberObjectType
+	DD	caseBranchTExType			; kOpCaseBranchTEx,
+	DD	caseBranchFExType			; kOpCaseBranchFEx,
+    DD  constantType                ; kOpConstantImmediate
 
-;	140 - 199
-	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
+;	143 - 199
+	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 	DD	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType

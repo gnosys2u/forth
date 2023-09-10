@@ -329,6 +329,60 @@ Cases to test after big changes:
   - RelAsm
 
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+September 10 2023
+
+I put in the C++ version of new case branches, except I didn't handle the case
+where the branch offset doesn't fit in 12 bits yet.  When I tested it I ran into
+some cases where the old style branches were still being used, I found that they
+happened when code used a constant defined with the 'constant' op as the case
+selector, since my code is checking for the inline compiled constant just before
+the 'of'.  To fix this, I changed how 'constant' works to make a definition
+using the kConstant optype if possible, and only make a regular user definition
+if the value is too big - I'd wanted to do this for a while.
+
+My test.fs ran just fine with the new code, but the ANSI 2012 tests fail, because
+they test that you can define a 'constant' and make it immediate! GAH!
+
+I can think of a couple of ways to deal with this:
+o make 'constant' always make a user definition if an ansi feature flag is on
+o add an 'immediate constant' optype and have precedence/immediate use that
+o change precedence/immediate to remove a kConstant definition and add an
+  equivalent user definition constant
+I went with adding the immediate constant type.
+
+The win32 and amd64 assembler versions are done and tested, I still need to
+test the arm32 version.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+September 8 2023
+
+I started to change how case branches are done, to allow a single opcode to be
+both the case constant and the case branch, but I forgot how things work - when
+you process 'of' you don't know how big the branch offset to the next case branch
+will be, so you can't be absolutely sure the offset will fit into the 12 bits
+I had allocated for it.  The scheme for dealing with this is: in the 'of' op,
+you check that the signed case constant will fit in 12 bits, if so you assume
+that the unsigned offset will fit in 12 bits also (that means 4k instructions
+in a single case!).
+
+After thinking about it, I think the only case I need to worry about is the
+final selector for a case body - non-final selectors just have branches to the
+next selector test, the final selector has a branch around the entire case body,
+which practically never will need more than 12 bits.  In the bizarre case where
+the final branch won't fit in 12 bits, I'll need to move the case body down by
+a longword and recompile the original iconstant opcode, it should never more
+than one extra longword, otherwise it wouldn't have passed the constant size
+check in 'of'.
+
+? do I need to worry in general about case selectors which need 64-bits?
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+September 4 2023
+
+Adventure was still crashing in the ARM build but only when run from test.fs.
+The crash was when it was executing 't!'.  I originally thought the problem was
+because of the global Tree t in tree_examples, but it was actually in the ARM
+assembler, which was defining 't!' in the forth vocabulary.  Moving that definition
+into the assembler vocabulary where it belonged solved the problem.
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 August 28 2023
 
 Adventure is still crashing in startup, but now the problem is that in build_travel_table

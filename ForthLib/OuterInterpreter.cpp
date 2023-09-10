@@ -1567,7 +1567,7 @@ OuterInterpreter::GetLastConstant( int32_t& constantValue )
         int dpOffset = mpDictionary->pCurrent - pLastCompiledOpcode;
         if (opType == kOpConstant && dpOffset == 1)
         {
-            constantValue = opValue;
+            constantValue = (opValue & 0x800000) ? opValue | 0xFF000000 : opValue;
             return true;
         }
         else if (op == gCompiledOps[OP_INT_VAL] && dpOffset == 2)

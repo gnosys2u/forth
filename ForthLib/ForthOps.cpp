@@ -1132,8 +1132,22 @@ FORTHOP( ofOp )
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
     Shell *pShell = pEngine->GetShell();
     ControlStack *pControlStack = pShell->GetControlStack();
-    // save address for endof
-    pControlStack->Push( kCSTagOf, GET_DP );
+    ControlStackTag caseTag = kCSTagOf;
+    // see if we can possibly combine the case constant and case branch into a single opcode
+    // if the signed constant will fit in, assume it will work, we may need to undo this
+    // when 'endof' is executed in the extremely unlikely event the branch offset from 'of'
+    // to the next 'of' is more than 4k longwords
+    int32_t lastConstant = -117;
+    if (pOuter->GetLastConstant(lastConstant) && lastConstant >= -2048 && lastConstant < 2048)
+    {
+        // attempt to use opcode which combines case constant with case branch
+        caseTag = kCSTagOfEx;
+        // uncompile the integer constant opcode
+        pOuter->UncompileLastOpcode();
+        lastConstant &= 0xFFF;
+    }
+    // save address for endof, and lastConstant for kCSTagOfEx case
+    pControlStack->Push(caseTag, GET_DP, nullptr, (ucell)lastConstant);
     // this will be set to a caseBranch by endof
     pOuter->CompileDummyOpcode();
 }
@@ -1176,7 +1190,7 @@ FORTHOP( endofOp )
     {
         ControlStackEntry* pEntry = pControlStack->Peek();
         ControlStackTag tag = pEntry->tag;
-        if (!pShell->CheckSyntaxError("endof", tag, kCSTagOf | kCSTagOfIf | kCSTagCase))
+        if (!pShell->CheckSyntaxError("endof", tag, kCSTagOf | kCSTagOfEx | kCSTagOfIf | kCSTagCase))
         {
             return;
         }
@@ -1186,23 +1200,69 @@ FORTHOP( endofOp )
             break;
         }
         forthop* pOp = (forthop* )pEntry->address;
+        ucell caseValue = pEntry->op;
         pControlStack->Drop();
         // fill in the branch taken when case doesn't match
         forthop branchOp;
         cell branchOffset;
         forthop* pHere = GET_DP;
+        bool isOfIf = (tag == kCSTagOfIf);
+        bool isOfEx = (tag == kCSTagOfEx);
+        // TODO: restructure to eliminate duplicated code
         if (isLastCase)
         {
             // last case test compiles a branch around case body on mismatch
-            branchOp = (tag == kCSTagOfIf) ? kOpBranchZ : kOpCaseBranchF;
+            branchOp = isOfIf ? kOpBranchZ : kOpCaseBranchF;
             pCaseBody = pOp + 1;
             branchOffset = (pHere - pOp) - 1;
+            if (!isOfIf)
+            {
+                if (isOfEx)
+                {
+                    if (branchOffset < 2048)
+                    {
+                        // use opcode which combines case constant with case branch
+                        branchOp = kOpCaseBranchFEx;
+                        branchOffset |= (caseValue << 12);
+                    }
+                    else
+                    {
+                        // TODO!
+                        // - warn that case branch range was exceeded
+                        // - move code between pOp and pHere down by one longword
+                        // - compile kOpConstant(caseValue) at pOp
+                        // - increase branchOffset by one longword to account for the compiled kOpConstant
+                        SPEW_ENGINE("CaseBranchFEx range exceeded: %d\n", branchOffset);
+                    }
+                }
+            }
         }
         else
         {
             // all case tests except last compiles a branch to case body on match
-            branchOp = (tag == kCSTagOfIf) ? kOpBranchNZ : kOpCaseBranchT;
+            branchOp = isOfIf ? kOpBranchNZ : kOpCaseBranchT;
             branchOffset = (pCaseBody - pOp) - 1;
+            if (!isOfIf)
+            {
+                if (isOfEx)
+                {
+                    if (branchOffset < 2048)
+                    {
+                        // use opcode which combines case constant with case branch
+                        branchOp = kOpCaseBranchTEx;
+                        branchOffset |= (caseValue << 12);
+                    }
+                    else
+                    {
+                        // TODO!
+                        // - warn that case branch range was exceeded
+                        // - move code between pOp and pHere down by one longword
+                        // - compile kOpConstant(caseValue) at pOp
+                        // - increase branchOffset by one longword to account for the compiled kOpConstant
+                        SPEW_ENGINE("CaseBranchTEx range exceeded: %d\n", branchOffset);
+                    }
+                }
+            }
         }
         *pOp = COMPILED_OP(branchOp, branchOffset);
         isLastCase = false;
@@ -2625,22 +2685,56 @@ FORTHOP( iConstantOp )
 {
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    forthop* pEntry = pOuter->StartOpDefinition();
-    pEntry[1] = (forthop)BASE_TYPE_TO_CODE( BaseType::kUserDefinition );
-    pOuter->CompileBuiltinOpcode( OP_DO_ICONSTANT );
-    pOuter->CompileCell( SPOP );
+    cell constantValue = SPOP;
+    if ((constantValue < (1 << 23)) && (constantValue >= -(1 << 23)))
+    {
+        // number is in range supported by kOpConstant, just add it to vocabulary
+        forthop constantOp = COMPILED_OP(kOpConstant, constantValue & 0x00FFFFFF);
+        Vocabulary* definitionVocab = pOuter->GetDefinitionVocabulary();
+        const char* constantName = pOuter->GetNextSimpleToken();
+        definitionVocab->AddSymbol(constantName, constantOp);
+        forthop* pNewEnum = definitionVocab->GetNewestEntry();
+        pNewEnum[1] = (forthop)BASE_TYPE_TO_CODE(BaseType::kUserDefinition);
+    }
+    else
+    {
+        // number is out of range of kOpConstant, need to define a user op
+        forthop* pEntry = pOuter->StartOpDefinition();
+        pEntry[1] = (forthop)BASE_TYPE_TO_CODE(BaseType::kUserDefinition);
+        pOuter->CompileBuiltinOpcode(OP_DO_ICONSTANT);
+        pOuter->CompileCell(constantValue);
+    }
 }
 
 FORTHOP( lConstantOp )
 {
     Engine *pEngine = GET_ENGINE;
     OuterInterpreter* pOuter = pEngine->GetOuterInterpreter();
-    forthop* pEntry = pOuter->StartOpDefinition();
-    pEntry[1] = (forthop)BASE_TYPE_TO_CODE( BaseType::kUserDefinition );
-    // TODO: this is wrong for 32-bit!
-    pOuter->CompileBuiltinOpcode( OP_DO_LCONSTANT );
+#ifdef FORTH64
+    cell constantValue = SPOP;
+#else
     double d = DPOP;
-    pOuter->CompileDouble( d );
+    int64_t constantValue = *((int64_t*)&d);
+#endif
+    if ((constantValue < (1 << 23)) && (constantValue >= -(1 << 23)))
+    {
+        // number is in range supported by kOpConstant, just add it to vocabulary
+        forthop constantOp = COMPILED_OP(kOpConstant, constantValue & 0x00FFFFFF);
+        Vocabulary* definitionVocab = pOuter->GetDefinitionVocabulary();
+        const char* constantName = pOuter->GetNextSimpleToken();
+        definitionVocab->AddSymbol(constantName, constantOp);
+        forthop* pNewEnum = definitionVocab->GetNewestEntry();
+        pNewEnum[1] = (forthop)BASE_TYPE_TO_CODE(BaseType::kUserDefinition);
+    }
+    else
+    {
+        // number is out of range of kOpConstant, need to define a user op
+        forthop* pEntry = pOuter->StartOpDefinition();
+        pEntry[1] = (forthop)BASE_TYPE_TO_CODE(BaseType::kUserDefinition);
+        // TODO: this is wrong for 32-bit!
+        pOuter->CompileBuiltinOpcode(OP_DO_LCONSTANT);
+        pOuter->CompileDouble(*((double *)&constantValue));
+    }
 }
 
 FORTHOP( byteOp )
@@ -2736,7 +2830,7 @@ FORTHOP( arrayOfOp )
         // the symbol just before "arrayOf" should have been an integer constant
         if (pOuter->GetLastConstant( numElements ) )
         {
-            // uncompile the integer contant opcode
+            // uncompile the integer constant opcode
             pOuter->UncompileLastOpcode();
             // save #elements for var declaration ops
             pOuter->SetArraySize( numElements );
@@ -3852,10 +3946,15 @@ FORTHOP( precedenceOp )
                 *pEntry = COMPILED_OP(kOpRelativeDefImmediate, opVal);
                 break;
 
+            case kOpConstant:
+                *pEntry = COMPILED_OP(kOpConstantImmediate, opVal);
+                break;
+
             case kOpNativeImmediate:
             case kOpUserDefImmediate:
             case kOpCCodeImmediate:
             case kOpRelativeDefImmediate:
+            case kOpConstantImmediate:
                 // op already is immediate, do nothing and report no error
                 break;
 

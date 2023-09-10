@@ -7127,11 +7127,60 @@ caseBranchFType:
 	add	rsp, #8
 	bx	lr
 	
+
+caseBranchTExType:
+	@ TOS is value to check
+	@ r1: bits 0..11 are branch offset in longs, bits 12..23 are signed integer case value
+	ldmia	rsp, {r0}
+    mov r2, r1
+    lsr r2, #12
+    ; sign extend case value if needed
+	ldr	r3, =0xFFFFF000
+    tst r2, =0x00000800
+	orrne	r2, r3
+	cmp	r0, r2
+	bne	.caseMismatch
+	@ case did match - drop case selector and branch to case body
+	add	rsp, #4
+    ldr r3, =0xFFF
+    and r1, r3
+	lsl	r1, #2
+	add	rip, r1
+	bx	lr
+	
+.caseMismatch:
+	@ case didn't match, continue on to next instruction
+	bx	lr
+
+caseBranchFExType:
+	@ TOS is value to check
+	@ r1: bits 0..11 are branch offset in longs, bits 12..23 are signed integer case value
+	ldmia	rsp, {r0}
+    mov r2, r1
+    lsr r2, #12
+    ; sign extend case value if needed
+	ldr	r3, =0xFFFFF000
+    tst r2, =0x00000800
+	orrne	r2, r3
+	cmp	r0, r2
+	beq	.caseMatched
+	@ case did not match, skip to next case
+    ldr r3, =0xFFF
+    and r1, r3
+	lsl	r1, #2
+	add	rip, r1
+	bx	lr
+	
+.caseMatched:
+	@ case matched, drop case selector, continue executing this branch
+	add	rsp, #4
+	bx	lr
+	
 constantType:
 	ldr	r2,=0xFF000000
 	ldr	r3,=0x00800000
 	ands	r3, r1
-	orrne	r1,r2
+	orrne	r1, r2
 	stmdb	rsp!, {r1}
 	bx	lr
 	
@@ -7519,7 +7568,7 @@ squishedDoubleType:
 	lsr	r3, #18
 	ldr	r2, =0x1F
 	and	r3, r2
-	ldr	r2, =1008
+	ldr	r2, =1008       @ 1008 = 1023 - 15
 	add	r3, r2
 	lsl	r3, #20			@ r3 is exponent
 	orr	r0, r3
@@ -7908,11 +7957,15 @@ opTypesTable:
     .word  userDef64Type
     .word  userDef64Type
 
-@	138 - 139
+@	138 - 142
 	.word	methodWithLocalObjectType
 	.word	methodWithMemberObjectType
-@	140 - 149
-	.word	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
+	.word	caseBranchTExType		@ kOpCaseBranchTEx,
+	.word	caseBranchFExType		@ kOpCaseBranchFEx,
+	.word	constantType			@ kOpConstantImmediate,
+
+@	143 - 149
+	.word	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 @	150 - 199
 	.word	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
 	.word	extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType,extOpType
