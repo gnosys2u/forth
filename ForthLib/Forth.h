@@ -264,41 +264,41 @@ typedef void (*traceOutRoutine) ( void *pData, const char* pFormat, va_list argL
 
 // the varMode state makes variables do something other
 //  than their default behaviour (fetch)VarOperation xxx = varDefaultOp
-enum class VarOperation:ucell {
-    varDefaultOp = 0,
-    varGet,
-    varRef,
-    varSet,
+enum class VarOperation :ucell {
+    varDefaultOp = 0,       // no suffix
+    varGet,                 // @
+    varRef,                 // &
+    varSet,                 // !
 
-    varSetPlus,
-    varSetMinus,
-    varClear,
-    varPlus,
+    varSetPlus,             // !+
+    varSetMinus,            // !-
+    varClear,               // ~
+    varPlus,                // +
 
-    varInc,
-    varMinus,
-    varDec,
-    varIncGet,
-    
-    varDecGet,
-    varGetInc,
-    varGetDec,
+    varInc,                 // ++
+    varMinus,               // -
+    varDec,                 // --
+    varIncGet,              // ++@
+
+    varDecGet,              // --@
+    varGetInc,              // @++
+    varGetDec,              // @--
     varUnused1,
 
-    ptrAtGet,
-    ptrAtSet,
-    ptrAtSetPlus,
-    ptrAtSetMinus,
+    ptrAtGet,               // @@
+    ptrAtSet,               // @!
+    ptrAtSetPlus,           // @!+
+    ptrAtSetMinus,          // @!-
 
-    ptrAtGetInc,
-    ptrAtGetDec,
-    ptrAtSetInc,
-    ptrAtSetDec,
+    ptrAtGetInc,            // @@++
+    ptrAtGetDec,            // @@--
+    ptrAtSetInc,            // @!++
+    ptrAtSetDec,            // @!--
 
-    ptrIncAtGet,
-    ptrDecAtGet,
-    ptrIncAtSet,
-    ptrDecAtSet,
+    ptrIncAtGet,            // ++@@
+    ptrDecAtGet,            // --@@
+    ptrIncAtSet,            // ++@!
+    ptrDecAtSet,            // --@!
 
     numVarops,
 
