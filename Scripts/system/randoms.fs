@@ -38,12 +38,12 @@ autoforget randoms
 ;
 
 \ park-miller is default generator
-' _randParkMiller -> op _randomGeneratorOp
+' _randParkMiller op _randomGeneratorOp!
 
 #if FORTH64
-time ms@ xor -> int _randomSeed
+time ms@ xor int _randomSeed!
 #else
-time or ms@ xor -> int _randomSeed
+time or ms@ xor int _randomSeed!
 #endif
 
 
@@ -51,7 +51,7 @@ time or ms@ xor -> int _randomSeed
 \ doesn't work because of integer overflows turning negative
 
 : random
-  _randomSeed _randomGeneratorOp -> _randomSeed
+  _randomSeed _randomGeneratorOp _randomSeed!
 ;
   
 : setRandomSeed
@@ -66,7 +66,7 @@ time or ms@ xor -> int _randomSeed
       3802896 -
     endif
   endif
-  -> _randomSeed
+  _randomSeed!
 ;
 
 : getRandomSeed
@@ -78,7 +78,7 @@ class: RandomIntGenerator
   op generatorOp
   
   m: setSeed
-    -> seed
+    seed!
   ;m
   
   m: randomize
@@ -92,7 +92,7 @@ class: RandomIntGenerator
   
   m: init
     randomize
-    ['] _randParkMiller -> generatorOp
+    ['] _randParkMiller generatorOp!
   ;m
   
   m: getSeed
@@ -100,25 +100,25 @@ class: RandomIntGenerator
   ;m
   
   m: setGeneratorOp
-    -> generatorOp
+    generatorOp!
   ;m
   
   m: generate
-    if(fetch generatorOp 0=)
+    if(generatorOp@ 0=)
       \ first time only
       init
     endif
     
-    generatorOp(seed) -> seed
+    generatorOp(seed) seed!
   ;m
   
   m: shuffle
-    -> Array a
-    a.count -> cell ii
+    Array a!
+    a.count cell ii!
   
     begin
-      mod(generate ii) -> cell jj
-      1 ->- ii
+      mod(generate ii) cell jj!
+      ii--
       \ "swap " %s ii %d " with " %s jj %d %nl
       a.swap(ii jj)
     until(ii 1 =)
@@ -134,37 +134,29 @@ class: XorWowIntRandom extends RandomIntGenerator
   uint counter
   
   m: setSeed
-    dup -> seed
-    dup $12345678 xor -> seedB
-    dup dup * -> seedC
-    42 * 17 / -> seedD
-    0 -> counter
+    dup seed!
+    dup $12345678 xor seedB!
+    dup dup * seedC!
+    42 * 17 / seedD!
+    counter~
   ;m
   
-  m: init
-    randomize
-  ;m
-  
-  m: generate
-    if(fetch generatorOp 0=)
-      \ first time only
-      init
-    endif
-    
-    generatorOp(seed) -> seed
-  ;m
   : _randXorWow
-    seedD -> uint temp
+    seedD uint temp!
     
-  \ seed 16807 * MAXINT mod     (doesn't work because of integer overflows turning negative)
+    \ seed 16807 * MAXINT mod     (doesn't work because of integer overflows turning negative)
     127773 /mod
     swap 16807 * swap 2836 * -
-  dup 0<= if
-    MAXINT +
-  endif
-  dup
-;
+    dup 0<= if
+      MAXINT +
+    endif
+    dup
+  ;
 
+  m: init
+    randomize
+    ['] _randXorWow generatorOp!
+  ;m
   
 ;class
 
