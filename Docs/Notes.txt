@@ -64,17 +64,9 @@ TBDs:
 
 - figure out how to implement methods in assembler and document it
 
-- add opTypes for memberObjectMethod and localObjectMethod
-  + x86, amd64
-  - ARM
-
 ? does 'new' work for things like 'new Array of String'?  probably not...
   -> no, it doesn't need to - 'of String' is just attached to the Array instance,
      so 'new Array -> Array of String foo' will be just fine
-
-- reorganization 
-  - get rid of "Forth" at the start of all class names
-  - break up large files
 
 - get a consistent strategy for handling things like 2lit/lit/ilit/llit
 
@@ -122,60 +114,13 @@ TBDs:
 - also optimize stuff like offset,2@,drop
   -> these drops don't exist anymore, since getting rid of methods/data pair, right?
   
-+ test network.fs - it works
-
-+ add FORTH_RESOURCES environment variable for paths to things like fonts and bitmaps
-
-+ generalize loading from multiple paths to more than just scripts - use for DLLs and resources
-? add ways to access script path array (and others) from forth code
-+ support 32 and 64 bit DLLs
-  + add FORTH_DLL64 and FORTH_DLL32 optional environment variables which override FORTH_DLL
-
-+ fix life.fs -> it was a pointer-stored-as-int 64-bit problem
-
-+ add '@~' suffix for object unref (same code as '!-')
-
-+ fix super multi-fiber bug
-
-+ variable initialization is broken, at least for objects:
-    ARRAY_OBJECT Array arr!
-  doesn't initialize arr to ARRAY_OBJECT
-
-+ get multiple interfaces working using wrapper objects
-
-+ add a FORTH_SCRIPTS environment variable which allows multiple directories to be searched
-
-+ change icmp and uicmp to cmp and ucmp for consistency, add lcmp and ulcmp aliases for non-64 to autoload
-
-+ debug 64 bit varopSuffix changes
-
 ? test Linux 32-bit build
 
 ? try out OSX builds
 
-+ break outer interpreter out of ForthEngine
-
-+ add general immediate ops, so 'N op' would compile into just the op plus an immediate operand
-  + there would need to be new optypes for each of native, C and userDefs
-  + there would need to be 32 and 64 bit variants, maybe signed and unsigned for 32-bits
-
 ? get rid of old userDef optypes, replace with relativeDef optypes
 
-+ deal with ref counting being non-atomic
-
-+ get DLL support working for 64-bit
-
-+ debug pooled memory manager
-  + something is freeing many more 16 byte (or less) objects than are allocated thru pooled manager
-    - add a check that freed objects are actually in a pooled storage block
-
-+ test summary is always blank
-
-+ IntMap, StringIntMap, StringFloatMap have missing comma after "map" element - are there others like this?
-
 - show method always shows Object __pMethods value
-
-+ have verbose describe show names of user defined ops
 
 + add unref op, same op as ->-, it makes object variable:
   o leave object on TOS
@@ -230,8 +175,6 @@ x have "woof -> foo( blah )" compile into "woof blah -> foo"
   
 - "forget" doesn't complain about bogus symbols
 
-+ add ops for getting current search & definition vocabularies
-
 - a method for saving and restoring state
   -> maybe use memory mapped files for the dictionary, and only allow the restore if
      the file can be mapped at the same address
@@ -258,9 +201,6 @@ x have "woof -> foo( blah )" compile into "woof blah -> foo"
   
 ? generalize the undefined symbol handling mechanism which is used to define enums
 
-+ add a way to extend parsing for user-defined literal constants
-  -> 'literals' vocabulary
-  
 ? forward referencing
   Problem: forward referencing breaks "forget"
 
@@ -323,6 +263,20 @@ Cases to test after big changes:
   - DbgAsm
   - RelAsm
 
+-|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
+September 27 2023
+
+I started work on SDLApp, a simple GUI based on SDL.  I first tried having 2
+threads in addition to the main thread, one thread that did a loop on SDL_WaitEvent
+and stuffed the events in an AsyncEventQueue, and a second thread that consumed
+events from that queue.  I couldn't get it to work until I got rid of the event
+producer thread, and had the main thread do the stuffing of the event queue.
+
+Another thing I ran into is that I wanted to get rid of AsyncEventQueue, and
+have a generic AsyncDequeue type, which would allow any type of events to be
+in the queue, I don't see a simple way to do that right now, other than requiring
+a derived class to be defined for each contained type, and have the dequeue
+operation define the type returned.
 -|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|=|-
 September 10 2023
 
