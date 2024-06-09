@@ -1,0 +1,33 @@
+Objects
+
+single inheritance
+
+multiple interfaces
+
+all classes ultimately derive from Object
+
+Object class has 2 members:
+  methods pointer
+  reference count
+
+super
+  how it works
+
+reference counting
+  assignment to an object var normally increments refcount
+  refcounting is atomic
+  adding an object to a container object also increments refcount
+  assignment without incrementing refcount
+  clearing references
+  unref
+
+how new works
+  new:
+
+makeObject and mko
+
+life cycle of an object - or does this belong under refcounting?
+
+object variable suffixes and varops
+
+
