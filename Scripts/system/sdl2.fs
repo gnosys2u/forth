@@ -1629,12 +1629,12 @@ struct: SDL_AudioCVT
   int        needed      \ Set to 1 if conversion possible
   short      src_format    \ Source audio format
   short      dst_format    \ Target audio format
-  float      rate_incr    \ Rate conversion increment
+  sfloat     rate_incr    \ Rate conversion increment
   ptrTo byte  buf        \ Buffer to hold entire audio data
   int        len        \ Length of original audio buffer
   int        len_cvt      \ Length of converted audio buffer
   int        len_mult      \ buffer must be len*len_mult big
-  float      len_ratio    \ Given len, final size is len*len_ratio
+  sfloat     len_ratio    \ Given len, final size is len*len_ratio
   \ void (SDLCALL *filters[10])(struct: SDL_AudioCVT *cvt, Uint16 format);
   10 arrayOf ptrTo int    filters
   int        filter_index  \ Current audio conversion function

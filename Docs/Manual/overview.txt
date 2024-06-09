@@ -3,7 +3,7 @@ Overview
 This document describes a version of Forth which is intended to:
 ? make writing forth more accessible for people with non-RPN language experience
   ? also makes porting from c/c++/java easier
-? get the productivity advantages that you get with things like the STL (reword)
+? get the productivity advantages that you get with things like the C++ STL (reword)
 
 Datatypes
   numeric types

@@ -764,6 +764,10 @@ bool OuterInterpreter::ForgetSymbol( const char *pSym, bool quietMode )
                 break;
 
         }
+
+        // reset search & definitions vocabs in case we deleted a vocab we were using
+        SetDefinitionVocabulary(mpForthVocab);
+        mpVocabStack->Clear(mpForthVocab);
     }
     else
     {
@@ -778,10 +782,6 @@ bool OuterInterpreter::ForgetSymbol( const char *pSym, bool quietMode )
         }
         SPEW_ENGINE( "%s", buff );
     }
-
-    // reset search & definitions vocabs in case we deleted a vocab we were using
-    SetDefinitionVocabulary(mpForthVocab);
-    mpVocabStack->Clear(mpForthVocab);
 
     return forgotIt;
 }

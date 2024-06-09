@@ -11,17 +11,14 @@ A guiding idea behind the design of the virtual machine for FOAM is using fewer 
 FOAM can be used in 32-bit or 64-bit modes on Windows, Macintosh, Linux, or Raspberry-pi.
 
 ## ANSI Forth compatability
-ANSI Forth is not central to this implementation, but it can be used fairly easily for ANSI Forth programs.
-
-TODO: show how to do ANSI compatability
-TODO: which ANSI?
+ANSI Forth is not central to this implementation, but it can be configured to have complete ANSI 2012 Forth compatability.
 
 kFFAnsi -> features
 
 ## Syntax extensions
 
 ### Comments
-You can do end-of-line comments with '//' like C/C++.
+You can do end-of-line comments with '\ ' as in ansi forth
 Inline comments can be done with '/* ...STUFF... */', these must be on the same line.
 Note that */ by itself is the forth multiply/divide operator.
 You can turn on ANSI compliant comments which uses parentheses by ***TODO***
@@ -51,6 +48,7 @@ Special character values can be entered with backslashes, much like C/C++.
 
 #### String
 String constants have double quotes around them.
+Most operators use C-style null terminated strings, with a single pointer to the first character on TOS.
 
 #### User defined literals
 Users can add literals of their own by adding an operator to the 'literals' vocabulary
@@ -95,8 +93,8 @@ If you define a field which is a pointer to a struct, the TODO
 ## Native Datatypes
 
 ### Integer types
-byte
-ubyte
+#### byte
+#### ubyte
 short
 ushort
 int
@@ -107,7 +105,7 @@ cell and ucell
 
 ### Floating point types
 float
-double
+sfloat
 
 ### Strings
 
@@ -144,6 +142,10 @@ There is no native ARM/Apple silicon 64-bit build.
 This Forth has an object system, whose features include:
 o many builtin convenience classes including strings, arrays, maps and so on
 o (mostly) automatic reference counting
+
+## how .new works
+
+## how super works
 
 # Threads and Fibers
 A thread corresponds to a system thread - multiple threads can be using the processor at any moment.

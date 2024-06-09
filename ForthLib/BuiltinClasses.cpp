@@ -106,7 +106,7 @@ namespace
 
     //////////////////////////////////////////////////////////////////////
     ///
-    //                 object
+    //                 Object
     //
     FORTHOP(objectNew)
     {
@@ -184,7 +184,7 @@ namespace
 		// this is the big gaping hole - where should the pointer to the class vocabulary be stored?
 		// we could store it in the slot for method 0, but that would be kind of clunky - also,
 		// would slot 0 of non-primary interfaces also have to hold it?
-		// the class object is stored in the int32_t before method 0
+		// the class object is stored in the cell before method 0
         ForthClassObject* pClassObject = GET_CLASS_OBJECT(GET_TP);
         PUSH_OBJECT(pClassObject);
 		METHOD_RETURN;
