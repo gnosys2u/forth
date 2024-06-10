@@ -1,0 +1,311 @@
+
+loaddone
+
+=============== block word set ===============
+o blocks are 1024 bytes
+o current block buffer is most recent BLOCK/BUFFER/LOAD/LIST/THRU
+
+Addresses returned by BLOCK/BUFFER are extremely transient
+
++ BLK
++ BLOCK
++ BUFFER
++ EVALUATE      store 0 in BLK, restore after done
++ FLUSH
++ LOAD
++ SAVE-BUFFERS
++ UPDATE
+---
++ EMPTY-BUFFERS
++ LIST
++ REFILL
++ SCR
++ THRU
++ \
+
+=============== double-number word set ===============
++ DABS
++ D.R
++ D=
++ DMAX
++ DMIN
++ D-
++ DNEGATE
++ D+
++ D2/
++ D2*
++ DU<
++ D0=
++ D0<
++ D.
++ D<
++ D>S
++ M+
++ M*/
++ 2CONSTANT
++ 2LITERAL
+---
++ 2ROT
++ 2VALUE
++ 2VARIABLE
+
+=============== exception word set ===============
++ CATCH
++ THROW
+---
++ ABORT
++ ABORT"
+
+=============== facility word set ===============
++ AT-XY
++ KEY?
+- PAGE      for terminals this clears screen, for printers this does a form feed
+---
+- BEGIN-STRUCTURE
+- CFIELD:
+- EKEY
+- EKEY?
+- EKEY>CHAR
+- EKEY>FKEY
+- EMIT?
+- END-STRUCTURE
+- FIELD:
+- K-ALT-MASK
+- K-CTRL-MASK
+- K-DELETE
+- K-DOWN
+- K-END
+- K-F3
+- K-F4
+- K-F5
+- K-F6
+- K-F7
+- K-F8
+- K-F9
+- K-F1
+- K-F11
+- K-F12
+- K-F10
+- K-F2
+- K-HOME
+- K-INSERT
+- K-LEFT
+- K-NEXT
+- K-PRIOR
+- K-RIGHT
+- K-SHIFT-MASK
+- K-UP
++ MS
+- +FIELD
++ TIME&DATE
+
+=============== file-access word set ===============
++ BIN
++ CLOSE-FILE
++ CREATE-FILE
++ DELETE-FILE
++ FILE-POSITION
++ FILE-SIZE
++ INCLUDE-FILE
++ INCLUDED
++ OPEN-FILE
++ R/O
++ R/W
++ READ-FILE
++ READ-LINE
++ REPOSITION-FILE
++ RESIZE-FILE
++ SOURCE-ID
++ S"
++ W/O
++ WRITE-FILE
++ WRITE-LINE
++ (
+---
++ FILE-STATUS
++ FLUSH-FILE
++ INCLUDE
++ REFILL
++ RENAME-FILE
++ REQUIRE
++ REQUIRED
++ S\"
+
+
+=============== floating-point word set ===============
+- >FLOAT
+- D>F
+- F!
+- F*
+- F+
+- F-
+- F/
+- F0<
+- F0=
+- F<
+- F>D
+- F@        gforth has this be the same as DF@
+- FALIGN
+- FALIGNED
+- FCONSTANT
+- FDEPTH
+- FDROP
+- FDUP
+- FLITERAL
+- FLOAT+
+- FLOATS
+- FLOOR
+- FMAX
+- FMIN
+- FNEGATE
+- FOVER
+- FROT
+- FROUND
+- FSWAP
+- FVARIABLE
+- REPRESENT
+
+- DF!
+- DF@
+- DFALIGN
+- DFALIGNED
+- DFFIELD:
+- DFLOAT+
+- DFLOATS
+- F**
+- F.
+- F>S
++ FABS
++ FACOS
+- FACOSH
+- FALOG
++ FASIN
+- FASINH
++ FATAN
+- FATANH
++ FATAN2
++ FCOS
+- FCOSH
+- FE.
++ FEXP
+- FEXPM1
+- FFIELD:
++ FLN
+- FLNP1
++ FLOG
+- FS.
++ FSIN
+- FSINCOS
+- FSINH
++ FSQRT
++ FTAN
+- FTANH
+- FTRUNC
+- FVALUE
+- F~
+- PRECISION
+- S>F
+- SET-PRECISION
+- SF!
+- SF@
+- SFALIGN
+- SFALIGNED
+- SFFIELD:
+- SFLOAT+
+- SFLOATS
+
+=============== locals word set ===============
+- (LOCAL)
+- LOCALS|
+- {:
+
+
+=============== memory-allocation word set ===============
+- ALLOCATE
+- FREE
+- RESIZE
+
+=============== programming-tools word set ===============
+- .S    dstack, ds
++ DUMP
+- SEE   verbose describe
+- WORDS     vlist, maybe
+- ?     @ .
+---
+- AHEAD     creates a dummy forward branch that ENDIF will patch
+- ASSEMBLER
++ BYE
+- [DEFINED]
+- [ELSE]
+- [IF]
+- [THEN]
+- [UNDEFINED]
+- CODE
+- CS-PICK
+- CS-ROLL
+- EDITOR
+- FORGET
+- NAME>COMPILE
+- NAME>INTERPRET
+- NAME>STRING
+- NR>
+- N>R
+- STATE
+- SYNONYM
+- ;CODE
+- TRAVERSE-WORDLIST
+
+=============== search-order word set ===============
+- DEFINITIONS
+- FIND
+- FORTH-WORDLIST
+- GET-CURRENT
+- GET-ORDER
+- SEARCH-WORDLIST
+- SET-CURRENT
+- SET-ORDER
+- WORDLIST
+---
+- ALSO
+- FORTH
+- ONLY
+- ORDER
+- PREVIOUS
+
+=============== string word set ===============
+- BLANK
+- CMOVE
+- CMOVE>
+- COMPARE
+- /STRING
+- -TRAILING
+- SEARCH
+- SLITERAL
+---
+- REPLACES
+- SUBSTITUTE
+- UNESCAPE
+
+=============== extended-character word set ===============
+- [CHAR]
+- CHAR
+- EKEY>XCHAR
+- -TRAILING-GARBAGE
+- PARSE
+- +X/STRING
+- X-SIZE
+- X-WIDTH
+- XC-SIZE
+- XC-WIDTH
+- XC,
+- XC@+
+- XCHAR-
+- XCHAR+
+- XC!+
+- XC!+?
+- XEMIT
+- XHOLD
+- XKEY
+- XKEY?
+- X\STRING-
+
