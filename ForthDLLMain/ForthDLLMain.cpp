@@ -1,5 +1,5 @@
 //
-// // ForthDLLMain.cpp : This file contains the 'main' function. Program execution begins and ends there.
+// ForthDLLMain.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 // Copyright (C) 2024 Patrick McElhatton
 // Permission is hereby granted, free of charge, to any person obtaining a copy
