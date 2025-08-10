@@ -1,7 +1,7 @@
-\ ======== atcConsoleDisplay ========
+\ ======== ATCConsoleDisplay ========
 
-class: atcConsoleDisplay extends iAtcDisplay
-  iAtcRegion region
+class: ATCConsoleDisplay extends IATCDisplay
+  IATCRegion region
   int rowBytes
   int statusColumn
   int statusRow
@@ -97,7 +97,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     region.lines.headIter -> Iter iter
     begin
     while( iter.next )
-      -> iAtcLine line
+      -> IATCLine line
       line.x0 -> int x
       line.y0 -> int y
       line.x1 line.x0 icmp -> int dx
@@ -121,7 +121,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     region.beacons.headIter -> iter
     begin
     while( iter.next )
-      -> iAtcBeacon beacon
+      -> IATCBeacon beacon
       xyAddr(beacon.x beacon.y) '*' over c!
       1 ->- id
       1+ beacon.id '0' + swap c!
@@ -133,7 +133,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     region.portals.headIter -> iter
     begin
     while( iter.next )
-      -> iAtcPortal portal
+      -> IATCPortal portal
       portal.id '0' + xyAddr(portal.x portal.y)  c!
       oclear portal
     repeat
@@ -143,7 +143,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     region.airports.headIter -> iter
     begin
     while( iter.next )
-      -> iAtcAirport airport
+      -> IATCAirport airport
       xyAddr(airport.x airport.y) airport.entryDirection "^^>>vv<<" + c@ over c!
       1+ airport.id '0' +  swap c!
       oclear airport
@@ -188,7 +188,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     activeAirplanes.headIter -> Iter iter
     begin
     while( iter.next )
-      ->o iAtcAirplane plane
+      ->o IATCAirplane plane
       if( plane.status kAASMovingMarked >= )
         setConsoleCursor(plane.x 2* plane.y)
         if( plane.status kAASMovingMarked =)
@@ -236,7 +236,7 @@ class: atcConsoleDisplay extends iAtcDisplay
     activeAirplanes.headIter -> iter
     begin
     while( iter.next )
-      ->o iAtcAirplane plane
+      ->o IATCAirplane plane
       if( plane.status kAASMovingMarked < )
         startPlaneStatus(planeRow)
         1 ->+ planeRow
@@ -301,7 +301,7 @@ class: atcConsoleDisplay extends iAtcDisplay
 
     begin
     while( iter.next )
-      ->o iAtcAirplane plane
+      ->o IATCAirplane plane
       if( plane.status kAASMovingMarked >= )
         setConsoleCursor(plane.x 2* plane.y)
         xyAddr(plane.x plane.y) dup c@ %c 1+ c@ %c

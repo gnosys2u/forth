@@ -1,6 +1,6 @@
-\ ======== atcPortal ========
+\ ======== ATCPortal ========
 
-class: atcPortal extends iAtcPortal
+class: ATCPortal extends IATCPortal
 
   \ X Y ENTRY_DIRECTION ID
   m: init

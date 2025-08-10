@@ -1,10 +1,10 @@
-\ ======== atcGame ========
+\ ======== ATCGame ========
 
-class: atcGame extends iAtcGame
+class: ATCGame extends IATCGame
 
-  iAtcRegion region
+  IATCRegion region
   \ Array pendingTakeoffs
-  atcInputHandler inputHandler
+  ATCInputHandler inputHandler
   String message
   
   int updateRate
@@ -24,9 +24,9 @@ class: atcGame extends iAtcGame
     new Array airplanes!
     new List activeAirplanes!
     new List inactiveAirplanes!
-    new atcConsoleDisplay display!
-    new atcRegion region!
-    new atcInputHandler inputHandler!
+    new ATCConsoleDisplay display!
+    new ATCRegion region!
+    new ATCInputHandler inputHandler!
     new String message!
     inputHandler.init( region display )
   ;m
@@ -49,7 +49,7 @@ class: atcGame extends iAtcGame
   ;m
   
   : startGame
-    atcAirplane plane
+    ATCAirplane plane
     updateRate 1000 * status.moveInterval!
     display.init(region)
     ms@ dup status.gameStartTime!
@@ -60,7 +60,7 @@ class: atcGame extends iAtcGame
     display.showWarning( "" )
     do(26 0)
       \ create all airplanes and add to inactive list
-      new atcAirplane plane!
+      new ATCAirplane plane!
       plane.init( region i )
       new String plane.name!
       plane.name.appendChar('A' i +)
@@ -78,11 +78,11 @@ class: atcGame extends iAtcGame
   
   \ newPlaneX newPlaneY plane ...
   m: moveAirplane
-    iAtcAirplane plane!
+    IATCAirplane plane!
     int newY!
     int newX!
-    atcTile oldTile
-    atcTile newTile
+    ATCTile oldTile
+    ATCTile newTile
     \ display.showWarning(plane.name.get) %bl newX %d %bl newY %d %bl
     region.getTile( plane.x plane.y ) oldTile!o 
     oldTile.removeAirplane( plane )
@@ -149,7 +149,7 @@ class: atcGame extends iAtcGame
       endif
       
       if(oldTile.tileType kATTPortal =)
-        region.portals.get(oldTile.index) ->o iAtcPortal portal
+        region.portals.get(oldTile.index) ->o IATCPortal portal
         if( portal.id plane.destination <>)
           false legalExit!
           message.append(" - wrong exit")
@@ -171,14 +171,14 @@ class: atcGame extends iAtcGame
   ;m
 
   m: activateAirplane  \ PLANE_OBJ ...
-    atcAirplane plane
+    ATCAirplane plane
     plane!o
     activeAirplanes.addTail( plane )
     inactiveAirplanes.remove( plane )
   ;m
   
   m: deactivateAirplane  \ PLANE_OBJ ...
-    atcAirplane plane
+    ATCAirplane plane
     plane!o
     inactiveAirplanes.addTail( plane )
     activeAirplanes.remove( plane )
@@ -201,15 +201,15 @@ class: atcGame extends iAtcGame
 
   : generateNewAirplanes
     \ add airplanes 
-    iAtcAirplane plane
+    IATCAirplane plane
     int destinationNum
     int x  int y   int altitude   int heading
     int destination
     int destinationType
     false int isJet!
     false int isMoving!
-    iAtcPortal portal
-    iAtcAirport airport
+    IATCPortal portal
+    IATCAirport airport
     
     if( status.moves status.nextPlaneMove >= )
       newplaneRate ->+ status.nextPlaneMove
@@ -270,11 +270,11 @@ class: atcGame extends iAtcGame
     setConsoleCursor(0 40)
     begin
     while( iter.next )
-      atcAirplane plane!
+      ATCAirplane plane!
       if(plane.status kAASMovingMarked >=)
         region.checkCollisions(plane) collidedPlaneId!
         if(collidedPlaneId 0>=)
-          airplanes.get(collidedPlaneId) iAtcAirplane collidedPlane!
+          airplanes.get(collidedPlaneId) IATCAirplane collidedPlane!
           message.set("Plane ")
           message.append(plane.name.get)
           message.append(" collided with Plane ")
@@ -295,7 +295,7 @@ class: atcGame extends iAtcGame
     activeAirplanes.headIter Iter iter!
     begin
     while( iter.next )
-      atcAirplane plane!
+      ATCAirplane plane!
       plane.update( status.moves )
     repeat
     plane~
@@ -306,9 +306,9 @@ class: atcGame extends iAtcGame
     activeAirplanes.headIter Iter iter!
     begin
     while( iter.next )
-      atcAirplane plane!
+      ATCAirplane plane!
       plane.getPos long oldPos!
-      region.getTile( oldPos ) atcTile oldTile!
+      region.getTile( oldPos ) ATCTile oldTile!
     repeat
     plane~
     oldTile~
@@ -334,7 +334,7 @@ class: atcGame extends iAtcGame
   m: executeCommand
     ptrTo atcCommandInfo commandInfo!
     if( commandInfo.airplaneNum airplanes.count < )
-      airplanes.get(commandInfo.airplaneNum) iAtcAirplane plane!
+      airplanes.get(commandInfo.airplaneNum) IATCAirplane plane!
       \ tf{ "executeCommand " %s  commandInfo.airplaneNum %d %bl plane.beaconNum %d %nl }tf
       if( and(commandInfo.command kNumCommands <   commandInfo.command 0>=) )
         plane.executeCommand( commandInfo display )

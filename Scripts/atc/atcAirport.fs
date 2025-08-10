@@ -1,6 +1,6 @@
 \ ======== airport ========
 
-class: atcAirport extends iAtcAirport
+class: ATCAirport extends IATCAirport
 
   \ X Y ENTRY_DIRECTION ID
   m: init

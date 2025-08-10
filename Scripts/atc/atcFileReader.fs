@@ -15,7 +15,7 @@
 vocabulary atcFileReader
 also atcFileReader definitions
 
-atcGame daGame
+ATCGame daGame
 
 \ directions are based on the 8 keyboard keys surrounding the 's' key
 \ for airports this is runway direction, for portals this is entry direction

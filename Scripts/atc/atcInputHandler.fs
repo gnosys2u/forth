@@ -1,8 +1,8 @@
-\ ======== atcInputHandler ========
+\ ======== ATCInputHandler ========
 
 kNumCommandStates arrayOf op inputStateOps
   
-class: atcInputHandler extends iAtcInputHandler
+class: ATCInputHandler extends IATCInputHandler
 
   int cmdChar    \ converted to lowercase
   int oCmdChar    \ original keyboard char

@@ -1,8 +1,8 @@
 \ ======== airplane ========
 
-class: atcAirplane extends iAtcAirplane
+class: ATCAirplane extends IATCAirplane
 
-  iAtcRegion region
+  IATCRegion region
   int nextUpdateTime
   int updateInterval        \ 1 for jets, 2 for regular planes
     
@@ -155,7 +155,7 @@ class: atcAirplane extends iAtcAirplane
   
   
   m: executeCommand \ COMMAND_INFO_PTR DISPLAY_OBJECT ...
-    iAtcDisplay display     display!o
+    IATCDisplay display     display!o
     ptrTo atcCommandInfo commandInfo!
     if( status kAASMovingMarked >= )
       case( commandInfo.command)

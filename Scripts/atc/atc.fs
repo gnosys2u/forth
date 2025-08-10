@@ -105,9 +105,9 @@ struct: atcStatus
   int keepPlaying
 ;struct
 
-\ ======== atcTile ========
+\ ======== ATCTile ========
 
-class: atcTile
+class: ATCTile
   int tag
   
   byte altitude
@@ -146,7 +146,7 @@ class: atcTile
 ;class
 
 
-class: iAtcDisplay
+class: IATCDisplay
   int tag
   ByteArray text
   ptrTo byte textBase
@@ -163,12 +163,12 @@ class: iAtcDisplay
   
 ;class
 
-class: iAtcGame
+class: IATCGame
   int tag
   Array airplanes
   List activeAirplanes
   List inactiveAirplanes
-  iAtcDisplay display
+  IATCDisplay display
   atcStatus status
   String name
   
@@ -180,11 +180,11 @@ class: iAtcGame
   m: play                ;m
 ;class
 
-iAtcGame game
+IATCGame game
 
 \ ======== interfaces ========
 
-class: iAtcAirplane
+class: IATCAirplane
   int tag
   int fuel
   String name
@@ -212,7 +212,7 @@ class: iAtcAirplane
   m: getPos  x y     ;m \ ... X Y
 ;class
 
-class: iAtcAirport
+class: IATCAirport
   int tag
   int id
   int altitude
@@ -225,7 +225,7 @@ class: iAtcAirport
   m: updateStatus    ;m
 ;class
 
-class: iAtcPortal
+class: IATCPortal
   int tag
   int id
   int x
@@ -239,7 +239,7 @@ class: iAtcPortal
   m: update          ;m
 ;class
 
-class: iAtcBeacon
+class: IATCBeacon
   int tag
   int x
   int y
@@ -256,7 +256,7 @@ class: iAtcBeacon
   
 ;class
 
-class: iAtcLine
+class: IATCLine
   int tag
   int x0
   int y0
@@ -270,7 +270,7 @@ class: iAtcLine
 
 ;class
 
-class: iAtcRegion
+class: IATCRegion
   int tag
   int rows
   int columns
@@ -285,15 +285,15 @@ class: iAtcRegion
   
   m: init                                ;m \ width height game
   m: reset                               ;m
-  m: getTile returns atcTile             ;m \ x y ... atcTile@x,y
-  m: setTile                             ;m \ atcTile x y ...  
+  m: getTile returns ATCTile             ;m \ x y ... ATCTile@x,y
+  m: setTile                             ;m \ ATCTile x y ...  
   m: update                              ;m
-  m: getBeacon returns iAtcBeacon        ;m \ BEACON_NUM ... BEACON_OBJ
-  m: getAirport returns iAtcAirport      ;m \ AIRPORT_NUM ... AIRPORT_OBJ
-  m: getPortal returns iAtcPortal        ;m \ PORTAL_NUM ... PORTAL_OBJ
-  m: getAirport@ returns iAtcAirport     ;m \ X Y ... AIRPORT_OBJ
-  m: getPortal@ returns iAtcPortal       ;m \ X Y ... PORTAL_OBJ  
-  m: getBeacon@ returns iAtcBeacon       ;m \ X Y ... BEACON_OBJ  
+  m: getBeacon returns IATCBeacon        ;m \ BEACON_NUM ... BEACON_OBJ
+  m: getAirport returns IATCAirport      ;m \ AIRPORT_NUM ... AIRPORT_OBJ
+  m: getPortal returns IATCPortal        ;m \ PORTAL_NUM ... PORTAL_OBJ
+  m: getAirport@ returns IATCAirport     ;m \ X Y ... AIRPORT_OBJ
+  m: getPortal@ returns IATCPortal       ;m \ X Y ... PORTAL_OBJ  
+  m: getBeacon@ returns IATCBeacon       ;m \ X Y ... BEACON_OBJ  
   m: checkCollisions                     ;m \ PLANE ... COLLIDED_PLANE_ID  returns -1 if no collision
   m: addPortal                           ;m \ X Y ENTRY_ALTITUDE EXIT_ALTITUDE ...
   m: addAirport                          ;m \ X Y ALTITUDE ...
@@ -301,10 +301,10 @@ class: iAtcRegion
   m: addLine                             ;m \ X0 Y0 X1 Y1 ...
 ;class
 
-class: iAtcInputHandler
+class: IATCInputHandler
   int tag
-  iAtcDisplay display
-  iAtcRegion region
+  IATCDisplay display
+  IATCRegion region
   String displayString
   String commandString
   atcCommandInfo commandInfo
@@ -355,7 +355,7 @@ lf atcFileReader
 : atc
   openTrace
   getConsoleColor int color!
-  new atcGame game!
+  new ATCGame game!
   game.init( blword )
 #if FORTH64
   srand(xor(time dup 32 rshift swap MAXUINT and))
