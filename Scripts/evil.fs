@@ -2,7 +2,7 @@ autoforget EVIL
 
 : EVIL ;
 
-class: evil
+class: Evil
 	\ implements the 'evil' language - see http://web.archive.org/web/20070103000858/www1.pacific.edu/~twrensch/evil/index.html
 
 	ByteArray wheel
@@ -252,7 +252,7 @@ r[
 "zaeeeeeaeawuuuw"
 ]r 
 evilProgram.load
-mko evil vm
+mko Evil vm
 vm.init
 vm.setSource( evilProgram.get )
 vm.execute

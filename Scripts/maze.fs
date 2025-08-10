@@ -82,7 +82,7 @@ enum: eMazeTileTypes
 \ maze sizes do not include the boundary around the maze, so a 10 by 20 maze
 \ will have valid x indices from 0 to 11 and y indices from 0 to 21
 
-class: mazeArray
+class: MazeArray
   
   ByteArray maze
   int width
@@ -153,7 +153,7 @@ class: mazeArray
 class: mazeDisplay
 
   
-  mazeArray maze
+  MazeArray maze
   ByteArray mazeText
   int rowBytes
   int numRows
@@ -256,7 +256,7 @@ class: mazeGenerator
   int numStuck
   int numBacksteps
   
-  mazeArray maze
+  MazeArray maze
   mazeDisplay disp
   
   m: delete
@@ -281,7 +281,7 @@ class: mazeGenerator
     mazeWidth exitX!
     mazeHeight 2/ 1+ exitY!
     
-    new mazeArray maze!
+    new MazeArray maze!
     maze.init( mazeWidth mazeHeight startX startY exitX exitY )
 
     new mazeDisplay disp!
